@@ -1,0 +1,8 @@
+{
+  "name": "Lone Boo",
+  "description": "A cartoon-style interactive app for kids featuring videos, books, and AI magic from the ILoneBoo universe.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

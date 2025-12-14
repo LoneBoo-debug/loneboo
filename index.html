@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PERFORMANCE: PRELOAD CRITICAL ASSETS -->
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Chewy&family=Luckiest+Guy&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    
+    <!-- Critical Backgrounds (Mobile & Desktop) - Caricati subito per LCP -->
+    <link rel="preload" as="image" href="https://i.postimg.cc/vBmvH8Nw/dfggsh.jpg" media="(max-width: 767px)">
+    <link rel="preload" as="image" href="https://i.postimg.cc/j2RYjF7J/psfrdds.jpg" media="(min-width: 768px)">
+    
+    <!-- PRIMARY SEO -->
+    <title>Lone Boo World: L'App Magica per Bambini - Giochi, Favole e Musica 👻</title>
+    <meta name="description" content="Benvenuti nel mondo di Lone Boo! L'app ufficiale sicura e senza pubblicità. Video canzoni, giochi educativi, favole della buonanotte e intelligenza artificiale per imparare sorridendo.">
+    <meta name="keywords" content="Lone Boo, giochi educativi bambini, canzoni per bambini, favole della buonanotte, app sicura bambini, LoneBoo World, video cartoni animati, giochi gratis bambini">
+    <meta name="author" content="Lone Boo">
+    <link rel="canonical" href="https://loneboo.online/" />
+    
+    <!-- SEARCH ENGINE INSTRUCTIONS -->
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- OPEN GRAPH / SOCIAL -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://loneboo.online/">
+    <meta property="og:title" content="Lone Boo World: L'App Magica per Bambini 👻">
+    <meta property="og:description" content="Benvenuti nel mondo di Lone Boo! L'app ufficiale sicura e senza pubblicità. Video canzoni, giochi educativi, favole della buonanotte e intelligenza artificiale.">
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee">
+    <meta property="og:site_name" content="Lone Boo World">
+
+    <!-- MOBILE APP CAPABILITIES -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#8B5CF6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Lone Boo" />
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- FAVICONS -->
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee" />
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee">
+    
+    <!-- TAILWIND -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // ROBUST POLYFILLS
+      window.global = window;
+      if (!window.process) {
+        window.process = {
+          env: { NODE_ENV: 'production' },
+          version: '',
+          versions: {},
+          platform: 'browser'
+        };
+      }
+      
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'boo-purple': '#8B5CF6',
+              'boo-orange': '#F97316',
+              'boo-green': '#10B981',
+              'boo-yellow': '#FBBF24',
+              'boo-blue': '#3B82F6',
+            },
+            fontFamily: {
+              sans: ['"Fredoka"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+              cartoon: ['"Titan One"', 'cursive'],
+              chewy: ['"Chewy"', 'cursive'],
+              luckiest: ['"Luckiest Guy"', 'cursive'],
+            },
+            keyframes: {
+              wiggle: {
+                '0%, 100%': { transform: 'rotate(-10deg)' },
+                '50%': { transform: 'rotate(10deg)' },
+              },
+              'float-up': {
+                '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+                '100%': { transform: 'translateY(-100px) scale(0)', opacity: '0' },
+              },
+              'jelly': {
+                '0%, 100%': { transform: 'scale(1, 1)' },
+                '25%': { transform: 'scale(0.9, 1.1)' },
+                '50%': { transform: 'scale(1.1, 0.9)' },
+                '75%': { transform: 'scale(0.95, 1.05)' },
+              },
+              'float': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-8px)' },
+              },
+              'breathing-scale': {
+                '0%, 100%': { transform: 'scale(1.8)' },
+                '50%': { transform: 'scale(1.95)' },
+              }
+            },
+            animation: {
+              wiggle: 'wiggle 1s ease-in-out infinite',
+              'float-up': 'float-up 1s ease-out forwards',
+              'jelly': 'jelly 0.5s ease-in-out',
+              'float': 'float 3s ease-in-out infinite',
+              'breathing-scale': 'breathing-scale 6s ease-in-out infinite',
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- STRUCTURED DATA (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://loneboo.online/#website",
+          "url": "https://loneboo.online/",
+          "name": "Lone Boo World",
+          "description": "L'app ufficiale di Lone Boo! Un mondo sicuro senza pubblicità.",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Lone Boo",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee"
+            }
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Lone Boo App",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "Any",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+          "image": "https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee"
+        }
+      ]
+    }
+    </script>
+
+    <style>
+      html, body {
+        overscroll-behavior-y: none;
+        font-family: 'Fredoka', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #8B5CF6; /* Fallback Color */
+      }
+      h1, h2, h3 { font-family: 'Titan One', cursive; }
+      .font-luckiest { font-family: 'Luckiest Guy', cursive !important; }
+      
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb { background: #F97316; border-radius: 10px; }
+      
+      /* Smooth Gradient Background Fixed */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: linear-gradient(180deg, #7C3AED 0%, #9333EA 40%, #DB2777 100%);
+        z-index: -1;
+      }
+
+      /* Orientation Lock Overlay */
+      #orientation-lock { display: none; }
+      @media only screen and (max-width: 920px) and (orientation: landscape) {
+        #orientation-lock {
+          display: flex !important;
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background-color: #8B5CF6;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: white;
+        }
+        body.allow-landscape #orientation-lock { display: none !important; }
+      }
+      
+      /* Initial Loader (Visible before React mounts) */
+      #root:empty {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      #root:empty::after {
+        content: "Caricamento...";
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "@mediapipe/tasks-vision": "https://aistudiocdn.com/@mediapipe/tasks-vision@^0.10.22-rc.20250304",
+    "resend": "https://aistudiocdn.com/resend@^6.5.2",
+    "qrcode": "https://esm.sh/qrcode@1.5.3",
+    "jsqr": "https://esm.sh/jsqr@1.4.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <script>
+      // Service Worker & Safety Reload
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+      
+      // Fallback if app crashes immediately
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.trim() === '') {
+           window.location.reload();
+        }
+      }, 4000);
+    </script>
+  </body>
+</html>
