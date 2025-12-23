@@ -4,9 +4,11 @@ import { AppView, ChatMessage } from '../types';
 import { Loader2, Send, Maximize2, X, Minimize2, Lock, Hourglass, Mic, MicOff, Volume2, VolumeX, Smile, AlertTriangle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { getLoneBooChatResponse } from '../services/ai';
 import RobotHint from './RobotHint';
+import { OFFICIAL_LOGO } from '../constants';
 
 const TOTEM_BG_MOBILE = 'https://i.postimg.cc/ZqYqdfGC/totemss.jpg';
 const TOTEM_BG_DESKTOP = 'https://i.postimg.cc/FsGD0MQG/info-169.jpg';
+const BOO_OFFENDED_IMG = 'https://i.postimg.cc/gr9D2tqS/boohungry-(1).png';
 
 // --- MODERATION CONSTANTS ---
 const OFFENSE_LIMIT_BEFORE_ULTIMATUM = 4; // At 4 offenses, stern warning
@@ -92,7 +94,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       if (!window.speechSynthesis || !audioEnabled) return;
       window.speechSynthesis.cancel();
       
-      // Clean emojis and weird chars before speaking to prevent "Smiling Face with Heart Eyes" reading
       const cleanText = text
         .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/gu, '')
         .replace(/\[.*?\]/g, '') // Remove tags
@@ -107,7 +108,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       utterance.rate = 1.1; 
       utterance.pitch = 1.2;
       
-      // Try to find a good Italian voice (Google or Alice)
       const voices = window.speechSynthesis.getVoices();
       const italianVoice = voices.find(v => v.lang === 'it-IT' && (v.name.includes('Google') || v.name.includes('Alice'))) || voices.find(v => v.lang === 'it-IT');
       
@@ -228,6 +228,8 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       imgMobile.src = TOTEM_BG_MOBILE;
       const imgDesktop = new Image();
       imgDesktop.src = TOTEM_BG_DESKTOP;
+      const imgBan = new Image();
+      imgBan.src = BOO_OFFENDED_IMG;
 
       let loadedCount = 0;
       const checkLoad = () => {
@@ -237,6 +239,7 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
 
       imgMobile.onload = checkLoad;
       imgDesktop.onload = checkLoad;
+      imgBan.onload = checkLoad;
 
       setTimeout(() => setIsLoaded(true), 1500);
 
@@ -291,16 +294,13 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       let reply = "";
       
       if (newCount >= OFFENSE_LIMIT_BAN) {
-          // STRIKE 3 or MAX: BAN
           reply = "Mi dispiace, ma non posso più giocare con te se usi queste parole. Vado a fare un giro, ci rivediamo tra 5 minuti quando sarai più gentile. 👋";
           const banTime = Date.now() + BAN_DURATION_MS;
           setBanUntil(banTime);
           localStorage.setItem('chat_ban_until', banTime.toString());
       } else if (newCount >= OFFENSE_LIMIT_BEFORE_ULTIMATUM) {
-          // STRIKE 2: ULTIMATUM
           reply = "Ascolta, questo linguaggio non mi piace proprio. Te lo dico per l'ultima volta: se scrivi ancora una cosa del genere, me ne vado a fare altro! 🛑";
       } else {
-          // STRIKE 1: WARNING
           if (aiMessage && aiMessage.length > 5) {
               reply = aiMessage;
           } else {
@@ -308,7 +308,7 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
           }
       }
       setHistory(prev => [...prev, { role: 'model', text: reply }]);
-      speakNative(reply); // Announce warning using Native TTS
+      speakNative(reply);
   };
 
   const handleSendMessage = async (text?: string) => {
@@ -322,7 +322,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       setInputText('');
       setPendingNavigation(null);
 
-      // --- LOCAL REGEX CHECK (Immediate Feedback) ---
       if (BAD_WORDS_REGEX.test(messageToSend)) {
           setTimeout(() => handleOffense(), 500); 
           return;
@@ -332,7 +331,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
 
       const responseText = await getLoneBooChatResponse(history, messageToSend);
       
-      // --- AI RESPONSE CHECK (Contextual Moderation) ---
       if (responseText.includes('[OFFENSE_DETECTED]')) {
           setIsThinking(false);
           const cleanReason = responseText.replace('[OFFENSE_DETECTED]', '').trim();
@@ -356,7 +354,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
       setHistory(prev => [...prev, modelMsg]);
       setIsThinking(false);
       
-      // Native Speech Output (Free & Token Saving!)
       speakNative(cleanText);
   };
 
@@ -393,7 +390,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
             .scrollbar-thin-orange::-webkit-scrollbar-thumb { background-color: #F97316; border-radius: 4px; }
           `}</style>
 
-          {/* PERMISSION DIALOG MODAL (INSIDE CHAT) */}
           {showPermissionDialog && (
               <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
                   <div className="bg-white rounded-[30px] border-4 border-black p-6 w-full max-w-sm text-center shadow-2xl relative">
@@ -424,7 +420,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
               </div>
           )}
 
-          {/* MIC ERROR NOTIFICATION */}
           {micError && (
               <div className="absolute top-2 left-2 right-2 z-40 bg-red-100 border-l-4 border-red-500 text-red-700 p-2 rounded shadow-lg flex justify-between items-start animate-in slide-in-from-top-2">
                   <div className="flex gap-2 items-center text-xs font-bold">
@@ -440,12 +435,12 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
                   <button onClick={() => { if (isFullScreen) setIsFullScreen(false); else setView(AppView.HOME); }} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition-transform active:scale-95 z-50">
                       <X size={24} strokeWidth={3} />
                   </button>
-                  <div className="bg-white p-4 rounded-2xl border-4 border-gray-300 shadow-xl max-w-sm">
-                      <div className="text-6xl mb-4 animate-bounce">😤</div>
+                  <div className="bg-white p-6 rounded-3xl border-4 border-gray-300 shadow-xl max-w-sm flex flex-col items-center">
+                      <img src={BOO_OFFENDED_IMG} alt="Boo offeso" className="w-32 h-32 object-contain mb-6 drop-shadow-md" />
                       <h3 className="text-xl font-black text-gray-700 mb-2">Sono offeso!</h3>
-                      <p className="text-sm font-bold text-gray-500 mb-4">Non mi piacciono le parole brutte. Torno tra poco.</p>
+                      <p className="text-sm font-bold text-gray-500 mb-6">Non mi piacciono le parole brutte. Torno tra poco.</p>
                       <div className="bg-red-100 text-red-600 px-6 py-3 rounded-full font-mono font-black text-2xl border-2 border-red-200 flex items-center justify-center gap-2">
-                          <Hourglass size={24} className="animate-spin-slow" />
+                          <Hourglass size={24} />
                           {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
                       </div>
                   </div>
@@ -505,7 +500,6 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
           {/* INPUT BAR */}
           <div className={`w-full flex gap-1 shrink-0 items-center ${fullScreenMode ? 'mt-4 h-14 gap-2' : 'mt-1 h-10'}`}>
               
-              {/* MICROPHONE BUTTON */}
               <button 
                   onClick={handleMicClick}
                   disabled={isThinking || !!banUntil}
@@ -529,10 +523,9 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
                   placeholder={banUntil ? "Chat bloccata..." : (isListening ? "Ti ascolto..." : "Scrivi...")}
-                  className={`flex-1 min-w-0 rounded-full border-2 border-black bg-white px-3 font-bold outline-none focus:border-blue-500 text-black disabled:bg-gray-100 disabled:text-gray-400 ${fullScreenMode ? 'text-lg h-full' : 'text-[10px] h-8'}`}
+                  className={`flex-1 min-0 rounded-full border-2 border-black bg-white px-3 font-bold outline-none focus:border-blue-500 text-black disabled:bg-gray-100 disabled:text-gray-400 ${fullScreenMode ? 'text-lg h-full' : 'text-[10px] h-8'}`}
               />
               
-              {/* EMOJI TOGGLE (Only Fullscreen) */}
               {fullScreenMode && (
                   <button 
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -612,8 +605,15 @@ const ChatWithBoo: React.FC<ChatWithBooProps> = ({ setView }) => {
     <div className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gradient-to-b from-[#b388f4] to-white overflow-hidden flex flex-col" onClick={handleInteraction}>
       
       {!isLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center z-20 bg-cyan-900">
-              <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-cyan-900/90 backdrop-blur-md">
+                <img 
+                    src={OFFICIAL_LOGO} 
+                    alt="Caricamento..." 
+                    className="w-32 h-32 object-contain animate-spin-horizontal mb-4" 
+                />
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                    STO CARICANDO...
+                </span>
           </div>
       )}
 

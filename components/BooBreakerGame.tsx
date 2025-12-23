@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
 
-// Relative Units for Logic
 const LOGICAL_WIDTH = 1000;
 const LOGICAL_HEIGHT = 1000;
 const PADDLE_W = 200;
@@ -21,7 +20,6 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
   const containerRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(0);
 
-  // Game State Refs
   const stateRef = useRef({
       paddleX: LOGICAL_WIDTH / 2 - PADDLE_W / 2,
       ball: { x: LOGICAL_WIDTH / 2, y: LOGICAL_HEIGHT - 100, dx: 0, dy: 0 },
@@ -31,11 +29,9 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
       launched: false
   });
 
-  // Handle Resize
   useEffect(() => {
       const resize = () => {
           if (canvasRef.current && containerRef.current) {
-              // Canvas internal resolution matches logical size for easier physics
               canvasRef.current.width = LOGICAL_WIDTH;
               canvasRef.current.height = LOGICAL_HEIGHT;
           }
@@ -68,7 +64,7 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
 
       stateRef.current = {
           paddleX: LOGICAL_WIDTH / 2 - PADDLE_W / 2,
-          ball: { x: LOGICAL_WIDTH / 2, y: LOGICAL_HEIGHT - 100, dx: 8, dy: -8 }, // Faster for high-res logic
+          ball: { x: LOGICAL_WIDTH / 2, y: LOGICAL_HEIGHT - 100, dx: 8, dy: -8 },
           bricks: bricks,
           movingLeft: false,
           movingRight: false,
@@ -89,7 +85,6 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
 
       if (!ctx || !canvas) return;
 
-      // 1. Logic
       if (state.movingLeft) state.paddleX = Math.max(0, state.paddleX - 15);
       if (state.movingRight) state.paddleX = Math.min(LOGICAL_WIDTH - PADDLE_W, state.paddleX + 15);
 
@@ -97,11 +92,9 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
           state.ball.x += state.ball.dx;
           state.ball.y += state.ball.dy;
 
-          // Wall Collisions
           if (state.ball.x + BALL_R > LOGICAL_WIDTH || state.ball.x - BALL_R < 0) state.ball.dx *= -1;
           if (state.ball.y - BALL_R < 0) state.ball.dy *= -1;
           
-          // Paddle Collision
           const paddleY = LOGICAL_HEIGHT - 60;
           if (
               state.ball.dy > 0 &&
@@ -111,18 +104,15 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
               state.ball.x <= state.paddleX + PADDLE_W
           ) {
               state.ball.dy = -Math.abs(state.ball.dy); 
-              // Spin
               const hitPoint = state.ball.x - (state.paddleX + PADDLE_W / 2);
               state.ball.dx = hitPoint * 0.15; 
           }
 
-          // Death
           if (state.ball.y - BALL_R > LOGICAL_HEIGHT) {
               setGameOver(true);
               setIsPlaying(false);
           }
 
-          // Brick Collision
           let activeBricks = 0;
           state.bricks.forEach(b => {
               if (!b.active) return;
@@ -148,14 +138,11 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
           state.ball.y = LOGICAL_HEIGHT - 80;
       }
 
-      // 2. Draw (Scaled)
       ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-      // BG
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-      // Bricks
       state.bricks.forEach(b => {
           if (b.active) {
               ctx.fillStyle = b.color;
@@ -163,11 +150,9 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
           }
       });
 
-      // Paddle
       ctx.fillStyle = '#38bdf8';
       ctx.fillRect(state.paddleX, LOGICAL_HEIGHT - 60, PADDLE_W, PADDLE_H);
 
-      // Ball
       ctx.beginPath();
       ctx.arc(state.ball.x, state.ball.y, BALL_R, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
@@ -191,13 +176,10 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
   return (
     <div className="flex flex-col items-center w-full h-full bg-slate-900 touch-none">
         <div className="flex justify-between w-full items-center p-2 bg-slate-800 border-b border-slate-700 shrink-0 z-20">
-            <button onClick={onBack} className="bg-white/10 p-2 rounded-full text-white hover:bg-white/20 transition-colors"><ArrowLeft /></button>
-            <h2 className="text-xl font-black text-blue-400 uppercase tracking-widest">Boo Breaker</h2>
+            <h2 className="text-xl font-black text-blue-400 uppercase tracking-widest pl-4">Boo Breaker</h2>
             <div className="text-white font-mono font-bold text-lg bg-blue-900/50 px-3 py-1 rounded-lg border border-blue-500">{score}</div>
         </div>
 
-        {/* Responsive Container */}
-        {/* ADDED min-h-0 to fix flexbox collapsing */}
         <div ref={containerRef} className="relative flex-1 w-full bg-slate-900 flex items-center justify-center overflow-hidden p-2 min-h-0">
             <canvas 
                 ref={canvasRef} 
@@ -205,7 +187,6 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
                 onClick={handleLaunch} 
             />
             
-            {/* Overlays */}
             {!isPlaying && !gameOver && !won && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-30">
                     <button onClick={initGame} className="bg-blue-500 text-white font-black px-10 py-4 rounded-full border-4 border-white hover:scale-105 active:scale-95 flex items-center gap-2 text-xl shadow-[0_0_20px_blue]">
@@ -233,7 +214,6 @@ const BooBreakerGame: React.FC<{ onBack: () => void, onEarnTokens?: (n:number)=>
             )}
         </div>
 
-        {/* Controls */}
         <div className="flex gap-2 w-full p-2 bg-slate-800 border-t border-slate-700 shrink-0 h-24">
             <button 
                 className="flex-1 bg-slate-700 text-white rounded-xl border-b-4 border-slate-900 active:translate-y-1 active:border-b-0 transition-all flex items-center justify-center active:bg-slate-600"

@@ -1,17 +1,17 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
 import InstallPWA from './components/InstallPWA'; 
+import BedtimeOverlay from './components/BedtimeOverlay';
 import { AppView } from './types';
-import { Smartphone, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'; 
-import { CHANNEL_LOGO } from './constants';
+import { Smartphone, AlertTriangle, RefreshCw } from 'lucide-react'; 
+import { OFFICIAL_LOGO } from './constants';
 
 // --- LAZY LOADING COMPONENTS ---
-// Utilizziamo lazy load standard.
 const IntroPage = lazy(() => import('./components/IntroPage'));
 const VideoGallery = lazy(() => import('./components/VideoGallery'));
 const BookShelf = lazy(() => import('./components/BookShelf'));
+const BooksListView = lazy(() => import('./components/BooksListView'));
 const SocialHub = lazy(() => import('./components/SocialHub'));
 const MagicEye = lazy(() => import('./components/MagicEye'));
 const PlayZone = lazy(() => import('./components/PlayZone'));
@@ -26,26 +26,36 @@ const FairyTales = lazy(() => import('./components/FairyTales'));
 const ColoringSection = lazy(() => import('./components/ColoringSection'));
 const CharactersPage = lazy(() => import('./components/CharactersPage'));
 const CityMap = lazy(() => import('./components/CityMap'));
-const BooHouse = lazy(() => import('./components/BooHouse')); 
 const RoomView = lazy(() => import('./components/RoomView')); 
 const InfoMenu = lazy(() => import('./components/InfoMenu'));
 const SvegliaBoo = lazy(() => import('./components/SvegliaBoo'));
 const FAQPage = lazy(() => import('./components/FAQPage'));
 const GuidePage = lazy(() => import('./components/GuidePage'));
+const ContactPage = lazy(() => import('./components/ContactPage'));
+const ServicePage = lazy(() => import('./components/ServicePage'));
+const TrainJourneyPlaceholder = lazy(() => import('./components/TrainJourneyPlaceholder'));
+
+// STANZE INDIVIDUALI
+const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
+const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
+const BedroomRoom = lazy(() => import('./components/rooms/BedroomRoom'));
+const BathroomRoom = lazy(() => import('./components/rooms/BathroomRoom'));
+const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
 // --- SEO METADATA ---
-const SEO_METADATA: Record<AppView, { title: string; description: string }> = {
+const SEO_METADATA: Record<string, { title: string; description: string }> = {
     [AppView.HOME]: { title: "Lone Boo World: Giochi, Favole e Musica 👻", description: "L'app ufficiale di Lone Boo! Un mondo sicuro di giochi educativi, video e magia." },
     [AppView.CITY_MAP]: { title: "Città Colorata 🗺️", description: "Esplora la città magica di Lone Boo." },
-    [AppView.BOO_HOUSE]: { title: "Casa di Boo 🏠", description: "Entra nel rifugio segreto del fantasmino." },
+    [AppView.BOO_HOUSE]: { title: "Mappa della Casa 🏠", description: "Esplora il rifugio di Boo." },
     [AppView.BOO_GARDEN]: { title: "Giardino Magico 🌳", description: "Gioca all'aperto con Boo." },
-    [AppView.BOO_BEDROOM]: { title: "Cameretta 🛌", description: "Scopri i segreti della stanza di Boo." },
-    [AppView.BOO_LIVING_ROOM]: { title: "Salotto 🛋️", description: "Rilassati e guarda i cartoni." },
+    [AppView.BOO_BEDROOM]: { title: "Cameretta 🛌", description: "I segreti della stanza di Boo." },
+    [AppView.BOO_LIVING_ROOM]: { title: "Salotto Couch", description: "Rilassati con Lone Boo." },
     [AppView.BOO_BATHROOM]: { title: "Bagno 🛁", description: "Lavarsi è divertente!" },
     [AppView.BOO_KITCHEN]: { title: "Cucina 🍳", description: "Cosa bolle in pentola?" },
     [AppView.INTRO]: { title: "Ciao da Lone Boo! 👋", description: "Piacere di conoscerti!" },
     [AppView.VIDEOS]: { title: "Cinema Boo 🎬", description: "Video, canzoni e cartoni animati." },
     [AppView.BOOKS]: { title: "Biblioteca 📚", description: "Libri e storie da leggere." },
+    [AppView.BOOKS_LIST]: { title: "I Miei Libri 📖", description: "La collezione dei libri di Lone Boo." },
     [AppView.AI_MAGIC]: { title: "Torre Magica 🔮", description: "Giochi magici con l'Intelligenza Artificiale." },
     [AppView.SOUNDS]: { title: "Discoteca 🎧", description: "Suona e balla con noi." },
     [AppView.TALES]: { title: "Bosco delle Fiabe 🌲", description: "Ascolta le favole della buonanotte." },
@@ -62,23 +72,25 @@ const SEO_METADATA: Record<AppView, { title: string; description: string }> = {
     [AppView.INFO_MENU]: { title: "Centro Info ℹ️", description: "Aiuto e contatti." },
     [AppView.SVEGLIA_BOO]: { title: "Sveglia Boo ⏰", description: "Buongiorno con allegria!" },
     [AppView.FAQ]: { title: "FAQ", description: "Domande frequenti." },
-    [AppView.GUIDE]: { title: "Guida App", description: "Come usare Lone Boo World." }
+    [AppView.GUIDE]: { title: "Guida App", description: "Come usare Lone Boo World." },
+    [AppView.CONTACT]: { title: "Contatti 📧", description: "Mettiti in contatto con noi." },
+    [AppView.SERVICE_PAGE]: { title: "Service Tools 🔧", description: "Strumenti di Manutenzione e Migrazione Assets." },
+    [AppView.TRAIN_JOURNEY]: { title: "Viaggio in Treno 🚂", description: "Parti per un viaggio magico." }
 };
 
 const PageLoader = () => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-40 animate-fade-in">
-        <div className="relative">
-            <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-50 animate-pulse"></div>
-            <img src={CHANNEL_LOGO} alt="Loading" className="w-20 h-20 relative z-10 animate-bounce" />
-        </div>
-        <div className="mt-4 flex items-center gap-2 text-boo-purple font-black text-xl">
-            <Loader2 className="animate-spin" />
-            <span>Caricamento...</span>
-        </div>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+        <img 
+            src={OFFICIAL_LOGO} 
+            alt="Caricamento..." 
+            className="w-32 h-32 object-contain animate-spin-horizontal mb-4" 
+        />
+        <span className="text-gray-500 font-bold text-lg tracking-widest animate-pulse">
+            STO CARICANDO...
+        </span>
     </div>
 );
 
-// --- ERROR BOUNDARY ---
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
@@ -93,6 +105,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
         </div>
       );
     }
+    // Fix: cast this to any to access props, resolving TypeScript error
     return (this as any).props.children;
   }
 }
@@ -101,39 +114,6 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // --- SMART PRELOADING STRATEGY (OPTIMIZED) ---
-  useEffect(() => {
-      // 1. RIMOSSO PRELOADING AGGRESSIVO DELLE IMMAGINI
-      
-      // 2. Idle Callback per il codice JS
-      const requestIdleCallback = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 1));
-
-      // 3. Preload dei componenti JS (Non bloccante e ritardato)
-      const preloadComponents = () => {
-          // Aumentato ritardo a 3.5s per garantire che la Home sia caricata completamente
-          setTimeout(() => {
-              // Priority 1: Mappe principali
-              import('./components/CityMap');
-              import('./components/BooHouse');
-              
-              // Priority 2: Giochi e Video (dopo altri 2s)
-              setTimeout(() => {
-                  import('./components/PlayZone');
-                  import('./components/VideoGallery');
-              }, 2000);
-
-              // Priority 3: Sezioni secondarie (molto dopo)
-              setTimeout(() => {
-                  import('./components/ChatWithBoo');
-                  import('./components/SocialHub');
-              }, 5000);
-          }, 3500);
-      };
-
-      requestIdleCallback(preloadComponents);
-  }, []);
-
-  // --- NAVIGATION HANDLING ---
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
@@ -151,19 +131,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // SEO Update
   useEffect(() => {
       window.scrollTo(0, 0);
       const metadata = SEO_METADATA[currentView] || SEO_METADATA[AppView.HOME];
-      document.title = metadata.title;
-      
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute('content', metadata.description);
-      
-      // Dynamic Robots Tag
-      const metaRobots = document.querySelector('meta[name="robots"]');
-      if (metaRobots) {
-          metaRobots.setAttribute('content', currentView === AppView.SVEGLIA_BOO ? 'noindex, nofollow' : 'index, follow, max-image-preview:large');
+      if (metadata) {
+          document.title = metadata.title;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.setAttribute('content', metadata.description);
       }
   }, [currentView]);
 
@@ -176,7 +150,7 @@ const App: React.FC = () => {
       window.history.pushState({}, '', url);
   };
 
-  const isFullScreenView = [AppView.CITY_MAP, AppView.BOO_HOUSE, AppView.FANART, AppView.SOCIALS, AppView.SOUNDS, AppView.BOOKS, AppView.TALES, AppView.COLORING, AppView.PLAY, AppView.COMMUNITY, AppView.CHAT, AppView.AI_MAGIC, AppView.SVEGLIA_BOO].includes(currentView);
+  const isFullScreenView = [AppView.CITY_MAP, AppView.BOO_HOUSE, AppView.FANART, AppView.SOCIALS, AppView.SOUNDS, AppView.BOOKS, AppView.TALES, AppView.COLORING, AppView.PLAY, AppView.COMMUNITY, AppView.CHAT, AppView.AI_MAGIC, AppView.SVEGLIA_BOO, AppView.BOOKS_LIST, AppView.TRAIN_JOURNEY].includes(currentView);
   const isRoomView = [AppView.BOO_GARDEN, AppView.BOO_BEDROOM, AppView.BOO_LIVING_ROOM, AppView.BOO_BATHROOM, AppView.BOO_KITCHEN].includes(currentView);
 
   return (
@@ -191,19 +165,26 @@ const App: React.FC = () => {
             <p className="font-bold px-8">Lone Boo funziona meglio in verticale 📱</p>
         </div>
 
-        <Header currentView={currentView} setView={setView} />
+        {currentView !== AppView.SERVICE_PAGE && <Header currentView={currentView} setView={setView} />}
+        
         <InstallPWA />
+        <BedtimeOverlay />
 
-        <main className={`flex-1 ${isFullScreenView || isRoomView ? 'pt-[68px] md:pt-[106px] h-screen overflow-hidden' : 'pt-[74px] md:pt-[116px]'}`}>
+        <main className={`flex-1 ${isFullScreenView || isRoomView ? 'pt-[68px] md:pt-[106px] h-screen overflow-hidden' : (currentView === AppView.SERVICE_PAGE ? 'pt-0' : 'pt-[74px] md:pt-[116px]')}`}>
             {currentView === AppView.HOME && <HomePage setView={setView} />}
 
             <Suspense fallback={<PageLoader />}>
                 {currentView === AppView.CITY_MAP && <CityMap setView={setView} />}
-                {currentView === AppView.BOO_HOUSE && <BooHouse setView={setView} />}
+                {currentView === AppView.BOO_HOUSE && <RoomView setView={setView} />}
                 {currentView === AppView.INTRO && <IntroPage setView={setView} />}
-                {isRoomView && <RoomView roomType={currentView} setView={setView} />}
+                {currentView === AppView.BOO_KITCHEN && <KitchenRoom setView={setView} />}
+                {currentView === AppView.BOO_LIVING_ROOM && <LivingRoom setView={setView} />}
+                {currentView === AppView.BOO_BEDROOM && <BedroomRoom setView={setView} />}
+                {currentView === AppView.BOO_BATHROOM && <BathroomRoom setView={setView} />}
+                {currentView === AppView.BOO_GARDEN && <GardenRoom setView={setView} />}
                 {currentView === AppView.VIDEOS && <VideoGallery />}
-                {currentView === AppView.BOOKS && <BookShelf />}
+                {currentView === AppView.BOOKS && <BookShelf setView={setView} />}
+                {currentView === AppView.BOOKS_LIST && <BooksListView setView={setView} />}
                 {currentView === AppView.SOUNDS && <SoundZone />}
                 {currentView === AppView.TALES && <FairyTales />}
                 {currentView === AppView.COLORING && <ColoringSection />}
@@ -212,7 +193,7 @@ const App: React.FC = () => {
                 {currentView === AppView.CHAT && <ChatWithBoo setView={setView} />}
                 {currentView === AppView.AI_MAGIC && <MagicEye />}
                 {currentView === AppView.PLAY && <PlayZone />}
-                {currentView === AppView.FANART && <FanArtGallery />}
+                {currentView === AppView.FANART && <FanArtGallery setView={setView} />}
                 {currentView === AppView.INFO_MENU && <InfoMenu setView={setView} />}
                 {currentView === AppView.DISCLAIMER && <DisclaimerPage setView={setView} />}
                 {currentView === AppView.TECH_INFO && <TechInfoPage setView={setView} />}
@@ -221,10 +202,13 @@ const App: React.FC = () => {
                 {currentView === AppView.SVEGLIA_BOO && <SvegliaBoo setView={setView} />}
                 {currentView === AppView.FAQ && <FAQPage setView={setView} />}
                 {currentView === AppView.GUIDE && <GuidePage setView={setView} />}
+                {currentView === AppView.CONTACT && <ContactPage setView={setView} />}
+                {currentView === AppView.SERVICE_PAGE && <ServicePage setView={setView} />}
+                {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={setView} />}
             </Suspense>
         </main>
 
-        {!isFullScreenView && !isRoomView && currentView !== AppView.INFO_MENU && currentView !== AppView.GUIDE && (
+        {!isFullScreenView && !isRoomView && currentView !== AppView.INFO_MENU && currentView !== AppView.GUIDE && currentView !== AppView.SERVICE_PAGE && (
             <footer className="text-center p-8 mt-12 text-white/80 font-bold">
                 <div className="flex flex-col items-center gap-1">
                     <p className="whitespace-nowrap text-sm">© 2025 LoneBoo.online.</p>

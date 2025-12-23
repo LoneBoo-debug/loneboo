@@ -1,19 +1,46 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Rocket, Zap, Play, Trophy, Ghost, Brain, Gamepad2, Book, Eye, Activity, GraduationCap, Joystick, Star, Shield } from 'lucide-react';
+import React, { useState, Suspense, lazy } from 'react';
+import { Rocket, Zap, Gamepad2, Book, Eye, Activity, Brain, Play, Star, Loader2, ArrowLeft } from 'lucide-react';
 import WebGamePlayer from './WebGamePlayer';
 
-// We define the games available in this specific "Console"
-type ArcadeGameId = string;
-type Category = 'EDUCATIONAL' | 'ARCADE';
+// Lazy load dei giochi interni
+const GuessWhoGame = lazy(() => import('./GuessWhoGame'));
+
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const TITLE_IMG = 'https://i.postimg.cc/FsWZhj8P/salaghi-(1).png';
+const ARCADE_BG = 'https://i.postimg.cc/prq8fzLQ/sfondoarcade.jpg';
 
 interface ArcadeConsoleProps {
     onBack: () => void;
     onEarnTokens: (amount: number) => void;
 }
 
-// CONFIGURAZIONE GIOCHI EDUCATIONAL
-const GAMES_EDUCATIONAL = [
+interface GameInfo {
+    id: string;
+    title: string;
+    desc: string;
+    icon: string;
+    image: string;
+    color: string;
+    borderColor: string;
+    TagIcon: any;
+    tagText: string;
+    isInternal?: boolean;
+    embedUrl?: string;
+}
+
+const GAMES_EDUCATIONAL: GameInfo[] = [
+    {
+        id: 'GAME_GUESS_WHO',
+        title: 'Indovina Chi',
+        desc: 'Gioca con Gaia al gioco dei personaggi',
+        isInternal: true,
+        icon: '',
+        image: 'https://i.postimg.cc/J0xNNBnW/bandhe.jpg',
+        color: 'bg-blue-50',
+        borderColor: 'border-blue-700',
+        TagIcon: null,
+        tagText: ''
+    },
     {
         id: 'GAME_WHEEL',
         title: 'IL/GLI',
@@ -64,8 +91,7 @@ const GAMES_EDUCATIONAL = [
     }
 ];
 
-// CONFIGURAZIONE GIOCHI ARCADE
-const GAMES_ARCADE = [
+const GAMES_ARCADE: GameInfo[] = [
     {
         id: 'GAME_BUBBLE_SHOOTER',
         title: 'Scoppia le bolle',
@@ -125,262 +151,133 @@ const GAMES_ARCADE = [
         borderColor: 'border-violet-800',
         TagIcon: Zap,
         tagText: 'RPG'
-    },
-    {
-        id: 'GAME_RALLY',
-        title: 'Corsa Rally',
-        desc: 'Nitro al massimo!',
-        embedUrl: 'https://www.madkidgames.com/full/nitro-racing-3d-car-racing-games',
-        icon: '🏁',
-        image: 'https://i.postimg.cc/xjXs7kh6/corsa-rally.jpg',
-        color: 'bg-lime-600',
-        borderColor: 'border-lime-800',
-        TagIcon: Rocket,
-        tagText: 'Corse'
-    },
-    {
-        id: 'GAME_MOTO',
-        title: 'Gara di Moto',
-        desc: 'Sfreccia in pista!',
-        embedUrl: 'https://www.madkidgames.com/full/bike-race-racing-game',
-        icon: '🏍️',
-        image: 'https://i.postimg.cc/9frZH3X5/gara-di-moto.jpg',
-        color: 'bg-red-500',
-        borderColor: 'border-red-700',
-        TagIcon: Rocket,
-        tagText: 'Corse'
-    },
-    {
-        id: 'GAME_TILES',
-        title: 'Trova i 3 uguali',
-        desc: 'Unisci le tessere!',
-        embedUrl: 'https://www.madkidgames.com/full/tiles-match-3-zoo-tiles',
-        icon: '🧩',
-        image: 'https://i.postimg.cc/N0HFxQGS/trova-i-3-uguali.jpg',
-        color: 'bg-indigo-500',
-        borderColor: 'border-indigo-700',
-        TagIcon: Gamepad2,
-        tagText: 'Puzzle'
-    },
-    {
-        id: 'GAME_PUZZLE_COLOR',
-        title: 'Puzzle Colore',
-        desc: 'Abbina gli animali!',
-        embedUrl: 'https://www.madkidgames.com/full/wildlife-match-3-puzzle',
-        icon: '🐼',
-        image: 'https://i.postimg.cc/MH8QBv7p/puzzle-colore.jpg',
-        color: 'bg-teal-500',
-        borderColor: 'border-teal-700',
-        TagIcon: Gamepad2,
-        tagText: 'Puzzle'
-    },
-    {
-        id: 'GAME_CHASE',
-        title: 'Inseguimento',
-        desc: 'Acchiappa i cattivi!',
-        embedUrl: 'https://www.madkidgames.com/full/police-car-chase',
-        icon: '🚓',
-        image: 'https://i.postimg.cc/BbGKFXx7/inseguimento.jpg',
-        color: 'bg-blue-800',
-        borderColor: 'border-blue-950',
-        TagIcon: Zap,
-        tagText: 'Azione'
-    },
-    {
-        id: 'GAME_POOL',
-        title: 'Biliardo',
-        desc: 'Manda le palle in buca!',
-        embedUrl: 'https://www.madkidgames.com/full/real-pool-3d',
-        icon: '🎱',
-        image: 'https://i.postimg.cc/kg7vZhtg/biliardo.jpg',
-        color: 'bg-emerald-700',
-        borderColor: 'border-emerald-950',
-        TagIcon: Activity,
-        tagText: 'Sport'
-    },
-    {
-        id: 'GAME_SNAKE',
-        title: 'Snake',
-        desc: 'Mangia e cresci!',
-        embedUrl: 'https://www.madkidgames.com/full/snake-warz-io-games-snake-game',
-        icon: '🐍',
-        image: 'https://i.postimg.cc/RZbJRP7P/snake.jpg',
-        color: 'bg-lime-500',
-        borderColor: 'border-lime-700',
-        TagIcon: Zap,
-        tagText: 'Azione'
-    },
-    {
-        id: 'GAME_WARRIORS',
-        title: 'Difendi il Castello',
-        desc: 'Proteggi le mura!',
-        embedUrl: 'https://www.madkidgames.com/full/game-of-warriors',
-        icon: '🏰',
-        image: 'https://i.postimg.cc/y860ngwZ/difendi-il-castello.jpg',
-        color: 'bg-stone-600',
-        borderColor: 'border-stone-800',
-        TagIcon: Zap,
-        tagText: 'Azione'
-    },
-    {
-        id: 'GAME_BUS_JAM',
-        title: 'Riempi il bus',
-        desc: 'Tutti a bordo!',
-        embedUrl: 'https://www.madkidgames.com/full/bus-away-traffic-jam',
-        icon: '🚌',
-        image: 'https://i.postimg.cc/KcnL2Db8/riempi-il-bus.jpg',
-        color: 'bg-yellow-500',
-        borderColor: 'border-yellow-700',
-        TagIcon: Brain,
-        tagText: 'Puzzle'
-    },
-    {
-        id: 'GAME_DUNE',
-        title: 'Supera le dune',
-        desc: 'Vola oltre le colline!',
-        embedUrl: 'https://www.madkidgames.com/full/dune-tiny-wings',
-        icon: '🏜️',
-        image: 'https://i.postimg.cc/bvDDFQLJ/supera-le-dune.jpg',
-        color: 'bg-amber-500',
-        borderColor: 'border-amber-700',
-        TagIcon: Rocket,
-        tagText: 'Abilità'
     }
 ];
 
 const ArcadeConsole: React.FC<ArcadeConsoleProps> = ({ onBack, onEarnTokens }) => {
-    const [activeGameId, setActiveGameId] = useState<ArcadeGameId | null>(null);
-    const [activeCategory, setActiveCategory] = useState<Category>('EDUCATIONAL');
+    const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
-    const handleBackToMenu = () => {
-        setActiveGameId(null);
-    };
-
-    // --- HANDLE ORIENTATION PERMISSION ---
-    useEffect(() => {
-        // Unlock rotation if ANY game is active in this console
-        if (activeGameId) {
-            document.body.classList.add('allow-landscape');
-        } else {
-            document.body.classList.remove('allow-landscape');
-        }
+    if (activeGameId) {
+        const game = [...GAMES_EDUCATIONAL, ...GAMES_ARCADE].find(g => g.id === activeGameId);
         
-        return () => {
-            document.body.classList.remove('allow-landscape');
-        };
-    }, [activeGameId]);
+        if (game) {
+            if (game.isInternal) {
+                // Se è Indovina Chi, non mostriamo l'header scuro per lasciare spazio all'header globale
+                const isGuessWho = game.id === 'GAME_GUESS_WHO';
+                return (
+                    <div className="fixed inset-0 z-[70] bg-slate-900 flex flex-col animate-in fade-in duration-300">
+                        {!isGuessWho && (
+                            <div className="flex items-center justify-between p-3 bg-slate-800 border-b-4 border-blue-500 shadow-lg shrink-0 z-20">
+                                <button 
+                                    onClick={() => setActiveGameId(null)}
+                                    className="bg-red-500 text-white p-2 rounded-full border-2 border-white hover:scale-110 active:scale-95 transition-transform"
+                                >
+                                    <ArrowLeft size={24} strokeWidth={3} />
+                                </button>
+                                <h2 className="text-xl md:text-3xl font-black text-white uppercase tracking-widest truncate px-4">
+                                    {game.title}
+                                </h2>
+                                <div className="w-10"></div>
+                            </div>
+                        )}
+                        <div className="flex-1 overflow-hidden relative bg-white">
+                            <Suspense fallback={
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <Loader2 className="animate-spin text-blue-500 mb-2" size={48} />
+                                    <span className="font-bold text-gray-500">Sto preparando il gioco...</span>
+                                </div>
+                            }>
+                                {game.id === 'GAME_GUESS_WHO' && <GuessWhoGame onBack={() => setActiveGameId(null)} onEarnTokens={onEarnTokens} />}
+                            </Suspense>
+                        </div>
+                    </div>
+                );
+            }
 
-    // Get current list based on category
-    const currentGames = activeCategory === 'EDUCATIONAL' ? GAMES_EDUCATIONAL : GAMES_ARCADE;
-
-    // RENDER ACTIVE GAME
-    const activeGameConfig = [...GAMES_EDUCATIONAL, ...GAMES_ARCADE].find(g => g.id === activeGameId);
-    
-    if (activeGameConfig) {
-        // Determine if we should allow fullscreen mode (remove bezel) -> ONLY FOR ARCADE
-        const isArcade = GAMES_ARCADE.some(g => g.id === activeGameId);
-
-        return (
-            <WebGamePlayer 
-                src={activeGameConfig.embedUrl} 
-                title={activeGameConfig.title} 
-                onBack={handleBackToMenu}
-                isFullScreen={isArcade} // Arcade games get full screen treatment
-            />
-        );
+            const isArcade = GAMES_ARCADE.some(g => g.id === activeGameId);
+            return (
+                <WebGamePlayer 
+                    src={game.embedUrl || ''} 
+                    title={game.title} 
+                    onBack={() => setActiveGameId(null)}
+                    isFullScreen={isArcade}
+                />
+            );
+        }
     }
 
-    // RENDER MENU (GRID VIEW)
+    const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-hidden bg-cover bg-center z-[60]";
+
+    const renderGameCard = (game: GameInfo) => (
+        <div 
+            key={game.id}
+            onClick={() => setActiveGameId(game.id)}
+            className={`
+                relative bg-slate-800 rounded-3xl overflow-hidden border-4 ${game.borderColor} shadow-2xl 
+                transform transition-all duration-300 hover:scale-[1.03] active:scale-95 cursor-pointer group flex flex-col
+            `}
+        >
+            <div className="relative h-32 md:h-40 overflow-hidden bg-black border-b-4 border-black/20">
+                <img src={game.image} alt={game.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" loading="lazy" />
+                {game.tagText && (
+                    <div className={`absolute top-2 right-2 ${game.color} text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-md uppercase tracking-wide flex items-center gap-1`}>
+                        {game.TagIcon && <game.TagIcon size={12} />} {game.tagText}
+                    </div>
+                )}
+            </div>
+            <div className="p-3 relative bg-slate-900 flex-1 flex flex-col justify-center">
+                {game.icon && (
+                    <div className={`absolute -top-8 left-4 w-12 h-12 rounded-xl ${game.color} border-4 border-slate-900 flex items-center justify-center text-2xl shadow-lg z-10 group-hover:rotate-12 transition-transform`}>
+                        {game.icon}
+                    </div>
+                )}
+                <h3 className={`text-white font-black text-sm md:text-lg leading-tight mb-1 ${game.icon ? 'mt-3' : 'mt-0'}`}>{game.title}</h3>
+                <p className="text-slate-400 text-[10px] md:text-xs font-bold line-clamp-2">{game.desc}</p>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="w-full h-full flex flex-col bg-gray-900 text-white relative overflow-hidden">
-            
-            {/* Background Grid Effect */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ 
-                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)', 
-                backgroundSize: '40px 40px' 
-            }}></div>
-
-            {/* Header */}
-            <div className="w-full p-3 flex items-center justify-between z-20 bg-gray-900/90 backdrop-blur-sm border-b border-gray-700 shrink-0">
-                <button onClick={onBack} className="bg-red-600 p-2 rounded-full hover:bg-red-500 transition-colors shadow-lg border-2 border-white">
-                    <ArrowLeft size={20} strokeWidth={3} />
-                </button>
-                <h2 className="text-xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase tracking-widest drop-shadow-md">
-                    Sala Giochi
-                </h2>
-                <div className="w-9"></div>
-            </div>
-
-            {/* CATEGORY TABS */}
-            <div className="w-full p-2 flex gap-2 z-20 shrink-0">
-                <button 
-                    onClick={() => setActiveCategory('EDUCATIONAL')}
-                    className={`flex-1 py-3 rounded-xl font-black text-sm md:text-lg flex items-center justify-center gap-2 transition-all border-b-4 active:border-b-0 active:translate-y-1 ${activeCategory === 'EDUCATIONAL' ? 'bg-green-500 border-green-700 text-white shadow-lg' : 'bg-gray-800 border-gray-900 text-gray-400'}`}
-                >
-                    <GraduationCap size={20} /> EDUCATIONAL
-                </button>
-                <button 
-                    onClick={() => setActiveCategory('ARCADE')}
-                    className={`flex-1 py-3 rounded-xl font-black text-sm md:text-lg flex items-center justify-center gap-2 transition-all border-b-4 active:border-b-0 active:translate-y-1 ${activeCategory === 'ARCADE' ? 'bg-purple-600 border-purple-800 text-white shadow-lg' : 'bg-gray-800 border-gray-900 text-gray-400'}`}
-                >
-                    <Joystick size={20} /> ARCADE
+        <div className={wrapperStyle} style={{ backgroundImage: `url(${ARCADE_BG})` }}>
+            <div className="absolute top-4 left-4 z-50">
+                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
                 </button>
             </div>
 
-            {/* GRID LAYOUT LIST */}
-            <div className="flex-1 overflow-y-auto w-full custom-scrollbar p-3">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-6xl mx-auto pb-20">
-                    {currentGames.map((game) => (
-                        <button
-                            key={game.id}
-                            onClick={() => setActiveGameId(game.id as ArcadeGameId)}
-                            className={`
-                                relative aspect-square rounded-2xl border-4 ${game.borderColor} shadow-lg overflow-hidden group hover:scale-[1.03] active:scale-95 transition-all flex flex-col
-                                ${game.color}
-                            `}
-                        >
-                            {/* Game Icon/Decor */}
-                            <div className="flex-1 flex items-center justify-center relative overflow-hidden">
-                                {(game as any).image ? (
-                                    <img 
-                                        src={(game as any).image} 
-                                        alt={game.title} 
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                    />
-                                ) : (
-                                    <span className="text-6xl md:text-8xl drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                        {game.icon}
-                                    </span>
-                                )}
-                                
-                                {/* Tag Badge */}
-                                <div className="absolute top-2 right-2 bg-black/40 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm border border-white/20 flex items-center gap-1">
-                                    <game.TagIcon size={10} /> {game.tagText}
-                                </div>
+            <div className="w-full h-full overflow-y-auto custom-scrollbar">
+                <div className="w-full min-h-full flex flex-col items-center max-w-5xl mx-auto p-4 pb-24">
+                    <div className="w-full flex flex-col items-center mb-6 relative z-10 pt-16">
+                        <img 
+                            src={TITLE_IMG} 
+                            alt="Sala Giochi" 
+                            className="w-72 md:w-96 h-auto hover:scale-105 transition-transform duration-300"
+                            style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }}
+                        />
+                    </div>
+                    <div className="w-full mb-8">
+                        <div className="flex items-center gap-3 mb-4 pl-2">
+                            <div className="bg-green-500 p-2 rounded-xl border-2 border-black shadow-md rotate-[-3deg]">
+                                < Book size={24} className="text-white" />
                             </div>
-
-                            {/* Title Bar */}
-                            <div className="bg-black/80 backdrop-blur-md p-2 border-t-2 border-white/10 w-full">
-                                <h3 className="text-sm md:text-base font-black text-white uppercase tracking-wide leading-tight truncate">
-                                    {game.title}
-                                </h3>
-                                <div className="flex items-center justify-between mt-1">
-                                    <p className="text-gray-400 text-[9px] md:text-[10px] font-bold truncate flex-1">
-                                        {game.desc}
-                                    </p>
-                                    <Play size={12} className="text-white fill-white ml-1" />
-                                </div>
+                            <h2 className="text-3xl md:text-4xl font-black text-white uppercase drop-shadow-[2px_2px_0_black]" style={{ textShadow: "2px 2px 0px black" }}>IMPARA</h2>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            {GAMES_EDUCATIONAL.map(game => renderGameCard(game))}
+                        </div>
+                    </div>
+                    <div className="w-full">
+                        <div className="flex items-center gap-3 mb-4 pl-2">
+                            <div className="bg-purple-500 p-2 rounded-xl border-2 border-black shadow-md rotate-[3deg]">
+                                <Rocket size={24} className="text-white" />
                             </div>
-                        </button>
-                    ))}
+                            <h2 className="text-3xl md:text-4xl font-black text-white uppercase drop-shadow-[2px_2px_0_black]" style={{ textShadow: "2px 2px 0px black" }}>DIVERTITI</h2>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            {GAMES_ARCADE.map(game => renderGameCard(game))}
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            {/* Rotation Hint Footer */}
-            <div className="bg-gray-800 p-2 text-center border-t border-gray-700 shrink-0 z-20">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 flex items-center justify-center gap-2">
-                    <Activity size={12} /> Ruota il telefono per giocare a schermo intero!
-                </p>
             </div>
         </div>
     );

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BOOKS } from '../constants';
-import { ShoppingCart, Star, X, Loader2 } from 'lucide-react';
-import { Book } from '../types';
-import RobotHint from './RobotHint';
+import { OFFICIAL_LOGO } from '../constants';
+import { BOOKS_DATABASE } from '../services/booksDatabase';
+import { ShoppingCart, Star, X, Loader2, BookOpen } from 'lucide-react';
+import { Book, AppView } from '../types';
+import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
 
 const LIBRARY_BG_MOBILE = 'https://i.postimg.cc/L4GpYBGK/bibliot.jpg';
 const LIBRARY_BG_DESKTOP = 'https://i.postimg.cc/52wDc7cS/biblio169.jpg';
@@ -113,12 +114,22 @@ const ZONES_DESKTOP: ZoneConfig[] = [
 ];
 
 const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book, onClose }) => {
+    
+    // Fallback Handler
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        const target = e.currentTarget;
+        const currentSrc = target.getAttribute('src') || '';
+        const originalUrl = Object.keys(LOCAL_ASSET_MAP).find(key => LOCAL_ASSET_MAP[key] === currentSrc || (currentSrc.startsWith(window.location.origin) && currentSrc.endsWith(LOCAL_ASSET_MAP[key])));
+        
+        if (originalUrl && currentSrc !== originalUrl) {
+            target.src = originalUrl;
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-300 backdrop-blur-sm" onClick={onClose}>
-            {/* Modal Container with Max Height and Flex Layout */}
             <div className="relative w-full max-w-lg bg-white rounded-[30px] md:rounded-[40px] border-4 border-black shadow-[0_0_50px_rgba(251,191,36,0.6)] animate-in zoom-in duration-300 flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
                 
-                {/* Close Button - Absolute inside the container to avoid cutoff */}
                 <div className="absolute top-2 right-2 z-50">
                     <button 
                         onClick={onClose}
@@ -128,10 +139,7 @@ const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book,
                     </button>
                 </div>
 
-                {/* Scrollable Content Area */}
                 <div className="overflow-y-auto p-6 md:p-8 flex flex-col items-center custom-scrollbar w-full">
-                    
-                    {/* Book Cover */}
                     <div className="w-32 h-48 md:w-40 md:h-56 flex-shrink-0 relative group mb-6 mt-4">
                        <div className="absolute inset-0 bg-black/30 rounded-r-lg transform rotate-[-6deg] translate-x-3 translate-y-3 blur-sm"></div>
                        <div className="relative w-full h-full transform rotate-[-6deg] transition-transform duration-300 hover:rotate-0 hover:scale-105">
@@ -140,13 +148,13 @@ const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book,
                             src={book.coverImage} 
                             alt={book.title} 
                             className="relative w-full h-full object-cover rounded-r-md border-r-2 border-b-2 border-t-2 border-white/20 shadow-[inset_4px_0_10px_rgba(0,0,0,0.3)]"
+                            onError={handleImageError}
                           />
                           <div className="absolute inset-0 bg-gradient-to-tr from-black/10 via-transparent to-white/20 pointer-events-none rounded-r-md"></div>
                           <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-black/20 to-transparent"></div>
                        </div>
                     </div>
 
-                    {/* Title & Info */}
                     <h3 className="text-xl md:text-3xl font-black text-gray-800 mb-2 leading-tight text-center">{book.title}</h3>
                     {book.subtitle && (
                         <p className="text-boo-purple font-black text-base md:text-lg mb-3 leading-tight text-center uppercase tracking-wide">{book.subtitle}</p>
@@ -155,12 +163,10 @@ const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book,
                         {[1,2,3,4,5].map(s => <Star key={s} size={24} className="text-yellow-400 fill-current" />)}
                     </div>
 
-                    {/* Description - Scrolls if long */}
                     <div className="text-gray-600 font-medium mb-8 text-sm md:text-base leading-relaxed text-left w-full">
                         {book.description}
                     </div>
 
-                    {/* CTA Button */}
                     <a 
                         href={book.amazonUrl}
                         target="_blank"
@@ -176,13 +182,15 @@ const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book,
     );
 };
 
-const BookShelf: React.FC = () => {
+interface BookShelfProps {
+    setView: (view: AppView) => void;
+}
+
+const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeBook, setActiveBook] = useState<Book | null>(null);
-  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-      // Preload both images
       const imgMobile = new Image();
       imgMobile.src = LIBRARY_BG_MOBILE;
       const imgDesktop = new Image();
@@ -197,20 +205,19 @@ const BookShelf: React.FC = () => {
       imgMobile.onload = checkLoad;
       imgDesktop.onload = checkLoad;
 
-      // Fallback
       setTimeout(() => setIsLoaded(true), 1500);
 
       window.scrollTo(0, 0);
-
-      const timer = setTimeout(() => {
-          if (!activeBook) setShowHint(true);
-      }, 5000); 
-
-      return () => clearTimeout(timer);
   }, []); 
 
-  const handleInteraction = () => {
-      if (showHint) setShowHint(false);
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      const target = e.currentTarget;
+      const currentSrc = target.getAttribute('src') || '';
+      const originalUrl = Object.keys(LOCAL_ASSET_MAP).find(key => LOCAL_ASSET_MAP[key] === currentSrc || (currentSrc.startsWith(window.location.origin) && currentSrc.endsWith(LOCAL_ASSET_MAP[key])));
+      
+      if (originalUrl && currentSrc !== originalUrl) {
+          target.src = originalUrl;
+      }
   };
 
   const getPositioning = (points: Point[]) => {
@@ -246,7 +253,7 @@ const BookShelf: React.FC = () => {
 
   const renderZones = (zones: ZoneConfig[], isDesktop: boolean) => {
       return zones.map((zone) => {
-          const book = BOOKS.find(b => b.id === zone.id);
+          const book = BOOKS_DATABASE.find(b => b.id === zone.id);
           
           if (book) {
               const pos = getPositioning(zone.points);
@@ -254,20 +261,17 @@ const BookShelf: React.FC = () => {
               return (
                   <div
                       key={zone.id}
-                      onClick={(e) => { e.stopPropagation(); setShowHint(false); setActiveBook(book); }}
+                      onClick={(e) => { e.stopPropagation(); setActiveBook(book); }}
                       className="absolute group z-20 cursor-pointer"
                       style={pos.style}
                       title={book.title}
                   >
-                      {/* Render Book Cover Image specifically for Mobile Zones, 
-                          OR if we are on Desktop and have valid points (not empty) */}
-                      {(isDesktop ? zone.points.length > 0 : true) && (
-                          <img 
-                              src={book.coverImage} 
-                              alt={book.title} 
-                              className="w-full h-full object-fill transform transition-transform duration-300 group-hover:scale-105 relative z-10"
-                          />
-                      )}
+                      <img 
+                          src={book.coverImage} 
+                          alt={book.title} 
+                          className="w-full h-full object-fill transform transition-transform duration-300 group-hover:scale-105 relative z-10"
+                          onError={handleImageError}
+                      />
                   </div>
               );
           } 
@@ -282,7 +286,6 @@ const BookShelf: React.FC = () => {
                       className="absolute group z-20 cursor-pointer"
                       style={{ clipPath: getSimpleClipPath(zone.points), inset: 0 }}
                       title="Vai allo Store Amazon"
-                      onClick={() => setShowHint(false)}
                   ></a>
               );
           }
@@ -291,53 +294,42 @@ const BookShelf: React.FC = () => {
   };
 
   return (
-    <div 
-        className="relative w-full h-[calc(100vh-75px)] md:h-[calc(100vh-106px)] bg-amber-900 overflow-hidden flex flex-col"
-        onClick={handleInteraction}
-    >
+    <div className="relative w-full h-[calc(100vh-75px)] md:h-[calc(100vh-106px)] bg-amber-900 overflow-hidden flex flex-col">
         {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-amber-900 z-50">
-                <span className="text-white font-black text-2xl animate-pulse drop-shadow-md flex items-center gap-2">
-                    <Loader2 className="animate-spin" /> Entro in Biblioteca...
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-amber-900/90 backdrop-blur-md">
+                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                    STO CARICANDO...
                 </span>
             </div>
         )}
 
-        <RobotHint 
-            show={showHint && isLoaded && !activeBook} 
-            message="Tocca un libro o vai allo store"
-        />
-
         <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-            {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
-                <img 
-                    src={LIBRARY_BG_MOBILE} 
-                    alt="Lone Boo Biblioteca Mobile" 
-                    className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
-                {/* Render Interactive Elements Mobile */}
+                <img src={LIBRARY_BG_MOBILE} alt="Biblioteca Mobile" className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} onError={handleImageError} />
                 {isLoaded && renderZones(ZONES_MOBILE, false)}
             </div>
-
-            {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
             <div className="hidden md:block w-full h-full relative overflow-hidden">
-                <img 
-                    src={LIBRARY_BG_DESKTOP} 
-                    alt="Lone Boo Biblioteca Desktop" 
-                    className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
-                
-                {/* Render Interactive Elements Desktop */}
+                <img src={LIBRARY_BG_DESKTOP} alt="Biblioteca Desktop" className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} onError={handleImageError} />
                 {isLoaded && renderZones(ZONES_DESKTOP, true)}
             </div>
+
+            {/* PULSANTE VAI AI LIBRI - In basso a destra */}
+            {isLoaded && (
+                <button 
+                    onClick={() => setView(AppView.BOOKS_LIST)}
+                    className="absolute bottom-5 right-2 md:bottom-10 md:right-4 z-30 hover:scale-110 active:scale-95 transition-all outline-none group flex flex-col items-center gap-1"
+                >
+                    <img 
+                        src="https://i.postimg.cc/gkmFGw6M/LIBRERIA-(1).png" 
+                        alt="Vai alla Libreria" 
+                        className="w-40 md:w-64 h-auto drop-shadow-2xl" 
+                    />
+                </button>
+            )}
         </div>
 
-        {activeBook && (
-            <BookDetailsModal book={activeBook} onClose={() => setActiveBook(null)} />
-        )}
+        {activeBook && <BookDetailsModal book={activeBook} onClose={() => setActiveBook(null)} />}
     </div>
   );
 };

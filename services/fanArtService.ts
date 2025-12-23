@@ -1,6 +1,8 @@
 
-import { FAN_ART_CSV_URL, FAN_ART_GALLERY } from '../constants';
+import { FAN_ART_CSV_URL } from '../constants';
 import { FanArt } from '../types';
+// Add import for FAN_ART_DATABASE
+import { FAN_ART_DATABASE } from './dbfanart';
 
 /**
  * Parses a single line of CSV, handling potential quotes around values.
@@ -98,7 +100,8 @@ export const getFanArt = async (): Promise<FanArt[]> => {
     if (dynamicArts.length < MIN_ITEMS) {
         const slotsToFill = MIN_ITEMS - dynamicArts.length;
         // Get the needed amount of static items (or all if we need more than available)
-        const fillerItems = FAN_ART_GALLERY.slice(0, slotsToFill);
+        // Fix: Use FAN_ART_DATABASE instead of non-existent FAN_ART_GALLERY
+        const fillerItems = FAN_ART_DATABASE.slice(0, slotsToFill);
         
         // Merge: Dynamic items first, then static fillers
         return [...dynamicArts, ...fillerItems];

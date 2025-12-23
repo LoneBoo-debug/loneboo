@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { getFanArt } from '../services/data';
-import { FanArt } from '../types';
-import { Camera, Send, Loader2, Image as ImageIcon, MapPin, X, CheckCircle, PenTool, ArrowRight, LayoutGrid, Trash2 } from 'lucide-react';
-import RobotHint from './RobotHint'; 
+import { FanArt, AppView } from '../types';
+import { Camera, Send, Loader2, Image as ImageIcon, MapPin, X, CheckCircle, PenTool, ArrowRight, LayoutGrid, Trash2, Map } from 'lucide-react';
+import { OFFICIAL_LOGO } from '../constants';
 
 // =================================================================================================
 // 🖼️ MUSEUM BACKGROUND IMAGES
@@ -65,11 +64,12 @@ const SIGN_INVIA_MOBILE: Point[] = [
     { "x": 6.4, "y": 88.91 }
 ];
 
+// Ampliata leggermente per gestire meglio la spaziatura verticale
 const SIGN_GALLERY_MOBILE: Point[] = [
-    { "x": 72.01, "y": 75.75 }, 
-    { "x": 88.02, "y": 75.41 }, 
-    { "x": 87.48, "y": 89.42 }, 
-    { "x": 70.95, "y": 89.25 }
+    { "x": 68.0, "y": 66.0 }, 
+    { "x": 92.0, "y": 66.0 }, 
+    { "x": 92.0, "y": 94.0 }, 
+    { "x": 68.0, "y": 94.0 }
 ];
 
 // --- CONFIGURAZIONE DESKTOP (Orizzontale 16:9) ---
@@ -119,21 +119,73 @@ const SIGN_INVIA_DESKTOP: Point[] = [
     { "x": 31.17, "y": 78.53 }
 ];
 
+// Ampliata per ospitare due cartelli spaziati
 const SIGN_GALLERY_DESKTOP: Point[] = [
-    { "x": 64.66, "y": 81.46 },
-    { "x": 64.76, "y": 92.26 },
-    { "x": 72.57, "y": 92.93 },
-    { "x": 72.37, "y": 81.23 }
+    { "x": 64.0, "y": 73.0 },
+    { "x": 73.0, "y": 73.0 },
+    { "x": 73.0, "y": 97.0 },
+    { "x": 64.0, "y": 97.0 }
 ];
 
-const FanArtGallery: React.FC = () => {
+// --- RENDER HELPER: 4-Point Container ---
+const renderPolygonalArea = (
+    points: Point[], 
+    content: React.ReactNode, 
+    onClick: (e: React.MouseEvent) => void, 
+    zIndex: number = 10, 
+    isButton: boolean = false,
+    useClipPath: boolean = true
+) => {
+    
+    if (points.length < 3) return null;
+
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    const polygonPoints = points.map(p => {
+        const relX = ((p.x - minX) / width) * 100;
+        const relY = ((p.y - minY) / height) * 100;
+        return `${relX}% ${relY}%`;
+    }).join(', ');
+
+    return (
+        <div
+            key={`poly-${minX}-${minY}`}
+            onClick={onClick}
+            className={`absolute ${useClipPath ? 'overflow-hidden' : ''} ${isButton ? 'cursor-pointer group' : 'cursor-pointer group'}`}
+            style={{
+                top: `${minY}%`,
+                left: `${minX}%`,
+                width: `${width}%`,
+                height: `${height}%`,
+                zIndex: zIndex,
+                clipPath: useClipPath ? `polygon(${polygonPoints})` : 'none'
+            }}
+        >
+            <div className="w-full h-full relative">
+                {content}
+            </div>
+        </div>
+    );
+};
+
+interface FanArtGalleryProps {
+    setView?: (view: AppView) => void;
+}
+
+const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
   const [gallery, setGallery] = useState<FanArt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [selectedArt, setSelectedArt] = useState<FanArt | null>(null);
   const [bgLoaded, setBgLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(false);
 
   // Upload Form State
   const [name, setName] = useState('');
@@ -148,7 +200,6 @@ const FanArtGallery: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Preload Both Images
     const imgMobile = new Image();
     imgMobile.src = MUSEUM_BG_MOBILE;
     const imgDesktop = new Image();
@@ -161,9 +212,8 @@ const FanArtGallery: React.FC = () => {
     };
 
     imgMobile.onload = onLoad;
-    imgDesktop.onload = onLoad;
+    imgDesktop.onload = count === 0 ? onLoad : () => {}; 
     
-    // Fallback
     setTimeout(() => setBgLoaded(true), 2000);
 
     const fetchGallery = async () => {
@@ -173,65 +223,7 @@ const FanArtGallery: React.FC = () => {
         setLoading(false);
     };
     fetchGallery();
-
-    const timer = setTimeout(() => {
-        setShowHint(true);
-    }, 5000);
-
-    return () => clearTimeout(timer);
   }, []);
-
-  const handleInteraction = () => {
-      if (showHint) setShowHint(false);
-  };
-
-  // --- RENDER HELPER: 4-Point Container ---
-  const renderPolygonalArea = (
-      points: Point[], 
-      content: React.ReactNode, 
-      onClick: () => void, 
-      zIndex: number = 10, 
-      isButton: boolean = false,
-      useClipPath: boolean = true
-  ) => {
-      
-      if (points.length < 3) return null;
-
-      const xs = points.map(p => p.x);
-      const ys = points.map(p => p.y);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-      const width = maxX - minX;
-      const height = maxY - minY;
-
-      const polygonPoints = points.map(p => {
-          const relX = ((p.x - minX) / width) * 100;
-          const relY = ((p.y - minY) / height) * 100;
-          return `${relX}% ${relY}%`;
-      }).join(', ');
-
-      return (
-          <div
-              key={`poly-${minX}-${minY}`}
-              onClick={onClick}
-              className={`absolute ${useClipPath ? 'overflow-hidden' : ''} ${isButton ? 'cursor-pointer group' : 'cursor-pointer group'}`}
-              style={{
-                  top: `${minY}%`,
-                  left: `${minX}%`,
-                  width: `${width}%`,
-                  height: `${height}%`,
-                  zIndex: zIndex,
-                  clipPath: useClipPath ? `polygon(${polygonPoints})` : 'none'
-              }}
-          >
-              <div className="w-full h-full relative">
-                  {content}
-              </div>
-          </div>
-      );
-  };
 
   // Form Handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -303,14 +295,12 @@ const FanArtGallery: React.FC = () => {
                 </div>
             );
             
-            return renderPolygonalArea(frame.points, content, () => art && setSelectedArt(art), 20, false, true);
+            return renderPolygonalArea(frame.points, content, () => { if (art) setSelectedArt(art); }, 20, false, true);
         })}
 
         {/* --- SEND BUTTON (SIGN STAND STYLE) --- */}
         {renderPolygonalArea(activeSignInvia, (
             <div className="w-full h-full flex flex-col items-center justify-end group relative cursor-pointer">
-                
-                {/* The Sign Board (Blue for Invia) */}
                 <div className="relative z-20 bg-[#1e3a8a] border-[3px] border-[#fbbf24] rounded-lg px-3 py-2 shadow-[0_4px_6px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform origin-bottom flex items-center gap-2">
                     <div className="bg-[#fbbf24] rounded-full p-1 text-[#1e3a8a]">
                         <PenTool size={14} strokeWidth={4} />
@@ -320,61 +310,70 @@ const FanArtGallery: React.FC = () => {
                         <span className="text-white font-black text-xs md:text-sm tracking-wide whitespace-nowrap">DISEGNO</span>
                     </div>
                 </div>
-
-                {/* The Pole */}
                 <div className="w-2 h-1/2 bg-gray-800 border-x border-gray-600 relative z-10 -mt-1"></div>
-
-                {/* The Base (Perspective Oval) */}
                 <div className="w-12 h-3 bg-gray-900 rounded-[50%] border-2 border-gray-700 shadow-lg relative z-0"></div>
-
             </div>
         ), () => setIsFormOpen(true), 30, true, false)}
 
-        {/* --- GALLERY SIGN BUTTON (MUSEUM STAND STYLE) --- */}
+        {/* --- DOUBLE SIGN: GALLERY & BACK TO CITY --- */}
         {renderPolygonalArea(activeSignGallery, (
-            <div className="w-full h-full flex flex-col items-center justify-end group relative cursor-pointer">
+            <div className="w-full h-full flex flex-col items-center justify-end relative pointer-events-none">
                 
-                {/* The Sign Board */}
-                <div className="relative z-20 bg-[#7f1d1d] border-[3px] border-[#fbbf24] rounded-lg px-3 py-2 shadow-[0_4px_6px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform origin-bottom flex items-center gap-2">
-                    <div className="flex flex-col items-center">
-                        <span className="text-[9px] text-[#fbbf24] font-serif font-bold uppercase tracking-widest leading-none">MUSEO</span>
-                        <span className="text-white font-black text-xs md:text-sm tracking-wide">GALLERIA</span>
+                {/* 1. TOP SIGN (GALLERY) */}
+                <div 
+                    onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(true); }}
+                    className="relative z-30 bg-[#7f1d1d] border-[3px] border-[#fbbf24] rounded-lg px-3 py-2 shadow-[0_4px_6px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-95 transition-transform origin-center flex items-center gap-2 pointer-events-auto cursor-pointer mb-3 min-h-[44px] md:min-h-[50px] flex-shrink-0"
+                >
+                    <div className="flex flex-col items-center justify-center flex-1">
+                        <span className="text-[9px] text-[#fbbf24] font-serif font-bold uppercase tracking-widest leading-none">VEDI</span>
+                        <span className="text-white font-black text-[10px] md:text-xs tracking-wide">GALLERIA</span>
                     </div>
                     <div className="bg-[#fbbf24] rounded-full p-1 text-[#7f1d1d]">
                         <ArrowRight size={14} strokeWidth={4} />
                     </div>
                 </div>
 
-                {/* The Pole */}
+                {/* 2. BOTTOM SIGN (BACK TO CITY) - Uniformato nello stile, riga singola e stessa altezza */}
+                <div 
+                    onClick={(e) => { e.stopPropagation(); if (setView) setView(AppView.CITY_MAP); }}
+                    className="relative z-30 bg-[#1e3a8a] border-[3px] border-[#fbbf24] rounded-lg px-3 py-2 shadow-[0_4px_6px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-95 transition-transform origin-center flex items-center gap-2 pointer-events-auto cursor-pointer min-h-[44px] md:min-h-[50px] flex-shrink-0"
+                >
+                    <div className="flex flex-col items-center justify-center flex-1">
+                        <span className="text-white font-black text-[10px] md:text-xs tracking-wide whitespace-nowrap">VAI IN CITTÀ</span>
+                    </div>
+                    <div className="bg-[#fbbf24] rounded-full p-1 text-[#1e3a8a]">
+                        <ArrowRight size={14} strokeWidth={4} />
+                    </div>
+                </div>
+
+                {/* Shared Pole */}
                 <div className="w-2 h-1/2 bg-gray-800 border-x border-gray-600 relative z-10 -mt-1"></div>
 
-                {/* The Base (Perspective Oval) */}
+                {/* Shared Base */}
                 <div className="w-12 h-3 bg-gray-900 rounded-[50%] border-2 border-gray-700 shadow-lg relative z-0"></div>
 
             </div>
-        ), () => setIsGalleryOpen(true), 30, true, false)}
+        ), () => {}, 30, false, false)}
       </>
       );
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-75px)] md:h-[calc(100vh-106px)] bg-amber-50 overflow-hidden flex flex-col"
-        onClick={handleInteraction}
-    >
+    <div className="relative w-full h-[calc(100vh-75px)] md:h-[calc(100vh-106px)] bg-amber-50 overflow-hidden flex flex-col">
         
         {/* LOADING */}
         {(!bgLoaded || loading) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-amber-100 z-50">
-                <span className="text-amber-800 font-black text-2xl animate-pulse flex items-center gap-2">
-                    <Loader2 className="animate-spin" /> Apro il Museo...
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-800/90 z-50">
+                <img 
+                    src={OFFICIAL_LOGO} 
+                    alt="Caricamento..." 
+                    className="w-32 h-32 object-contain animate-spin-horizontal mb-4" 
+                />
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                    STO CARICANDO...
                 </span>
             </div>
         )}
-
-        <RobotHint 
-            show={showHint && bgLoaded} 
-            message={`TOCCA I QUADRI\nPER VEDERLI\nDA VICINO!`}
-        />
 
         {/* MAIN VISUAL AREA */}
         <div 
@@ -408,91 +407,38 @@ const FanArtGallery: React.FC = () => {
 
         {/* --- MODAL: FULL GALLERY GRID --- */}
         {isGalleryOpen && (
-            // Full Screen Overlay - Solid Background, Slide In
             <div className="fixed inset-0 z-[100] bg-[#450a0a] flex flex-col animate-in slide-in-from-right duration-500">
-                
-                {/* Baroque Wall Pattern Overlay */}
-                <div 
-                    className="absolute inset-0 opacity-20 pointer-events-none mix-blend-multiply" 
-                    style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/baroque.png')` }} 
-                ></div>
-
-                {/* Vignette Effect for Depth */}
+                <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-multiply" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/baroque.png')` }}></div>
                 <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_20%,#2a0404_100%)] pointer-events-none"></div>
 
-                {/* Header Area */}
                 <div className="relative z-20 flex justify-between items-center p-4 bg-[#2a0404] border-b-4 border-[#78350f] shadow-lg">
                     <div className="flex flex-col">
-                        <h2 className="text-2xl md:text-4xl font-black text-[#d4af37] drop-shadow-[2px_2px_0_#2a0404]" style={{ fontFamily: '"Titan One", cursive' }}>
-                            Galleria
-                        </h2>
+                        <h2 className="text-2xl md:text-4xl font-black text-[#d4af37] drop-shadow-[2px_2px_0_#2a0404]" style={{ fontFamily: '"Titan One", cursive' }}>Galleria</h2>
                         <div className="h-1 w-full bg-[#d4af37] rounded-full mt-1 opacity-70"></div>
                     </div>
-                    <button 
-                        onClick={() => setIsGalleryOpen(false)}
-                        className="bg-[#2a0404] text-[#d4af37] p-2 md:p-3 rounded-full border-4 border-[#d4af37] hover:scale-110 transition-transform shadow-lg"
-                    >
-                        <X size={24} strokeWidth={3} />
-                    </button>
+                    <button onClick={() => setIsGalleryOpen(false)} className="bg-[#2a0404] text-[#d4af37] p-2 md:p-3 rounded-full border-4 border-[#d4af37] hover:scale-110 transition-transform shadow-lg"><X size={24} strokeWidth={3} /></button>
                 </div>
 
-                {/* Grid Container - Hiding Scrollbar */}
-                <div 
-                    className="flex-1 overflow-y-auto p-4 md:p-8"
-                    style={{ 
-                        scrollbarWidth: 'none', /* Firefox */
-                        msOverflowStyle: 'none' /* IE/Edge */
-                    }}
-                >
-                    <style>{`
-                        .overflow-y-auto::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}</style>
-
+                <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <style>{`.overflow-y-auto::-webkit-scrollbar { display: none; }`}</style>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12 pb-20">
                         {gallery.map((art) => (
-                            <div 
-                                key={art.id} 
-                                className="relative group cursor-pointer flex flex-col items-center"
-                                onClick={() => setSelectedArt(art)}
-                            >
-                                {/* Hanging String Illusion */}
+                            <div key={art.id} className="relative group cursor-pointer flex flex-col items-center" onClick={() => setSelectedArt(art)}>
                                 <div className="absolute -top-8 w-px h-8 bg-gray-400 left-1/2 -translate-x-1/2 z-0"></div>
                                 <div className="absolute -top-8 w-2 h-2 rounded-full bg-[#78350f] border border-black shadow-sm left-1/2 -translate-x-1/2 z-10"></div>
                                 <div className="absolute -top-4 w-16 h-8 border-t-2 border-l-2 border-r-2 border-gray-400 border-b-0 rounded-t-full left-1/2 -translate-x-1/2 z-0"></div>
-
-                                {/* Spotlight Effect on Wall behind frame */}
                                 <div className="absolute inset-0 -m-8 bg-[radial-gradient(circle,rgba(255,255,255,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-
-                                {/* The Frame Container */}
-                                <div 
-                                    className="relative w-full aspect-square bg-[#1a1a1a] shadow-[0_15px_30px_rgba(0,0,0,0.7)] transform transition-transform duration-300 group-hover:scale-[1.02] z-10"
-                                    style={{
-                                        border: '14px solid #5D4037', // Medium Wood
-                                        outline: '6px solid #3E2723', // Darker Outer Wood
-                                        boxShadow: '0 10px 20px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.8)' // Deep Shadow
-                                    }}
-                                >
-                                    {/* Matting (Passepartout) */}
+                                <div className="relative w-full aspect-square bg-[#1a1a1a] shadow-[0_15px_30px_rgba(0,0,0,0.7)] transform transition-transform duration-300 group-hover:scale-[1.02] z-10" style={{ border: '14px solid #5D4037', outline: '6px solid #3E2723', boxShadow: '0 10px 20px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.8)' }}>
                                     <div className="w-full h-full bg-[#f5f5f0] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)] p-3 flex items-center justify-center overflow-hidden">
-                                        <img 
-                                            src={art.image} 
-                                            alt={art.author} 
-                                            className="w-full h-full object-contain drop-shadow-md"
-                                            loading="lazy"
-                                        />
+                                        <img src={art.image} alt={art.author} className="w-full h-full object-contain drop-shadow-md" loading="lazy" />
                                     </div>
                                 </div>
-                                
-                                {/* Gold Plaque Label - Moved slightly down */}
                                 <div className="mt-4 bg-gradient-to-b from-[#fcd34d] to-[#b45309] px-4 py-1.5 shadow-[0_2px_4px_black] text-center min-w-[70%] rounded-sm border border-[#78350f] relative z-20">
                                     <p className="text-[10px] md:text-xs font-serif font-black text-[#451a03] uppercase tracking-widest truncate">{art.author}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    
                     {gallery.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-[#d4af37]/50">
                             <LayoutGrid size={64} className="mb-4" />
@@ -503,7 +449,7 @@ const FanArtGallery: React.FC = () => {
             </div>
         )}
 
-        {/* --- MODAL: UPLOAD FORM (Same as before) --- */}
+        {/* --- MODAL: UPLOAD FORM --- */}
         {isFormOpen && (
             <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
                 <div className="bg-white/90 backdrop-blur-md rounded-[30px] border-4 border-yellow-400 p-6 md:p-8 shadow-2xl w-full max-w-lg relative animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
@@ -519,47 +465,21 @@ const FanArtGallery: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-gray-700 font-bold text-xs uppercase mb-1">Nome</label>
-                                    <input 
-                                        type="text" 
-                                        value={name} 
-                                        onChange={(e) => setName(e.target.value)} 
-                                        placeholder="Scrivi il tuo nome (Obbligatorio)" 
-                                        className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none placeholder:text-gray-400 text-gray-800" 
-                                        required 
-                                    />
+                                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Scrivi il tuo nome" className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none text-gray-800" required />
                                 </div>
                                 <div>
                                     <label className="block text-gray-700 font-bold text-xs uppercase mb-1">Età</label>
-                                    <input 
-                                        type="text" 
-                                        value={age} 
-                                        onChange={(e) => setAge(e.target.value)} 
-                                        placeholder="Quanti anni hai?"
-                                        className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none placeholder:text-gray-400 text-gray-800" 
-                                    />
+                                    <input type="text" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Quanti anni hai?" className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none text-gray-800" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-gray-700 font-bold text-xs uppercase mb-1">Città</label>
-                                    <input 
-                                        type="text" 
-                                        value={city} 
-                                        onChange={(e) => setCity(e.target.value)} 
-                                        placeholder="Dove abiti?"
-                                        className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none placeholder:text-gray-400 text-gray-800" 
-                                    />
+                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Dove abiti?" className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none text-gray-800" />
                                 </div>
                                 <div>
                                     <label className="block text-gray-700 font-bold text-xs uppercase mb-1">Prov.</label>
-                                    <input 
-                                        type="text" 
-                                        value={province} 
-                                        onChange={(e) => setProvince(e.target.value)} 
-                                        maxLength={4} 
-                                        placeholder="Es. MI"
-                                        className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none placeholder:text-gray-400 text-gray-800" 
-                                    />
+                                    <input type="text" value={province} onChange={(e) => setProvince(e.target.value)} maxLength={4} placeholder="Es. MI" className="w-full bg-white border-2 border-gray-300 rounded-xl p-3 font-bold focus:border-yellow-400 outline-none text-gray-800" />
                                 </div>
                             </div>
                             <div>
@@ -570,21 +490,12 @@ const FanArtGallery: React.FC = () => {
                                         <div className="relative w-full text-center">
                                             <img src={imageFile} alt="Preview" className="max-h-32 rounded-lg shadow-md mb-2 mx-auto" />
                                             <span className="text-green-600 font-black text-sm flex items-center justify-center gap-1"><CheckCircle size={16} /> Pronta!</span>
-                                            
-                                            {/* Remove Button */}
-                                            <button 
-                                                type="button"
-                                                onClick={handleRemoveImage}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-white shadow-md hover:scale-110 hover:bg-red-600 transition-all z-10"
-                                                title="Rimuovi immagine"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <button type="button" onClick={handleRemoveImage} className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-white shadow-md hover:scale-110 transition-all z-10"><Trash2 size={16} /></button>
                                         </div>
                                     ) : (
                                         <div className="text-center text-gray-400">
                                             <Camera size={40} className="mx-auto mb-1" />
-                                            <span className="font-bold text-xs">Tocca per caricare foto (Obbligatorio)</span>
+                                            <span className="font-bold text-xs">Tocca per caricare foto</span>
                                         </div>
                                     )}
                                 </div>
@@ -601,7 +512,7 @@ const FanArtGallery: React.FC = () => {
         {/* --- MODAL: SINGLE IMAGE VIEW --- */}
         {selectedArt && (
             <div className="fixed inset-0 z-[110] bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setSelectedArt(null)}>
-                <button onClick={() => setSelectedArt(null)} className="absolute top-4 right-4 z-50 bg-red-500 text-white p-2 rounded-full border-2 border-white hover:scale-110 hover:bg-red-600 transition-all shadow-lg"><X size={32} strokeWidth={3} /></button>
+                <button onClick={() => setSelectedArt(null)} className="absolute top-4 right-4 z-50 bg-red-500 text-white p-2 rounded-full border-2 border-white hover:scale-110 active:scale-95 transition-all shadow-lg"><X size={32} strokeWidth={3} /></button>
                 <div className="relative max-w-4xl w-full max-h-[80vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                     <img src={selectedArt.image} alt={selectedArt.author} className="max-w-full max-h-[70vh] object-contain rounded-lg border-[10px] border-amber-900 shadow-[0_0_50px_rgba(255,255,255,0.2)] bg-white" />
                 </div>
@@ -620,4 +531,3 @@ const FanArtGallery: React.FC = () => {
 };
 
 export default FanArtGallery;
-    

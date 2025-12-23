@@ -1,18 +1,20 @@
-
 import React, { useState } from 'react';
 import { AppView } from '../types';
-import { HOME_BG_MOBILE, HOME_BG_DESKTOP, APP_VERSION } from '../constants';
-import { Info, Mail, ShieldAlert, Cpu, X, ExternalLink, Trophy, Star, Check, HelpCircle, BookOpen } from 'lucide-react';
+import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
+import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
+import { X, Check, Star, Trophy } from 'lucide-react';
+import NewsletterModal from './NewsletterModal';
+import OptimizedImage from './OptimizedImage';
 
 interface HomePageProps {
     setView: (view: AppView) => void;
     lastView?: AppView | null;
 }
 
-// DECORATION IMAGE (SUN/CLOUD)
-const DECORATION_TOP_LEFT = 'https://i.postimg.cc/bw5dnCs4/IMG-696ee7.png';
-// CONTEST LOGO
+// ASSETS
 const CONTEST_LOGO = 'https://i.postimg.cc/LX7J1C7n/logoconcorso.png';
+const BTN_STAY_UPDATED = 'https://i.postimg.cc/VkQKrVmX/rimani-aggiornato-(1).png';
+const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 
 // ZONES CONFIGURATION (Mobile)
 const ZONES_MOBILE = [
@@ -59,8 +61,8 @@ const ZONES_DESKTOP = [
 ];
 
 const HomePage: React.FC<HomePageProps> = ({ setView }) => {
-    const [isCloudOpen, setIsCloudOpen] = useState(false);
     const [isContestOpen, setIsContestOpen] = useState(false);
+    const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
     
     const getClipPath = (points: { x: number; y: number }[]) => {
         const poly = points.map(p => `${p.x}% ${p.y}%`).join(', ');
@@ -68,8 +70,12 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     };
 
     const handleNavigation = (view: AppView) => {
-        setIsCloudOpen(false);
         setView(view);
+    };
+
+    const handleOpenNewsletter = () => {
+        setIsContestOpen(false);
+        setIsNewsletterOpen(true);
     };
 
     return (
@@ -77,10 +83,11 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* --- MOBILE VIEW --- */}
             <div className="md:hidden fixed inset-0 top-[64px] z-0 overflow-hidden bg-black">
                 <div className="w-full h-full relative">
-                    <img 
+                    {/* Fixed: removed priority="high" because OptimizedImage does not support it */}
+                    <OptimizedImage 
                         src={HOME_BG_MOBILE} 
                         alt="Home Background Mobile" 
-                        className="w-full h-full object-fill object-bottom animate-fade-in pointer-events-none select-none"
+                        className="w-full h-full pointer-events-none select-none"
                     />
                     
                     {ZONES_MOBILE.map((zone, index) => (
@@ -93,27 +100,13 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                     ))}
                 </div>
 
-                {/* UI ELEMENTS - LEFT */}
+                {/* UI ELEMENTS - LEFT (CONTEST) */}
                 <div className="absolute top-4 left-4 z-20">
-                    <button 
-                        onClick={() => setIsCloudOpen(true)}
-                        className="hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none touch-manipulation"
-                    >
-                        <img 
-                            src={DECORATION_TOP_LEFT}
-                            alt="Menu Nuvola"
-                            className="w-14 h-auto drop-shadow-md pointer-events-none"
-                        />
-                    </button>
-                </div>
-
-                {/* UI ELEMENTS - RIGHT (CONTEST) */}
-                <div className="absolute top-4 right-4 z-20">
                     <button 
                         onClick={() => setIsContestOpen(true)}
                         className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none touch-manipulation"
                     >
-                        <img 
+                        <OptimizedImage 
                             src={CONTEST_LOGO}
                             alt="Concorso"
                             className="w-20 h-auto drop-shadow-md pointer-events-none animate-float"
@@ -125,10 +118,11 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* --- DESKTOP VIEW --- */}
             <div className="hidden md:flex fixed inset-0 top-[96px] z-0 bg-black items-center justify-center overflow-hidden">
                 <div className="relative w-full h-full shadow-2xl">
-                    <img 
+                    {/* Fixed: removed priority="high" because OptimizedImage does not support it */}
+                    <OptimizedImage 
                         src={HOME_BG_DESKTOP} 
                         alt="Home Background Desktop" 
-                        className="w-full h-full object-fill animate-fade-in pointer-events-none select-none"
+                        className="w-full h-full pointer-events-none select-none"
                     />
 
                     {ZONES_DESKTOP.map((zone, index) => (
@@ -145,24 +139,10 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                 {/* UI ELEMENTS - LEFT */}
                 <div className="absolute top-[5%] left-[5%] z-20">
                     <button 
-                        onClick={() => setIsCloudOpen(true)}
-                        className="hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none"
-                    >
-                        <img 
-                            src={DECORATION_TOP_LEFT}
-                            alt="Menu Nuvola"
-                            className="w-[6vw] h-auto drop-shadow-xl pointer-events-none"
-                        />
-                    </button>
-                </div>
-
-                {/* UI ELEMENTS - RIGHT */}
-                <div className="absolute top-[5%] right-[5%] z-20">
-                    <button 
                         onClick={() => setIsContestOpen(true)}
                         className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
                     >
-                        <img 
+                        <OptimizedImage 
                             src={CONTEST_LOGO}
                             alt="Concorso"
                             className="w-[9vw] h-auto drop-shadow-xl pointer-events-none animate-float"
@@ -170,128 +150,6 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                     </button>
                 </div>
             </div>
-
-            {/* --- CLOUD MENU MODAL (FUMETTOSO) --- */}
-            {isCloudOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={() => setIsCloudOpen(false)}>
-                    
-                    {/* Cloud Container */}
-                    <div 
-                        className="bg-white relative w-full max-w-md p-8 rounded-[50px] border-8 border-black shadow-[10px_10px_0px_0px_rgba(59,130,246,1)] animate-in zoom-in-95 duration-300"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Decorative Cloud Bumps */}
-                        <div className="absolute -top-10 left-10 w-24 h-24 bg-white rounded-full border-t-8 border-l-8 border-black z-0"></div>
-                        <div className="absolute -top-16 right-20 w-32 h-32 bg-white rounded-full border-t-8 border-r-8 border-black z-0"></div>
-                        <div className="absolute -bottom-10 right-10 w-24 h-24 bg-white rounded-full border-b-8 border-r-8 border-black z-0"></div>
-
-                        {/* Close Button */}
-                        <button 
-                            onClick={() => setIsCloudOpen(false)}
-                            className="absolute top-4 right-4 z-20 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 transition-transform shadow-[2px_2px_0_black]"
-                        >
-                            <X size={24} strokeWidth={4} />
-                        </button>
-
-                        {/* Content */}
-                        <div className="relative z-10 text-center">
-                            <h2 className="text-4xl font-black text-blue-500 mb-2 drop-shadow-[2px_2px_0_black]" style={{ textShadow: "2px 2px 0px black" }}>
-                                INFO
-                            </h2>
-                            <p className="text-gray-600 font-bold mb-4">Tutto quello che devi sapere!</p>
-
-                            <div className="grid grid-cols-1 gap-2">
-                                {/* NEW: GUIDE BUTTON */}
-                                <button 
-                                    onClick={() => handleNavigation(AppView.GUIDE)}
-                                    className="flex items-center gap-3 bg-green-500 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:scale-110 transition-transform">
-                                        <BookOpen size={20} className="text-green-600" />
-                                    </div>
-                                    <div>
-                                        <span className="block font-black text-white text-base uppercase">Come usare l'App</span>
-                                        <span className="block text-[10px] font-bold text-white/80">Guida all'Avventura</span>
-                                    </div>
-                                </button>
-
-                                <button 
-                                    onClick={() => handleNavigation(AppView.ABOUT)}
-                                    className="flex items-center gap-3 bg-yellow-400 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:rotate-6 transition-transform">
-                                        <Info size={20} className="text-yellow-600" />
-                                    </div>
-                                    <div>
-                                        <span className="block font-black text-black text-base uppercase">Chi Siamo</span>
-                                        <span className="block text-[10px] font-bold text-black/70">La storia di Lone Boo</span>
-                                    </div>
-                                </button>
-
-                                <button 
-                                    onClick={() => handleNavigation(AppView.FAQ)}
-                                    className="flex items-center gap-3 bg-orange-400 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:-rotate-6 transition-transform">
-                                        <HelpCircle size={20} className="text-orange-600" />
-                                    </div>
-                                    <div>
-                                        <span className="block font-black text-black text-base uppercase">FAQ</span>
-                                        <span className="block text-[10px] font-bold text-black/70">Domande Frequenti</span>
-                                    </div>
-                                </button>
-
-                                <a 
-                                    href="mailto:support@loneboo.online"
-                                    className="flex items-center gap-3 bg-blue-500 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:-rotate-6 transition-transform">
-                                        <Mail size={20} className="text-blue-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <span className="block font-black text-white text-base uppercase">Contatti</span>
-                                        <span className="block text-[10px] font-bold text-white/80">Scrivici una mail!</span>
-                                    </div>
-                                    <ExternalLink size={14} className="text-white opacity-60" />
-                                </a>
-
-                                <button 
-                                    onClick={() => handleNavigation(AppView.DISCLAIMER)}
-                                    className="flex items-center gap-3 bg-red-500 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:rotate-6 transition-transform">
-                                        <ShieldAlert size={20} className="text-red-600" />
-                                    </div>
-                                    <div>
-                                        <span className="block font-black text-white text-base uppercase">Disclaimer</span>
-                                        <span className="block text-[10px] font-bold text-white/80">Privacy & Sicurezza</span>
-                                    </div>
-                                </button>
-
-                                <button 
-                                    onClick={() => handleNavigation(AppView.TECH_INFO)}
-                                    className="flex items-center gap-3 bg-purple-500 p-3 rounded-2xl border-4 border-black shadow-[3px_3px_0_black] hover:scale-[1.02] active:shadow-none active:translate-y-1 transition-all group text-left"
-                                >
-                                    <div className="bg-white p-1.5 rounded-xl border-2 border-black group-hover:-rotate-6 transition-transform">
-                                        <Cpu size={20} className="text-purple-600" />
-                                    </div>
-                                    <div>
-                                        <span className="block font-black text-white text-base uppercase">Tecnologia</span>
-                                        <span className="block text-[10px] font-bold text-white/80">Come funziona l'App</span>
-                                    </div>
-                                </button>
-                            </div>
-
-                            {/* VERSION BADGE */}
-                            <div className="mt-4 pt-1">
-                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
-                                    Versione {APP_VERSION}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* --- CONTEST BANNER MODAL --- */}
             {isContestOpen && (
@@ -305,16 +163,24 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                             <Star size={64} fill="currentColor" strokeWidth={1} />
                         </div>
 
-                        {/* Close Button */}
+                        {/* Custom Close Button */}
                         <button 
                             onClick={() => setIsContestOpen(false)}
-                            className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 transition-transform shadow-[2px_2px_0_black]"
+                            className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10"
                         >
-                            <X size={24} strokeWidth={4} />
+                            <OptimizedImage 
+                                src={BTN_CLOSE_IMG} 
+                                alt="Chiudi" 
+                                className="w-14 h-14 md:w-18 md:h-18 object-contain drop-shadow-xl" 
+                            />
                         </button>
 
-                        <div className="mb-4 bg-yellow-100 p-4 rounded-full border-4 border-yellow-500">
-                            <Trophy size={48} className="text-yellow-600" />
+                        <div className="mb-4">
+                            <OptimizedImage 
+                                src={CONTEST_LOGO} 
+                                alt="Concorso" 
+                                className="w-40 h-auto drop-shadow-lg animate-float"
+                            />
                         </div>
 
                         <h2 className="text-3xl font-black text-boo-purple mb-4 leading-tight">
@@ -327,13 +193,22 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                         </p>
 
                         <button 
-                            onClick={() => setIsContestOpen(false)}
-                            className="w-full bg-green-500 text-white font-black text-xl py-4 rounded-full border-4 border-black shadow-[4px_4px_0_black] hover:scale-105 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 uppercase"
+                            onClick={handleOpenNewsletter}
+                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
                         >
-                            NON VEDO L'ORA! <Check size={24} strokeWidth={4} />
+                            <OptimizedImage 
+                                src={BTN_STAY_UPDATED} 
+                                alt="Rimani Aggiornato" 
+                                className="w-full h-auto drop-shadow-lg"
+                            />
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* --- NEWSLETTER MODAL --- */}
+            {isNewsletterOpen && (
+                <NewsletterModal onClose={() => setIsNewsletterOpen(false)} />
             )}
         </>
     );

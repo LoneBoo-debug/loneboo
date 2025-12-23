@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
-import { Loader2 } from 'lucide-react';
+import { OFFICIAL_LOGO } from '../constants';
 import RobotHint from './RobotHint';
 
 const BOO_HOUSE_MOBILE = 'https://i.postimg.cc/9F308yt9/houseplanss-(1).png';
@@ -37,8 +36,7 @@ const ZONES_DESKTOP: HouseZone[] = [
     ]
   },
   {
-    "id": AppView.BOO_LIVING_ROOM,
-    "label": "Salotto",
+    "id": AppView.BOO_LIVING_ROOM, "label": "Salotto",
     "points": [
       { "x": 49.72, "y": 16.43 },
       { "x": 49.72, "y": 47.48 },
@@ -47,8 +45,7 @@ const ZONES_DESKTOP: HouseZone[] = [
     ]
   },
   {
-    "id": AppView.BOO_BEDROOM,
-    "label": "Camera",
+    "id": AppView.BOO_BEDROOM, "label": "Camera",
     "points": [
       { "x": 26.96, "y": 46.8 },
       { "x": 27.27, "y": 72.46 },
@@ -57,8 +54,7 @@ const ZONES_DESKTOP: HouseZone[] = [
     ]
   },
   {
-    "id": AppView.BOO_BATHROOM,
-    "label": "Bagno",
+    "id": AppView.BOO_BATHROOM, "label": "Bagno",
     "points": [
       { "x": 57.34, "y": 53.11 },
       { "x": 57.34, "y": 72.46 },
@@ -67,8 +63,7 @@ const ZONES_DESKTOP: HouseZone[] = [
     ]
   },
   {
-    "id": AppView.BOO_GARDEN,
-    "label": "Giardino",
+    "id": AppView.BOO_GARDEN, "label": "Giardino",
     "points": [
       { "x": 58.44, "y": 78.53 },
       { "x": 58.74, "y": 92.26 },
@@ -90,11 +85,10 @@ const BooHouse: React.FC<BooHouseProps> = ({ setView }) => {
     const [showHint, setShowHint] = useState(false);
     
     useEffect(() => {
+        // Start background load immediately
         const imgMobile = new Image();
-        imgMobile.src = BOO_HOUSE_MOBILE;
         const imgDesktop = new Image();
-        imgDesktop.src = BOO_HOUSE_DESKTOP;
-
+        
         let loadedCount = 0;
         const checkLoad = () => {
             loadedCount++;
@@ -103,26 +97,40 @@ const BooHouse: React.FC<BooHouseProps> = ({ setView }) => {
 
         imgMobile.onload = checkLoad;
         imgDesktop.onload = checkLoad;
-        
-        // Fallback
-        setTimeout(() => setIsLoaded(true), 1500);
+        imgMobile.onerror = checkLoad;
+        imgDesktop.onerror = checkLoad;
+
+        imgMobile.src = BOO_HOUSE_MOBILE;
+        imgDesktop.src = BOO_HOUSE_DESKTOP;
 
         window.scrollTo(0, 0);
 
-        // Logic: Only show hint if user hasn't visited a room yet in this session
-        const hasVisitedRoom = sessionStorage.getItem('boo_house_visited');
-        let timer: ReturnType<typeof setTimeout>;
+        // Safety fallback: force load after 3s max
+        const loadTimer = setTimeout(() => {
+            if (!isLoaded) setIsLoaded(true);
+        }, 3000);
 
-        if (!hasVisitedRoom) {
-            timer = setTimeout(() => {
+        // Hint logic
+        const hasVisitedRoom = sessionStorage.getItem('boo_house_visited');
+        let hintTimer: ReturnType<typeof setTimeout>;
+
+        // Wait a bit after load to show hint, but ensure it shows if needed
+        const checkHint = () => {
+             if (!hasVisitedRoom && isLoaded) {
                 setShowHint(true);
-            }, 1000); 
+             }
+        };
+        
+        // Check hint condition periodically or when loaded
+        if (isLoaded && !hasVisitedRoom) {
+             hintTimer = setTimeout(checkHint, 1000);
         }
 
         return () => {
-            clearTimeout(timer);
+            clearTimeout(loadTimer);
+            if (hintTimer) clearTimeout(hintTimer);
         };
-    }, []);
+    }, [isLoaded]);
 
     const handleInteraction = () => {
         if (showHint) setShowHint(false); 
@@ -163,17 +171,26 @@ const BooHouse: React.FC<BooHouseProps> = ({ setView }) => {
             className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gradient-to-b from-[#b388f4] to-white overflow-hidden flex flex-col"
             onClick={handleInteraction}
         >
+            {/* LOADING STATE - Standard Animation */}
             {!isLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-orange-200 z-50">
-                    <span className="text-white font-black text-2xl animate-pulse drop-shadow-md flex items-center gap-2">
-                        <Loader2 className="animate-spin" /> Benvenuti a Casa Boo...
+                <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-orange-200/90 backdrop-blur-md">
+                    <img 
+                        src={OFFICIAL_LOGO} 
+                        alt="Caricamento..." 
+                        className="w-32 h-32 object-contain animate-spin-horizontal mb-4" 
+                        onError={(e) => {
+                            e.currentTarget.src = 'https://i.postimg.cc/tCZGcq9V/official.png';
+                        }}
+                    />
+                    <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                        STO CARICANDO...
                     </span>
                 </div>
             )}
 
             {/* ROBOT HINT */}
             <RobotHint 
-                show={showHint} 
+                show={showHint && isLoaded} 
                 message="Tocca una stanza per entrare!"
                 variant="GHOST"
             />
@@ -184,7 +201,7 @@ const BooHouse: React.FC<BooHouseProps> = ({ setView }) => {
                     <img 
                         src={BOO_HOUSE_MOBILE} 
                         alt="Casa di Lone Boo Mobile" 
-                        className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`w-full h-full object-fill object-center transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                         draggable={false}
                     />
                     {isLoaded && renderZones(false)}
@@ -197,7 +214,7 @@ const BooHouse: React.FC<BooHouseProps> = ({ setView }) => {
                     <img 
                         src={BOO_HOUSE_DESKTOP} 
                         alt="Casa di Lone Boo Desktop" 
-                        className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                         draggable={false}
                     />
                     {isLoaded && renderZones(true)}

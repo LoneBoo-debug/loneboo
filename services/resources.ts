@@ -1,6 +1,8 @@
 
-import { NOTIFICATIONS_CSV_URL, COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL, FAN_ART_GALLERY } from '../constants';
+import { NOTIFICATIONS_CSV_URL, COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL } from '../constants';
 import { AppNotification, CommunityPost, FanArt } from '../types';
+// Add import for FAN_ART_DATABASE
+import { FAN_ART_DATABASE } from './dbfanart';
 
 // --- SHARED HELPER ---
 const parseCSVLine = (line: string): string[] => {
@@ -157,7 +159,8 @@ export const getFanArt = async (): Promise<FanArt[]> => {
     const MIN_ITEMS = 4;
     if (dynamicArts.length < MIN_ITEMS) {
         const slotsToFill = MIN_ITEMS - dynamicArts.length;
-        const fillerItems = FAN_ART_GALLERY.slice(0, slotsToFill);
+        // Fix: Use FAN_ART_DATABASE instead of non-existent FAN_ART_GALLERY
+        const fillerItems = FAN_ART_DATABASE.slice(0, slotsToFill);
         return [...dynamicArts, ...fillerItems];
     }
     return dynamicArts;

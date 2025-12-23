@@ -1,6 +1,6 @@
 
 import { PlayerProgress, Sticker, Rarity, AvatarConfig } from '../types';
-import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../constants';
+import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from './stickersDatabase';
 
 const STORAGE_KEY = 'loneboo_player_progress';
 
@@ -96,7 +96,8 @@ export const setPlayerName = (name: string, avatar: 'BOY' | 'GIRL') => {
     saveProgress(progress);
 };
 
-export const addTokens = (amount: number) => {
+// Explicitly define return type to fix inference errors in consumer components
+export const addTokens = (amount: number): number => {
     const progress = getProgress();
     progress.tokens = (progress.tokens || 0) + amount; 
     saveProgress(progress);

@@ -8,7 +8,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
 
   return {
-    base: '/', 
+    base: './', // CRITICAL FIX: Use relative paths for assets to work in any folder/preview
+    publicDir: 'public', // Explicitly define public directory
     plugins: [react()],
     define: {
       global: 'globalThis',
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      assetsDir: 'assets',
       sourcemap: false,
       minify: 'esbuild',
       cssCodeSplit: true,
@@ -37,7 +39,6 @@ export default defineConfig(({ mode }) => {
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
               }
-              // Generic vendor chunk for everything else to keep main bundle small
               return 'vendor-libs';
             }
           }

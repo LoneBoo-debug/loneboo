@@ -1,144 +1,171 @@
-
 import React, { useEffect } from 'react';
-import { Mail, ArrowLeft, Cpu, Layers, ScanFace, Code, Database, Globe, Lock, QrCode, BrainCircuit, ShieldCheck } from 'lucide-react';
+import { Cpu, ScanFace, Code, Database, Globe, Lock, QrCode, BrainCircuit, Accessibility, X, Layers, Smartphone, Server, ServerOff, Mail, Volume2, Gamepad2 } from 'lucide-react';
 import { AppView } from '../types';
+import { APP_VERSION } from '../constants';
+
+const INFO_BG = 'https://i.postimg.cc/brjgmCV4/sfondoinfo.jpg';
+const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
+const ICON_TECH = 'https://i.postimg.cc/nLH7dsJW/terdfe-(1).png';
 
 interface TechInfoPageProps {
     setView: (view: AppView) => void;
 }
 
 const TechInfoPage: React.FC<TechInfoPageProps> = ({ setView }) => {
-  // Ensure the page starts at the top when opened
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  const handleExit = () => setView(AppView.INFO_MENU);
+
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    <div 
+        className="min-h-screen bg-cover bg-center bg-fixed pb-24"
+        style={{ backgroundImage: `url(${INFO_BG})` }}
+    >
       
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h2 className="text-3xl md:text-5xl font-black text-boo-orange mb-2" style={{ textShadow: "3px 3px 0px black" }}>
-           Relazione Tecnica
-        </h2>
-        <div className="inline-flex items-center gap-2 bg-black/20 text-white px-4 py-1 rounded-full text-sm font-bold backdrop-blur-sm">
-             <Cpu size={16} />
-             <span>Architecture & Engineering</span>
-        </div>
-      </div>
+      {/* FIXED EXIT BUTTON */}
+      <button 
+          onClick={handleExit}
+          className="fixed top-20 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+          aria-label="Indietro"
+      >
+          <img 
+            src={BTN_CLOSE_IMG} 
+            alt="Chiudi" 
+            className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" 
+          />
+      </button>
 
-      {/* Content Card */}
-      <div className="bg-white rounded-[30px] border-4 border-black p-6 md:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] text-gray-800 leading-relaxed font-sans">
-        
-        <div className="mb-8 pb-4 border-b-2 border-gray-100">
-             <h3 className="text-xl font-black text-boo-purple mb-2">🚀 OVERVIEW DEL PROGETTO</h3>
-             <p className="text-gray-600 font-medium">
-                 Lone Boo è una <strong>Single Page Application (SPA)</strong> ad alte prestazioni. L'architettura è stata progettata su misura per garantire fluidità, sicurezza e scalabilità, integrando tecnologie di frontiera (GenAI, Computer Vision) in un'interfaccia a misura di bambino.
-             </p>
-        </div>
+      <div className="max-w-5xl mx-auto p-4 md:p-8 pt-32 animate-fade-in">
 
-        {/* --- 1. INTEGRAZIONE AI (GEMINI) --- */}
-        <section className="mb-10 bg-purple-50 p-6 rounded-2xl border-l-8 border-purple-500">
-            <h4 className="text-xl font-black text-purple-800 mb-4 flex items-center gap-2">
-                <BrainCircuit size={24} /> 1. Cuore AI: Google Gemini & Integrazione Proprietaria
-            </h4>
-            <p className="text-gray-600 mb-3 text-sm">
-                L'intelligenza dell'app non è una semplice "chat", ma un sistema ingegnerizzato basato sui modelli <strong>Google Gemini Flash 2.5</strong>, ottimizzati per bassa latenza e sicurezza.
-            </p>
-            <ul className="list-disc pl-6 text-gray-600 space-y-3 font-medium text-sm">
-                <li>
-                    <strong>Integrazione Proprietaria "Safety First":</strong> Non utilizziamo le API standard in modo diretto. Abbiamo costruito un <em>layer intermedio proprietario</em> di "System Prompts" (istruzioni di sistema) che agisce come un filtro invalicabile. Questo layer istruisce l'AI a comportarsi esclusivamente come il personaggio "Lone Boo", bloccando output non adatti ai bambini prima ancora che vengano generati.
-                </li>
-                <li>
-                    <strong>Multimodalità Nativa:</strong> Nella "Torre Magica", l'AI non "legge" solo il testo, ma "vede" attraverso la fotocamera (Vision Capabilities). Il sistema analizza le immagini inviate dai bambini (es. nella Caccia al Tesoro) e le interpreta in tempo reale senza mai salvarle su server remoti.
-                </li>
-                <li>
-                    <strong>Neural Text-to-Speech (TTS):</strong> Utilizziamo modelli neurali avanzati per generare la voce di Boo in tempo reale, garantendo un'intonazione empatica e naturale, lontana dalle voci robotiche standard.
-                </li>
-            </ul>
-        </section>
+          {/* Header - Unified Style */}
+          <div className="text-center mb-12">
+            <h2 
+                className="text-4xl md:text-7xl font-cartoon text-white tracking-tight leading-none mb-3"
+                style={{ WebkitTextStroke: '2px #ef4444', textShadow: '4px 4px 0px rgba(0,0,0,0.2)' }}
+            >
+               Tecnologia
+            </h2>
+            <div className="inline-flex items-center gap-2 bg-purple-600/80 text-white px-6 py-2 rounded-full text-sm font-bold backdrop-blur-md border border-white/20 shadow-lg">
+                 <img src={ICON_TECH} alt="" className="w-8 h-8 object-contain" />
+                 <span>Architettura & Ingegneria</span>
+            </div>
+          </div>
 
-        {/* --- 2. PERSISTENZA & CRITTOGRAFIA --- */}
-        <section className="mb-10 bg-green-50 p-6 rounded-2xl border-l-8 border-green-500">
-            <h4 className="text-xl font-black text-green-800 mb-4 flex items-center gap-2">
-                <QrCode size={24} /> 2. Persistenza "Zero-Server" & Passaporto Digitale
-            </h4>
-            <p className="text-gray-600 mb-3 text-sm">
-                Abbiamo implementato un sistema di salvataggio radicale che elimina la necessità di database remoti per la gestione dei progressi utente, massimizzando la privacy.
-            </p>
-            <ul className="list-disc pl-6 text-gray-600 space-y-3 font-medium text-sm">
-                <li>
-                    <strong>Codifica Binaria Proprietaria:</strong> Lo stato del giocatore (token, figurine sbloccate, configurazione avatar) viene compresso in un payload binario (Bitmasking) direttamente sul dispositivo.
-                </li>
-                <li>
-                    <strong>Algoritmo "8-Word Key":</strong> Il payload binario viene mappato su un dizionario sicuro di 256 parole italiane. Questo genera una "frase mnemonica" di 8 parole che funge da chiave crittografata di recupero.
-                </li>
-                <li>
-                    <strong>Generazione QR Client-Side:</strong> La chiave viene trasformata istantaneamente in un QR Code all'interno del browser, incorporato in una "Tessera" (immagine JPG) generata tramite Canvas API.
-                </li>
-                <li>
-                    <strong>Ripristino via Computer Vision:</strong> Il sistema integra un lettore ottico basato su <code>jsQR</code> che permette di scansionare la tessera tramite la webcam o caricando l'immagine, decodificando i progressi in tempo reale.
-                </li>
-            </ul>
-        </section>
+          <div className="space-y-8">
 
-        {/* --- 3. INTERACTIVE CANVAS --- */}
-        <section className="mb-10">
-            <h4 className="text-xl font-black text-blue-800 mb-4 flex items-center gap-2">
-                <ScanFace size={24} /> 3. Tecnologia "Responsive Interactive Canvas"
-            </h4>
-            <p className="text-gray-600 mb-4 text-sm">
-                Per rendere interattivi gli scenari disegnati a mano su migliaia di dispositivi differenti:
-            </p>
-            <ul className="list-disc pl-6 text-gray-600 space-y-2 mb-4 font-medium text-sm">
-                <li>
-                    <strong>Mappatura Vettoriale Relativa:</strong> Le coordinate di interazione sono calcolate in percentuale rispetto al viewport, adattandosi fluidamente a qualsiasi zoom.
-                </li>
-                <li>
-                    <strong>Poligoni CSS Complessi:</strong> Utilizzo di <code>clip-path</code> poligonale per sagomare le aree attive esattamente attorno alle forme irregolari delle illustrazioni.
-                </li>
-            </ul>
-        </section>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-purple-600 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
+               <h3 className="text-2xl font-black text-purple-900 mb-4 flex items-center gap-3">
+                   <Globe className="text-purple-600" size={32} /> 
+                   PWA & Single Page Application
+               </h3>
+               <p className="text-gray-700 font-bold text-base leading-relaxed mb-4">
+                   Lone Boo è una <strong>Single Page Application (SPA)</strong> sviluppata con React 19. Carica dinamicamente i contenuti garantendo fluidità assoluta.
+               </p>
+               <p className="text-gray-700 font-bold text-base leading-relaxed">
+                   Come <strong>PWA (Progressive Web App)</strong>, può essere installata sulla home del dispositivo e utilizza i Service Workers per il caching aggressivo delle immagini, permettendo tempi di caricamento quasi istantanei.
+               </p>
+            </div>
 
-        {/* --- 4. STACK --- */}
-        <section className="mb-8">
-            <h4 className="text-xl font-black text-black mb-4 flex items-center gap-2">
-                <Code size={24} className="text-boo-orange"/> 4. Stack Tecnologico
-            </h4>
-            <div className="grid md:grid-cols-2 gap-4">
-                <div className="border-2 border-gray-100 p-4 rounded-xl">
-                    <p className="font-bold text-gray-800 mb-2">Core & PWA</p>
-                    <p className="text-sm text-gray-600">
-                        Sviluppata in <strong>React 19</strong> con <strong>TypeScript</strong>. L'app è una <strong>PWA (Progressive Web App)</strong> installabile, con Service Workers per il caching aggressivo delle risorse e funzionamento offline.
-                    </p>
-                </div>
-                <div className="border-2 border-gray-100 p-4 rounded-xl">
-                    <p className="font-bold text-gray-800 mb-2">Data Layer</p>
-                    <p className="text-sm text-gray-600">
-                        Architettura dati <strong>"Decoupled"</strong>. Contenuti dinamici iniettati via stream remoti (CSV/JSON), parser proprietari per trasformazione in UI nativa senza backend complesso.
-                    </p>
+            {/* 2. CORE STACK */}
+            <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-blue-500 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
+                <h3 className="text-2xl font-black text-blue-900 mb-4 flex items-center gap-3">
+                    <Code className="text-blue-600" size={32} />
+                    React 19 & TypeScript 5
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 className="text-lg font-black text-blue-700 mb-2">Performance</h4>
+                        <p className="text-gray-600 text-sm font-black leading-relaxed">
+                            Sfruttiamo <strong>React 19</strong> e il lazy loading dei componenti per ridurre il peso del bundle iniziale. L'uso di <strong>Vite</strong> garantisce una compilazione ottimizzata per il web moderno.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 className="text-lg font-black text-blue-700 mb-2">Sicurezza del Codice</h4>
+                        <p className="text-gray-600 text-sm font-black leading-relaxed">
+                            L'intero progetto è scritto in <strong>TypeScript</strong>. Questo assicura che ogni dato (come i progressi dell'album o le coordinate dei dadi) sia validato rigidamente, prevenendo crash imprevisti.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        {/* --- PRIVACY HIGHLIGHT --- */}
-        <div className="bg-gray-50 p-4 rounded-xl border-t-4 border-gray-300 mt-8">
-            <h5 className="font-black text-gray-700 uppercase tracking-widest text-xs mb-2 flex items-center gap-2">
-                <Lock size={14} /> Security by Design
-            </h5>
-            <p className="text-xs text-gray-500 leading-relaxed">
-                L'infrastruttura opera secondo il principio di "Statelessness" lato server. Non avviene persistenza di dati sensibili sui nostri server. Tutto (salvataggi, foto, audio) viene elaborato localmente sul dispositivo dell'utente.
-            </p>
-        </div>
+            {/* 3. AI & AUDIO */}
+            <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-orange-500 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
+                <h3 className="text-2xl font-black text-orange-900 mb-4 flex items-center gap-3">
+                    <BrainCircuit className="text-orange-600" size={32} />
+                    Gemini AI & Speech Synthesis
+                </h3>
+                <p className="text-gray-700 font-bold text-sm leading-relaxed mb-4">
+                    L'app integra i modelli <strong>Google Gemini Flash 2.5</strong> per la narrazione e la visione.
+                </p>
+                <ul className="space-y-3">
+                    <li className="flex gap-3">
+                        <div className="bg-orange-100 p-2 rounded-lg h-min text-orange-600"><Volume2 size={20} /></div>
+                        <div>
+                            <span className="block font-black text-gray-800 text-sm">Web Speech API</span>
+                            <span className="text-gray-600 text-xs font-black">Utilizziamo la sintesi vocale nativa del browser per la chat interattiva. Questo permette a Boo di parlare in tempo reale senza latenza e in modo completamente gratuito per l'utente.</span>
+                        </div>
+                    </li>
+                    <li className="flex gap-3">
+                        <div className="bg-orange-100 p-2 rounded-lg h-min text-orange-600"><ScanFace size={20} /></div>
+                        <div>
+                            <span className="block font-black text-gray-800 text-sm">Vision Intelligence</span>
+                            <span className="text-gray-600 text-xs font-black">La Caccia al Tesoro utilizza le capacità multimodali di Gemini per analizzare le foto scattate dai bambini in totale privacy (elaborazione stateless).</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
 
-        <div className="flex justify-center mt-12">
-            <button 
-                onClick={() => { setView(AppView.HOME); window.scrollTo(0, 0); }}
-                className="bg-red-500 text-white font-black py-3 px-8 rounded-full border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:scale-105 active:shadow-none active:translate-y-1 transition-all flex items-center gap-2"
-            >
-                <ArrowLeft size={24} strokeWidth={3} /> TORNA ALLA HOME
-            </button>
-        </div>
+            {/* 4. SERVERLESS & DATA */}
+            <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-green-500 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
+                <h3 className="text-2xl font-black text-green-900 mb-4 flex items-center gap-3">
+                    <Server className="text-green-600" size={32} />
+                    Integrazioni Serverless
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-green-100/50 p-4 rounded-2xl border border-green-300">
+                        <h4 className="font-black text-green-800 mb-1 flex items-center gap-2"><Mail size={16}/> Resend API</h4>
+                        <p className="text-xs text-gray-800 font-black">
+                            L'invio delle Fan Art avviene tramite una <strong>Edge Function</strong> che comunica con Resend. Questo garantisce sicurezza massima: l'app non gestisce server SMTP e le email sono criptate.
+                        </p>
+                    </div>
+                    <div className="bg-green-100/50 p-4 rounded-2xl border border-green-300">
+                        <h4 className="font-black text-green-800 mb-1 flex items-center gap-2"><Database size={16}/> Static DBs</h4>
+                        <p className="text-xs text-gray-800 font-black">
+                            Dati come le fiabe, i dadi e le figurine sono strutturati in database statici JSON locali. Questo elimina le query al server, rendendo l'app veloce anche con connessioni lente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 5. GIOCHI & CANVAS */}
+            <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-cyan-500 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
+                <h3 className="text-2xl font-black text-cyan-900 mb-4 flex items-center gap-3">
+                    <Gamepad2 className="text-cyan-600" size={32} />
+                    Game Engine & Interactive Canvas
+                </h3>
+                <ul className="list-disc pl-5 text-gray-700 text-sm space-y-2 font-black">
+                    <li>
+                        <strong>Polygon Mapping:</strong> Le stanze della casa e la città utilizzano mappature vettoriali percentuali per rendere interattiva ogni area su ogni risoluzione.
+                    </li>
+                    <li>
+                        <strong>Arcade Sandboxing:</strong> I giochi esterni sono integrati tramite iframe protetti con politiche di sandboxing per garantire che il bambino non esca mai dall'ambiente sicuro.
+                    </li>
+                    <li>
+                        <strong>QR Data Transfer:</strong> Usiamo l'algoritmo jsQR per permettere agli utenti di trasferire i progressi (gettoni e figurine) tramite una semplice scansione d'immagine, senza bisogno di account.
+                    </li>
+                </ul>
+            </div>
+
+          </div>
+
+          <div className="mt-12 text-center opacity-70">
+              <p className="text-white text-xs font-mono">
+                  Build: {new Date().getFullYear()}.{APP_VERSION} | Environment: Vercel Production
+              </p>
+          </div>
 
       </div>
     </div>

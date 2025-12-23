@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { IdCard, Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
+
+const SAVE_PROGRESS_IMG = 'https://i.postimg.cc/DyC6jbyZ/salva-i-progressi-(1).png';
 
 interface SaveReminderProps {
     onOpenNewsstand: () => void;
@@ -11,47 +13,64 @@ const SaveReminder: React.FC<SaveReminderProps> = ({ onOpenNewsstand }) => {
 
     return (
         <>
-            {/* Flashing Icon Button - Top Left of the container */}
+            {/* Pulsante Fluttuante con la nuova immagine */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="absolute top-3 left-3 bg-white p-2 rounded-xl border-2 border-blue-500 shadow-md animate-pulse hover:scale-110 transition-transform z-50 group"
+                className="absolute top-2 left-2 md:top-3 md:left-3 z-50 group hover:scale-110 transition-transform active:scale-95 outline-none"
                 title="Salva Progressi"
             >
-                <IdCard className="text-blue-600 w-6 h-6" />
-                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
+                <div className="relative">
+                    <img 
+                        src={SAVE_PROGRESS_IMG} 
+                        alt="Salva i Progressi" 
+                        className="w-20 h-auto md:w-28 drop-shadow-lg" 
+                    />
+                    {/* Pallino di notifica pulsante */}
+                    <span className="absolute top-0 right-0 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white shadow-sm"></span>
+                    </span>
+                </div>
             </button>
 
             {/* Modal Overlay */}
             {isOpen && (
-                <div className="absolute inset-0 z-[60] bg-black/95 rounded-[inherit] flex flex-col items-center justify-center p-6 text-center animate-in zoom-in" onClick={(e) => e.stopPropagation()}>
-                    <div className="bg-blue-100 p-4 rounded-full mb-4 border-4 border-blue-300">
-                        <IdCard size={48} className="text-blue-600" />
+                <div 
+                    className="absolute inset-0 z-[100] bg-black/95 rounded-[inherit] flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-300" 
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Immagine nel modale al posto dell'icona */}
+                    <div className="mb-6 transform hover:scale-105 transition-transform duration-500">
+                        <img 
+                            src={SAVE_PROGRESS_IMG} 
+                            alt="Salva i Progressi" 
+                            className="w-48 h-auto md:w-64 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]" 
+                        />
                     </div>
                     
-                    <h3 className="text-white text-2xl font-black mb-4 uppercase leading-tight">
+                    <h3 className="text-white text-2xl md:text-3xl font-black mb-4 uppercase leading-tight tracking-wide">
                         Hai finito di giocare?
                     </h3>
                     
-                    <p className="text-white/90 font-bold mb-8 text-sm md:text-base leading-relaxed max-w-xs">
-                        Se pensi di aver finito al parco giochi, ti consiglio di scaricare il tuo <span className="text-yellow-400 border-b-2 border-yellow-400">documento ufficiale</span> per non perdere i gettoni vinti!
+                    <p className="text-white/90 font-bold mb-8 text-base md:text-lg leading-relaxed max-w-xs mx-auto">
+                        Prima di chiudere, scarica la tua <span className="text-yellow-400 border-b-2 border-yellow-400">tessera aggiornata</span> per mettere al sicuro tutti i tuoi gettoni! 🪙
                     </p>
                     
-                    <button
-                        onClick={() => { setIsOpen(false); onOpenNewsstand(); }}
-                        className="w-full bg-green-500 text-white font-black py-4 px-6 rounded-full border-4 border-white shadow-[0_0_20px_rgba(34,197,94,0.6)] active:scale-95 transition-transform flex items-center justify-center gap-3 text-lg mb-4"
-                    >
-                        <Download size={24} strokeWidth={3} /> SCARICA TESSERA
-                    </button>
-                    
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="text-gray-400 font-bold underline text-sm hover:text-white transition-colors"
-                    >
-                        No, voglio giocare ancora
-                    </button>
+                    <div className="flex flex-col gap-3 w-full max-w-xs">
+                        <button
+                            onClick={() => { setIsOpen(false); onOpenNewsstand(); }}
+                            className="w-full bg-green-500 text-white font-black py-4 px-6 rounded-full border-4 border-white shadow-[0_0_20px_rgba(34,197,94,0.6)] active:scale-95 active:translate-y-1 transition-all flex items-center justify-center gap-3 text-lg"
+                        >
+                            <Download size={24} strokeWidth={3} /> SCARICA TESSERA
+                        </button>
+                        
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="bg-white/10 text-white font-bold py-3 rounded-full border-2 border-white/20 hover:bg-white/20 transition-colors text-sm uppercase tracking-widest"
+                        >
+                            Voglio giocare ancora
+                        </button>
+                    </div>
                 </div>
             )}
         </>

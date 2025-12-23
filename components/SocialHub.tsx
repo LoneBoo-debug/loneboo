@@ -1,37 +1,33 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin, ArrowLeft, TrainFront } from 'lucide-react';
 import { getChannelStatistics } from '../services/api';
 import { getSocialStatsFromCSV } from '../services/data';
-import { SOCIALS, SUPPORT_LINKS } from '../constants';
-import RobotHint from './RobotHint'; 
+import { SOCIALS, SUPPORT_LINKS, OFFICIAL_LOGO } from '../constants';
 
 const TRAIN_BG_MOBILE = 'https://i.postimg.cc/hjXYYZP2/f40f6e20-ff24-4e62-b204-bb61dd9b04e9.jpg';
 const TRAIN_BG_DESKTOP = 'https://i.postimg.cc/fbvLbfdd/stazione-169.jpg';
+const BTN_BACK_CITY_IMG = 'https://i.postimg.cc/HWbjrZtd/retrter-(2).png';
+const BTN_PARTI_IMG = 'https://i.postimg.cc/RVrsRFfT/cartello-citta-(1).png';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 type StatConfig = { id: string; top: string; left: string; width: string; height: string; color: string; glow: string; };
 
-// ZONE MOBILE (CLICKABLE AREAS)
+// ZONE MOBILE (CLICKABLE AREAS) - Removed Telegram and X
 const ZONES_MOBILE: ZoneConfig[] = [
   { id: "Facebook", points: [{ x: 6.13, y: 23.15 }, { x: 4.26, y: 41.46 }, { x: 17.32, y: 42.71 }, { x: 17.59, y: 25.84 }] },
   { id: "YouTube", points: [{ x: 24.52, y: 29.25 }, { x: 24.25, y: 42.89 }, { x: 34.38, y: 43.61 }, { x: 34.91, y: 32.48 }] },
   { id: "TikTok", points: [{ x: 6.13, y: 49.35 }, { x: 6.13, y: 65.87 }, { x: 19.99, y: 63.89 }, { x: 18.66, y: 48.99 }] },
-  { id: "Instagram", points: [{ x: 25.05, y: 49.35 }, { x: 23.99, y: 62.63 }, { x: 34.91, y: 60.12 }, { x: 34.91, y: 48.99 }] },
-  { id: "Telegram", points: [{ x: 21.06, y: 84.53 }, { x: 20.26, y: 94.58 }, { x: 38.65, y: 94.76 }, { x: 37.58, y: 86.68 }] },
-  { id: "X", points: [{ x: 41.31, y: 77.35 }, { x: 35.98, y: 80.76 }, { x: 50.64, y: 86.5 }, { x: 57.3, y: 81.3 }] }
+  { id: "Instagram", points: [{ x: 25.05, y: 49.35 }, { x: 23.99, y: 62.63 }, { x: 34.91, y: 60.12 }, { x: 34.91, y: 48.99 }] }
 ];
 
-// ZONE DESKTOP (CLICKABLE AREAS)
+// ZONE DESKTOP (CLICKABLE AREAS) - Removed Telegram and X
 const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "Facebook", "points": [ { "x": 30.67, "y": 22.05 }, { "x": 30.07, "y": 42.08 }, { "x": 36.19, "y": 44.55 }, { "x": 36.49, "y": 25.88 } ] },
   { "id": "YouTube", "points": [ { "x": 37.99, "y": 28.35 }, { "x": 38.09, "y": 45.23 }, { "x": 43.3, "y": 46.13 }, { "x": 43.3, "y": 31.73 } ] },
   { "id": "TikTok", "points": [ { "x": 30.57, "y": 47.93 }, { "x": 30.37, "y": 68.63 }, { "x": 36.89, "y": 66.83 }, { "x": 36.89, "y": 49.28 } ] },
-  { "id": "Instagram", "points": [ { "x": 38.29, "y": 49.05 }, { "x": 38.59, "y": 64.58 }, { "x": 43.3, "y": 62.56 }, { "x": 43, "y": 48.83 } ] },
-  { "id": "Telegram", "points": [ { "x": 39.9, "y": 83.26 }, { "x": 36.49, "y": 90.23 }, { "x": 44.21, "y": 96.53 }, { "x": 46.71, "y": 89.33 } ] },
-  { "id": "X", "points": [ { "x": 46.21, "y": 78.08 }, { "x": 44.21, "y": 82.81 }, { "x": 50.02, "y": 88.43 }, { "x": 52.93, "y": 81.68 } ] }
+  { "id": "Instagram", "points": [ { "x": 38.29, "y": 49.05 }, { "x": 38.59, "y": 64.58 }, { "x": 43.3, "y": 62.56 }, { "x": 43, "y": 48.83 } ] }
 ];
 
 // STATS LOCATIONS (MOBILE)
@@ -60,26 +56,27 @@ type SocialStatsState = {
 const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
   const [bgLoaded, setBgLoaded] = useState(false);
   const [stats, setStats] = useState<SocialStatsState>({ youtube: '...', instagram: '...', tiktok: '...', facebook: '...' });
-  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-      // Preload Both Images
-      const imgMobile = new Image();
-      imgMobile.src = TRAIN_BG_MOBILE;
-      const imgDesktop = new Image();
-      imgDesktop.src = TRAIN_BG_DESKTOP;
-
-      let count = 0;
-      const onLoad = () => {
-          count++;
-          if (count >= 1) setBgLoaded(true);
-      };
-
-      imgMobile.onload = onLoad;
-      imgDesktop.onload = onLoad;
+      // Preload Images
+      const imagesToPreload = [TRAIN_BG_MOBILE, TRAIN_BG_DESKTOP, BTN_PARTI_IMG];
+      let loadedCount = 0;
+      
+      imagesToPreload.forEach(src => {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => {
+              loadedCount++;
+              if (loadedCount >= 1) setBgLoaded(true);
+          };
+          img.onerror = () => {
+              loadedCount++;
+              if (loadedCount >= 1) setBgLoaded(true);
+          };
+      });
       
       // Fallback
-      setTimeout(() => setBgLoaded(true), 2000);
+      const timer = setTimeout(() => setBgLoaded(true), 2000);
 
       const fetchStats = async () => {
           const newStats = { ...stats };
@@ -96,17 +93,8 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
           setStats(newStats);
       };
       fetchStats();
-
-      const timer = setTimeout(() => {
-          setShowHint(true);
-      }, 5000);
-
       return () => clearTimeout(timer);
   }, []);
-
-  const handleInteraction = () => {
-      if (showHint) setShowHint(false);
-  };
 
   const getClipPath = (points: {x: number, y: number}[]) => {
       if (!points || points.length < 3) return 'none';
@@ -156,7 +144,6 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
                 className="absolute inset-0 cursor-pointer"
                 style={{ clipPath: getClipPath(zone.points) }}
                 title={`Vai a ${zone.id}`}
-                onClick={() => setShowHint(false)}
             >
                 {/* Click area */}
                 <div className="w-full h-full"></div>
@@ -169,23 +156,48 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
   return (
     <div 
         className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gradient-to-b from-[#b388f4] to-white overflow-hidden flex flex-col"
-        onClick={handleInteraction}
     >
         {!bgLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-50">
-                <span className="text-white font-black text-2xl animate-pulse flex items-center gap-2">
-                    <Loader2 className="animate-spin" /> Arrivo in Stazione...
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-md">
+                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                    STO CARICANDO...
                 </span>
             </div>
         )}
 
-        <RobotHint 
-            show={showHint && bgLoaded} 
-            message="Tocca un logo e vai al social"
-        />
-
         <div className="relative flex-1 w-full h-full overflow-hidden select-none">
             
+            {/* PULSANTE TORNA IN CITTÀ (IMMAGINE INGRANDITA - TOCCA I BORDI) */}
+            {setView && (
+                <button 
+                    onClick={() => setView(AppView.CITY_MAP)}
+                    className="absolute bottom-0 left-0 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                    title="Torna in città"
+                >
+                    <img 
+                        src={BTN_BACK_CITY_IMG} 
+                        alt="Torna in città" 
+                        className="w-48 md:w-80 h-auto drop-shadow-xl" 
+                    />
+                </button>
+            )}
+
+            {/* PULSANTE PARTI (IMMAGINE GRAFICA - BASSO A DESTRA) */}
+            {setView && (
+                <button 
+                    onClick={() => setView(AppView.TRAIN_JOURNEY)}
+                    className="absolute bottom-0 right-0 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                    title="Inizia il viaggio"
+                >
+                    <img 
+                        src={BTN_PARTI_IMG} 
+                        alt="Parti" 
+                        className="w-56 md:w-96 h-auto drop-shadow-xl" 
+                    />
+                </button>
+            )}
+
             {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
                 <img 
@@ -215,4 +227,3 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
 };
 
 export default SocialHub;
-    

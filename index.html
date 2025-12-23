@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
   <head>
@@ -6,27 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
     <!-- PERFORMANCE: PRELOAD CRITICAL ASSETS -->
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Chewy&family=Luckiest+Guy&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    <!-- OpenDyslexic Font -->
+    <link href="https://cdn.jsdelivr.net/npm/opendyslexic@2.1.0-beta.1/medium/OpenDyslexic.min.css" rel="stylesheet">
     
-    <!-- Critical Backgrounds (Mobile & Desktop) - Caricati subito per LCP -->
-    <link rel="preload" as="image" href="https://i.postimg.cc/vBmvH8Nw/dfggsh.jpg" media="(max-width: 767px)">
-    <link rel="preload" as="image" href="https://i.postimg.cc/j2RYjF7J/psfrdds.jpg" media="(min-width: 768px)">
+    <!-- Use relative paths for preloads too -->
+    <link rel="preload" as="image" href="assets/images/bg/home-mobile.webp" media="(max-width: 767px)">
+    <link rel="preload" as="image" href="assets/images/bg/home-desktop.webp" media="(min-width: 768px)">
     
-    <!-- PRIMARY SEO -->
     <title>Lone Boo World: L'App Magica per Bambini - Giochi, Favole e Musica 👻</title>
     <meta name="description" content="Benvenuti nel mondo di Lone Boo! L'app ufficiale sicura e senza pubblicità. Video canzoni, giochi educativi, favole della buonanotte e intelligenza artificiale per imparare sorridendo.">
     <meta name="keywords" content="Lone Boo, giochi educativi bambini, canzoni per bambini, favole della buonanotte, app sicura bambini, LoneBoo World, video cartoni animati, giochi gratis bambini">
     <meta name="author" content="Lone Boo">
-    <link rel="canonical" href="https://loneboo.online/" />
     
-    <!-- SEARCH ENGINE INSTRUCTIONS -->
+    <!-- Modificato: aggiunto id="canonical-link" -->
+    <link rel="canonical" id="canonical-link" href="https://loneboo.online/" />
+    
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     
-    <!-- OPEN GRAPH / SOCIAL -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://loneboo.online/">
     <meta property="og:title" content="Lone Boo World: L'App Magica per Bambini 👻">
@@ -34,22 +33,18 @@
     <meta property="og:image" content="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee">
     <meta property="og:site_name" content="Lone Boo World">
 
-    <!-- MOBILE APP CAPABILITIES -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#8B5CF6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Lone Boo" />
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- FAVICONS -->
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee" />
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee">
     
-    <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // ROBUST POLYFILLS
       window.global = window;
       if (!window.process) {
         window.process = {
@@ -75,6 +70,7 @@
               cartoon: ['"Titan One"', 'cursive'],
               chewy: ['"Chewy"', 'cursive'],
               luckiest: ['"Luckiest Guy"', 'cursive'],
+              dyslexic: ['"OpenDyslexic"', 'sans-serif'],
             },
             keyframes: {
               wiggle: {
@@ -98,6 +94,10 @@
               'breathing-scale': {
                 '0%, 100%': { transform: 'scale(1.8)' },
                 '50%': { transform: 'scale(1.95)' },
+              },
+              'spin-horizontal': {
+                '0%': { transform: 'rotateY(0deg)' },
+                '100%': { transform: 'rotateY(360deg)' }
               }
             },
             animation: {
@@ -106,13 +106,13 @@
               'jelly': 'jelly 0.5s ease-in-out',
               'float': 'float 3s ease-in-out infinite',
               'breathing-scale': 'breathing-scale 6s ease-in-out infinite',
+              'spin-horizontal': 'spin-horizontal 2s linear infinite'
             }
           }
         }
       }
     </script>
     
-    <!-- STRUCTURED DATA (JSON-LD) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -149,16 +149,52 @@
         overscroll-behavior-y: none;
         font-family: 'Fredoka', sans-serif;
         -webkit-font-smoothing: antialiased;
-        background-color: #8B5CF6; /* Fallback Color */
+        background-color: #8B5CF6;
       }
       h1, h2, h3 { font-family: 'Titan One', cursive; }
       .font-luckiest { font-family: 'Luckiest Guy', cursive !important; }
       
+      body.a11y-font-dyslexic, 
+      body.a11y-font-dyslexic h1, 
+      body.a11y-font-dyslexic h2, 
+      body.a11y-font-dyslexic h3,
+      body.a11y-font-dyslexic button,
+      body.a11y-font-dyslexic p,
+      body.a11y-font-dyslexic span,
+      body.a11y-font-dyslexic div {
+          font-family: 'OpenDyslexic', sans-serif !important;
+          line-height: 1.5 !important;
+          letter-spacing: 0.05em !important;
+      }
+
+      body.a11y-zen-mode *,
+      body.a11y-zen-mode *::before,
+      body.a11y-zen-mode *::after {
+          animation: none !important;
+          transition: none !important;
+      }
+      body.a11y-zen-mode .anim-cloud-slow,
+      body.a11y-zen-mode .anim-cloud-fast,
+      body.a11y-zen-mode .anim-sun,
+      body.a11y-zen-mode .anim-bird-1,
+      body.a11y-zen-mode .anim-bird-2 {
+          display: none !important;
+      }
+
+      body.a11y-high-contrast {
+          filter: contrast(1.3) saturate(1.2);
+      }
+      body.a11y-high-contrast h1, 
+      body.a11y-high-contrast h2, 
+      body.a11y-high-contrast h3 {
+          text-shadow: 2px 2px 0 #000 !important;
+          -webkit-text-stroke: 1px #fff !important;
+      }
+
       ::-webkit-scrollbar { width: 8px; }
       ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
       ::-webkit-scrollbar-thumb { background: #F97316; border-radius: 10px; }
       
-      /* Smooth Gradient Background Fixed */
       body::before {
         content: "";
         position: fixed;
@@ -167,7 +203,11 @@
         z-index: -1;
       }
 
-      /* Orientation Lock Overlay */
+      .text-stroke-black {
+        -webkit-text-stroke: 2px black;
+        text-shadow: 2px 2px 0px black;
+      }
+
       #orientation-lock { display: none; }
       @media only screen and (max-width: 920px) and (orientation: landscape) {
         #orientation-lock {
@@ -185,7 +225,6 @@
         body.allow-landscape #orientation-lock { display: none !important; }
       }
       
-      /* Initial Loader (Visible before React mounts) */
       #root:empty {
         display: flex;
         justify-content: center;
@@ -205,19 +244,18 @@
 <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
-    "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "@mediapipe/tasks-vision": "https://aistudiocdn.com/@mediapipe/tasks-vision@^0.10.22-rc.20250304",
-    "resend": "https://aistudiocdn.com/resend@^6.5.2",
-    "qrcode": "https://esm.sh/qrcode@1.5.3",
-    "jsqr": "https://esm.sh/jsqr@1.4.0"
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "resend": "https://esm.sh/resend@^6.6.0",
+    "qrcode": "https://esm.sh/qrcode@^1.5.4",
+    "jsqr": "https://esm.sh/jsqr@^1.4.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "jszip": "https://esm.sh/jszip@^3.10.1",
+    "file-saver": "https://esm.sh/file-saver@^2.0.5"
   }
 }
 </script>
@@ -226,21 +264,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      // Service Worker & Safety Reload
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-      
-      // Fallback if app crashes immediately
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.trim() === '') {
-           window.location.reload();
-        }
-      }, 4000);
-    </script>
-  </body>
+</body>
 </html>

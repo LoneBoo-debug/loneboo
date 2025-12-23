@@ -26,7 +26,7 @@ export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> =>
       `${BASE_URL}/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=18&key=${YOUTUBE_CONFIG.API_KEY}`
     );
     const data = await response.json();
-    if (data.error || !data.items) return VIDEOS;
+    if (data.error || !data.items) return VIDEOS; // Return static videos on error to prevent empty state crashes if needed
     return data.items
       .filter((item: any) => item.snippet && item.snippet.title !== 'Private video' && item.snippet.resourceId)
       .map((item: any) => ({
@@ -121,4 +121,3 @@ export const getChannelStatistics = async (): Promise<{ subscriberCount: string;
         return null;
     } catch (error) { return null; }
 }
-    

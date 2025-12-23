@@ -1,9 +1,9 @@
-
 import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { Loader2, ArrowLeft, Store, ShoppingBag, Check, Sparkles } from 'lucide-react';
 import RobotHint from './RobotHint';
 import { getProgress, addTokens } from '../services/tokens';
 import Newsstand from './Newsstand';
+import { OFFICIAL_LOGO } from '../constants';
 
 // Lazy Load Games
 const QuizGame = React.lazy(() => import('./QuizGame'));
@@ -33,6 +33,8 @@ const PARK_BG_MOBILE = 'https://i.postimg.cc/fLFPzmRh/percoooox.jpg';
 const PARK_BG_DESKTOP = 'https://i.postimg.cc/85n0dxWj/parco169.jpg';
 const NEWSSTAND_ICON = 'https://i.postimg.cc/50GkpGd7/edicolabooo.png';
 const TUTORIAL_GHOST_IMG = 'https://i.postimg.cc/L6gGcsb3/indicafre-(1).png';
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const PARK_TITLE_IMG = 'https://i.postimg.cc/ydM78X3g/sfondoparco-(1)-(1).png';
 
 enum GameType {
   NONE = 'NONE',
@@ -210,6 +212,7 @@ const PlayZone: React.FC = () => {
   };
 
   const handleEarnTokens = (amount: number) => {
+      // addTokens returns the new total, explicitly typed as number
       const newTotal = addTokens(amount);
       setTokenBalance(newTotal);
       setTokensEarnedAnimation(amount);
@@ -262,9 +265,9 @@ const PlayZone: React.FC = () => {
     return (
       <Suspense 
         fallback={
-          <div className="flex flex-col items-center justify-center h-full w-full">
-            <Loader2 size={64} className="animate-spin text-white mb-6" />
-            <p className="font-black text-2xl text-white">Carico il gioco...</p>
+          <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+            <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+            <p className="font-bold text-lg text-white mt-4 tracking-widest animate-pulse">STO CARICANDO...</p>
           </div>
         }
       >
@@ -277,7 +280,7 @@ const PlayZone: React.FC = () => {
   // VISTA GIOCO ATTIVO (FISSA E RESPONSIVA)
   if (activeGame !== GameType.NONE) {
       return (
-          <div className="w-full h-full flex flex-col bg-[#4ade80] relative overflow-hidden">
+          <div className="w-full h-full flex flex-col relative overflow-hidden">
                 {/* TOKEN EARNED POPUP */}
                 {tokensEarnedAnimation && (
                     <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none">
@@ -294,10 +297,13 @@ const PlayZone: React.FC = () => {
                     <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40">
                         <button
                             onClick={() => setActiveGame(GameType.NONE)}
-                            className="flex items-center gap-2 bg-red-500 text-white font-black py-2 px-6 rounded-full border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:scale-105 active:shadow-none active:translate-y-1 transition-all"
+                            className="hover:scale-105 active:scale-95 transition-transform"
                         >
-                            <ArrowLeft size={20} strokeWidth={4} />
-                            <span className="text-sm md:text-base">ESCI</span>
+                            <img 
+                                src={EXIT_BTN_IMG} 
+                                alt="Ritorna al Parco" 
+                                className="h-12 md:h-14 w-auto drop-shadow-md" 
+                            />
                         </button>
                         
                         <div 
@@ -323,15 +329,29 @@ const PlayZone: React.FC = () => {
         onClick={handleInteraction}
     >
         {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-green-600 z-50">
-                <span className="text-white font-black text-2xl animate-pulse drop-shadow-md flex items-center gap-2">
-                    <Loader2 className="animate-spin" /> Entro nel Parco...
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-600/90 backdrop-blur-md">
+                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                    STO CARICANDO...
                 </span>
             </div>
         )}
 
         {isLoaded && (
             <>
+                {/* PARK TITLE IMAGE (TOP LEFT) - RESIZED AND STYLED AS REQUESTED */}
+                <div className="absolute top-2 left-2 z-30 animate-in slide-in-from-left duration-500 pointer-events-none">
+                    <img 
+                        src={PARK_TITLE_IMG} 
+                        alt="Parco Giochi" 
+                        className="w-28 md:w-48 h-auto object-contain transition-transform duration-500" 
+                        style={{
+                            // "Cloud" effect: Multiple white drop shadows to create a thick, soft glow
+                            filter: 'drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.9)) drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.7))'
+                        }}
+                    />
+                </div>
+
                 {/* --- TUTORIAL OVERLAY (FROSTED GLASS, NO BOX, HIGHLIGHTED ICON) --- */}
                 {showTutorial && (
                     <div 

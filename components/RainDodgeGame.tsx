@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, LogOut, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Play, RotateCcw, ArrowLeft, ArrowRight } from 'lucide-react';
+
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
 
 const GAME_WIDTH = 350;
 const GAME_HEIGHT = 500;
@@ -12,13 +14,11 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   
-  // Game State Refs for Animation Loop
   const playerX = useRef(GAME_WIDTH / 2 - PLAYER_SIZE / 2);
   const drops = useRef<{x: number, y: number, speed: number}[]>([]);
   const requestRef = useRef<number>(0);
   const scoreRef = useRef(0);
   
-  // Controls
   const isMovingLeft = useRef(false);
   const isMovingRight = useRef(false);
 
@@ -34,12 +34,10 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const updateGame = () => {
       if (!isPlaying || gameOver) return;
 
-      // Move Player
       if (isMovingLeft.current) playerX.current = Math.max(0, playerX.current - 5);
       if (isMovingRight.current) playerX.current = Math.min(GAME_WIDTH - PLAYER_SIZE, playerX.current + 5);
 
-      // Spawn Drops (Random chance)
-      if (Math.random() < 0.05 + (scoreRef.current * 0.0001)) { // Increase difficulty
+      if (Math.random() < 0.05 + (scoreRef.current * 0.0001)) { 
           drops.current.push({
               x: Math.random() * (GAME_WIDTH - DROP_SIZE),
               y: -DROP_SIZE,
@@ -47,16 +45,14 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           });
       }
 
-      // Update Drops & Collision
       const newDrops = [];
       for (let drop of drops.current) {
           drop.y += drop.speed;
 
-          // Collision Check (AABB)
           if (
               playerX.current < drop.x + DROP_SIZE &&
               playerX.current + PLAYER_SIZE > drop.x &&
-              GAME_HEIGHT - 60 < drop.y + DROP_SIZE && // Assuming player is near bottom
+              GAME_HEIGHT - 60 < drop.y + DROP_SIZE && 
               GAME_HEIGHT - 60 + PLAYER_SIZE > drop.y
           ) {
               setGameOver(true);
@@ -67,7 +63,6 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           if (drop.y < GAME_HEIGHT) {
               newDrops.push(drop);
           } else {
-              // Scored!
               scoreRef.current += 1;
               setScore(scoreRef.current);
           }
@@ -86,7 +81,6 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       };
   }, [isPlaying, gameOver]);
 
-  // Touch Handlers
   const handleTouchStart = (dir: 'left' | 'right') => {
       if (dir === 'left') isMovingLeft.current = true;
       else isMovingRight.current = true;
@@ -104,15 +98,12 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         <div className="relative bg-gray-900 border-4 border-black rounded-[20px] overflow-hidden shadow-2xl mb-4" style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}>
             
-            {/* Background Elements */}
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900 via-gray-900 to-black"></div>
 
-            {/* Score */}
             <div className="absolute top-4 right-4 text-white font-black text-2xl z-20 drop-shadow-md">
                 {score}
             </div>
 
-            {/* Player */}
             <div 
                 className="absolute text-4xl z-10 transition-transform"
                 style={{ 
@@ -125,7 +116,6 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {gameOver ? '😵' : '👻'}
             </div>
 
-            {/* Drops */}
             {drops.current.map((drop, i) => (
                 <div 
                     key={i}
@@ -136,7 +126,6 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             ))}
 
-            {/* Overlays */}
             {!isPlaying && !gameOver && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-30">
                     <p className="text-white font-bold mb-4 text-center px-4">Evita le gocce! Usa le frecce.</p>
@@ -153,12 +142,13 @@ const RainDodgeGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <button onClick={startGame} className="bg-yellow-400 text-black font-black px-8 py-3 rounded-full border-4 border-black hover:scale-105 active:scale-95 flex gap-2 mb-4">
                         <RotateCcw /> RIPROVA
                     </button>
-                    <button onClick={onBack} className="text-white font-bold underline">Esci</button>
+                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform">
+                        <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto" />
+                    </button>
                 </div>
             )}
         </div>
 
-        {/* Controls */}
         <div className="flex gap-4 w-full max-w-[350px]">
             <button 
                 className="flex-1 bg-blue-500 text-white p-6 rounded-2xl border-b-8 border-blue-700 active:border-b-0 active:translate-y-2 transition-all flex justify-center"

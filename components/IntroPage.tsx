@@ -1,7 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { ArrowLeft, Sparkles, Heart, MapPin, MessageCircle } from 'lucide-react';
 import { AppView } from '../types';
-import { HOME_HERO_IMAGE } from '../constants';
+
+const INTRO_BOO_IMAGE = 'https://i.postimg.cc/1tgY3Nh1/boofrack-(1).png';
 
 interface IntroPageProps {
     setView: (view: AppView) => void;
@@ -23,9 +25,9 @@ const IntroPage: React.FC<IntroPageProps> = ({ setView }) => {
           <div className="absolute bottom-[-20px] right-[-20px] w-32 h-32 bg-cyan-300 rounded-full opacity-50 blur-xl"></div>
 
           {/* Hero Image */}
-          <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto mb-6 transform -rotate-3 transition-transform hover:rotate-0 duration-300">
+          <div className="relative w-40 h-40 md:w-56 md:h-56 mx-auto mb-6 transform -rotate-3 transition-transform hover:rotate-0 duration-300">
               <img 
-                src={HOME_HERO_IMAGE} 
+                src={INTRO_BOO_IMAGE} 
                 alt="Lone Boo" 
                 className="w-full h-full object-contain drop-shadow-xl"
               />

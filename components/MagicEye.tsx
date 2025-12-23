@@ -1,18 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { OFFICIAL_LOGO } from '../constants';
 import StoryDice from './StoryDice';
 import MagicHunt from './MagicHunt';
 import GhostPassport from './GhostPassport';
 import MagicHat from './MagicHat';
-import { ArrowLeft, Loader2 } from 'lucide-react';
 import RobotHint from './RobotHint'; 
 
 const TOWER_BG_MOBILE = 'https://i.postimg.cc/KY2JJg7L/torremagicddsjpeg.jpg';
 const TOWER_BG_DESKTOP = 'https://i.postimg.cc/yxmrqxt3/magia169.jpg';
+const TOWER_ICON = 'https://i.postimg.cc/G2mVkBG8/torretr-(1).png';
+const BTN_BACK_TOWER_IMG = 'https://i.postimg.cc/65YbdbPv/ornatorre-(1)-(1).png';
+const BG_PASSPORT_GHOST = 'https://i.postimg.cc/sxR91466/passfants-(1).jpg';
+const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
+const BG_STORY_DICE = 'https://i.postimg.cc/nL82vGr7/gfddfg.jpg';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 
-// ZONE MOBILE CALIBRATE
 const ZONES_MOBILE: ZoneConfig[] = [
   { "id": "dice", "points": [ { "x": 14.66, "y": 62.63 }, { "x": 6.66, "y": 76.09 }, { "x": 26.39, "y": 78.79 }, { "x": 31.72, "y": 68.38 } ] },
   { "id": "hunt", "points": [ { "x": 67.96, "y": 12.56 }, { "x": 57.3, "y": 28.54 }, { "x": 78.09, "y": 33.56 }, { "x": 85.55, "y": 15.61 } ] },
@@ -20,7 +25,6 @@ const ZONES_MOBILE: ZoneConfig[] = [
   { "id": "hat", "points": [ { "x": 77.56, "y": 57.97 }, { "x": 78.09, "y": 71.61 }, { "x": 95.42, "y": 74.66 }, { "x": 95.68, "y": 57.79 } ] }
 ];
 
-// ZONE DESKTOP DEFINITIVE
 const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "dice", "points": [ { "x": 32.88, "y": 64.58 }, { "x": 32.18, "y": 78.08 }, { "x": 42.3, "y": 79.66 }, { "x": 42.4, "y": 65.48 } ] },
   { "id": "hunt", "points": [ { "x": 54.53, "y": 16.2 }, { "x": 54.33, "y": 30.38 }, { "x": 63.85, "y": 31.05 }, { "x": 63.35, "y": 11.25 } ] },
@@ -34,36 +38,17 @@ const MagicEye: React.FC = () => {
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-      // Preload both images
-      const imgMobile = new Image();
-      imgMobile.src = TOWER_BG_MOBILE;
-      const imgDesktop = new Image();
-      imgDesktop.src = TOWER_BG_DESKTOP;
-
-      let loadedCount = 0;
-      const checkLoad = () => {
-          loadedCount++;
-          if (loadedCount >= 1) setIsLoaded(true);
+      const imgM = new Image(); imgM.src = TOWER_BG_MOBILE;
+      const imgD = new Image(); imgD.src = TOWER_BG_DESKTOP;
+      
+      const timer = setTimeout(() => setIsLoaded(true), 800);
+      const hintTimer = setTimeout(() => { if (!activeGame) setShowHint(true); }, 5000); 
+      
+      return () => {
+          clearTimeout(timer);
+          clearTimeout(hintTimer);
       };
-
-      imgMobile.onload = checkLoad;
-      imgDesktop.onload = checkLoad;
-
-      // Fallback
-      setTimeout(() => setIsLoaded(true), 1500);
-
-      window.scrollTo(0, 0);
-
-      const timer = setTimeout(() => {
-          if (!activeGame) setShowHint(true);
-      }, 5000); 
-
-      return () => clearTimeout(timer);
-  }, []);
-
-  const handleInteraction = () => {
-      if (showHint) setShowHint(false);
-  };
+  }, [activeGame]);
 
   const handleZoneClick = (gameId: string) => {
       setShowHint(false);
@@ -72,30 +57,31 @@ const MagicEye: React.FC = () => {
 
   const getClipPath = (points: Point[]) => {
       if (!points || points.length < 3) return 'none';
-      const poly = points.map(p => `${p.x}% ${p.y}%`).join(', ');
-      return `polygon(${poly})`;
+      return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
   };
 
   if (activeGame) {
+      const bg = activeGame === 'passport' ? BG_PASSPORT_GHOST : (activeGame === 'hunt' ? BG_MAGIC_HUNT : BG_STORY_DICE);
+      
       return (
-          <div className="w-full h-full bg-white overflow-y-auto animate-in slide-in-from-right duration-300 relative z-40">
-              <div className="max-w-5xl mx-auto p-4 md:p-6 pb-24 min-h-full relative">
-                  <div className="flex items-center justify-between mb-6 mt-2 sticky top-0 bg-white/90 backdrop-blur-sm z-40 p-2 rounded-xl border-b-2 border-gray-100 shadow-sm">
+          <div className="fixed inset-0 z-50 bg-black overflow-y-auto custom-scrollbar">
+              {/* Sfondo fisso che copre tutto */}
+              <img src={bg} alt="" className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none" />
+              
+              <div className="relative z-10 w-full min-h-full pb-20">
+                  {/* Container tasto indietro con padding per scavalcare l'header */}
+                  <div className="sticky top-0 left-0 w-full px-4 pt-[70px] md:pt-[110px] pb-4 flex justify-start z-[60] pointer-events-none">
                       <button 
                           onClick={() => setActiveGame(null)}
-                          className="flex items-center gap-2 bg-purple-600 text-white font-black px-4 py-2 md:px-6 rounded-full border-4 border-black shadow-[2px_2px_0px_0px_black] hover:scale-105 active:shadow-none active:translate-y-1 transition-all text-sm md:text-base"
+                          className="hover:scale-105 active:scale-95 transition-transform outline-none pointer-events-auto"
                       >
-                          <ArrowLeft size={20} strokeWidth={3} /> TORNA ALLA TORRE
+                          <img src={BTN_BACK_TOWER_IMG} alt="Torna" className="h-16 md:h-24 w-auto drop-shadow-lg" />
                       </button>
-                      <h2 className="text-xl md:text-2xl font-black text-purple-800 uppercase hidden sm:block">
-                          {activeGame === 'dice' ? 'Dadi delle Storie' : 
-                           activeGame === 'hunt' ? 'Caccia Magica' : 
-                           activeGame === 'passport' ? 'Passaporto Fantasma' : 'Cappello Magico'}
-                      </h2>
                   </div>
-                  <div className="animate-in zoom-in duration-300">
+
+                  <div className="w-full px-2 md:px-4">
                       {activeGame === 'dice' && <StoryDice />}
-                      {activeGame === 'hunt' && <MagicHunt />}
+                      {activeGame === 'hunt' && <MagicHunt onClose={() => setActiveGame(null)} />}
                       {activeGame === 'passport' && <GhostPassport />}
                       {activeGame === 'hat' && <MagicHat />}
                   </div>
@@ -105,63 +91,35 @@ const MagicEye: React.FC = () => {
   }
 
   return (
-    <div 
-        className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gradient-to-b from-[#b388f4] to-white overflow-hidden flex flex-col"
-        onClick={handleInteraction}
-    >
+    <div className="relative w-full h-[calc(100vh-68px)] md:h-[calc(100vh-106px)] bg-purple-900 overflow-hidden flex flex-col">
         {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-purple-900 z-50">
-                <span className="text-purple-300 font-black text-2xl animate-pulse flex items-center gap-2">
-                    <Loader2 className="animate-spin" /> Salgo sulla Torre...
-                </span>
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900">
+                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 animate-spin-horizontal mb-4" />
+                <span className="text-white font-bold tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
+            </div>
+        )}
+        
+        {isLoaded && (
+            <div className="absolute top-4 left-4 z-30 pointer-events-none animate-in slide-in-from-left duration-700">
+                <img src={TOWER_ICON} alt="Torre Magica" className="w-32 md:w-48 h-auto drop-shadow-xl" />
             </div>
         )}
 
-        <RobotHint 
-            show={showHint && isLoaded && !activeGame} 
-            message="Tocca un oggetto e scopri la magia"
-        />
-
+        <RobotHint show={showHint} message="Tocca un oggetto magico!" />
+        
         <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-            
-            {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
-                <img 
-                    src={TOWER_BG_MOBILE} 
-                    alt="Torre Magica Lone Boo Mobile" 
-                    className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
+                <img src={TOWER_BG_MOBILE} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
                 {ZONES_MOBILE.map((zone, i) => (
-                    <div
-                        key={i}
-                        onClick={(e) => { e.stopPropagation(); handleZoneClick(zone.id); }}
-                        className="absolute inset-0 cursor-pointer"
-                        style={{ clipPath: getClipPath(zone.points) }}
-                    ></div>
+                    <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>
-
-            {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
-                <img 
-                    src={TOWER_BG_DESKTOP} 
-                    alt="Torre Magica Lone Boo Desktop" 
-                    className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
-                
-                {/* RENDER ZONE DESKTOP */}
+            <div className="hidden md:block w-full h-full relative">
+                <img src={TOWER_BG_DESKTOP} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
                 {ZONES_DESKTOP.map((zone, i) => (
-                    <div
-                        key={i}
-                        onClick={(e) => { e.stopPropagation(); handleZoneClick(zone.id); }}
-                        className="absolute inset-0 cursor-pointer"
-                        style={{ clipPath: getClipPath(zone.points) }}
-                    ></div>
+                    <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>
-
         </div>
     </div>
   );

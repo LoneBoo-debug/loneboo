@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, LogOut, Music } from 'lucide-react';
+import { Play, Music } from 'lucide-react';
+
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
 
 const COLS = 4;
 const GAME_HEIGHT = 400;
@@ -22,7 +24,6 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const speedRef = useRef(2);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Lazy Init Audio
   const getAudioContext = () => {
       if (!audioCtxRef.current) {
           const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -49,7 +50,6 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      // Random pentatonic note
       const freqs = [261.63, 293.66, 329.63, 392.00, 440.00]; 
       osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
       
@@ -61,7 +61,7 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const startGame = () => {
-      getAudioContext(); // Pre-init audio
+      getAudioContext(); 
       setGameOver(false);
       setScore(0);
       speedRef.current = 3;
@@ -72,7 +72,6 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const update = () => {
       if (!isPlaying || gameOver) return;
 
-      // Spawn
       if (Math.random() < 0.03) {
           notesRef.current.push({
               id: Date.now() + Math.random(),
@@ -82,7 +81,6 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           });
       }
 
-      // Move & Cleanup
       const nextNotes: Note[] = [];
       for (const note of notesRef.current) {
           note.y += speedRef.current;
@@ -102,17 +100,15 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       reqRef.current = requestAnimationFrame(update);
   };
 
-  // Sync loop for rendering
   const [renderNotes, setRenderNotes] = useState<Note[]>([]);
   useEffect(() => {
       if (isPlaying && !gameOver) {
           const loop = () => {
-              // Logic
               if (Math.random() < 0.02 + (score * 0.0005)) {
                   notesRef.current.push({
                       id: Date.now() + Math.random(),
                       col: Math.floor(Math.random() * COLS),
-                      y: -120, // Start higher
+                      y: -120, 
                       clicked: false
                   });
               }
@@ -134,7 +130,7 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   setIsPlaying(false);
               } else {
                   notesRef.current = newNotes;
-                  setRenderNotes([...notesRef.current]); // Trigger render
+                  setRenderNotes([...notesRef.current]); 
                   reqRef.current = requestAnimationFrame(loop);
               }
           };
@@ -147,7 +143,6 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       const note = notesRef.current.find(n => n.id === id);
       if (note && !note.clicked) {
           note.clicked = true;
-          // Visual fade out logic handled by CSS class based on 'clicked'
           playTone();
           setScore(s => s + 1);
       }
@@ -161,17 +156,14 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         <div className="relative bg-gray-900 border-4 border-black rounded-xl overflow-hidden shadow-2xl" style={{ width: 320, height: GAME_HEIGHT }}>
             
-            {/* Lanes */}
             <div className="absolute inset-0 grid grid-cols-4 pointer-events-none">
                 <div className="border-r border-gray-700"></div>
                 <div className="border-r border-gray-700"></div>
                 <div className="border-r border-gray-700"></div>
             </div>
 
-            {/* Hit Line */}
             <div className="absolute bottom-20 left-0 w-full h-1 bg-green-500 opacity-50"></div>
 
-            {/* Notes */}
             {renderNotes.map(note => (
                 <div
                     key={note.id}
@@ -190,12 +182,10 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             ))}
 
-            {/* Score */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white font-black text-3xl drop-shadow-md z-20">
                 {score}
             </div>
 
-            {/* Overlays */}
             {!isPlaying && !gameOver && (
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-30">
                     <p className="text-white font-bold mb-4">Tocca le note prima che cadano!</p>
@@ -212,7 +202,9 @@ const FallingNotesGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <button onClick={startGame} className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black border-4 border-black mb-4">
                         RIPROVA
                     </button>
-                    <button onClick={onBack} className="text-white underline">Esci</button>
+                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform">
+                        <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto" />
+                    </button>
                 </div>
             )}
         </div>

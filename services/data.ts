@@ -1,159 +1,103 @@
 
-import { NOTIFICATIONS_CSV_URL, COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL, FAN_ART_GALLERY } from '../constants';
+import { NOTIFICATIONS_CSV_URL, COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL } from '../constants';
 import { AppNotification, CommunityPost, FanArt, SocialStats } from '../types';
+import { FAN_ART_DATABASE } from './dbfanart';
 
-// --- SHARED HELPER ---
 const parseCSVLine = (line: string): string[] => {
-    if (!line.includes('"')) {
-        return line.split(',').map(s => s.trim());
-    }
+    if (!line.includes('"')) return line.split(',').map(s => s.trim());
     const result = [];
     let current = '';
     let inQuotes = false;
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
-            current = '';
-        } else {
-            current += char;
-        }
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+        else current += char;
     }
     result.push(current.trim());
     return result;
 };
 
-// --- NOTIFICATIONS ---
 export const getAllNotifications = async (): Promise<AppNotification[]> => {
-    if (!NOTIFICATIONS_CSV_URL || NOTIFICATIONS_CSV_URL.includes('ExamplePlaceholder')) return [];
+    if (!NOTIFICATIONS_CSV_URL) return [];
     try {
-        const response = await fetch(NOTIFICATIONS_CSV_URL);
-        if (response.ok) {
-            const text = await response.text();
-            const lines = text.split('\n');
-            if (lines.length < 2) return [];
-            const dataRows = lines.slice(1);
-            const notifications: AppNotification[] = [];
-            for (let i = dataRows.length - 1; i >= 0; i--) {
-                const line = dataRows[i];
-                if (!line || !line.trim()) continue;
-                const parts = parseCSVLine(line);
-                if (parts.length < 5) continue;
-                const activeRaw = parts[4] ? parts[4].trim().toUpperCase() : 'FALSE';
-                if (activeRaw === 'TRUE' || activeRaw === 'SI' || activeRaw === 'YES') {
-                    notifications.push({
-                        id: parts[0],
-                        message: parts[1],
-                        link: parts[2] === '-' ? undefined : parts[2],
-                        linkText: parts[3] === '-' ? undefined : parts[3],
-                        active: true,
-                        image: (parts[5] && parts[5] !== '-' && parts[5].startsWith('http')) ? parts[5].trim() : undefined
-                    });
-                }
-            }
-            return notifications;
-        }
-    } catch (error) { console.warn("Notifs Error", error); }
-    return [];
+        const res = await fetch(NOTIFICATIONS_CSV_URL);
+        if (!res.ok) return [];
+        const text = await res.text();
+        return text.split('\n').slice(1).map((line, i) => {
+            const p = parseCSVLine(line);
+            if (p.length < 5) return null;
+            const active = p[4].trim().toUpperCase() === 'TRUE' || p[4].trim().toUpperCase() === 'SI';
+            if (!active) return null;
+            return { id: p[0], message: p[1], link: p[2] === '-' ? undefined : p[2], linkText: p[3] === '-' ? undefined : p[3], active: true, image: p[5]?.startsWith('http') ? p[5] : undefined } as AppNotification;
+        }).filter((n): n is AppNotification => n !== null).reverse();
+    } catch (e) { return []; }
 };
 
-// --- COMMUNITY POSTS ---
 export const getCommunityPosts = async (): Promise<CommunityPost[]> => {
-    let posts: CommunityPost[] = [];
-    if (COMMUNITY_CSV_URL) {
-        try {
-            const response = await fetch(COMMUNITY_CSV_URL);
-            if (response.ok) {
-                const text = await response.text();
-                const lines = text.split('\n');
-                const dataRows = lines.slice(1);
-                posts = dataRows.map((line, index) => {
-                    if (!line.trim()) return null;
-                    const parts = parseCSVLine(line);
-                    if (parts.length < 2) return null;
-                    const date = parts[0] || 'Oggi';
-                    const content = parts[1] || '';
-                    const image = parts[2] || '';
-                    const likes = parseInt(parts[3]) || 0;
-                    const type = (image && image.startsWith('http')) ? 'IMAGE' : 'TEXT';
-                    return {
-                        id: `csv-post-${index}`,
-                        type: type,
-                        content,
-                        image: type === 'IMAGE' ? image : undefined,
-                        date,
-                        likes
-                    } as CommunityPost;
-                }).filter((p): p is CommunityPost => p !== null);
-                posts.reverse();
-            }
-        } catch (error) { console.warn("Community Error", error); }
-    }
-    return posts;
+    if (!COMMUNITY_CSV_URL) return [];
+    try {
+        const res = await fetch(COMMUNITY_CSV_URL);
+        if (!res.ok) return [];
+        const text = await res.text();
+        return text.split('\n').slice(1).map((line, i) => {
+            const p = parseCSVLine(line);
+            if (p.length < 2) return null;
+            return { id: `post-${i}`, type: p[2]?.startsWith('http') ? 'IMAGE' : 'TEXT', date: p[0], content: p[1], image: p[2]?.startsWith('http') ? p[2] : undefined, likes: parseInt(p[3]) || 0 } as CommunityPost;
+        }).filter((p): p is CommunityPost => p !== null).reverse();
+    } catch (e) { return []; }
 };
 
-// --- SOCIAL STATS ---
 export const getSocialStatsFromCSV = async (): Promise<SocialStats> => {
     const stats: SocialStats = {};
-    if (SOCIAL_STATS_CSV_URL) {
-        try {
-            const response = await fetch(SOCIAL_STATS_CSV_URL);
-            if (response.ok) {
-                const text = await response.text();
-                const lines = text.split('\n');
-                lines.forEach(line => {
-                    if (!line.trim()) return;
-                    const parts = parseCSVLine(line);
-                    if (parts.length < 2) return;
-                    const platform = parts[0].toLowerCase();
-                    const count = parts[1];
-                    if (platform.includes('instagram')) stats.instagram = count;
-                    if (platform.includes('tiktok')) stats.tiktok = count;
-                    if (platform.includes('facebook')) stats.facebook = count;
-                });
-            }
-        } catch (error) { console.warn("Stats Error", error); }
-    }
+    if (!SOCIAL_STATS_CSV_URL) return stats;
+    try {
+        const res = await fetch(SOCIAL_STATS_CSV_URL);
+        if (!res.ok) return stats;
+        const text = await res.text();
+        text.split('\n').forEach(line => {
+            const p = parseCSVLine(line);
+            if (p.length < 2) return;
+            const key = p[0].toLowerCase();
+            if (key.includes('insta')) stats.instagram = p[1];
+            if (key.includes('tik')) stats.tiktok = p[1];
+            if (key.includes('face')) stats.facebook = p[1];
+        });
+    } catch (e) {}
     return stats;
 };
 
-// --- FAN ART ---
 export const getFanArt = async (): Promise<FanArt[]> => {
     let dynamicArts: FanArt[] = [];
     if (FAN_ART_CSV_URL) {
         try {
-            const response = await fetch(FAN_ART_CSV_URL);
-            if (response.ok) {
-                const text = await response.text();
-                const lines = text.split('\n');
-                const dataRows = lines.slice(1);
-                dynamicArts = dataRows.map((line, index): FanArt | null => {
-                        if (!line.trim()) return null;
-                        const parts = parseCSVLine(line);
-                        if (parts.length < 3) return null;
-                        const author = parts[0];
-                        let age = parts[1];
-                        const image = parts[2];
-                        const city = parts[3] || '';
-                        const province = parts[4] || '';
-                        if (!image || !image.startsWith('http')) return null;
-                        if (age && !String(age).toLowerCase().includes('anni')) {
-                            age = `${age} anni`;
-                        }
-                        return { id: `csv-${index}`, author, age, image, city, province };
-                    }).filter((item): item is FanArt => item !== null);
-                dynamicArts.reverse();
+            const res = await fetch(FAN_ART_CSV_URL);
+            if (res.ok) {
+                const text = await res.text();
+                dynamicArts = text.split('\n').slice(1).map((line, i) => {
+                    const p = parseCSVLine(line);
+                    if (p.length < 3 || !p[2].startsWith('http')) return null;
+                    return { 
+                        id: `art-${i}`, 
+                        author: p[0], 
+                        age: p[1].includes('anni') ? p[1] : `${p[1]} anni`, 
+                        image: p[2], 
+                        city: p[3] || '', 
+                        province: p[4] || '' 
+                    } as FanArt;
+                }).filter((a): a is FanArt => a !== null).reverse();
             }
-        } catch (error) { console.warn("FanArt Error", error); }
+        } catch (e) {
+            console.warn("Could not fetch dynamic Fan Art, using database fallback.");
+        }
     }
-    const MIN_ITEMS = 4;
-    if (dynamicArts.length < MIN_ITEMS) {
-        const slotsToFill = MIN_ITEMS - dynamicArts.length;
-        const fillerItems = FAN_ART_GALLERY.slice(0, slotsToFill);
-        return [...dynamicArts, ...fillerItems];
+    
+    // Se abbiamo meno di 4 disegni dal foglio, riempiamo con quelli del database
+    if (dynamicArts.length < 4) {
+        const needed = 4 - dynamicArts.length;
+        const fill = FAN_ART_DATABASE.slice(0, needed);
+        return [...dynamicArts, ...fill];
     }
+    
     return dynamicArts;
 };
-    

@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, RotateCcw, LogOut, ArrowLeft } from 'lucide-react';
+import { Play, RotateCcw, LogOut } from 'lucide-react';
 
-// PHYSICS CONSTANTS (KID FRIENDLY TUNING)
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+
 const GRAVITY = 0.6;        
 const JUMP_FORCE = -9;      
 const SPEED_START = 3;      
@@ -10,7 +11,6 @@ const SPEED_INC = 0.0005;
 const TARGET_FPS = 60;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 
-// OBSTACLE VARIANTS
 const GROUND_VARIANTS = ['🪨', '🎃', '🪵', '🌵', '🔥', '📦'];
 const AIR_VARIANTS = ['🦇', '🐝', '🦉', '🎈', '🛸', '👻'];
 
@@ -36,17 +36,15 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
   const [highScore, setHighScore] = useState(0);
   const [rewardGiven, setRewardGiven] = useState(false);
 
-  // Track if component is mounted to prevent loop leaks
   const isMountedRef = useRef(true);
 
-  // Game State Refs (Mutable to avoid re-renders)
   const stateRef = useRef({
     playing: false,
     speed: SPEED_START,
     score: 0,
     lastSpawn: 0,
-    width: 800, // Safe default
-    height: 400, // Safe default
+    width: 800, 
+    height: 400, 
     groundY: 350,
     nextSpawnDelay: 0,
     lastFrameTime: 0 
@@ -88,7 +86,6 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
         const parent = canvas.parentElement;
         if (parent) {
           const rect = parent.getBoundingClientRect();
-          // Ensure dimensions are strictly positive integers
           const w = Math.floor(Math.max(10, rect.width));
           const h = Math.floor(Math.max(10, rect.height));
           
@@ -384,13 +381,8 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
   return (
     <div className="flex flex-col items-center w-full h-full bg-sky-300 touch-none">
         
-        {/* Header Bar */}
         <div className="w-full flex justify-between items-center p-2 bg-sky-400 border-b-4 border-black shrink-0 z-20 shadow-md">
-             <button onClick={onBack} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/40 transition-colors">
-                 <ArrowLeft size={24} strokeWidth={3} />
-             </button>
-             
-             <h2 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase tracking-widest" style={{ textShadow: "2px 2px 0px black" }}>
+             <h2 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase tracking-widest pl-4" style={{ textShadow: "2px 2px 0px black" }}>
                 Boo Runner
              </h2>
 
@@ -400,8 +392,6 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
              </div>
         </div>
 
-        {/* FULL SCREEN CANVAS CONTAINER */}
-        {/* Added min-h-0 to allow flex shrinking/growing properly */}
         <div className="flex-1 w-full relative min-h-0 overflow-hidden bg-sky-300">
             
             <canvas 
@@ -411,7 +401,6 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
                 onTouchStart={(e) => { e.preventDefault(); jump(); }}
             />
 
-            {/* START SCREEN */}
             {gameState === 'START' && (
                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center z-30 backdrop-blur-sm">
                     <p className="text-white font-black text-2xl mb-4 drop-shadow-md text-center px-4 animate-bounce">
@@ -426,23 +415,19 @@ const BooRunnerGame: React.FC<BooRunnerProps> = ({ onBack, onEarnTokens }) => {
                 </div>
             )}
 
-            {/* GAME OVER */}
             {gameState === 'GAME_OVER' && (
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-30 backdrop-blur-sm animate-in zoom-in">
                     <h3 className="text-5xl font-black text-red-500 mb-2 drop-shadow-[2px_2px_0_white]">CRASH!</h3>
                     <p className="text-white text-2xl font-bold mb-8">Punti: {score}</p>
-                    <div className="flex flex-col gap-4 w-64">
+                    <div className="flex flex-col gap-4 w-64 items-center">
                         <button 
                             onClick={startGame} 
-                            className="bg-yellow-400 text-black font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 active:translate-y-1 shadow-[4px_4px_0_black] flex items-center justify-center gap-2"
+                            className="w-full bg-yellow-400 text-black font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 active:translate-y-1 shadow-[4px_4px_0_black] flex items-center justify-center gap-2"
                         >
                             <RotateCcw size={20} /> RIPROVA
                         </button>
-                        <button 
-                            onClick={onBack} 
-                            className="bg-red-500 text-white font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 active:translate-y-1 shadow-[4px_4px_0_black] flex items-center justify-center gap-2"
-                        >
-                            <LogOut size={20} /> ESCI
+                        <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform">
+                            <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto" />
                         </button>
                     </div>
                 </div>

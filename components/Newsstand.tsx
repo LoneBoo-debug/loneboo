@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ShoppingBag, Check, Lock, Star, Download, Settings, Move, ArrowRight, Upload, Camera, ScanLine, Copy, RotateCcw, Trash2, Smile, BookOpen, LogOut, Image as ImageIcon, User, HelpCircle, Share } from 'lucide-react';
-import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../constants';
+import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
 import { getProgress, openPack, spendTokens, getPassportCode, restorePassport, saveSticker, addDuplicate, tradeDuplicates, setPlayerName, decodePassport, saveProgress, addTokens, upgradeToNextAlbum } from '../services/tokens';
 import { PlayerProgress, Sticker, AvatarConfig } from '../types';
 import QRCode from 'qrcode';
@@ -9,15 +9,24 @@ import jsQR from 'jsqr';
 import AvatarCreator, { generateAvatarDataUrl } from './AvatarCreator';
 
 // =================================================================================================
-// 🎵 AUDIO SYNTHESIS ENGINE (NO EXTERNAL FILES)
+// 🎵 AUDIO SYNTHESIS ENGINE (LAZY LOADED)
 // =================================================================================================
-const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+let audioCtx: AudioContext | null = null;
+
+const getAudioContext = () => {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
+};
 
 const playDrumRoll = (duration: number) => {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    
-    const bufferSize = audioCtx.sampleRate * duration;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const ctx = getAudioContext();
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
 
     // Create White Noise
@@ -25,17 +34,17 @@ const playDrumRoll = (duration: number) => {
         data[i] = Math.random() * 2 - 1;
     }
 
-    const noise = audioCtx.createBufferSource();
+    const noise = ctx.createBufferSource();
     noise.buffer = buffer;
 
     // Filter to make it sound more like a drum (Lowpass)
-    const filter = audioCtx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = 800;
 
     // Gain for Volume Envelope (Crescendo)
-    const gain = audioCtx.createGain();
-    const now = audioCtx.currentTime;
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
     
     gain.gain.setValueAtTime(0.1, now);
     gain.gain.linearRampToValueAtTime(1.0, now + duration - 0.1); // Build up
@@ -43,15 +52,15 @@ const playDrumRoll = (duration: number) => {
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(ctx.destination);
     
     noise.start(now);
     noise.stop(now + duration);
 };
 
 const playFanfare = () => {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const now = audioCtx.currentTime;
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
 
     // Notes: C4, E4, G4, C5 (Major Chord Arpeggio)
     const notes = [
@@ -62,8 +71,8 @@ const playFanfare = () => {
     ];
 
     notes.forEach(n => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         
         // Sawtooth sounds brassy/trumpet-like
         osc.type = 'sawtooth';
@@ -75,7 +84,7 @@ const playFanfare = () => {
         gain.gain.exponentialRampToValueAtTime(0.001, now + n.start + n.dur);
 
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(ctx.destination);
         
         osc.start(now + n.start);
         osc.stop(now + n.start + n.dur);
@@ -480,25 +489,27 @@ const Newsstand: React.FC<NewsstandProps> = ({ onClose, initialTab = 'SHOP' }) =
             }
 
             const filename = `LONE-BOO-CARD-${progress.playerName || 'GHOST'}.jpg`;
-            const file = new File([blob], filename, { type: 'image/jpeg' });
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            // 1. Try Web Share API (Mobile Best Practice: Save Image/Share)
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'La mia Tessera Lone Boo',
-                        text: 'Ecco la mia tessera ufficiale di Lone Boo! 👻'
-                    });
-                    setIsGeneratingImg(false);
-                    return; // Stop if share was successful
-                } catch (error) {
-                    // Fallback if user cancels or share fails
-                    console.warn('Share aborted or failed, falling back to download.', error);
+            // 1. Try Web Share API ONLY ON MOBILE
+            if (isMobile && navigator.share && navigator.canShare) {
+                const file = new File([blob], filename, { type: 'image/jpeg' });
+                if (navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'La mia Tessera Lone Boo',
+                            text: 'Ecco la mia tessera ufficiale di Lone Boo! 👻'
+                        });
+                        setIsGeneratingImg(false);
+                        return; // Stop if share was successful
+                    } catch (error) {
+                        console.warn('Share aborted or failed, falling back to download.', error);
+                    }
                 }
             }
 
-            // 2. Fallback: Standard Download (Desktop or older devices)
+            // 2. Standard Download (Desktop or older devices)
             const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
             const link = document.createElement("a");
             link.href = dataUrl;
@@ -535,10 +546,11 @@ const Newsstand: React.FC<NewsstandProps> = ({ onClose, initialTab = 'SHOP' }) =
                     const cvs = document.createElement('canvas');
                     cvs.width = img.width;
                     cvs.height = img.height;
-                    const ctx = cvs.getContext('2d');
-                    if (ctx) {
-                        ctx.drawImage(img, 0, 0);
-                        const imageData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+                    
+                    const ctxOk = cvs.getContext('2d');
+                    if (ctxOk) {
+                        ctxOk.drawImage(img, 0, 0);
+                        const imageData = ctxOk.getImageData(0, 0, cvs.width, cvs.height);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
                         if (code && code.data) {
                             handleRestoreWithCode(code.data);
@@ -601,6 +613,8 @@ const Newsstand: React.FC<NewsstandProps> = ({ onClose, initialTab = 'SHOP' }) =
         }
         requestRef.current = requestAnimationFrame(scanTick);
     };
+
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     return (
         <>
@@ -738,9 +752,8 @@ const Newsstand: React.FC<NewsstandProps> = ({ onClose, initialTab = 'SHOP' }) =
 
                     {/* --- HEADER --- */}
                     <div className="bg-blue-600 p-3 md:p-4 flex justify-between items-center z-20 shadow-md shrink-0 border-b-4 border-blue-800">
-                        <div className="flex items-center gap-2 text-white">
-                            <ShoppingBag size={24} className="md:w-8 md:h-8" />
-                            <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest text-white drop-shadow-sm">Edicola</h2>
+                        <div className="flex items-center">
+                            <img src="https://i.postimg.cc/x13ZxzS1/eicoljue-(1)-(1).png" alt="Edicola" className="h-20 md:h-28 w-auto object-contain drop-shadow-md transform rotate-2" />
                         </div>
                         <div className="flex items-center gap-3">
                             <div 
@@ -968,8 +981,8 @@ const Newsstand: React.FC<NewsstandProps> = ({ onClose, initialTab = 'SHOP' }) =
                                         disabled={isGeneratingImg || !tempAvatarImage}
                                         className={`w-full text-white font-black text-xl py-3 rounded-xl border-b-4 hover:brightness-110 active:border-b-0 active:translate-y-1 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed ${isBoy ? 'bg-cyan-500 border-cyan-700' : 'bg-pink-500 border-pink-700'}`}
                                     >
-                                        {isGeneratingImg ? <ArrowRight className="animate-spin" /> : (navigator.share ? <Share size={24} strokeWidth={3} /> : <Download size={24} strokeWidth={3} />)}
-                                        {isGeneratingImg ? 'STAMPANDO...' : (navigator.share ? 'SALVA NEL RULLINO' : 'SCARICA TESSERA')}
+                                        {isGeneratingImg ? <ArrowRight className="animate-spin" /> : (isMobileDevice ? <Share size={24} strokeWidth={3} /> : <Download size={24} strokeWidth={3} />)}
+                                        {isGeneratingImg ? 'SALVATAGGIO...' : (isMobileDevice ? 'SALVA LA FOTO JPG NEL RULLINO FOTO' : 'SALVA NEL DOWNLOAD')}
                                     </button>
                                 </div>
                             </div>

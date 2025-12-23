@@ -45,6 +45,8 @@ export enum AppView {
   INFO_MENU = 'INFO_MENU', // NEW: Help/Info Center
   FAQ = 'FAQ', // NEW: FAQ Page
   GUIDE = 'GUIDE', // NEW: User Guide Page
+  CONTACT = 'CONTACT', // NEW: Contacts Page
+  SERVICE_PAGE = 'SERVICE_PAGE', // NEW: Internal Tool for Migration
   
   // BOO HOUSE ROOMS
   BOO_GARDEN = 'BOO_GARDEN',
@@ -56,6 +58,7 @@ export enum AppView {
   INTRO = 'INTRO', 
   VIDEOS = 'VIDEOS',
   BOOKS = 'BOOKS',
+  BOOKS_LIST = 'BOOKS_LIST', // NEW: Collection of books
   AI_MAGIC = 'AI_MAGIC',
   SOUNDS = 'SOUNDS',
   TALES = 'TALES',
@@ -71,7 +74,8 @@ export enum AppView {
   ABOUT = 'ABOUT',
   
   // NEW PAGE
-  SVEGLIA_BOO = 'SVEGLIA_BOO'
+  SVEGLIA_BOO = 'SVEGLIA_BOO',
+  TRAIN_JOURNEY = 'TRAIN_JOURNEY'
 }
 
 export interface ChatMessage {

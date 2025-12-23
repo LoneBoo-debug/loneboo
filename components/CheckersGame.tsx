@@ -1,11 +1,22 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { RotateCcw, Loader2, LogOut, Lock, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RotateCcw, Loader2 } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
-type Piece = { player: 'red' | 'black'; isKing: boolean } | null;
+const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const TITLE_IMG = 'https://i.postimg.cc/nrFpH8gQ/dmana-(1).png';
+const BTN_EASY_IMG = 'https://i.postimg.cc/MpVqCtbx/facile.png';
+const BTN_MEDIUM_IMG = 'https://i.postimg.cc/3x5HFmMp/intermedio.png';
+const BTN_HARD_IMG = 'https://i.postimg.cc/tRsTr3f4/difficile.png';
+const LOCK_IMG = 'https://i.postimg.cc/3Nz0wMj1/lucchetto.png';
+const BTN_BACK_MENU_IMG = 'https://i.postimg.cc/Dw1bshV7/tasto-torna-al-menu-(1).png';
+const BG_IMG = 'https://i.postimg.cc/6pBThyG1/sfondodama.jpg';
+const GRANDFATHER_THINKING_IMG = 'https://i.postimg.cc/Cx4Jg8cB/nonno-pensante-(1)-(1).png';
+
+type PieceColor = 'RED' | 'BLACK';
+type PieceType = 'MAN' | 'KING';
+type Piece = { color: PieceColor; type: PieceType } | null;
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 interface CheckersGameProps {
@@ -14,41 +25,22 @@ interface CheckersGameProps {
     onOpenNewsstand?: () => void;
 }
 
-const CheckerPieceIcon: React.FC<{ player: 'red' | 'black'; isKing: boolean }> = ({ player, isKing }) => {
-    const isPlayer = player === 'red';
-    const fill = isPlayer ? '#FFFFFF' : '#991B1B'; 
-    const stroke = isPlayer ? '#2563EB' : '#FECACA'; 
-    const crownColor = isPlayer ? '#2563EB' : '#FFFFFF';
-
-    return (
-        <svg viewBox="0 0 100 100" className="w-[85%] h-[85%] drop-shadow-md transition-transform hover:scale-105">
-            <circle cx="50" cy="50" r="45" fill={fill} stroke={stroke} strokeWidth="5" />
-            <circle cx="50" cy="50" r="35" fill="none" stroke={stroke} strokeWidth="2" opacity="0.3" />
-            <circle cx="50" cy="50" r="20" fill="none" stroke={stroke} strokeWidth="2" opacity="0.3" />
-            {isKing && (
-                <path d="M30 62 L30 42 L40 52 L50 32 L60 52 L70 42 L70 62 Z" fill={crownColor} stroke={stroke} strokeWidth="2" strokeLinejoin="round" className="drop-shadow-sm" />
-            )}
-        </svg>
-    );
-};
-
 const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
-  const [board, setBoard] = useState<Piece[]>([]);
-  const [turn, setTurn] = useState<'red' | 'black'>('red'); 
+  const [board, setBoard] = useState<Piece[]>(Array(64).fill(null));
+  const [turn, setTurn] = useState<PieceColor>('RED'); 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [validMoves, setValidMoves] = useState<number[]>([]);
-  const [winner, setWinner] = useState<'red' | 'black' | 'draw' | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [winner, setWinner] = useState<PieceColor | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [rewardGiven, setRewardGiven] = useState(false);
-  
-  // Lock State
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-
-  // Timer Ref for cleanup
-  const aiTimerRef = useRef<any>(null);
+  const [jumpingPieceIdx, setJumpingPieceIdx] = useState<number | null>(null);
+  
+  // Stato per l'animazione della mossa avversaria
+  const [aiMoving, setAiMoving] = useState<{ from: number, to: number } | null>(null);
 
   useEffect(() => {
       const progress = getProgress();
@@ -57,7 +49,6 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
   }, []);
 
-  // Sync tokens when modal shows up
   useEffect(() => {
       if (showUnlockModal) {
           const p = getProgress();
@@ -72,6 +63,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
           setUserTokens(p.tokens);
           setShowUnlockModal(false);
           setDifficulty('HARD');
+          initBoard();
       }
   };
 
@@ -83,178 +75,263 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   };
 
   const initBoard = () => {
-    const newBoard: Piece[] = Array(64).fill(null);
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if ((r + c) % 2 === 1) {
-                const idx = r * 8 + c;
-                if (r < 3) {
-                    newBoard[idx] = { player: 'black', isKing: false }; 
-                } else if (r > 4) {
-                    newBoard[idx] = { player: 'red', isKing: false };
-                }
-            }
-        }
-    }
-    setBoard(newBoard);
-    setTurn('red');
-    setWinner(null);
-    setSelectedIdx(null);
-    setValidMoves([]);
-    setIsThinking(false);
-    setRewardGiven(false);
+      const newBoard: Piece[] = Array(64).fill(null);
+      for (let i = 0; i < 64; i++) {
+          const row = Math.floor(i / 8);
+          const col = i % 8;
+          if ((row + col) % 2 === 1) {
+              if (row < 3) newBoard[i] = { color: 'BLACK', type: 'MAN' };
+              if (row > 4) newBoard[i] = { color: 'RED', type: 'MAN' };
+          }
+      }
+      setBoard(newBoard);
+      setTurn('RED');
+      setWinner(null);
+      setSelectedIdx(null);
+      setValidMoves([]);
+      setIsThinking(false);
+      setRewardGiven(false);
+      setJumpingPieceIdx(null);
+      setAiMoving(null);
   };
 
   useEffect(() => {
-    if (difficulty) initBoard();
-    return () => {
-        if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
-    }
+      if (difficulty) initBoard();
   }, [difficulty]);
 
   useEffect(() => {
-      window.scrollTo(0, 0);
-  }, []);
-
-  // REWARD LOGIC
-  useEffect(() => {
-      if (winner === 'red' && !rewardGiven && onEarnTokens) {
-          let reward = 5; // Easy
+      if (winner === 'RED' && !rewardGiven && onEarnTokens) {
+          let reward = 5; 
           if (difficulty === 'MEDIUM') reward = 10;
-          if (difficulty === 'HARD') reward = 20;
-          
+          if (difficulty === 'HARD') reward = 15;
           onEarnTokens(reward);
+          setUserTokens(prev => prev + reward);
           setRewardGiven(true);
       }
   }, [winner, rewardGiven, onEarnTokens, difficulty]);
 
-  const getValidMoves = (idx: number, currentBoard: Piece[], player: 'red' | 'black') => {
-    const piece = currentBoard[idx];
-    if (!piece || piece.player !== player) return [];
+  const getJumps = (idx: number, currentBoard: Piece[]) => {
+      const piece = currentBoard[idx];
+      if (!piece) return [];
+      const jumps: number[] = [];
+      const row = Math.floor(idx / 8);
+      const col = idx % 8;
+      const isKing = piece.type === 'KING';
+      const directions = [];
+      
+      // In Dama Italiana, la dama può mangiare in tutte le direzioni.
+      // Le pedine semplici mangiano solo in avanti (rispetto al loro colore).
+      if (piece.color === 'RED' || isKing) directions.push([-1, -1], [-1, 1]); 
+      if (piece.color === 'BLACK' || isKing) directions.push([1, -1], [1, 1]); 
 
-    const moves: number[] = [];
-    const size = 8;
-    const directions = piece.isKing ? [-1, 1] : (player === 'red' ? [-1] : [1]);
+      directions.forEach(([dr, dc]) => {
+          const midR = row + dr; const midC = col + dc;
+          const endR = row + (dr * 2); const endC = col + (dc * 2);
+          if (endR >= 0 && endR < 8 && endC >= 0 && endC < 8) {
+              const midPiece = currentBoard[midR * 8 + midC];
+              const endPiece = currentBoard[endR * 8 + endC];
+              
+              // C'è un pezzo avversario da mangiare e la casella dopo è vuota
+              if (midPiece && midPiece.color !== piece.color && !endPiece) {
+                  // REGOLA SPECIALE: Una pedina semplice non può mangiare una superdama
+                  if (piece.type === 'MAN' && midPiece.type === 'KING') {
+                      return; 
+                  }
+                  jumps.push(endR * 8 + endC);
+              }
+          }
+      });
+      return jumps;
+  };
 
-    directions.forEach(rowDir => {
-        [-1, 1].forEach(colDir => { 
-            const targetRow = Math.floor(idx / size) + rowDir;
-            const targetCol = (idx % size) + colDir;
-            const targetIdx = targetRow * size + targetCol;
+  const getRegularMoves = (idx: number, currentBoard: Piece[]) => {
+      const piece = currentBoard[idx];
+      if (!piece) return [];
+      const moves: number[] = [];
+      const row = Math.floor(idx / 8);
+      const col = idx % 8;
+      const isKing = piece.type === 'KING';
+      const directions = [];
+      
+      // I pezzi semplici si muovono solo in avanti. Le dame ovunque.
+      if (piece.color === 'RED' || isKing) directions.push([-1, -1], [-1, 1]); 
+      if (piece.color === 'BLACK' || isKing) directions.push([1, -1], [1, 1]); 
 
-            if (targetRow >= 0 && targetRow < size && targetCol >= 0 && targetCol < size) {
-                if (!currentBoard[targetIdx]) {
-                    moves.push(targetIdx);
-                } else if (currentBoard[targetIdx]?.player !== player) {
-                    const enemyPiece = currentBoard[targetIdx];
-                    if (!piece.isKing && enemyPiece?.isKing) return;
+      directions.forEach(([dr, dc]) => {
+          const r = row + dr; const c = col + dc;
+          if (r >= 0 && r < 8 && c >= 0 && c < 8 && !currentBoard[r * 8 + c]) {
+              moves.push(r * 8 + c);
+          }
+      });
+      return moves;
+  };
 
-                    const jumpRow = targetRow + rowDir;
-                    const jumpCol = targetCol + colDir;
-                    const jumpIdx = jumpRow * size + jumpCol;
-                    if (jumpRow >= 0 && jumpRow < size && jumpCol >= 0 && jumpCol < size && !currentBoard[jumpIdx]) {
-                        moves.push(jumpIdx);
-                    }
-                }
-            }
-        });
-    });
-    return moves;
+  const getMoves = (idx: number, currentBoard: Piece[]) => {
+      return [...getJumps(idx, currentBoard), ...getRegularMoves(idx, currentBoard)];
   };
 
   const handleSelect = (idx: number) => {
-    if (turn !== 'red' || winner || isThinking) return;
-    const piece = board[idx];
-    if (piece?.player === 'red') {
-        setSelectedIdx(idx);
-        setValidMoves(getValidMoves(idx, board, 'red'));
-    }
+      if (turn !== 'RED' || winner || isThinking || aiMoving) return;
+
+      if (jumpingPieceIdx !== null && idx !== jumpingPieceIdx) return;
+
+      if (board[idx]?.color === 'RED') {
+          setSelectedIdx(idx);
+          if (jumpingPieceIdx !== null) {
+              setValidMoves(getJumps(idx, board));
+          } else {
+              setValidMoves(getMoves(idx, board));
+          }
+      } else {
+          if (jumpingPieceIdx === null) {
+              setSelectedIdx(null);
+              setValidMoves([]);
+          }
+      }
   };
 
-  const movePiece = (fromIdx: number, toIdx: number, currentBoard: Piece[]) => {
-      const newBoard = [...currentBoard];
-      const piece = newBoard[fromIdx];
-      if (!piece) return newBoard;
+  const movePiece = (from: number, to: number) => {
+      const newBoard = [...board];
+      const piece = newBoard[from];
+      if (!piece) return;
 
-      newBoard[toIdx] = piece;
-      newBoard[fromIdx] = null;
+      const fromRow = Math.floor(from / 8);
+      const fromCol = from % 8;
+      const toRow = Math.floor(to / 8);
+      const toCol = to % 8;
+      
+      const isJump = Math.abs(toRow - fromRow) === 2;
 
-      const row = Math.floor(toIdx / 8);
-      if ((piece.player === 'red' && row === 0) || (piece.player === 'black' && row === 7)) {
-          newBoard[toIdx] = { ...piece, isKing: true };
+      if (isJump) {
+          const midRow = (fromRow + toRow) / 2;
+          const midCol = (fromCol + toCol) / 2;
+          newBoard[midRow * 8 + midCol] = null; 
       }
 
-      if (Math.abs(toIdx - fromIdx) > 9) {
-          const midIdx = (fromIdx + toIdx) / 2;
-          newBoard[midIdx] = null;
+      newBoard[to] = { ...piece }; 
+      newBoard[from] = null;
+
+      if (piece.color === 'RED' && toRow === 0) newBoard[to]!.type = 'KING';
+      if (piece.color === 'BLACK' && toRow === 7) newBoard[to]!.type = 'KING';
+
+      setBoard(newBoard);
+
+      const redCount = newBoard.filter(p => p?.color === 'RED').length;
+      const blackCount = newBoard.filter(p => p?.color === 'BLACK').length;
+
+      if (blackCount === 0) {
+          setWinner('RED');
+          return;
       }
-      return newBoard;
+      if (redCount === 0) {
+          setWinner('BLACK');
+          return;
+      }
+
+      if (isJump) {
+          const nextJumps = getJumps(to, newBoard);
+          if (nextJumps.length > 0) {
+              setJumpingPieceIdx(to);
+              setSelectedIdx(to);
+              setValidMoves(nextJumps);
+              return;
+          }
+      }
+
+      setJumpingPieceIdx(null);
+      setSelectedIdx(null);
+      setValidMoves([]);
+      setTurn(prev => prev === 'RED' ? 'BLACK' : 'RED');
   };
 
-  const handleMove = (toIdx: number) => {
-    if (selectedIdx === null || !validMoves.includes(toIdx)) return;
+  const aiMove = () => {
+      setIsThinking(true);
+      setTimeout(() => {
+          let currentBoard = [...board];
+          let aiJumpingIdx: number | null = null;
+          let movedInThisTurn = false;
 
-    const newBoard = movePiece(selectedIdx, toIdx, board);
-    setBoard(newBoard);
-    setSelectedIdx(null);
-    setValidMoves([]);
-    setTurn('black');
+          const executeMove = () => {
+              const pieces = [];
+              for (let i = 0; i < 64; i++) {
+                  if (currentBoard[i]?.color === 'BLACK') {
+                      if (aiJumpingIdx === null || aiJumpingIdx === i) {
+                          pieces.push(i);
+                      }
+                  }
+              }
+
+              let bestMove = null;
+              let jumpsAvailable = [];
+              let regularsAvailable = [];
+
+              for (let i of pieces) {
+                  const jumps = getJumps(i, currentBoard);
+                  const regulars = getRegularMoves(i, currentBoard);
+                  jumps.forEach(m => jumpsAvailable.push({ from: i, to: m }));
+                  regulars.forEach(m => regularsAvailable.push({ from: i, to: m }));
+              }
+
+              if (jumpsAvailable.length > 0) {
+                  bestMove = jumpsAvailable[Math.floor(Math.random() * jumpsAvailable.length)];
+              } else if (regularsAvailable.length > 0 && aiJumpingIdx === null) {
+                  bestMove = regularsAvailable[Math.floor(Math.random() * regularsAvailable.length)];
+              }
+
+              if (bestMove) {
+                  // AVVIA ANIMAZIONE VISIVA
+                  setIsThinking(false);
+                  setAiMoving({ from: bestMove.from, to: bestMove.to });
+
+                  // Aspetta che l'animazione finisca (800ms mossa + 200ms pausa)
+                  setTimeout(() => {
+                      const fromRow = Math.floor(bestMove.from / 8);
+                      const toRow = Math.floor(bestMove.to / 8);
+                      const isJump = Math.abs(toRow - fromRow) === 2;
+
+                      const piece = currentBoard[bestMove.from];
+                      if (isJump) {
+                          const midRow = (fromRow + toRow) / 2;
+                          const midCol = ((bestMove.from % 8) + (bestMove.to % 8)) / 2;
+                          currentBoard[midRow * 8 + midCol] = null;
+                      }
+                      currentBoard[bestMove.to] = { ...piece! };
+                      currentBoard[bestMove.from] = null;
+
+                      if (piece && piece.color === 'BLACK' && toRow === 7) currentBoard[bestMove.to]!.type = 'KING';
+
+                      movedInThisTurn = true;
+                      setAiMoving(null);
+                      setBoard([...currentBoard]); // Forza aggiornamento UI
+
+                      if (isJump) {
+                          const nextJumps = getJumps(bestMove.to, currentBoard);
+                          if (nextJumps.length > 0) {
+                              aiJumpingIdx = bestMove.to;
+                              // Breve attesa tra i salti multipli
+                              setTimeout(executeMove, 500);
+                              return;
+                          }
+                      }
+                      
+                      // Fine turno AI
+                      const redCount = currentBoard.filter(p => p?.color === 'RED').length;
+                      if (redCount === 0) setWinner('BLACK');
+                      else setTurn('RED');
+                  }, 800);
+              } else {
+                  if (!movedInThisTurn) setWinner('RED');
+                  setIsThinking(false);
+              }
+          };
+
+          executeMove();
+      }, 2000);
   };
 
   useEffect(() => {
-    if (turn === 'black' && !winner && difficulty) {
-        setIsThinking(true);
-        if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
-        
-        aiTimerRef.current = setTimeout(() => {
-            const aiMoves: { from: number, to: number, score: number }[] = [];
-            
-            board.forEach((piece, idx) => {
-                if (piece?.player === 'black') {
-                    const moves = getValidMoves(idx, board, 'black');
-                    moves.forEach(to => {
-                        let score = 0;
-                        if (Math.abs(to - idx) > 9) score += 10;
-                        if (difficulty === 'EASY') score += Math.random() * 5;
-                        if (difficulty === 'HARD') {
-                             if (Math.floor(to / 8) === 7) score += 5;
-                        }
-                        aiMoves.push({ from: idx, to, score });
-                    });
-                }
-            });
-
-            if (aiMoves.length > 0) {
-                aiMoves.sort((a, b) => b.score - a.score);
-                const bestMove = aiMoves[0];
-                const newBoard = movePiece(bestMove.from, bestMove.to, board);
-                setBoard(newBoard);
-                setTurn('red');
-            } else {
-                setWinner('red');
-            }
-            setIsThinking(false);
-        }, 2000); 
-    }
-    
-    // Cleanup on unmount/re-render handled by ref
-    return () => {
-        if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
-    }
-  }, [turn, winner, difficulty, board]);
-
-  useEffect(() => {
-      if (turn === 'red' && !winner) {
-          const redPieces = board.filter(p => p?.player === 'red').length;
-          const blackPieces = board.filter(p => p?.player === 'black').length;
-          
-          if (blackPieces === 0) setWinner('red');
-          if (redPieces === 0) setWinner('black');
-          
-          const hasMoves = board.some((p, i) => p?.player === 'red' && getValidMoves(i, board, 'red').length > 0);
-          if (redPieces > 0 && !hasMoves) setWinner('black');
-      }
-  }, [turn, board]);
+      if (turn === 'BLACK' && !winner && !aiMoving) aiMove();
+  }, [turn, winner]);
 
   const handleLevelSelect = (level: Difficulty) => {
       if (level === 'HARD' && !isHardUnlocked) {
@@ -266,123 +343,145 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
 
   const backToMenu = () => {
       setDifficulty(null);
-      initBoard();
+      setBoard(Array(64).fill(null));
+      setJumpingPieceIdx(null);
+      setAiMoving(null);
   };
+
+  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-hidden bg-cover bg-center z-[60]";
 
   if (!difficulty) {
       return (
-          <div className="max-w-xl mx-auto flex flex-col items-center animate-fade-in text-center min-h-[500px]">
-              {showUnlockModal && (
-                  <UnlockModal 
-                      onClose={() => setShowUnlockModal(false)}
-                      onUnlock={handleUnlockHard}
-                      onOpenNewsstand={handleOpenNewsstand}
-                      currentTokens={userTokens}
-                  />
-              )}
-
-              <h2 className="text-4xl md:text-5xl font-black text-boo-orange mb-8 relative z-10" style={{ textShadow: "3px 3px 0px black" }}>Dama Spettrale</h2>
-              <div className="bg-white p-8 rounded-[40px] border-4 border-black shadow-xl w-full">
-                  <p className="text-2xl font-bold text-gray-700 mb-6">Abilità Avversario</p>
-                  <div className="flex flex-col gap-4">
-                      <button onClick={() => handleLevelSelect('EASY')} className="bg-green-500 text-white text-xl font-black py-4 px-6 rounded-2xl border-4 border-black hover:scale-105 transition-transform shadow-[4px_4px_0px_0px_black] flex items-center justify-center gap-2">PRINCIPIANTE 😊</button>
-                      <button onClick={() => handleLevelSelect('MEDIUM')} className="bg-yellow-400 text-black text-xl font-black py-4 px-6 rounded-2xl border-4 border-black hover:scale-105 transition-transform shadow-[4px_4px_0px_0px_black] flex items-center justify-center gap-2">ESPERTO 😎</button>
-                      <button onClick={() => handleLevelSelect('HARD')} className={`text-white text-xl font-black py-4 px-6 rounded-2xl border-4 border-black transition-transform shadow-[4px_4px_0px_0px_black] flex items-center justify-center gap-2 ${isHardUnlocked ? 'bg-red-600 hover:scale-105' : 'bg-gray-400 hover:scale-[1.02] cursor-pointer'}`}>
-                          {isHardUnlocked ? 'MAESTRO 🤓' : <><Lock size={24}/> BLOCCATO</>}
-                      </button>
+          <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
+              <div className="absolute top-4 left-4 z-50">
+                  <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                      <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
+                  </button>
+              </div>
+              <div className="absolute top-4 right-4 z-50 pointer-events-none">
+                  <div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg">
+                      <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                  </div>
+              </div>
+              {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 pt-16">
+                  <img src={TITLE_IMG} alt="Dama" className="w-72 md:w-96 h-auto mb-6 relative z-10 hover:scale-105 transition-transform duration-300" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
+                  <div className="flex flex-col gap-4 items-center w-full relative z-10">
+                      <button onClick={() => handleLevelSelect('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" /></button>
+                      <button onClick={() => handleLevelSelect('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" /></button>
+                      <div className="relative hover:scale-105 active:scale-95 transition-transform w-48">
+                          <button onClick={() => handleLevelSelect('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}><img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" /></button>
+                          {!isHardUnlocked && (
+                              <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
+                                  <img src={LOCK_IMG} alt="Bloccato" className="w-12 h-12 drop-shadow-lg rotate-12" />
+                              </div>
+                          )}
+                      </div>
                   </div>
               </div>
           </div>
       )
   }
 
-  const tokenReward = difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20;
+  const tokenReward = difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 15;
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col items-center animate-fade-in w-full">
-      <div className="w-full flex justify-between items-center mb-4 px-2">
-          <button onClick={backToMenu} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/40">
-              <Settings size={20} />
-          </button>
-          <h2 className="text-4xl md:text-5xl font-black text-boo-orange drop-shadow-[3px_3px_0_black]" style={{ textShadow: "3px 3px 0px black" }}>Dama</h2>
-          <div className="w-9"></div> 
-      </div>
-
-      <p className="text-sm md:text-xl font-bold text-boo-yellow drop-shadow-md mb-4 whitespace-nowrap overflow-hidden text-ellipsis w-full px-2 text-center">
-         {difficulty === 'EASY' ? 'Livello Principiante' : (difficulty === 'MEDIUM' ? 'Livello Esperto' : 'Livello Maestro')}
-      </p>
-      
-      <div className="flex items-center gap-4 mb-4 bg-white px-6 py-2 rounded-full border-2 border-black shadow-md relative">
-         <div className={`w-4 h-4 rounded-full ${turn === 'red' ? 'bg-blue-600 animate-pulse' : 'bg-red-600'}`}></div>
-         <span className={`font-bold text-sm md:text-base ${turn === 'red' ? 'text-blue-600' : 'text-red-600'}`}>
-             {turn === 'red' ? 'Tocca a te (Blu)' : 'Avversario (Rosso)'}
-         </span>
-      </div>
-
-      <div className="bg-black p-1 md:p-3 rounded-xl border-4 border-black shadow-2xl overflow-hidden relative">
-          {/* THINKING BUBBLE - Top Center of Board */}
-          {isThinking && (
-             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full border-2 border-red-500 shadow-lg animate-in zoom-in fade-in">
-                 <Loader2 size={18} className="animate-spin text-red-500" />
-                 <span className="text-sm font-black text-red-600 uppercase tracking-wide">Sto pensando...</span>
-             </div>
-          )}
-
-          <div className="grid grid-cols-8 grid-rows-8 w-[95vw] h-[95vw] max-w-[500px] max-h-[500px] shrink-0 border-2 border-amber-900/50">
-              {board.map((piece, idx) => {
-                  const row = Math.floor(idx / 8);
-                  const col = idx % 8;
-                  const isDark = (row + col) % 2 === 1;
-                  const isSelected = selectedIdx === idx;
-                  const isValidMove = validMoves.includes(idx);
-
-                  return (
-                      <div 
-                        key={idx}
-                        onClick={() => isValidMove ? handleMove(idx) : handleSelect(idx)}
-                        className={`relative flex items-center justify-center w-full h-full ${isDark ? 'bg-[#8B4513]' : 'bg-[#F5DEB3]'} ${isValidMove ? 'cursor-pointer' : ''}`}
-                      >
-                          {isValidMove && <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full opacity-60 animate-pulse z-10" />}
-                          {piece && (
-                              <div className={`w-full h-full flex items-center justify-center ${isSelected ? 'ring-inset ring-4 ring-yellow-400 rounded-full' : ''}`}>
-                                  <CheckerPieceIcon player={piece.player} isKing={piece.isKing} />
-                              </div>
-                          )}
-                      </div>
-                  );
-              })}
-          </div>
-      </div>
-      
-      <p className="text-white/80 text-xs font-bold mt-2">
-         Regola: La pedina semplice non può mangiare la Dama.
-      </p>
-
-      {winner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
-           <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-w-sm w-full shadow-2xl relative">
-              {/* SAVE REMINDER */}
-              {winner === 'red' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
-
-              <h2 className="text-3xl font-black mb-4 text-boo-purple">
-                  {winner === 'red' ? 'HAI VINTO! 🎉' : 'Ha vinto l\'avversario 🤖'}
-              </h2>
-              {winner === 'red' && (
-                  <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap">
-                      +{tokenReward} GETTONI! 🪙
-                  </div>
-              )}
-              <div className="flex flex-col gap-4">
-                  <button onClick={initBoard} className="flex items-center justify-center gap-2 bg-boo-green text-white font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 shadow-[4px_4px_0_black]">
-                      <RotateCcw size={20} /> Rigioca
-                  </button>
-                  <button onClick={onBack} className="flex items-center justify-center gap-2 bg-red-500 text-white font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 shadow-[4px_4px_0_black]">
-                      <LogOut size={20} /> Esci
-                  </button>
-              </div>
-           </div>
+    <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
+        <div className="absolute top-4 left-4 z-50">
+            <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-12 w-auto drop-shadow-md" />
+            </button>
         </div>
-      )}
+        <div className="absolute top-4 right-4 z-50 pointer-events-none"><div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg"><span>{userTokens}</span> <span className="text-xl">🪙</span></div></div>
+
+        <div className="w-full h-full flex flex-col items-center justify-center p-2 relative z-10">
+            <img src={TITLE_IMG} alt="Dama" className="h-20 md:h-28 w-auto mb-2 drop-shadow-md shrink-0" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
+            <p className="text-white font-bold mb-2 bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm border border-white/20 shrink-0 text-sm md:text-base">{difficulty === 'EASY' ? 'Livello Facile' : (difficulty === 'MEDIUM' ? 'Livello Medio' : 'Livello Difficile')}</p>
+            <div className="flex items-center gap-4 mb-2 bg-white px-6 py-2 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
+                <div className={`w-4 h-4 rounded-full ${turn === 'RED' ? 'bg-red-600 animate-pulse' : 'bg-slate-800'}`}></div>
+                <span className={`font-bold ${turn === 'RED' ? 'text-red-600' : 'text-slate-800'}`}>{turn === 'RED' ? (jumpingPieceIdx !== null ? 'Ancora tu!' : 'Tocca a te (Rossi)') : 'Avversario (Neri)'}</span>
+            </div>
+
+            <div className="bg-white/40 backdrop-blur-md p-3 md:p-4 rounded-[30px] border-4 border-white/50 shadow-2xl relative shrink-0">
+                {isThinking && (
+                    <div className="absolute -top-32 right-[-20px] md:-top-44 md:right-[-40px] z-[100] flex flex-col items-center animate-in fade-in zoom-in duration-500 pointer-events-none transform -rotate-6">
+                        <span 
+                            className="font-luckiest text-lg md:text-2xl text-yellow-300 uppercase whitespace-nowrap mb-[-25px] relative z-10 -translate-x-3"
+                            style={{ 
+                                textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                                WebkitTextStroke: '1px black'
+                            }}
+                        >
+                            mmmh sto pensando...
+                        </span>
+                        <img 
+                            src={GRANDFATHER_THINKING_IMG} 
+                            alt="Nonno che pensa" 
+                            className="w-64 h-64 md:w-80 md:h-80 max-w-none object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.4)]"
+                        />
+                    </div>
+                )}
+                <div className="grid grid-cols-8 grid-rows-8 w-[min(90vw,55vh)] h-[min(90vw,55vh)] md:w-[min(60vh,60vw)] md:h-[min(60vh,60vw)] border-4 border-amber-900 rounded-lg overflow-hidden bg-amber-100">
+                    {board.map((piece, idx) => {
+                        const row = Math.floor(idx / 8);
+                        const col = idx % 8;
+                        const isDark = (row + col) % 2 === 1;
+                        const isValid = validMoves.includes(idx);
+                        const isSelected = selectedIdx === idx;
+                        const canBeSelected = jumpingPieceIdx === null || jumpingPieceIdx === idx;
+                        
+                        // Gestione animazione avversario
+                        const isAiAnimatingFrom = aiMoving?.from === idx;
+                        const isAiAnimatingTo = aiMoving?.to === idx;
+                        
+                        // Calcolo trasformazione per l'animazione
+                        let transform = 'none';
+                        let transition = 'none';
+                        if (isAiAnimatingFrom) {
+                            const toRow = Math.floor(aiMoving!.to / 8);
+                            const toCol = aiMoving!.to % 8;
+                            const dr = (toRow - row) * 100;
+                            const dc = (toCol - col) * 100;
+                            transform = `translate(${dc}%, ${dr}%)`;
+                            transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                        }
+
+                        return (
+                            <div key={idx} onClick={() => isValid ? movePiece(selectedIdx!, idx) : handleSelect(idx)} className={`relative flex items-center justify-center w-full h-full rounded-sm ${isDark ? 'bg-amber-500' : 'bg-amber-100'} ${isSelected ? 'ring-inset ring-4 ring-yellow-400 z-10' : ''} ${jumpingPieceIdx === idx ? 'ring-inset ring-2 ring-red-500 animate-pulse' : ''} ${!canBeSelected && piece?.color === 'RED' ? 'opacity-70' : ''}`}>
+                                {isValid && !piece && <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full opacity-80 shadow-sm animate-pulse border-2 border-white" />}
+                                
+                                {/* Pezzo reale (nascosto se si sta muovendo da questa casella) */}
+                                {piece && !isAiAnimatingTo && (
+                                    <div 
+                                        className={`
+                                            w-[80%] h-[80%] rounded-full shadow-[inset_0_4px_4px_rgba(255,255,255,0.4),0_4px_4px_rgba(0,0,0,0.2)] 
+                                            flex items-center justify-center border-4 relative
+                                            ${piece.color === 'RED' ? 'bg-red-500 border-red-700' : 'bg-slate-800 border-black'}
+                                            ${isAiAnimatingFrom ? 'z-50 shadow-2xl' : 'z-10'}
+                                        `}
+                                        style={{ transform, transition }}
+                                    >
+                                        {piece.type === 'KING' && <span className="text-yellow-400 text-lg md:text-2xl font-black drop-shadow-sm">👑</span>}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {winner && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
+                    <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-w-sm w-full shadow-2xl relative flex flex-col items-center">
+                        {winner === 'RED' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                        <h2 className="text-3xl font-black mb-4 text-boo-purple leading-tight">{winner === 'RED' ? 'HAI VINTO! 🎉' : 'HAI PERSO 🤖'}</h2>
+                        {winner === 'RED' && <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap">+{tokenReward} GETTONI! 🪙</div>}
+                        <button onClick={initBoard} className="flex items-center justify-center gap-2 bg-boo-green text-white font-black px-6 py-3 rounded-full border-4 border-black hover:scale-105 shadow-[4px_4px_0_black] w-full mb-3"><RotateCcw size={20} /> Rigioca</button>
+                        <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform"><img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto" /></button>
+                    </div>
+                </div>
+            )}
+        </div>
     </div>
   );
 };
