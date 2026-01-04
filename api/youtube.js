@@ -13,13 +13,21 @@ export default async function handler(req, res) {
 
   const { task, playlistId, query } = req.query;
   
-  // Utilizzo rigoroso delle variabili d'ambiente di Vercel
-  // NON inserire mai più la chiave qui come stringa!
+  // Utilizzo delle variabili d'ambiente configurate su Vercel
   const apiKey = process.env.YOUTUBE_API_KEY || process.env.VITE_YOUTUBE_API_KEY || process.env.API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID || process.env.VITE_YOUTUBE_CHANNEL_ID || 'UC54EfsufATyB7s2XcRkt1Eg';
   
+  // Se l'utente visita l'URL senza parametri, diamo un feedback di test
+  if (!task) {
+    return res.status(200).json({ 
+      status: "OK", 
+      message: "Proxy Lone Boo attivo!",
+      api_key_configured: !!apiKey,
+      instructions: "Usa ?task=latest per testare il caricamento dei video."
+    });
+  }
+
   if (!apiKey) {
-    console.error("ERRORE CRITICO: Chiave API YouTube mancante nelle variabili d'ambiente di Vercel.");
     return res.status(500).json({ 
       error: 'Configurazione Server Incompleta', 
       details: 'La chiave API deve essere configurata nel pannello Vercel come YOUTUBE_API_KEY' 
@@ -55,13 +63,11 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.error) {
-      console.error("YouTube API Error:", data.error);
       return res.status(response.status || 500).json(data);
     }
 
     return res.status(200).json(data);
   } catch (err) {
-    console.error("Errore durante la chiamata API:", err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }

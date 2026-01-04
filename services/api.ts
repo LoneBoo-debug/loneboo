@@ -2,12 +2,13 @@
 import { VIDEOS } from '../constants';
 import { YouTubePlaylist, Video } from '../types';
 
+// Usiamo il percorso relativo per le API di Vercel
 const PROXY_URL = '/api/youtube';
 
 export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
   try {
     const response = await fetch(`${PROXY_URL}?task=playlists`);
-    if (!response.ok) throw new Error("Proxy Error");
+    if (!response.ok) return [];
     const data = await response.json();
     if (data.error || !data.items) return [];
     return data.items.map((item: any) => ({
@@ -15,7 +16,6 @@ export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
       title: item.snippet?.title || 'Playlist senza titolo',
     }));
   } catch (error) { 
-    console.warn("YouTube Playlists unavailable, using empty list.");
     return []; 
   }
 };
@@ -23,7 +23,7 @@ export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
 export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> => {
   try {
     const response = await fetch(`${PROXY_URL}?task=playlistItems&playlistId=${playlistId}`);
-    if (!response.ok) throw new Error("Proxy Error");
+    if (!response.ok) return VIDEOS;
     const data = await response.json();
     if (data.error || !data.items) return VIDEOS;
     return data.items
@@ -45,7 +45,7 @@ export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> =>
 export const getLatestVideos = async (): Promise<Video[]> => {
     try {
         const response = await fetch(`${PROXY_URL}?task=latest`);
-        if (!response.ok) throw new Error("Proxy Error");
+        if (!response.ok) return VIDEOS;
         const data = await response.json();
         if (data.error || !data.items) return VIDEOS;
         return data.items
@@ -71,6 +71,7 @@ export const getLatestVideos = async (): Promise<Video[]> => {
 export const searchChannelVideos = async (query: string): Promise<Video[]> => {
     try {
         const response = await fetch(`${PROXY_URL}?task=search&query=${encodeURIComponent(query)}`);
+        if (!response.ok) return [];
         const data = await response.json();
         if (data.error || !data.items) return [];
         return data.items.map((item: any) => ({
@@ -109,6 +110,7 @@ export const getFeaturedVideo = async (): Promise<Video | null> => {
 export const getChannelStatistics = async (): Promise<{ subscriberCount: string; videoCount: string } | null> => {
     try {
         const response = await fetch(`${PROXY_URL}?task=statistics`);
+        if (!response.ok) return null;
         const data = await response.json();
         if (data.items && data.items.length > 0) {
             const stats = data.items[0].statistics;
