@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'loneboo-static-v26'; 
+const CACHE_NAME = 'loneboo-static-v27'; 
 
 const urlsToCache = [
   '/',
@@ -33,10 +33,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // BYPASS ESPLICITO AWS S3
-  if (requestUrl.hostname.includes('amazonaws.com')) {
-    event.respondWith(fetch(event.request));
-    return;
+  // BYPASS TOTALE PER LE API E AWS
+  if (requestUrl.pathname.startsWith('/api/') || requestUrl.hostname.includes('amazonaws.com')) {
+    return; // Lascia che il browser gestisca la richiesta normalmente
   }
 
   // Network First per i file di sistema

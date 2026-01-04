@@ -1,32 +1,20 @@
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
   const { task, playlistId, query } = req.query;
-  
-  // Priorità assoluta alla chiave specifica per YouTube
   const apiKey = process.env.YOUTUBE_API_KEY || process.env.VITE_YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID || process.env.VITE_YOUTUBE_CHANNEL_ID || 'UC54EfsufATyB7s2XcRkt1Eg';
   
-  if (!task) {
-    return res.status(200).json({ 
-      status: "OK", 
-      message: "Proxy Lone Boo attivo!",
-      api_key_configured: !!apiKey,
-      channel_id: channelId
-    });
-  }
-
   if (!apiKey) {
-    return res.status(500).json({ error: 'Chiave API non configurata' });
+    return res.status(500).json({ error: 'Configurazione mancante: API KEY non trovata nel server' });
   }
 
   const BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -55,8 +43,16 @@ export default async function handler(req, res) {
 
     const response = await fetch(url);
     const data = await response.json();
-    return res.status(response.status).json(data);
+    
+    if (!response.ok) {
+        return res.status(response.status).json({ 
+            error: 'Errore da YouTube API', 
+            details: data.error || data 
+        });
+    }
+
+    return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: 'Errore interno' });
+    return res.status(500).json({ error: 'Errore interno del proxy', message: err.message });
   }
 }
