@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Send, Check, X, Loader2, MessageCircle, Trophy, User, HelpCircle, Search, Sparkles, ZoomIn, RotateCcw, Gamepad2, LogOut } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
@@ -136,6 +137,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
         setIsThinking(true);
         setCurrentMessage(""); 
         try {
+            // FIX: Use current process.env.API_KEY and simple string content structure for text task
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const prompt = `Sei l'arbitro di 'Indovina Chi'. 
             Tratti disponibili: 
@@ -154,9 +156,10 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
             
             const result = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
-                contents: [{ text: prompt }]
+                contents: prompt
             });
-            processPlayerMove(result.text.trim() as Trait | 'UNKNOWN', question);
+            // FIX: Access .text property directly
+            processPlayerMove(result.text?.trim() as Trait | 'UNKNOWN', question);
         } catch (e) {
             setIsThinking(false);
             showTemporaryResponse("UNKNOWN");

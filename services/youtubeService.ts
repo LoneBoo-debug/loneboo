@@ -1,25 +1,19 @@
 
-import { YOUTUBE_CONFIG, VIDEOS } from '../constants';
+import { VIDEOS } from '../constants';
 import { YouTubePlaylist, Video } from '../types';
 
-const BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const PROXY_URL = '/api/youtube';
 
 /**
- * Fetches the playlists from the configured YouTube Channel.
+ * Fetches the playlists from the configured YouTube Channel via proxy.
  */
 export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
-  if (!YOUTUBE_CONFIG.API_KEY || !YOUTUBE_CONFIG.CHANNEL_ID) {
-    return [];
-  }
-
   try {
-    const response = await fetch(
-      `${BASE_URL}/playlists?part=snippet&channelId=${YOUTUBE_CONFIG.CHANNEL_ID}&maxResults=20&key=${YOUTUBE_CONFIG.API_KEY}`
-    );
+    // FIX: Switched to proxy to resolve "Property 'API_KEY' does not exist" and hide API_KEY from client
+    const response = await fetch(`${PROXY_URL}?task=playlists`);
     const data = await response.json();
     
-    if (data.error) return []; // Silent fail
-    if (!data.items) return [];
+    if (data.error || !data.items) return [];
 
     return data.items.map((item: any) => ({
       id: item.id,
@@ -31,19 +25,15 @@ export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
 };
 
 /**
- * Fetches videos from a specific playlist.
+ * Fetches videos from a specific playlist via proxy.
  */
 export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> => {
-  if (!YOUTUBE_CONFIG.API_KEY) return VIDEOS; // Fallback to static
-
   try {
-    const response = await fetch(
-      `${BASE_URL}/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=18&key=${YOUTUBE_CONFIG.API_KEY}`
-    );
+    // FIX: Using proxy to fetch playlist items safely
+    const response = await fetch(`${PROXY_URL}?task=playlistItems&playlistId=${playlistId}`);
     const data = await response.json();
 
-    if (data.error) return VIDEOS; // Fallback
-    if (!data.items) return VIDEOS; // Fallback
+    if (data.error || !data.items) return VIDEOS;
 
     return data.items
       .filter((item: any) => item.snippet && item.snippet.title !== 'Private video' && item.snippet.resourceId)
@@ -62,19 +52,15 @@ export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> =>
 };
 
 /**
- * Fetches latest uploads.
+ * Fetches latest uploads via proxy.
  */
 export const getLatestVideos = async (): Promise<Video[]> => {
-    if (!YOUTUBE_CONFIG.API_KEY || !YOUTUBE_CONFIG.CHANNEL_ID) return VIDEOS;
-
     try {
-        const response = await fetch(
-            `${BASE_URL}/search?part=snippet&channelId=${YOUTUBE_CONFIG.CHANNEL_ID}&order=date&type=video&maxResults=30&key=${YOUTUBE_CONFIG.API_KEY}`
-        );
+        // FIX: Using proxy to fetch latest videos safely
+        const response = await fetch(`${PROXY_URL}?task=latest`);
         const data = await response.json();
 
-        if (data.error) return VIDEOS;
-        if (!data.items) return VIDEOS;
+        if (data.error || !data.items) return VIDEOS;
 
         return data.items
             .filter((item: any) => {
@@ -100,22 +86,15 @@ export const getLatestVideos = async (): Promise<Video[]> => {
 }
 
 /**
- * SEARCH ACROSS THE ENTIRE CHANNEL
+ * SEARCH ACROSS THE ENTIRE CHANNEL via proxy
  */
 export const searchChannelVideos = async (query: string): Promise<Video[]> => {
-    if (!YOUTUBE_CONFIG.API_KEY || !YOUTUBE_CONFIG.CHANNEL_ID) {
-        // Basic static search simulation
-        return VIDEOS.filter(v => v.title.toLowerCase().includes(query.toLowerCase()));
-    }
-
     try {
-        const response = await fetch(
-            `${BASE_URL}/search?part=snippet&channelId=${YOUTUBE_CONFIG.CHANNEL_ID}&q=${encodeURIComponent(query)}&type=video&maxResults=16&key=${YOUTUBE_CONFIG.API_KEY}`
-        );
+        // FIX: Using proxy for channel search
+        const response = await fetch(`${PROXY_URL}?task=search&query=${encodeURIComponent(query)}`);
         const data = await response.json();
 
-        if (data.error) return [];
-        if (!data.items) return [];
+        if (data.error || !data.items) return [];
 
         return data.items.map((item: any) => ({
             id: item.id?.videoId || 'unknown',
@@ -133,14 +112,12 @@ export const searchChannelVideos = async (query: string): Promise<Video[]> => {
 }
 
 /**
- * SPECIAL FEATURE: GET FEATURED VIDEO
+ * SPECIAL FEATURE: GET FEATURED VIDEO via proxy
  */
 export const getFeaturedVideo = async (): Promise<Video | null> => {
-    if (!YOUTUBE_CONFIG.API_KEY || !YOUTUBE_CONFIG.CHANNEL_ID) return null;
-
     try {
         const playlists = await getChannelPlaylists();
-        const featuredPlaylist = playlists.find(p => p.title.trim().toLowerCase() === 'in evidenza');
+        const featuredPlaylist = playlists.find(p => p.title.trim().toLowerCase().includes('evidenza'));
 
         if (!featuredPlaylist) return null;
 
@@ -157,17 +134,12 @@ export const getFeaturedVideo = async (): Promise<Video | null> => {
 };
 
 /**
- * CHANNEL STATISTICS
+ * CHANNEL STATISTICS via proxy
  */
 export const getChannelStatistics = async (): Promise<{ subscriberCount: string; videoCount: string } | null> => {
-    if (!YOUTUBE_CONFIG.API_KEY || !YOUTUBE_CONFIG.CHANNEL_ID) {
-        return null;
-    }
-
     try {
-        const response = await fetch(
-            `${BASE_URL}/channels?part=statistics&id=${YOUTUBE_CONFIG.CHANNEL_ID}&key=${YOUTUBE_CONFIG.API_KEY}`
-        );
+        // FIX: Using proxy for channel statistics
+        const response = await fetch(`${PROXY_URL}?task=statistics`);
         const data = await response.json();
 
         if (data.items && data.items.length > 0) {

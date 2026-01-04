@@ -1,7 +1,7 @@
 
 import { Video, SocialLink, AppView } from './types';
 
-export const APP_VERSION = '1.8.5';
+export const APP_VERSION = '1.8.6';
 
 // URLs Originali (Remoti)
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp';
@@ -16,17 +16,14 @@ export const CHANNEL_LOGO = 'https://lh3.googleusercontent.com/d/1jnecFUan677BId
 // CSVs
 export const FAN_ART_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL1SLGxxN1zN0qEwN0QpuK8dPSRcVDIx1Dy-sryRlIAm5cIgQS3j9o1nN1kGbHH7VrRS0VBo7KvfSm/pub?gid=0&single=true&output=csv'; 
 export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQztpA2nvwkfSoJ4CArYQC-FlfRcvn6ngfstnyZEEGNsjkuGS0aOpheX3jsUBE95boEo_dLe8dfQXGT/pub?gid=0&single=true&output=csv'; 
-
-// Link Notifiche Corretto (Pubblicato sul Web)
 export const NOTIFICATIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTuB_-wFGsDVWxL6Kk-K87B_URCHgEIB2ax1FCyXsUDuhhjHyWRQGE3e4nM-D6frI5cg2zpyn_CR_3b/pub?gid=0&single=true&output=csv'; 
-
 export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOn4nPnIbqs4jzAVQbpPYCXll7iX3lxLWIA5he7lqeEMXfxDRa2rJ62vyYZ0_8IYzpnTpJHo-nSUXy/pub?gid=0&single=true&output=csv'; 
 
-// Config
+// Config YouTube
+// Rimosso process.env.API_KEY da qui per evitare che finisca nel bundle client.
+// Il servizio ora usa solo il proxy /api/youtube.
 export const YOUTUBE_CONFIG = {
-  // Utilizziamo la chiave specifica per YouTube se disponibile, altrimenti fallback sulla principale
-  API_KEY: process.env.VITE_YOUTUBE_API_KEY || process.env.API_KEY || '',
-  CHANNEL_ID: process.env.VITE_YOUTUBE_CHANNEL_ID || 'UC54EfsufATyB7s2XcRkt1Eg'
+  CHANNEL_ID: 'UC54EfsufATyB7s2XcRkt1Eg'
 };
 
 export const MAP_LOCATIONS = [

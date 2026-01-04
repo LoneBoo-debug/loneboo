@@ -7,17 +7,15 @@ const PROXY_URL = '/api/youtube';
 export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
   try {
     const response = await fetch(`${PROXY_URL}?task=playlists`);
+    if (!response.ok) throw new Error("Proxy Error");
     const data = await response.json();
-    if (data.error || !data.items) {
-        console.warn("YouTube API Playlists Error:", data.error);
-        return [];
-    }
+    if (data.error || !data.items) return [];
     return data.items.map((item: any) => ({
       id: item.id,
       title: item.snippet?.title || 'Playlist senza titolo',
     }));
   } catch (error) { 
-    console.error("Network Error Playlists:", error);
+    console.warn("YouTube Playlists unavailable, using empty list.");
     return []; 
   }
 };
@@ -25,6 +23,7 @@ export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
 export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> => {
   try {
     const response = await fetch(`${PROXY_URL}?task=playlistItems&playlistId=${playlistId}`);
+    if (!response.ok) throw new Error("Proxy Error");
     const data = await response.json();
     if (data.error || !data.items) return VIDEOS;
     return data.items
@@ -38,17 +37,17 @@ export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> =>
         url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
         publishedAt: item.snippet.publishedAt
       }));
-  } catch (error) { return VIDEOS; }
+  } catch (error) { 
+    return VIDEOS; 
+  }
 };
 
 export const getLatestVideos = async (): Promise<Video[]> => {
     try {
         const response = await fetch(`${PROXY_URL}?task=latest`);
+        if (!response.ok) throw new Error("Proxy Error");
         const data = await response.json();
-        if (data.error || !data.items) {
-            console.warn("YouTube API Latest Error:", data.error);
-            return VIDEOS;
-        }
+        if (data.error || !data.items) return VIDEOS;
         return data.items
             .filter((item: any) => {
                 if (!item.snippet) return false;
@@ -64,7 +63,9 @@ export const getLatestVideos = async (): Promise<Video[]> => {
                 url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
                 publishedAt: item.snippet?.publishedAt
             }));
-    } catch (error) { return VIDEOS; }
+    } catch (error) { 
+        return VIDEOS; 
+    }
 }
 
 export const searchChannelVideos = async (query: string): Promise<Video[]> => {
@@ -81,13 +82,14 @@ export const searchChannelVideos = async (query: string): Promise<Video[]> => {
             url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
             publishedAt: item.snippet?.publishedAt
         }));
-    } catch (error) { return VIDEOS.filter(v => v.title.toLowerCase().includes(query.toLowerCase())); }
+    } catch (error) { 
+        return VIDEOS.filter(v => v.title.toLowerCase().includes(query.toLowerCase())); 
+    }
 }
 
 export const getFeaturedVideo = async (): Promise<Video | null> => {
     try {
         const playlists = await getChannelPlaylists();
-        // Cerchiamo una playlist che contenga "evidenza" nel nome
         const featuredPlaylist = playlists.find(p => p.title.trim().toLowerCase().includes('evidenza'));
         
         if (featuredPlaylist) {
@@ -95,12 +97,13 @@ export const getFeaturedVideo = async (): Promise<Video | null> => {
             if (videos.length > 0) return { ...videos[0], category: 'In Primo Piano' };
         }
         
-        // Fallback: Se non c'è una playlist in evidenza, prendi l'ultimo video caricato
         const latest = await getLatestVideos();
         if (latest.length > 0) return { ...latest[0], category: 'Novità' };
         
-        return null;
-    } catch (error) { return null; }
+        return VIDEOS[0] || null;
+    } catch (error) { 
+        return VIDEOS[0] || null; 
+    }
 };
 
 export const getChannelStatistics = async (): Promise<{ subscriberCount: string; videoCount: string } | null> => {
