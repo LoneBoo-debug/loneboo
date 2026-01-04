@@ -1,100 +1,81 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { VIDEOS, CATEGORIES, YOUTUBE_CONFIG } from '../constants';
+import { VIDEOS, CATEGORIES } from '../constants';
 import { Video } from '../types';
 import { getChannelPlaylists, getPlaylistVideos, getLatestVideos, searchChannelVideos, getFeaturedVideo } from '../services/api';
-import { Search, CirclePlay, Loader2, List, Sparkles, X, ChevronUp, ChevronDown, ExternalLink, Star } from 'lucide-react';
+import { Search, CirclePlay, Loader2, List, X, ChevronUp, ChevronDown, Star } from 'lucide-react';
 
 const CLOSE_BTN_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 
 const VideoGallery: React.FC = () => {
-  // Config state
-  const isApiConnected = !!(YOUTUBE_CONFIG.API_KEY && YOUTUBE_CONFIG.CHANNEL_ID);
-
   // Data state
   const [activeCategory, setActiveCategory] = useState('Tutti'); 
-  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>(CATEGORIES);
   const [playlistsMap, setPlaylistsMap] = useState<Record<string, string>>({}); 
   const [videos, setVideos] = useState<Video[]>(VIDEOS);
-  
-  // Featured Video State
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
 
   // UI state
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  
-  // Dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   
-  // Mount tracking
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const isMounted = useRef(false);
 
-  useEffect(() => {
-      isMounted.current = true;
-      return () => { isMounted.current = false; };
-  }, []);
-
-  const setupMockData = useCallback(() => {
-      if (!isMounted.current) return;
-      const demoFeatured: Video = {
-          id: 'S7Q1CgO6ZQA', 
-          title: '✨ Lone Boo - Sigla Ufficiale ✨',
-          description: 'Balla e canta insieme a Lone Boo e tutti i suoi amici di Città Colorata!',
-          thumbnail: 'https://img.youtube.com/vi/S7Q1CgO6ZQA/maxresdefault.jpg',
-          category: 'In Primo Piano',
-          url: 'https://www.youtube.com/watch?v=S7Q1CgO6ZQA',
-          publishedAt: new Date().toISOString()
-      };
-      setFeaturedVideo(demoFeatured);
-      setVideos([...VIDEOS, ...VIDEOS, ...VIDEOS]);
-  }, []);
-
   const loadDefaultView = useCallback(async () => {
-      if (!isApiConnected) {
-          setupMockData();
-          return;
-      }
+    if (!isMounted.current) return;
+    setLoading(true);
+    
+    try {
+        // Carica video in evidenza o l'ultimo caricato come fallback
+        const fv = await getFeaturedVideo();
+        if (fv && isMounted.current) setFeaturedVideo(fv);
 
-      try {
-          if (isMounted.current) {
-              setLoading(true);
-          }
-          const fv = await getFeaturedVideo();
-          if (fv && isMounted.current) setFeaturedVideo(fv);
+        const playlists = await getChannelPlaylists();
+        if (isMounted.current) {
+            if (playlists.length > 0) {
+                const newCats = ['Tutti', ...playlists.map(p => p.title)];
+                setCategories(newCats);
+                const map: Record<string, string> = {};
+                playlists.forEach(p => map[p.title] = p.id);
+                setPlaylistsMap(map);
+                
+                // Cerca una playlist di default (es. Canzoni)
+                const defaultPlaylist = playlists.find(p => 
+                    p.title.toLowerCase().includes('canzoni') || 
+                    p.title.toLowerCase().includes('video')
+                );
 
-          const playlists = await getChannelPlaylists();
-          if (!isMounted.current) return;
+                if (defaultPlaylist) {
+                    setActiveCategory(defaultPlaylist.title);
+                    const pVideos = await getPlaylistVideos(defaultPlaylist.id);
+                    setVideos(pVideos);
+                } else {
+                    const latest = await getLatestVideos();
+                    setVideos(latest);
+                }
+            } else {
+                // Se non ci sono playlist, carica gli ultimi video
+                const latest = await getLatestVideos();
+                setVideos(latest);
+            }
+        }
+    } catch (err) {
+        console.error("Failed to load YouTube data:", err);
+        // Fallback totale sui video statici in caso di errore API
+        if (isMounted.current) setVideos(VIDEOS);
+    } finally {
+        if (isMounted.current) setLoading(false);
+    }
+  }, []);
 
-          if (playlists.length > 0) {
-              setCategories(['Tutti', ...playlists.map(p => p.title)]);
-              const map: Record<string, string> = {};
-              playlists.forEach(p => map[p.title] = p.id);
-              setPlaylistsMap(map);
-              
-              const kidsPlaylist = playlists.find(p => p.title.toLowerCase().includes('canzoni'));
-              if (kidsPlaylist) {
-                  setActiveCategory(kidsPlaylist.title);
-                  setActivePlaylistId(kidsPlaylist.id);
-                  const kidsVideos = await getPlaylistVideos(kidsPlaylist.id);
-                  if (isMounted.current) setVideos(kidsVideos);
-              } else {
-                  const latest = await getLatestVideos();
-                  if (isMounted.current) setVideos(latest);
-              }
-          }
-      } catch (err) {
-          if (isMounted.current) setupMockData();
-      } finally {
-          if (isMounted.current) setLoading(false);
-      }
-  }, [isApiConnected, setupMockData]);
-
-  useEffect(() => { loadDefaultView(); }, [loadDefaultView]);
+  useEffect(() => {
+    isMounted.current = true;
+    loadDefaultView();
+    return () => { isMounted.current = false; };
+  }, [loadDefaultView]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -109,40 +90,41 @@ const VideoGallery: React.FC = () => {
   useEffect(() => {
     if (selectedVideo) {
       document.body.style.overflow = 'hidden';
-      document.body.classList.add('allow-landscape');
     } else {
       document.body.style.overflow = 'unset';
-      document.body.classList.remove('allow-landscape');
     }
   }, [selectedVideo]);
 
+  // Gestione Ricerca
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
-        if (searchTerm.trim().length > 0) {
+        if (searchTerm.trim().length > 2) {
             setLoading(true);
             setActiveCategory('Ricerca');
-            if (isApiConnected) {
-                const results = await searchChannelVideos(searchTerm);
-                if (isMounted.current) setVideos(results);
-            } else {
-                setVideos(VIDEOS.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase())));
-            }
+            const results = await searchChannelVideos(searchTerm);
+            if (isMounted.current) setVideos(results);
             setLoading(false);
+        } else if (searchTerm.trim().length === 0 && activeCategory === 'Ricerca') {
+            loadDefaultView();
         }
     }, 800);
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, isApiConnected]);
+  }, [searchTerm, loadDefaultView]);
 
   const handleCategoryChange = async (cat: string) => {
     setSearchTerm('');
     setActiveCategory(cat);
     setIsDropdownOpen(false);
-    if (isApiConnected) {
-        setLoading(true);
+    setLoading(true);
+    
+    try {
         const pid = playlistsMap[cat];
         const fetched = pid ? await getPlaylistVideos(pid) : await getLatestVideos();
         if (isMounted.current) setVideos(fetched);
-        setLoading(false);
+    } catch (e) {
+        if (isMounted.current) setVideos(VIDEOS);
+    } finally {
+        if (isMounted.current) setLoading(false);
     }
   };
 
@@ -151,7 +133,7 @@ const VideoGallery: React.FC = () => {
   return (
     <div className="px-3 md:px-6 pt-[70px] md:pt-[110px] pb-24 max-w-6xl mx-auto animate-fade-in min-h-screen">
       
-      {/* 1. VIDEO IN PRIMO PIANO (Full Width Top) */}
+      {/* 1. VIDEO IN PRIMO PIANO */}
       {featuredVideo && !searchTerm && (
         <div className="mb-8 animate-in slide-in-from-top duration-700">
             <div className="relative w-full bg-gradient-to-br from-yellow-300 to-orange-400 p-1.5 rounded-[40px] shadow-[0_15px_35px_rgba(0,0,0,0.2)]">
@@ -159,7 +141,7 @@ const VideoGallery: React.FC = () => {
                     <div className="relative w-full aspect-video bg-black overflow-hidden border-b-4 border-black">
                          <div className="absolute top-4 left-4 z-20 bg-boo-yellow text-black px-4 py-2 rounded-xl border-2 border-black shadow-lg flex items-center gap-2 rotate-[-2deg]">
                               <Star fill="black" size={18} />
-                              <span className="font-black text-sm md:text-lg uppercase">In Primo Piano</span>
+                              <span className="font-black text-sm md:text-lg uppercase">{featuredVideo.category}</span>
                          </div>
                          <img src={featuredVideo.thumbnail.replace('hqdefault', 'maxresdefault')} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -175,10 +157,10 @@ const VideoGallery: React.FC = () => {
         </div>
       )}
 
-      {/* 2. CONTROLLI (Playlist & Search) */}
+      {/* 2. CONTROLLI */}
       <div className="flex flex-col md:flex-row gap-4 mb-10 bg-white/80 backdrop-blur-md p-4 rounded-[35px] border-4 border-black shadow-xl sticky top-20 md:top-28 z-40">
         <div className="relative w-full md:w-1/2" ref={dropdownRef}>
-            <button onClick={() => !loading && setIsDropdownOpen(!isDropdownOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border-4 border-black bg-white shadow-[4px_4px_0px_0px_#8B5CF6] active:translate-y-1 active:shadow-none transition-all">
+            <button onClick={() => !loading && setIsDropdownOpen(!isDropdownOpen)} className="w-full h-full flex items-center justify-between px-4 py-3 rounded-2xl border-4 border-black bg-white shadow-[4px_4px_0px_0px_#8B5CF6] active:translate-y-1 active:shadow-none transition-all">
                 <div className="flex items-center gap-3 overflow-hidden">
                     {loading ? <Loader2 size={24} className="animate-spin text-boo-purple" /> : <List size={24} className="text-boo-purple" strokeWidth={3} />}
                     <div className="text-left truncate">
@@ -202,45 +184,52 @@ const VideoGallery: React.FC = () => {
         <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
             <input type="text" placeholder="Cerca un video..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full h-full pl-12 pr-10 py-4 rounded-2xl border-4 border-black font-black text-gray-700 focus:outline-none focus:border-boo-purple bg-gray-50 shadow-inner" />
-            {searchTerm && <button onClick={() => {setSearchTerm(''); loadDefaultView();}} className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-200 p-1 rounded-full"><X size={16} /></button>}
+            {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-200 p-1 rounded-full"><X size={16} /></button>}
         </div>
       </div>
 
-      {/* 3. GRIGLIA VIDEO (Strictly 2 per row on mobile) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
-          {filteredVideos.map((video) => (
-            <div key={video.id} onClick={() => setSelectedVideo(video)} className="bg-white rounded-[25px] md:rounded-[35px] border-4 border-black overflow-hidden shadow-lg hover:shadow-[0_10px_0_0_#8B5CF6] hover:-translate-y-2 transition-all cursor-pointer group flex flex-col">
-                <div className="relative aspect-video overflow-hidden border-b-4 border-gray-100">
-                    <img src={video.thumbnail} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <div className="bg-white/90 p-2 md:p-3 rounded-full shadow-lg">
-                             <CirclePlay className="text-boo-purple w-8 h-8" strokeWidth={2} />
-                         </div>
+      {/* 3. GRIGLIA VIDEO */}
+      {loading && videos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 size={64} className="animate-spin text-boo-purple mb-4" />
+              <p className="text-white font-black text-xl drop-shadow-md">Entro nel cinema...</p>
+          </div>
+      ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+              {filteredVideos.map((video) => (
+                <div key={video.id} onClick={() => setSelectedVideo(video)} className="bg-white rounded-[25px] md:rounded-[35px] border-4 border-black overflow-hidden shadow-lg hover:shadow-[0_10px_0_0_#8B5CF6] hover:-translate-y-2 transition-all cursor-pointer group flex flex-col">
+                    <div className="relative aspect-video overflow-hidden border-b-4 border-gray-100">
+                        <img src={video.thumbnail} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                             <div className="bg-white/90 p-2 md:p-3 rounded-full shadow-lg">
+                                 <CirclePlay className="text-boo-purple w-8 h-8" strokeWidth={2} />
+                             </div>
+                        </div>
+                    </div>
+                    <div className="p-3 md:p-5 flex-1 flex flex-col justify-between">
+                        <h3 className="font-black text-gray-800 text-[11px] md:text-lg leading-tight line-clamp-2 mb-2 group-hover:text-boo-purple transition-colors">{video.title}</h3>
+                        <div className="bg-gray-100 self-start px-2 py-0.5 rounded-lg border border-gray-200">
+                             <span className="text-[8px] md:text-[10px] font-black text-gray-500 uppercase">{video.category || 'Video'}</span>
+                        </div>
                     </div>
                 </div>
-                <div className="p-3 md:p-5 flex-1 flex flex-col justify-between">
-                    <h3 className="font-black text-gray-800 text-[11px] md:text-lg leading-tight line-clamp-2 mb-2 group-hover:text-boo-purple transition-colors">{video.title}</h3>
-                    <div className="bg-gray-100 self-start px-2 py-0.5 rounded-lg border border-gray-200">
-                         <span className="text-[8px] md:text-[10px] font-black text-gray-500 uppercase">{video.category || 'Video'}</span>
-                    </div>
-                </div>
-            </div>
-          ))}
-      </div>
+              ))}
+          </div>
+      )}
 
       {/* PLAYER MODAL */}
       {selectedVideo && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 landscape:p-0 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
-           <div className="relative w-full max-w-5xl bg-white rounded-[40px] border-[8px] border-red-600 shadow-2xl overflow-hidden landscape:h-full landscape:w-full landscape:rounded-none landscape:border-0" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
+           <div className="relative w-full max-w-5xl bg-white rounded-[40px] border-[8px] border-red-600 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
               <button onClick={() => setSelectedVideo(null)} className="absolute top-4 right-4 z-[210] hover:scale-110 transition-transform">
                  <img src={CLOSE_BTN_IMG} alt="Chiudi" className="w-12 h-12 md:w-20 md:h-20 drop-shadow-xl" />
               </button>
-              <div className="w-full aspect-video bg-black landscape:h-full">
+              <div className="w-full aspect-video bg-black">
                   <iframe src={`https://www.youtube.com/embed/${selectedVideo.id}?autoplay=1&rel=0`} className="w-full h-full border-0" allowFullScreen allow="autoplay" />
               </div>
-              <div className="p-6 text-center bg-white landscape:hidden">
+              <div className="p-6 text-center bg-white">
                   <h3 className="text-gray-800 text-xl md:text-3xl font-black mb-2">{selectedVideo.title}</h3>
-                  <p className="text-gray-500 font-bold text-sm md:text-lg">{selectedVideo.description}</p>
+                  <p className="text-gray-500 font-bold text-sm md:text-lg line-clamp-3">{selectedVideo.description}</p>
               </div>
            </div>
         </div>

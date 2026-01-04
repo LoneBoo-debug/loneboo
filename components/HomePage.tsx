@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppView } from '../types';
 import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
@@ -80,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     return (
         <div className="fixed inset-0 top-0 z-0 overflow-hidden bg-[#8B5CF6] flex flex-col">
             
-            {/* BACKGROUND LAYER (Full height, no crop) */}
+            {/* BACKGROUND LAYER - Re-impostato su object-fill per eliminare le strisce */}
             <div className="absolute inset-0 z-0">
                 <OptimizedImage 
                     src={HOME_BG_MOBILE} 
@@ -94,7 +95,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                 />
             </div>
 
-            {/* INTERACTIVE LAYER (Same size as background to keep mapping) */}
+            {/* INTERACTIVE LAYER */}
             <div className="absolute inset-0 z-10 w-full h-full">
                 
                 {/* Contest Button */}

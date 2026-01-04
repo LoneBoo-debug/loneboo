@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
 import { AppView } from './types';
-import { AlertTriangle, RefreshCw } from 'lucide-react'; 
 import { OFFICIAL_LOGO } from './constants';
 
 const InstallPWA = lazy(() => import('./components/InstallPWA')); 
@@ -37,6 +37,7 @@ const LibraryCardsView = lazy(() => import('./components/LibraryCardsView'));
 const LibraryScopa = lazy(() => import('./components/LibraryScopa'));
 const LibraryUno = lazy(() => import('./components/LibraryUno'));
 const LibrarySolitario = lazy(() => import('./components/LibrarySolitario'));
+const TrainJourneyPlaceholder = lazy(() => import('./components/TrainJourneyPlaceholder'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -117,6 +118,8 @@ const App: React.FC = () => {
                 {currentView === AppView.BOO_BEDROOM && <BedroomRoom setView={setView} />}
                 {currentView === AppView.BOO_BATHROOM && <BathroomRoom setView={setView} />}
                 {currentView === AppView.BOO_GARDEN && <GardenRoom setView={setView} />}
+                {currentView === AppView.SOCIALS && <SocialHub setView={setView} />}
+                {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={setView} />}
             </Suspense>
         </main>
 

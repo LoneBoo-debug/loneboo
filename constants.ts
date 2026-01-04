@@ -1,6 +1,7 @@
+
 import { Video, SocialLink, AppView } from './types';
 
-export const APP_VERSION = '1.8.4';
+export const APP_VERSION = '1.8.5';
 
 // URLs Originali (Remoti)
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp';
@@ -23,7 +24,8 @@ export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2P
 
 // Config
 export const YOUTUBE_CONFIG = {
-  API_KEY: process.env.API_KEY || '',
+  // Utilizziamo la chiave specifica per YouTube se disponibile, altrimenti fallback sulla principale
+  API_KEY: process.env.VITE_YOUTUBE_API_KEY || process.env.API_KEY || '',
   CHANNEL_ID: process.env.VITE_YOUTUBE_CHANNEL_ID || 'UC54EfsufATyB7s2XcRkt1Eg'
 };
 
@@ -60,7 +62,7 @@ export const VIDEOS: Video[] = [
     {
         id: 'S7Q1CgO6ZQA',
         title: 'Lone Boo - Sigla Ufficiale',
-        description: 'La sigla del mondo di Lone Boo.',
+        description: 'Balla e canta insieme a Lone Boo e tutti i suoi amici di Città Colorata!',
         thumbnail: 'https://img.youtube.com/vi/S7Q1CgO6ZQA/hqdefault.jpg',
         category: 'Sigle',
         url: 'https://www.youtube.com/watch?v=S7Q1CgO6ZQA'

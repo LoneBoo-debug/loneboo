@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
-import { Loader2, MapPin, ArrowLeft, TrainFront } from 'lucide-react';
 import { getChannelStatistics } from '../services/api';
 import { getSocialStatsFromCSV } from '../services/data';
 import { SOCIALS, SUPPORT_LINKS, OFFICIAL_LOGO } from '../constants';
@@ -15,7 +14,7 @@ type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 type StatConfig = { id: string; top: string; left: string; width: string; height: string; color: string; glow: string; };
 
-// ZONE MOBILE (CLICKABLE AREAS)
+// ZONE MOBILE (AREE CLICCABILI)
 const ZONES_MOBILE: ZoneConfig[] = [
   { id: "Facebook", points: [{ x: 6.13, y: 23.15 }, { x: 4.26, y: 41.46 }, { x: 17.32, y: 42.71 }, { x: 17.59, y: 25.84 }] },
   { id: "YouTube", points: [{ x: 24.52, y: 29.25 }, { x: 24.25, y: 42.89 }, { x: 34.38, y: 43.61 }, { "x": 34.91, "y": 32.48 }] },
@@ -23,7 +22,7 @@ const ZONES_MOBILE: ZoneConfig[] = [
   { id: "Instagram", points: [{ x: 25.05, y: 49.35 }, { x: 23.99, y: 62.63 }, { x: 34.91, y: 60.12 }, { x: 34.91, y: 48.99 }] }
 ];
 
-// ZONE DESKTOP (CLICKABLE AREAS)
+// ZONE DESKTOP (AREE CLICCABILI)
 const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "Facebook", "points": [ { "x": 30.67, "y": 22.05 }, { "x": 30.07, "y": 42.08 }, { "x": 36.19, "y": 44.55 }, { "x": 36.49, "y": 25.88 } ] },
   { "id": "YouTube", "points": [ { "x": 37.99, "y": 28.35 }, { "x": 38.09, "y": 45.23 }, { "x": 43.3, "y": 46.13 }, { "x": 43.3, "y": 31.73 } ] },
@@ -31,7 +30,7 @@ const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "Instagram", "points": [ { "x": 38.29, "y": 49.05 }, { "x": 38.59, "y": 64.58 }, { "x": 43.3, "y": 62.56 }, { "x": 43, "y": 48.83 } ] }
 ];
 
-// STATS LOCATIONS (MOBILE)
+// POSIZIONAMENTO STATISTICHE (MOBILE)
 const STATS_LOCATIONS_MOBILE: StatConfig[] = [
     { id: 'youtube', top: '15.25%', left: '45.31%', width: '14.4%', height: '3.6%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
     { id: 'instagram', top: '21.1%', left: '45.31%', width: '14.4%', height: '3.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
@@ -39,12 +38,12 @@ const STATS_LOCATIONS_MOBILE: StatConfig[] = [
     { id: 'facebook', top: '15.4%', left: '71.43%', width: '14.4%', height: '4.0%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' }
 ];
 
-// STATS LOCATIONS (DESKTOP)
+// POSIZIONAMENTO STATISTICHE (DESKTOP)
 const STATS_LOCATIONS_DESKTOP: StatConfig[] = [
-    { id: 'youtube', top: '15.75%', left: '50.82%', width: '0.5%', height: '4.27%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
-    { id: 'instagram', top: '20.03%', left: '50.92%', width: '0.2%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
-    { id: 'tiktok', top: '20.03%', left: '56.33%', width: '12.13%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
-    { id: 'facebook', top: '14.85%', left: '62.15%', width: '0.5%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' }
+    { id: 'youtube', top: '14.8%', left: '50.3%', width: '10%', height: '4.27%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
+    { id: 'instagram', top: '19.8%', left: '50.3%', width: '10%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
+    { id: 'tiktok', top: '20.2%', left: '71.5%', width: '10%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' },
+    { id: 'facebook', top: '15.0%', left: '71.5%', width: '10%', height: '5.4%', color: 'text-yellow-500', glow: 'drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]' }
 ];
 
 type SocialStatsState = {
@@ -59,23 +58,21 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
   const [stats, setStats] = useState<SocialStatsState>({ youtube: '...', instagram: '...', tiktok: '...', facebook: '...' });
 
   useEffect(() => {
-      const imagesToPreload = [TRAIN_BG_MOBILE, TRAIN_BG_DESKTOP, BTN_PARTI_IMG, BTN_BACK_CITY_IMG];
-      let loadedCount = 0;
+      // Pre-caricamento sfondi
+      const imgMobile = new Image(); imgMobile.src = TRAIN_BG_MOBILE;
+      const imgDesktop = new Image(); imgDesktop.src = TRAIN_BG_DESKTOP;
       
-      imagesToPreload.forEach(src => {
-          const img = new Image();
-          img.src = src;
-          img.onload = () => {
-              loadedCount++;
-              if (loadedCount >= 1) setBgLoaded(true);
-          };
-          img.onerror = () => {
-              loadedCount++;
-              if (loadedCount >= 1) setBgLoaded(true);
-          };
-      });
+      const checkLoad = () => {
+          setBgLoaded(true);
+      };
+
+      imgMobile.onload = checkLoad;
+      imgDesktop.onload = checkLoad;
       
-      const timer = setTimeout(() => setBgLoaded(true), 2000);
+      // Timer di sicurezza: se dopo 2 secondi l'immagine non ha caricato, mostriamo comunque la pagina
+      const safetyTimer = setTimeout(() => {
+          setBgLoaded(true);
+      }, 2000);
 
       const fetchStats = async () => {
           const newStats = { ...stats };
@@ -83,16 +80,22 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
               const ytData = await getChannelStatistics();
               if (ytData) newStats.youtube = ytData.subscriberCount;
           } catch (e) { newStats.youtube = "Err"; }
-          const csvStats = await getSocialStatsFromCSV();
-          if (csvStats) {
-              newStats.instagram = csvStats.instagram || '0';
-              newStats.tiktok = csvStats.tiktok || '0';
-              newStats.facebook = csvStats.facebook || '0';
-          }
+          
+          try {
+              const csvStats = await getSocialStatsFromCSV();
+              if (csvStats) {
+                  newStats.instagram = csvStats.instagram || '0';
+                  newStats.tiktok = csvStats.tiktok || '0';
+                  newStats.facebook = csvStats.facebook || '0';
+              }
+          } catch (e) {}
           setStats(newStats);
       };
+      
       fetchStats();
-      return () => clearTimeout(timer);
+      return () => {
+          clearTimeout(safetyTimer);
+      };
   }, []);
 
   const getClipPath = (points: {x: number, y: number}[]) => {
@@ -122,8 +125,8 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
                 style={{ top: loc.top, left: loc.left, width: loc.width, height: loc.height }}
             >
                 <span 
-                    className={`font-mono font-bold leading-none ${loc.color} ${loc.glow}`}
-                    style={{ fontSize: isDesktop ? 'min(2vw, 3vh)' : 'min(5vw, 4vh)', textShadow: '0 0 2px black' }}
+                    className={`font-mono font-black leading-none ${loc.color} ${loc.glow}`}
+                    style={{ fontSize: isDesktop ? 'min(1.8vw, 2.5vh)' : 'min(4.5vw, 3.5vh)', textShadow: '0 0 4px black' }}
                 >
                     {/* @ts-ignore */}
                     {stats[loc.id]}
@@ -137,7 +140,7 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
                 href={getSocialUrl(zone.id)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute inset-0 cursor-pointer"
+                className="absolute inset-0 cursor-pointer z-30"
                 style={{ clipPath: getClipPath(zone.points) }}
                 title={`Vai a ${zone.id}`}
             >
@@ -149,63 +152,62 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
   };
 
   return (
-    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-indigo-900 overflow-hidden touch-none overscroll-none select-none">
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-10 bg-indigo-900 overflow-hidden touch-none overscroll-none select-none">
         {!bgLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-md">
+            <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-indigo-950 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
                 <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">
-                    Sto Caricando...
+                    Arrivo in Stazione...
                 </span>
             </div>
         )}
 
         <div className="relative w-full h-full overflow-hidden">
-            {/* PULSANTI DI NAVIGAZIONE - SEMPRE SOPRA LO SFONDO */}
+            {/* PULSANTI DI NAVIGAZIONE */}
             {setView && bgLoaded && (
                 <>
                     <button 
                         onClick={() => setView(AppView.CITY_MAP)}
-                        className="absolute bottom-0 left-0 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                        className="absolute bottom-4 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Torna in città"
                     >
                         <img 
                             src={BTN_BACK_CITY_IMG} 
                             alt="Torna in città" 
-                            className="w-36 md:w-56 h-auto drop-shadow-xl" 
+                            className="w-32 md:w-56 h-auto drop-shadow-xl" 
                         />
                     </button>
 
                     <button 
                         onClick={() => setView(AppView.TRAIN_JOURNEY)}
-                        className="absolute bottom-0 right-0 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                        className="absolute bottom-4 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Inizia il viaggio"
                     >
                         <img 
                             src={BTN_PARTI_IMG} 
                             alt="Parti" 
-                            className="w-44 md:w-64 h-auto drop-shadow-xl" 
+                            className="w-40 md:w-64 h-auto drop-shadow-xl" 
                         />
                     </button>
                 </>
             )}
 
-            {/* --- MOBILE (VERTICALE) --- */}
+            {/* SFONDI MOBILE/DESKTOP */}
             <div className="block md:hidden w-full h-full relative">
                 <img 
                     src={TRAIN_BG_MOBILE} 
                     alt="Stazione Lone Boo Mobile" 
-                    className={`w-full h-full object-fill object-center transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`w-full h-full object-fill object-center transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
                     draggable={false}
                 />
                 {bgLoaded && renderInteractives(false)}
             </div>
 
-            {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
+            <div className="hidden md:block w-full h-full relative">
                 <img 
                     src={TRAIN_BG_DESKTOP} 
                     alt="Stazione Lone Boo Desktop" 
-                    className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
                     draggable={false}
                 />
                 {bgLoaded && renderInteractives(true)}

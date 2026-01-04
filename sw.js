@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'loneboo-static-v23'; // Incremento v23 per reset totale
+const CACHE_NAME = 'loneboo-static-v26'; 
 
 const urlsToCache = [
   '/',
@@ -33,8 +33,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // STRATEGIA PASS-THROUGH ESPLICITA PER AWS S3
-  // Questo istruisce il Service Worker a non toccare minimamente le richieste verso S3
+  // BYPASS ESPLICITO AWS S3
   if (requestUrl.hostname.includes('amazonaws.com')) {
     event.respondWith(fetch(event.request));
     return;
@@ -48,7 +47,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Fallback normale per tutto il resto
+  // Cache First per il resto degli asset locali
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
