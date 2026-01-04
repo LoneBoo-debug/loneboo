@@ -10,14 +10,14 @@ const CLOSE_BTN_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const VideoGallery: React.FC = () => {
   // Data state
   const [activeCategory, setActiveCategory] = useState('Tutti'); 
-  const [categories, setCategories] = useState<string[]>(CATEGORIES);
+  const [categories, setCategories] = useState<string[]>(['Tutti']);
   const [playlistsMap, setPlaylistsMap] = useState<Record<string, string>>({}); 
-  const [videos, setVideos] = useState<Video[]>(VIDEOS);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
 
   // UI state
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
@@ -29,10 +29,11 @@ const VideoGallery: React.FC = () => {
     setLoading(true);
     
     try {
-        // Carica video in evidenza o l'ultimo caricato come fallback
+        // 1. Carica il video in evidenza
         const fv = await getFeaturedVideo();
-        if (fv && isMounted.current) setFeaturedVideo(fv);
+        if (isMounted.current && fv) setFeaturedVideo(fv);
 
+        // 2. Carica le playlist per popolare le categorie
         const playlists = await getChannelPlaylists();
         if (isMounted.current) {
             if (playlists.length > 0) {
@@ -42,7 +43,7 @@ const VideoGallery: React.FC = () => {
                 playlists.forEach(p => map[p.title] = p.id);
                 setPlaylistsMap(map);
                 
-                // Cerca una playlist di default (es. Canzoni)
+                // Proviamo a caricare inizialmente la playlist "Canzoni" o simili
                 const defaultPlaylist = playlists.find(p => 
                     p.title.toLowerCase().includes('canzoni') || 
                     p.title.toLowerCase().includes('video')
@@ -57,14 +58,13 @@ const VideoGallery: React.FC = () => {
                     setVideos(latest);
                 }
             } else {
-                // Se non ci sono playlist, carica gli ultimi video
+                // Se non ci sono playlist, carica gli ultimi caricati
                 const latest = await getLatestVideos();
                 setVideos(latest);
             }
         }
     } catch (err) {
-        console.error("Failed to load YouTube data:", err);
-        // Fallback totale sui video statici in caso di errore API
+        console.error("YouTube Loading Error:", err);
         if (isMounted.current) setVideos(VIDEOS);
     } finally {
         if (isMounted.current) setLoading(false);
@@ -100,11 +100,11 @@ const VideoGallery: React.FC = () => {
     const delayDebounceFn = setTimeout(async () => {
         if (searchTerm.trim().length > 2) {
             setLoading(true);
-            setActiveCategory('Ricerca');
+            setActiveCategory('Risultati');
             const results = await searchChannelVideos(searchTerm);
             if (isMounted.current) setVideos(results);
             setLoading(false);
-        } else if (searchTerm.trim().length === 0 && activeCategory === 'Ricerca') {
+        } else if (searchTerm.trim().length === 0 && activeCategory === 'Risultati') {
             loadDefaultView();
         }
     }, 800);
@@ -112,14 +112,23 @@ const VideoGallery: React.FC = () => {
   }, [searchTerm, loadDefaultView]);
 
   const handleCategoryChange = async (cat: string) => {
+    if (cat === activeCategory) {
+        setIsDropdownOpen(false);
+        return;
+    }
     setSearchTerm('');
     setActiveCategory(cat);
     setIsDropdownOpen(false);
     setLoading(true);
     
     try {
-        const pid = playlistsMap[cat];
-        const fetched = pid ? await getPlaylistVideos(pid) : await getLatestVideos();
+        let fetched: Video[] = [];
+        if (cat === 'Tutti') {
+            fetched = await getLatestVideos();
+        } else {
+            const pid = playlistsMap[cat];
+            fetched = pid ? await getPlaylistVideos(pid) : await getLatestVideos();
+        }
         if (isMounted.current) setVideos(fetched);
     } catch (e) {
         if (isMounted.current) setVideos(VIDEOS);
@@ -128,7 +137,11 @@ const VideoGallery: React.FC = () => {
     }
   };
 
-  const filteredVideos = videos.filter(v => v.id !== featuredVideo?.id);
+  // Se la lista filtrata è vuota (perché l'unico video è quello in primo piano), 
+  // mostriamo comunque tutta la lista per evitare griglie vuote.
+  const filteredVideos = (videos.length > 1) 
+    ? videos.filter(v => v.id !== featuredVideo?.id)
+    : videos;
 
   return (
     <div className="px-3 md:px-6 pt-[70px] md:pt-[110px] pb-24 max-w-6xl mx-auto animate-fade-in min-h-screen">
@@ -189,12 +202,12 @@ const VideoGallery: React.FC = () => {
       </div>
 
       {/* 3. GRIGLIA VIDEO */}
-      {loading && videos.length === 0 ? (
+      {loading && filteredVideos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
               <Loader2 size={64} className="animate-spin text-boo-purple mb-4" />
-              <p className="text-white font-black text-xl drop-shadow-md">Entro nel cinema...</p>
+              <p className="text-white font-black text-xl drop-shadow-md uppercase tracking-widest">Entro nel cinema...</p>
           </div>
-      ) : (
+      ) : filteredVideos.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
               {filteredVideos.map((video) => (
                 <div key={video.id} onClick={() => setSelectedVideo(video)} className="bg-white rounded-[25px] md:rounded-[35px] border-4 border-black overflow-hidden shadow-lg hover:shadow-[0_10px_0_0_#8B5CF6] hover:-translate-y-2 transition-all cursor-pointer group flex flex-col">
@@ -214,6 +227,11 @@ const VideoGallery: React.FC = () => {
                     </div>
                 </div>
               ))}
+          </div>
+      ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-white text-center">
+              <p className="text-2xl font-black mb-4">Uffa! Non trovo nessun video.</p>
+              <button onClick={loadDefaultView} className="bg-white text-boo-purple font-black px-6 py-2 rounded-full border-4 border-black">RIPROVA</button>
           </div>
       )}
 

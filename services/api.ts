@@ -8,12 +8,18 @@ export const getChannelPlaylists = async (): Promise<YouTubePlaylist[]> => {
   try {
     const response = await fetch(`${PROXY_URL}?task=playlists`);
     const data = await response.json();
-    if (data.error || !data.items) return [];
+    if (data.error || !data.items) {
+        console.warn("YouTube API Playlists Error:", data.error);
+        return [];
+    }
     return data.items.map((item: any) => ({
       id: item.id,
       title: item.snippet?.title || 'Playlist senza titolo',
     }));
-  } catch (error) { return []; }
+  } catch (error) { 
+    console.error("Network Error Playlists:", error);
+    return []; 
+  }
 };
 
 export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> => {
@@ -27,7 +33,7 @@ export const getPlaylistVideos = async (playlistId: string): Promise<Video[]> =>
         id: item.snippet.resourceId.videoId,
         title: item.snippet.title || 'Video senza titolo',
         thumbnail: item.snippet.thumbnails?.maxres?.url || item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || '',
-        category: 'Playlist', 
+        category: 'In Evidenza', 
         description: item.snippet.description || '',
         url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
         publishedAt: item.snippet.publishedAt
@@ -39,19 +45,21 @@ export const getLatestVideos = async (): Promise<Video[]> => {
     try {
         const response = await fetch(`${PROXY_URL}?task=latest`);
         const data = await response.json();
-        if (data.error || !data.items) return VIDEOS;
+        if (data.error || !data.items) {
+            console.warn("YouTube API Latest Error:", data.error);
+            return VIDEOS;
+        }
         return data.items
             .filter((item: any) => {
                 if (!item.snippet) return false;
                 const title = (item.snippet.title || '').toLowerCase();
-                const desc = (item.snippet.description || '').toLowerCase();
-                return !title.includes('#shorts') && !title.includes('#short') && !desc.includes('#shorts');
+                return !title.includes('#shorts') && !title.includes('#short');
             })
             .map((item: any) => ({
                 id: item.id?.videoId || 'unknown',
                 title: item.snippet?.title || 'Video',
                 thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
-                category: 'Ultimi',
+                category: 'Novità',
                 description: item.snippet?.description || '',
                 url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
                 publishedAt: item.snippet?.publishedAt
@@ -68,7 +76,7 @@ export const searchChannelVideos = async (query: string): Promise<Video[]> => {
             id: item.id?.videoId || 'unknown',
             title: item.snippet?.title || 'Risultato',
             thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
-            category: 'Risultato Ricerca', 
+            category: 'Ricerca', 
             description: item.snippet?.description || '',
             url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
             publishedAt: item.snippet?.publishedAt
@@ -79,6 +87,7 @@ export const searchChannelVideos = async (query: string): Promise<Video[]> => {
 export const getFeaturedVideo = async (): Promise<Video | null> => {
     try {
         const playlists = await getChannelPlaylists();
+        // Cerchiamo una playlist che contenga "evidenza" nel nome
         const featuredPlaylist = playlists.find(p => p.title.trim().toLowerCase().includes('evidenza'));
         
         if (featuredPlaylist) {
