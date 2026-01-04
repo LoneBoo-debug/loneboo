@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'loneboo-static-v19'; 
+const CACHE_NAME = 'loneboo-static-v21'; // Incrementato v21
 
 const urlsToCache = [
   '/',
@@ -33,7 +33,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Strategia Network-First per il codice per garantire aggiornamenti
+  // Network First per il codice
   if (event.request.mode === 'navigate' || requestUrl.pathname.match(/\.(js|css|json)$/)) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -41,8 +41,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Lasciamo che il browser gestisca le immagini (Postimg/Google) nativamente per massima velocità
-  // Non proviamo a intercettare o cachare programmaticamente immagini esterne per evitare lag
+  // Lasciamo che il browser gestisca le immagini esterne direttamente per evitare 404 cache
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);

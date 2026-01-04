@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getAsset } from '../services/LocalAssets';
 
@@ -12,19 +13,19 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   ...props 
 }) => {
   const [currentSrc, setCurrentSrc] = useState<string>(getAsset(src));
-  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     setCurrentSrc(getAsset(src));
-    setHasError(false);
+    setRetryCount(0);
   }, [src]);
 
   const handleError = () => {
-    // Se il percorso locale fallisce, proviamo l'URL remoto originale
-    if (!hasError && currentSrc !== src) {
-      console.log("Asset locale mancante, uso fallback remoto per:", alt);
+    // Se l'immagine fallisce, proviamo l'URL originale senza filtri
+    if (retryCount < 1) {
+      console.warn(`Asset fallito: ${currentSrc}. Tento ripristino sorgente diretta.`);
       setCurrentSrc(src);
-      setHasError(true);
+      setRetryCount(1);
     }
   };
 
@@ -34,6 +35,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       alt={alt}
       className={className}
       onError={handleError}
+      loading="lazy"
+      // crossOrigin rimosso per evitare blocchi del browser su normali immagini UI
       {...props}
     />
   );
