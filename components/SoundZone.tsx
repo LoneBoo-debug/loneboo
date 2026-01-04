@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
@@ -9,7 +8,6 @@ const DjConsole = lazy(() => import('./sound/DjConsole'));
 const DrumKit = lazy(() => import('./sound/DrumKit'));
 const AnimalOrchestra = lazy(() => import('./sound/AnimalOrchestra'));
 const ChoirVoiceChanger = lazy(() => import('./sound/ChoirVoiceChanger'));
-const GuitarHeroGame = lazy(() => import('./sound/GuitarHeroGame'));
 const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument'));
 
 const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
@@ -99,7 +97,7 @@ const SoundZone: React.FC = () => {
               {activeMode === SoundMode.DRUMS && <DrumKit onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.ANIMALS && <AnimalOrchestra onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.CHOIR && <ChoirVoiceChanger onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.GUITAR && <GuitarHeroGame onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.GUITAR && <PlaceholderInstrument title="Chitarra" onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.XYLOPHONE && <PlaceholderInstrument title="Xilofono" onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.BONGO && <PlaceholderInstrument title="Bongo" onBack={() => setActiveMode(SoundMode.NONE)} />}
           </Suspense>
