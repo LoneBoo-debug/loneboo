@@ -1,33 +1,31 @@
-
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Loader2, Lock, Settings } from 'lucide-react';
+import { RotateCcw, Loader2, Lock, Settings, ArrowLeft } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
-const TITLE_IMG = 'https://i.postimg.cc/t4q1TwQW/scxsa-(1).png';
-const BTN_EASY_IMG = 'https://i.postimg.cc/MpVqCtbx/facile.png';
-const BTN_MEDIUM_IMG = 'https://i.postimg.cc/3x5HFmMp/intermedio.png';
-const BTN_HARD_IMG = 'https://i.postimg.cc/tRsTr3f4/difficile.png';
-const LOCK_IMG = 'https://i.postimg.cc/3Nz0wMj1/lucchetto.png';
-const BTN_BACK_MENU_IMG = 'https://i.postimg.cc/Dw1bshV7/tasto-torna-al-menu-(1).png';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
+const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://i.postimg.cc/fyF07TTv/tasto-gioca-ancora-(1).png';
-const BG_IMG = 'https://i.postimg.cc/jjgXTVbC/sfondoscacchi.jpg';
-const GRANDFATHER_THINKING_IMG = 'https://i.postimg.cc/Cx4Jg8cB/nonno-pensante-(1)-(1).png';
+const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chess-bg.webp';
+const GRANDFATHER_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grandpa-thinking.webp';
 
 type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 type PieceColor = 'w' | 'b';
 type Piece = { type: PieceType; color: PieceColor } | null;
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
-interface ChessGameProps {
-    onBack: () => void;
-    onEarnTokens?: (amount: number) => void;
-    onOpenNewsstand?: () => void;
+interface ChessPieceIconProps {
+    type: PieceType;
+    color: PieceColor;
+    size?: string;
 }
 
-const ChessPieceIcon: React.FC<{ type: PieceType; color: PieceColor; size?: string }> = ({ type, color, size = "w-full h-full" }) => {
+const ChessPieceIcon: React.FC<ChessPieceIconProps> = ({ type, color, size = "w-full h-full" }) => {
     const isWhite = color === 'w';
     const fill = isWhite ? '#FFFFFF' : '#000000';
     const stroke = isWhite ? '#000000' : '#FFFFFF';
@@ -111,6 +109,12 @@ const ChessPieceIcon: React.FC<{ type: PieceType; color: PieceColor; size?: stri
     }
 };
 
+interface ChessGameProps {
+    onBack: () => void;
+    onEarnTokens?: (amount: number) => void;
+    onOpenNewsstand?: () => void;
+}
+
 const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
   const [board, setBoard] = useState<Piece[]>([]);
   const [turn, setTurn] = useState<PieceColor>('w');
@@ -125,11 +129,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   
-  // Pezzi catturati
   const [capturedByWhite, setCapturedByWhite] = useState<PieceType[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<PieceType[]>([]);
-
-  // Stato per l'animazione della mossa avversaria
   const [aiMoving, setAiMoving] = useState<{ from: number, to: number } | null>(null);
 
   useEffect(() => {
@@ -138,13 +139,6 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
   }, []);
-
-  useEffect(() => {
-      if (showUnlockModal) {
-          const p = getProgress();
-          setUserTokens(p.tokens);
-      }
-  }, [showUnlockModal]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -193,10 +187,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
 
   useEffect(() => {
       if (winner === 'w' && !rewardGiven && onEarnTokens) {
-          let reward = 5; 
-          if (difficulty === 'MEDIUM') reward = 10;
-          if (difficulty === 'HARD') reward = 20;
+          let reward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
           onEarnTokens(reward);
+          setUserTokens(prev => prev + reward);
           setRewardGiven(true);
       }
   }, [winner, rewardGiven, onEarnTokens, difficulty]);
@@ -302,10 +295,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       const newBoard = [...board];
       const targetPiece = newBoard[toIdx];
       
-      if (targetPiece) {
-          setCapturedByWhite(prev => [...prev, targetPiece.type]);
-      }
-
+      if (targetPiece) setCapturedByWhite(prev => [...prev, targetPiece.type]);
       newBoard[toIdx] = newBoard[selectedIdx];
       newBoard[selectedIdx] = null;
       if (newBoard[toIdx]?.type === 'p' && (Math.floor(toIdx / 8) === 0 || Math.floor(toIdx / 8) === 7)) {
@@ -379,37 +369,27 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                 allMoves.sort((a, b) => b.score - a.score);
                 const topMoves = allMoves.filter(m => m.score >= allMoves[0].score - 5);
                 const bestMove = topMoves[Math.floor(Math.random() * topMoves.length)];
-                
-                // AVVIA ANIMAZIONE VISIVA
                 setIsThinking(false);
                 setAiMoving({ from: bestMove.from, to: bestMove.to });
-
-                // Aspetta che l'animazione finisca
                 setTimeout(() => {
                     const newBoard = [...board];
                     const targetPiece = newBoard[bestMove.to];
-                    if (targetPiece) {
-                        setCapturedByBlack(prev => [...prev, targetPiece.type]);
-                    }
-
+                    if (targetPiece) setCapturedByBlack(prev => [...prev, targetPiece.type]);
                     newBoard[bestMove.to] = newBoard[bestMove.from];
                     newBoard[bestMove.from] = null;
                     if (newBoard[bestMove.to]?.type === 'p' && Math.floor(bestMove.to / 8) === 7) {
                         // @ts-ignore
                         newBoard[bestMove.to].type = 'q';
                     }
-                    setAiMoving(null);
-                    setBoard(newBoard);
-                    
-                    if (isCheckmate(newBoard, 'w')) { setWinner('b'); } 
+                    setAiMoving(null); setBoard(newBoard);
+                    if (isCheckmate(newBoard, 'w')) setWinner('b'); 
                     else {
                         const whiteKing = findKing(newBoard, 'w');
                         if (isSquareAttacked(whiteKing, newBoard, 'b')) setInCheck('w'); else setInCheck(null);
                         setTurn('w');
                     }
                 }, 800);
-
-            } else { if (inCheck === 'b') setWinner('w'); else setWinner('w'); setIsThinking(false); }
+            } else { setWinner('w'); setIsThinking(false); }
         }, 2500); 
         return () => clearTimeout(aiTimer);
     }
@@ -422,153 +402,155 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
 
   const backToMenu = () => { setDifficulty(null); initBoard(); };
 
-  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-hidden bg-cover bg-center z-[60]";
+  const wrapperStyle = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
-  if (!difficulty) {
-      return (
-          <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
-              <div className="absolute top-4 left-4 z-50">
-                  <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"><img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" /></button>
-              </div>
-              <div className="absolute top-4 right-4 z-50 pointer-events-none"><div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg"><span>{userTokens}</span> <span className="text-xl">🪙</span></div></div>
-              {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
-              <div className="w-full h-full flex flex-col items-center justify-center p-4 pt-16">
-                  <img src={TITLE_IMG} alt="Scacchi" className="w-72 md:w-96 h-auto mb-6 relative z-10 hover:scale-105 transition-transform duration-300" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
-                  <div className="flex flex-col gap-4 items-center w-full relative z-10">
-                      <button onClick={() => handleLevelSelect('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" /></button>
-                      <button onClick={() => handleLevelSelect('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" /></button>
-                      <div className="relative hover:scale-105 active:scale-95 transition-transform w-48">
-                          <button onClick={() => handleLevelSelect('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}><img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" /></button>
-                          {!isHardUnlocked && (
-                              <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
-                                  <img src={LOCK_IMG} alt="Bloccato" className="w-12 h-12 drop-shadow-lg rotate-12" />
-                              </div>
-                          )}
-                      </div>
-                  </div>
-              </div>
-          </div>
-      )
-  }
-
-  const tokenReward = difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20;
+  const tokenReward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
 
   return (
-    <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
-        <div className="absolute top-4 left-4 z-50">
-            <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"><img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-12 w-auto drop-shadow-md" /></button>
+    <div className={wrapperStyle}>
+        {/* SFONDO A TUTTO SCHERMO */}
+        <img 
+            src={BG_IMG} 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" 
+            draggable={false}
+        />
+
+        {/* HUD NAVIGAZIONE SUPERIORE (STILE TRIS/DAMA) */}
+        <div className="absolute top-[80px] md:top-[120px] left-4 z-[300] flex flex-col items-start gap-2 pointer-events-auto">
+            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto" />
+            </button>
+            {difficulty && (
+                <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto" />
+                </button>
+            )}
         </div>
-        <div className="absolute top-4 right-4 z-50 pointer-events-none"><div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg"><span>{userTokens}</span> <span className="text-xl">🪙</span></div></div>
 
-        <div className="w-full h-full flex flex-col items-center justify-center p-2 relative z-10">
-            <img src={TITLE_IMG} alt="Scacchi" className="h-16 md:h-20 w-auto mb-2 drop-shadow-md shrink-0" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
-            
-            <div className="flex items-center gap-4 mb-2 bg-white px-6 py-1 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
-                <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>
-                <span className={`font-bold ${turn === 'w' ? 'text-indigo-600' : 'text-slate-700'}`}>{turn === 'w' ? 'Tocca a te (Bianchi)' : 'Avversario (Neri)'}</span>
-                {inCheck && <span className="text-red-600 font-black animate-pulse bg-red-100 px-2 rounded ml-2 text-xs">SCACCO!</span>}
+        {/* SALDO GETTONI GLASSMORPHISM (STILE TRIS) */}
+        <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none">
+            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
+                <span>{userTokens}</span> <span className="text-xl">🪙</span>
             </div>
+        </div>
 
-            <div className="bg-white/40 backdrop-blur-md p-2 md:p-3 rounded-[30px] border-4 border-white/50 shadow-2xl relative shrink-0 flex flex-col items-center gap-2">
-                
-                {/* Pezzi catturati dal Nero (Pezzi bianchi persi) */}
-                <div className="w-full h-8 bg-black/10 rounded-xl flex items-center px-3 gap-1 overflow-hidden">
-                    {capturedByBlack.map((type, i) => (
-                        <div key={i} className="w-5 h-5 opacity-80">
-                            <ChessPieceIcon type={type} color="w" size="w-full h-full" />
+        {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
+        
+        {/* AREA CONTENUTO */}
+        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
+            {!difficulty ? (
+                <div className="flex flex-col items-center w-full animate-fade-in px-4">
+                    {/* BOX LIVELLI STILE AEREO (VETRO) */}
+                    <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                        <button onClick={() => handleLevelSelect('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
+                            <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+                        </button>
+                        <button onClick={() => handleLevelSelect('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
+                            <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" />
+                        </button>
+                        <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
+                            <button onClick={() => handleLevelSelect('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                                <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                            </button>
+                            {!isHardUnlocked && (
+                                <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
+                                    <img src={LOCK_IMG} alt="Bloccato" className="w-10 h-10 drop-shadow-lg rotate-12" />
+                                </div>
+                            )}
                         </div>
-                    ))}
-                    {capturedByBlack.length === 0 && <span className="text-[10px] text-gray-500 font-bold uppercase opacity-50">Nessuna cattura</span>}
-                </div>
+                    </div>
 
-                <div className="relative">
-                    {isThinking && (
-                        <div className="absolute -top-32 right-[-20px] md:-top-44 md:right-[-40px] z-[100] flex flex-col items-center animate-in fade-in zoom-in duration-500 pointer-events-none transform -rotate-6">
-                            <span 
-                                className="font-luckiest text-lg md:text-2xl text-yellow-300 uppercase whitespace-nowrap mb-[-25px] relative z-10 -translate-x-3"
-                                style={{ 
-                                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
-                                    WebkitTextStroke: '1px black'
-                                }}
-                            >
-                                mmmh sto pensando...
-                            </span>
-                            <img 
-                                src={GRANDFATHER_THINKING_IMG} 
-                                alt="Nonno che pensa" 
-                                className="w-64 h-64 md:w-80 md:h-80 max-w-none object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.4)]"
-                            />
+                    {/* BOX TESTO STILE AEREO SOTTO I LIVELLI */}
+                    <div className="mt-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
+                        <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
+                            Scegli un livello e sfida il nonno a Scacchi!
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-0 px-2">
+                    <div className="flex items-center gap-4 mb-2 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
+                        <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>
+                        <span className={`font-black text-sm md:text-base uppercase ${turn === 'w' ? 'text-indigo-600' : 'text-slate-700'}`}>{turn === 'w' ? 'Tocca a te (Bianchi)' : 'Il Nonno (Neri)'}</span>
+                        {inCheck && <span className="text-red-600 font-black animate-pulse bg-red-100 px-2 rounded ml-2 text-xs">SCACCO!</span>}
+                    </div>
+
+                    <div className="bg-white/40 backdrop-blur-md p-2 md:p-3 rounded-[30px] border-4 border-white/50 shadow-2xl relative shrink-0 flex flex-col items-center gap-2">
+                        {/* Pezzi catturati dal Nero (Pezzi bianchi persi) */}
+                        <div className="w-full h-8 bg-black/10 rounded-xl flex items-center px-3 gap-1 overflow-hidden">
+                            {capturedByBlack.map((type, i) => (
+                                <div key={i} className="w-5 h-5 opacity-80">
+                                    <ChessPieceIcon type={type} color="w" size="w-full h-full" />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="relative">
+                            {isThinking && (
+                                <div className="absolute top-0 right-[-15px] md:right-[-30px] z-[200] flex flex-col items-center animate-in fade-in zoom-in duration-500 pointer-events-none transform -translate-y-[35%] -rotate-3">
+                                    <span className="font-luckiest text-sm md:text-xl text-yellow-300 uppercase whitespace-nowrap mb-[-15px] relative z-10 -translate-x-3" style={{ textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', WebkitTextStroke: '1px black' }}>mmmh sto pensando...</span>
+                                    <img src={GRANDFATHER_THINKING_IMG} alt="Nonno pensa" className="w-56 h-56 md:w-72 md:h-72 max-w-none object-contain drop-shadow-xl" />
+                                </div>
+                            )}
+                            <div className="grid grid-cols-8 grid-rows-8 w-[min(85vw,50vh)] h-[min(85vw,50vh)] md:w-[min(55vh,55vw)] md:h-[min(55vh,55vw)] aspect-square border-4 border-indigo-900 rounded-lg overflow-hidden bg-indigo-100 shadow-inner">
+                                {board.map((piece, idx) => {
+                                    const row = Math.floor(idx / 8); const col = idx % 8;
+                                    const isDark = (row + col) % 2 === 1;
+                                    const isValid = legalMoves.includes(idx);
+                                    const isSelected = selectedIdx === idx;
+                                    const isKingInDanger = piece?.type === 'k' && piece?.color === inCheck;
+                                    const isAiAnimatingFrom = aiMoving?.from === idx;
+                                    let transform = 'none'; let transition = 'none';
+                                    if (isAiAnimatingFrom) {
+                                        const dr = (Math.floor(aiMoving!.to / 8) - row) * 100;
+                                        const dc = (aiMoving!.to % 8 - col) * 100;
+                                        transform = `translate(${dc}%, ${dr}%)`; transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                                    }
+                                    return (
+                                        <div key={idx} onClick={() => isValid ? handleMove(idx) : handleSelect(idx)} className={`relative flex items-center justify-center w-full h-full rounded-sm ${isDark ? 'bg-indigo-400' : 'bg-indigo-100'} ${isSelected ? 'ring-inset ring-4 ring-yellow-400 z-10' : ''} ${isKingInDanger ? 'bg-red-500 animate-pulse' : ''}`}>
+                                            {isValid && !piece && <div className="w-3 h-3 md:w-4 md:h-4 bg-green-400 rounded-full opacity-80 shadow-sm animate-pulse border-2 border-white" />}
+                                            {isValid && piece && <div className="absolute inset-0 border-4 border-red-500 rounded-sm opacity-80 z-20" />}
+                                            {piece && aiMoving?.to !== idx && (
+                                                <div className={`w-[90%] h-[90%] transition-transform hover:scale-105 flex items-center justify-center relative ${isAiAnimatingFrom ? 'z-50 shadow-2xl' : 'z-10'}`} style={{ transform, transition }}>
+                                                    <ChessPieceIcon type={piece.type} color={piece.color} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Pezzi catturati dal Bianco (Pezzi neri persi) */}
+                        <div className="w-full h-8 bg-white/40 rounded-xl flex items-center px-3 gap-1 overflow-hidden">
+                            {capturedByWhite.map((type, i) => (
+                                <div key={i} className="w-5 h-5 opacity-80">
+                                    <ChessPieceIcon type={type} color="b" size="w-full h-full" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {winner && (
+                        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
+                            <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-sm w-full shadow-2xl relative flex flex-col items-center transform translate-y-10">
+                                {winner === 'w' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                                <h2 className="text-3xl font-black mb-4 text-boo-purple leading-tight uppercase">
+                                    {winner === 'w' ? 'SCACCO MATTO! 🏆' : 'HAI PERSO! 🤖'}
+                                </h2>
+                                {winner === 'w' && (
+                                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">
+                                        +{tokenReward} GETTONI! 🪙
+                                    </div>
+                                )}
+                                <div className="flex flex-row gap-4 justify-center items-center w-full mt-2">
+                                    <button onClick={initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
+                                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={EXIT_BTN_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>
+                                </div>
+                            </div>
                         </div>
                     )}
-                    <div className="grid grid-cols-8 grid-rows-8 w-[min(85vw,50vh)] h-[min(85vw,50vh)] md:w-[min(55vh,55vw)] md:h-[min(55vh,55vw)] aspect-square border-4 border-indigo-900 rounded-lg overflow-hidden bg-indigo-100">
-                        {board.map((piece, idx) => {
-                            const row = Math.floor(idx / 8);
-                            const col = idx % 8;
-                            const isDark = (row + col) % 2 === 1;
-                            const isValid = legalMoves.includes(idx);
-                            const isSelected = selectedIdx === idx;
-                            const isKingInDanger = piece?.type === 'k' && piece?.color === inCheck;
-                            
-                            const isAiAnimatingFrom = aiMoving?.from === idx;
-                            const isAiAnimatingTo = aiMoving?.to === idx;
-                            
-                            let transform = 'none';
-                            let transition = 'none';
-                            if (isAiAnimatingFrom) {
-                                const toRow = Math.floor(aiMoving!.to / 8);
-                                const toCol = aiMoving!.to % 8;
-                                const dr = (toRow - row) * 100;
-                                const dc = (toCol - col) * 100;
-                                transform = `translate(${dc}%, ${dr}%)`;
-                                transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                            }
-
-                            return (
-                                <div key={idx} onClick={() => isValid ? handleMove(idx) : handleSelect(idx)} className={`relative flex items-center justify-center w-full h-full rounded-sm ${isDark ? 'bg-indigo-400' : 'bg-indigo-100'} ${isSelected ? 'ring-inset ring-4 ring-yellow-400 z-10' : ''} ${isKingInDanger ? 'bg-red-500 animate-pulse' : ''}`}>
-                                    {isValid && !piece && <div className="w-3 h-3 md:w-4 md:h-4 bg-green-400 rounded-full opacity-80 shadow-sm animate-pulse border-2 border-white" />}
-                                    {isValid && piece && <div className="absolute inset-0 border-4 border-red-500 rounded-sm opacity-80 z-20" />}
-                                    
-                                    {piece && !isAiAnimatingTo && (
-                                        <div 
-                                            className={`w-[90%] h-[90%] transition-transform hover:scale-105 flex items-center justify-center relative ${isAiAnimatingFrom ? 'z-50' : 'z-10'}`}
-                                            style={{ transform, transition }}
-                                        >
-                                            <ChessPieceIcon type={piece.type} color={piece.color} />
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* Pezzi catturati dal Bianco (Pezzi neri persi) */}
-                <div className="w-full h-8 bg-white/40 rounded-xl flex items-center px-3 gap-1 overflow-hidden">
-                    {capturedByWhite.map((type, i) => (
-                        <div key={i} className="w-5 h-5 opacity-80">
-                            <ChessPieceIcon type={type} color="b" size="w-full h-full" />
-                        </div>
-                    ))}
-                    {capturedByWhite.length === 0 && <span className="text-[10px] text-gray-800 font-bold uppercase opacity-50">Pronto alla cattura</span>}
-                </div>
-            </div>
-
-            {winner && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
-                    <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-w-sm w-full shadow-2xl relative flex flex-col items-center">
-                        {winner === 'w' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
-                        <h2 className="text-3xl font-black mb-4 text-boo-purple leading-tight">SCACCO MATTO!</h2>
-                        {winner === 'w' && <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap">+{tokenReward} GETTONI! 🪙</div>}
-                        <p className="text-lg font-bold text-gray-600 mb-6">{winner === 'w' ? 'Hai Vinto!' : 'Ha vinto l\'avversario'}</p>
-                        <div className="flex flex-row gap-4 justify-center items-center w-full mt-2">
-                            <button onClick={initBoard} className="hover:scale-105 active:scale-95 transition-transform w-44">
-                                <img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" />
-                            </button>
-                            <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform w-44">
-                                <img src={BTN_BACK_MENU_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" />
-                            </button>
-                        </div>
-                    </div>
                 </div>
             )}
         </div>

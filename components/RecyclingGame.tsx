@@ -4,8 +4,8 @@ import { addTokens, getProgress } from '../services/tokens';
 import { RECYCLE_DATABASE, RecycleItem, BinType } from '../services/dbRecycle';
 
 const BG_KITCHEN = 'https://i.postimg.cc/tTtyjxgs/cuxdfr.jpg';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
-const TITLE_GAME_IMG = 'https://i.postimg.cc/R0xrWzpz/testric.png';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const TITLE_GAME_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/recycle.webp';
 const IMG_LOST_HEADER = 'https://i.postimg.cc/KcQy0zQj/csmione-(1).png';
 
 const BTN_RETRY_IMG_LOST = 'https://i.postimg.cc/65vxt0tQ/riptrgr.png';
@@ -35,29 +35,29 @@ const BINS = [
     { 
         type: 'PAPER' as BinType, 
         label: 'CARTA', 
-        icon: 'https://i.postimg.cc/cHxczKzF/carta-(1)-(1).png', 
-        btnIcon: 'https://i.postimg.cc/CxfYZ5cS/cartascr-(1).png',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trashpaper.webp', 
+        btnIcon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartascr.webp',
         light: 'bg-blue-300' 
     },
     { 
         type: 'PLASTIC' as BinType, 
         label: 'PLASTICA', 
-        icon: 'https://i.postimg.cc/0jNcz6dH/plaseed-(1)-(1).png', 
-        btnIcon: 'https://i.postimg.cc/fyLQMRV1/plastcscr-(1).png',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trashplastic.webp', 
+        btnIcon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/plastcscr.webp',
         light: 'bg-yellow-200' 
     },
     { 
         type: 'GLASS' as BinType, 
         label: 'VETRO', 
-        icon: 'https://i.postimg.cc/rFPYt9HK/dfjh-(1)-(1).png', 
-        btnIcon: 'https://i.postimg.cc/9ft6T7TJ/vetrscr-(1).png',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trashglass.webp', 
+        btnIcon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vetrscr.webp',
         light: 'bg-green-300' 
     },
     { 
         type: 'ORGANIC' as BinType, 
         label: 'ORGANICO', 
-        icon: 'https://i.postimg.cc/Gt0m2YCw/ltgrt-(1)-(1).png', 
-        btnIcon: 'https://i.postimg.cc/Y0VZkfKC/orgscr-(1).png',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trashorganic.webp', 
+        btnIcon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orgscr.webp',
         light: 'bg-amber-400' 
     }
 ];
@@ -92,7 +92,6 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
         const ctx = audioCtx.current;
         
-        // Assicuriamoci che il contesto sia sempre attivo per evitare cali di volume/qualità
         if (ctx.state === 'suspended') {
             await ctx.resume();
         }
@@ -104,7 +103,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (type === 'WIN') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(900, now);
-            gain.gain.setValueAtTime(0.3, now); // Volume leggermente aumentato e fisso
+            gain.gain.setValueAtTime(0.3, now); 
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
             osc.connect(gain).connect(ctx.destination);
             osc.start(now);
@@ -113,7 +112,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-            gain.gain.setValueAtTime(0.3, now); // Volume coerente con WIN
+            gain.gain.setValueAtTime(0.3, now); 
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
             osc.connect(gain).connect(ctx.destination);
             osc.start(now);
@@ -152,9 +151,6 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setShowName(false);
         setCurrentItem({ ...nextItem, id: Date.now() });
 
-        // Timeline Animazione:
-        // 0-2s: Zoom immagine
-        // 2s: Fine zoom e apparizione immediata del testo
         setTimeout(() => {
             setIsZooming(false); 
             setShowName(true); 
@@ -204,7 +200,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     return (
-        <div className="absolute inset-0 z-50 bg-[#1a2e1a] flex flex-col items-center overflow-hidden font-sans select-none pt-8 md:pt-12">
+        <div className="absolute inset-0 z-50 bg-[#1a2e1a] flex flex-col items-center overflow-hidden font-sans select-none pt-20 md:pt-32">
             <style>{`
                 @keyframes super-zoom-in {
                     0% { transform: scale(0); opacity: 0; }
@@ -219,10 +215,10 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <img src={BG_KITCHEN} className="w-full h-full object-cover blur-md opacity-30" alt="" />
             </div>
 
-            {/* HEADER UI */}
-            <div className="relative z-30 w-full h-[12vh] md:h-[15vh] flex justify-between items-end p-4 shrink-0 pointer-events-none mt-4 md:mt-6">
+            {/* HEADER UI - Abbassato per non sovrapporsi all'header globale */}
+            <div className="relative z-30 w-full h-[10vh] md:h-[12vh] flex justify-between items-center px-4 shrink-0 pointer-events-none mb-2">
                 <button onClick={onBack} className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none">
-                    <img src={BTN_CLOSE_IMG} className="w-12 h-12 md:w-16 md:h-16 drop-shadow-xl" alt="Chiudi" />
+                    <img src={BTN_CLOSE_IMG} className="w-16 h-16 md:w-24 md:h-24 drop-shadow-xl" alt="Chiudi" />
                 </button>
                 
                 <div className="flex gap-2 pointer-events-auto">
@@ -274,19 +270,17 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 )}
 
                 {gameState === 'PLAYING' && currentItem && (
-                    <div className="w-full h-full flex flex-col justify-start items-center gap-4 py-2">
+                    <div className="w-full h-full flex flex-col justify-start items-center gap-6 md:gap-10 py-0 md:py-2">
                         
-                        <img src={TITLE_GAME_IMG} alt="" className="w-64 md:w-80 lg:w-[380px] h-auto drop-shadow-sm mb-1 shrink-0" />
-
                         {/* CONSOLE SUPERIORE (IL MONITOR) */}
-                        <div className="bg-slate-700 p-3 md:p-4 rounded-[35px] border-4 md:border-8 border-slate-800 shadow-[0_8px_0_0_#0f172a] flex flex-row gap-3 md:gap-6 items-center shrink-0 h-[28vh] w-full">
+                        <div className="bg-slate-700 p-3 md:p-4 rounded-[35px] border-4 md:border-8 border-slate-800 shadow-[0_8px_0_0_#0f172a] flex flex-row gap-3 md:gap-6 items-center shrink-0 h-[30vh] md:h-[35vh] w-full mt-2">
                             <div className="relative aspect-square h-full bg-slate-900 rounded-2xl border-4 md:border-6 border-slate-600 overflow-hidden flex items-center justify-center shadow-inner shrink-0">
                                 
                                 {/* CONTENUTO MONITOR */}
                                 <div className={`flex flex-col items-center w-full h-full justify-center relative`}>
                                     {currentItem.image ? (
                                         <img 
-                                            key={currentItem.id} // Forza il re-mount per riavviare l'animazione zoom
+                                            key={currentItem.id} 
                                             src={currentItem.image} 
                                             alt={currentItem.name} 
                                             className="w-full h-full object-cover animate-super-zoom" 
@@ -295,7 +289,6 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <span className="text-[50px] md:text-[80px] mb-1 drop-shadow-2xl animate-float">{currentItem.icon}</span>
                                     )}
                                     
-                                    {/* NOME OGGETTO - Arial, Giallo Intenso, Grande, Appare subito dopo lo zoom */}
                                     <div className={`absolute bottom-0 left-0 right-0 p-1.5 text-center pointer-events-none z-30 transition-opacity duration-300 ${showName ? 'opacity-100' : 'opacity-0'}`}>
                                         <span 
                                             className="text-[14px] md:text-[24px] font-black uppercase tracking-tight block leading-none"
@@ -311,7 +304,6 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     </div>
                                 </div>
 
-                                {/* PICCOLO FEEDBACK GRAFICO IN ALTO A DESTRA */}
                                 {feedback === 'CORRECT' && (
                                     <div className="absolute top-2 right-2 z-50 animate-in zoom-in">
                                         <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500 rounded-full border-2 md:border-4 border-white flex items-center justify-center shadow-lg">
@@ -332,25 +324,23 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                             <div className="flex-1 flex flex-col gap-1.5 md:gap-2 h-full items-center justify-center py-1">
                                 {BINS.map((bin, index) => (
-                                    <React.Fragment key={bin.type}>
-                                        <button
-                                            onClick={() => handleSort(bin.type)}
-                                            className="w-full h-[20%] flex flex-row items-center justify-center transition-all group active:scale-90 outline-none"
-                                        >
-                                            <img 
-                                                src={bin.btnIcon} 
-                                                className="w-full h-full object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
-                                                alt={bin.label} 
-                                            />
-                                        </button>
-                                        {index < BINS.length - 1 && <div className="w-[85%] h-[1px] bg-white/20 shrink-0" />}
-                                    </React.Fragment>
+                                    <button
+                                        key={bin.type}
+                                        onClick={() => handleSort(bin.type)}
+                                        className="w-full h-[20%] flex flex-row items-center justify-center transition-all group active:scale-90 outline-none"
+                                    >
+                                        <img 
+                                            src={bin.btnIcon} 
+                                            className="w-full h-full object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
+                                            alt={bin.label} 
+                                        />
+                                    </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* STAZIONE BIDONI */}
-                        <div className="bg-white/10 backdrop-blur-md p-3 rounded-[35px] border-4 border-white/20 shadow-2xl flex flex-row justify-center gap-2 md:gap-6 shrink-0 h-[26vh] w-full">
+                        <div className="bg-white/10 backdrop-blur-md p-3 rounded-[35px] border-4 border-white/20 shadow-2xl flex flex-row justify-center gap-2 md:gap-6 shrink-0 h-[28vh] md:h-[32vh] w-full">
                             {BINS.map(bin => {
                                 const level = binLevels[bin.type];
                                 const isFull = level >= 5;
@@ -409,7 +399,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                 {/* MODALE REWARD */}
                 {gameState === 'REWARD' && reward && (
-                    <div className="bg-white p-6 md:p-10 rounded-[50px] border-8 border-yellow-400 shadow-2xl text-center animate-in zoom-in max-w-sm w-full relative">
+                    <div className="bg-white p-6 md:p-10 rounded-[50px] border-8 border-yellow-400 shadow-2xl text-center animate-in zoom-in max-sm w-full relative">
                         <h3 className="text-3xl font-black text-blue-600 mb-2 uppercase tracking-tight">EVVIVA!</h3>
                         <p className="text-gray-600 font-bold mb-6 text-sm leading-tight">{reward.desc}</p>
                         <div className="bg-slate-50 rounded-[30px] p-6 border-4 border-dashed border-gray-200 mb-6 flex flex-col items-center shadow-inner">

@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Wand2, X, Type, Eye, ZapOff, Check } from 'lucide-react';
 
-const ICON_MAGIC = 'https://i.postimg.cc/nLF3F9GS/accessdre-(1).png';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
+const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 interface AccessibilityMenuProps {
     isOpen: boolean;

@@ -1,9 +1,12 @@
 
 import React, { useEffect } from 'react';
-import { Mail, CircleAlert, ShieldCheck, Scale, Database, ServerOff, X, FileText, Lock, Globe } from 'lucide-react';
+import { 
+  ShieldCheck, ShieldAlert, Scale, Fingerprint, 
+  FileText, Globe, Cpu, Info, Mail, Cloud, 
+  UserMinus, Heart, Lock, Calendar
+} from 'lucide-react';
 import { AppView } from '../types';
 
-const INFO_BG = 'https://i.postimg.cc/brjgmCV4/sfondoinfo.jpg';
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const ICON_PRIVACY = 'https://i.postimg.cc/7hLmjsyy/prvcuccu-(1).png';
 
@@ -16,124 +19,144 @@ const DisclaimerPage: React.FC<DisclaimerPageProps> = ({ setView }) => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleExit = () => setView(AppView.INFO_MENU);
-
   return (
-    <div 
-        className="min-h-screen bg-cover bg-center bg-fixed pb-24"
-        style={{ backgroundImage: `url(${INFO_BG})` }}
-    >
+    <div className="min-h-screen relative overflow-x-hidden">
       
-      {/* FIXED EXIT BUTTON - Slightly reduced size */}
+      {/* SFONDO AZZURRO INTENSO E FISSO */}
+      <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
+      
+      {/* STRATO EFFETTO SPECCHIO/VETRO */}
+      <div className="fixed inset-0 bg-white/20 backdrop-blur-[45px] z-[1] pointer-events-none border-t-8 border-white/30"></div>
+      
+      {/* TASTO CHIUDI FISSO */}
       <button 
-          onClick={handleExit}
-          className="fixed top-20 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-          aria-label="Indietro"
+          onClick={() => setView(AppView.INFO_MENU)}
+          className="fixed top-20 right-4 z-[100] hover:scale-110 active:scale-95 transition-all outline-none"
+          aria-label="Chiudi"
       >
-          <img 
-            src={BTN_CLOSE_IMG} 
-            alt="Chiudi" 
-            className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" 
-          />
+          <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" />
       </button>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-8 pt-32 animate-fade-in">
-
-          <div className="text-center mb-12">
-            <h2 
-                className="text-4xl md:text-7xl font-cartoon text-white tracking-tight leading-none mb-3"
-                style={{ WebkitTextStroke: '2px #ef4444', textShadow: '4px 4px 0px rgba(0,0,0,0.2)' }}
-            >
-               Note Legali & Privacy
-            </h2>
-            <div className="inline-flex items-center gap-2 bg-red-600/80 text-white px-6 py-2 rounded-full text-sm font-bold backdrop-blur-md border border-white/20 shadow-lg">
-                 <img src={ICON_PRIVACY} alt="" className="w-8 h-8 object-contain" />
-                 <span>Informativa Estesa</span>
-            </div>
-          </div>
+      {/* CONTENUTO SCROLLABILE */}
+      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
         
-          {/* 1. SEZIONE PRIVACY (CRITICA) - Translucent */}
-          <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-green-600 p-6 md:p-8 shadow-xl mb-8 border-y border-r border-white/30">
-              <h3 className="text-2xl font-black text-green-900 mb-6 flex items-center gap-3">
-                  <ShieldCheck className="text-green-600" size={32} /> 
-                  Privacy Policy & Dati Minori
-              </h3>
-              
-              <div className="space-y-6">
-                  <div>
-                      <h4 className="text-lg font-black text-green-700 mb-2 flex items-center gap-2"><ServerOff size={20}/> Architettura "Zero-Data"</h4>
-                      <p className="text-gray-700 text-sm leading-relaxed font-bold">
-                          Lone Boo opera secondo il principio di <strong>Minimizzazione dei Dati</strong>. Non possediamo un database utenti. L'app non richiede registrazione (email, telefono, password). 
-                          Tutti i dati generati (progressi di gioco, disegni, avatar) vengono salvati <strong>esclusivamente nella memoria locale</strong> (LocalStorage) del dispositivo dell'utente.
-                      </p>
-                  </div>
+        {/* Intestazione Principale Compatta */}
+        <div className="text-center mb-10">
+            <div className="flex flex-col items-center gap-2">
+                <h2 
+                    className="text-4xl md:text-6xl font-cartoon text-[#ef4444] tracking-tight leading-none"
+                    style={{ 
+                        WebkitTextStroke: '1.5px white', 
+                        textShadow: '6px 6px 0px rgba(0,0,0,0.1)',
+                    }}
+                >
+                   Note Legali
+                </h2>
+                <div className="inline-block bg-white/80 border-4 border-white px-6 py-1 rounded-full shadow-md mt-3">
+                    <p className="text-xs md:text-sm font-black text-blue-600 uppercase tracking-tighter flex items-center gap-2">
+                        <ShieldCheck size={16} /> Privacy Policy & Termini
+                    </p>
+                </div>
+            </div>
+        </div>
 
-                  <div>
-                      <h4 className="text-lg font-black text-green-700 mb-2 flex items-center gap-2"><Globe size={20}/> Conformità GDPR & COPPA</h4>
-                      <p className="text-gray-700 text-sm leading-relaxed font-bold mb-2">
-                          L'applicazione è progettata per essere conforme alle normative internazionali sulla tutela dei minori online:
-                      </p>
-                      <ul className="list-disc pl-5 text-gray-600 text-xs space-y-1 font-black">
-                          <li><strong>GDPR (UE):</strong> Nessun dato personale identificativo viene raccolto o processato sui nostri server senza consenso esplicito (che non richiediamo, non essendoci registrazione).</li>
-                          <li><strong>COPPA (USA):</strong> Non raccogliamo dati comportamentali per scopi pubblicitari (behavioral targeting) verso minori di 13 anni.</li>
-                          <li><strong>Cookie Policy:</strong> Non utilizziamo cookie di tracciamento di terze parti per profilazione pubblicitaria. Usiamo solo storage tecnico essenziale per il funzionamento del gioco.</li>
-                      </ul>
-                  </div>
+        {/* GRIGLIA COMPATTA BENTO-STYLE */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            
+            {/* 1. ARCHITETTURA ZERO-DATA */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col md:col-span-2 lg:col-span-2">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <UserMinus className="text-green-600" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Architettura "Zero-Data"</h3>
+                </div>
+                <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                    Lone Boo opera secondo il principio di Minimizzazione dei Dati. Non possediamo un database utenti. L'app non richiede registrazione (email, telefono, password). Tutti i dati generati (progressi di gioco, disegni, avatar) vengono salvati esclusivamente nella memoria locale (LocalStorage) del dispositivo dell'utente.
+                </p>
+            </div>
 
-                  <div>
-                      <h4 className="text-lg font-black text-green-700 mb-2 flex items-center gap-2"><Database size={20}/> Dati AI & Voce</h4>
-                      <p className="text-gray-700 text-sm leading-relaxed font-bold">
-                          Le interazioni con l'assistente "Lone Boo" (chat e voce) sono <strong>Stateless</strong> (senza memoria a lungo termine lato server). 
-                          I messaggi vengono inviati alle API di Google Gemini per la generazione della risposta e immediatamente scartati. Non vengono utilizzati per addestrare modelli pubblici che potrebbero riesporre dati personali.
-                      </p>
-                  </div>
-              </div>
-          </div>
+            {/* 2. CONFORMITÀ GDPR & COPPA */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col row-span-2">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <Globe className="text-blue-600" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Conformità GDPR & COPPA</h3>
+                </div>
+                <div className="space-y-4">
+                    <div className="bg-blue-50/50 p-3 rounded-2xl border border-blue-100">
+                        <span className="font-black text-blue-700 text-[10px] uppercase block mb-1">GDPR (UE)</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">Nessun dato personale identificativo viene raccolto o processato sui nostri server senza consenso esplicito.</p>
+                    </div>
+                    <div className="bg-orange-50/50 p-3 rounded-2xl border border-orange-100">
+                        <span className="font-black text-orange-700 text-[10px] uppercase block mb-1">COPPA (USA)</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">Non raccogliamo dati comportamentali per scopi pubblicitari verso minori di 13 anni.</p>
+                    </div>
+                    <div className="bg-purple-50/50 p-3 rounded-2xl border border-purple-100">
+                        <span className="font-black text-purple-700 text-[10px] uppercase block mb-1">Cookie Policy</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">Usiamo solo storage tecnico essenziale per il funzionamento del gioco. No profilazione.</p>
+                    </div>
+                </div>
+            </div>
 
-          {/* 2. TERMINI DI UTILIZZO - Translucent */}
-          <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-blue-500 p-6 md:p-8 shadow-xl mb-8 border-y border-r border-white/30">
-              <h3 className="text-2xl font-black text-blue-900 mb-4 flex items-center gap-3">
-                  <FileText className="text-blue-600" size={32} /> 
-                  Termini di Utilizzo
-              </h3>
-              
-              <div className="space-y-4">
-                  <div>
-                      <h5 className="font-black text-blue-800 text-sm uppercase mb-1">Finalità Educativa e Ludica</h5>
-                      <p className="text-gray-600 text-sm font-bold">
-                          Lone Boo è un progetto di intrattenimento. Sebbene contenga elementi educativi (giochi di matematica, logica), non sostituisce in alcun modo l'istruzione formale o il parere di professionisti dell'età evolutiva.
-                      </p>
-                  </div>
+            {/* 3. DATI AI & VOCE */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col md:col-span-2 lg:col-span-2">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <Cpu className="text-purple-600" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Dati AI & Voce</h3>
+                </div>
+                <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                    Le interazioni con l'assistente "Lone Boo" (chat e voce) sono Stateless (senza memoria a lungo termine lato server). I messaggi vengono inviati alle API di Google Gemini per la generazione della risposta e immediatamente scartati. Non vengono utilizzati per addestrare modelli pubblici che potrebbero riesporre dati personali.
+                </p>
+            </div>
 
-                  <div>
-                      <h5 className="font-black text-blue-800 text-sm uppercase mb-1">Contenuti di Terze Parti</h5>
-                      <p className="text-gray-600 text-sm font-bold">
-                          L'app può visualizzare video tramite embed di YouTube. Tali contenuti sono soggetti ai termini di servizio di YouTube. L'app filtra i contenuti per mostrare solo video appropriati, ma non ha controllo diretto sulla piattaforma ospitante.
-                      </p>
-                  </div>
+            {/* 4. TERMINI DI UTILIZZO */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col md:col-span-3 lg:col-span-3">
+                <div className="flex items-center gap-3 mb-4 border-b-2 border-white/50 pb-2">
+                    <Scale className="text-red-600" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Termini di Utilizzo</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-white/40 rounded-2xl border border-white">
+                        <span className="font-black text-red-600 text-[10px] uppercase block mb-1">Finalità Educativa</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">Lone Boo è intrattenimento. Non sostituisce l'istruzione formale o il parere di professionisti dell'età evolutiva.</p>
+                    </div>
+                    <div className="p-3 bg-white/40 rounded-2xl border border-white">
+                        <span className="font-black text-red-600 text-[10px] uppercase block mb-1">Contenuti Terzi</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">I video YouTube sono soggetti ai loro Termini di Servizio. Filtriamo i contenuti ma non controlliamo la piattaforma.</p>
+                    </div>
+                    <div className="p-3 bg-white/40 rounded-2xl border border-white">
+                        <span className="font-black text-red-600 text-[10px] uppercase block mb-1">Proprietà Intellettuale</span>
+                        <p className="text-[11px] font-bold text-slate-600 leading-tight">Grafiche, loghi e storie originali sono protetti. Vietato l'uso commerciale non autorizzato degli asset.</p>
+                    </div>
+                </div>
+            </div>
 
-                  <div>
-                      <h5 className="font-black text-blue-800 text-sm uppercase mb-1">Proprietà Intellettuale</h5>
-                      <p className="text-gray-600 text-sm font-bold">
-                          Tutti i personaggi, le grafiche, i loghi e le storie originali di "Lone Boo" sono proprietà intellettuale protetta. È vietato l'uso commerciale non autorizzato di tali asset.
-                      </p>
-                  </div>
-              </div>
-          </div>
+            {/* 5. INFORMAZIONI LEGALI (FOOTER BENTO) */}
+            <div className="bg-slate-800 text-white p-5 rounded-[30px] border-4 border-slate-900 shadow-2xl flex flex-col md:col-span-3 lg:col-span-3 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Proprietario</span>
+                        <span className="text-xs font-bold text-slate-100">Progetto Lone Boo</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Contatto Legale</span>
+                        <span className="text-xs font-bold text-blue-400 underline decoration-blue-400/30 break-all">privacy@loneboo.online</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Infrastruttura</span>
+                        <span className="text-xs font-bold text-slate-100 flex items-center gap-1"><Cloud size={10} /> Vercel Inc.</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Aggiornamento</span>
+                        <span className="text-xs font-bold text-slate-100 flex items-center gap-1"><Calendar size={10} /> 01 Gennaio 2025</span>
+                    </div>
+                </div>
+            </div>
 
-          {/* 3. INFO PROPRIETARIO - Translucent */}
-          <div className="bg-white/70 backdrop-blur-md rounded-[30px] border-l-[8px] border-gray-500 p-6 md:p-8 shadow-xl border-y border-r border-white/30">
-              <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-3">
-                  <CircleAlert className="text-gray-600" size={28} /> 
-                  Informazioni Legali
-              </h3>
-              <div className="text-sm font-black text-gray-600 space-y-1">
-                  <p><strong>Proprietario del servizio:</strong> Progetto Lone Boo</p>
-                  <p><strong>Contatto Legale:</strong> <a href="mailto:privacy@loneboo.online" className="text-blue-600 underline">privacy@loneboo.online</a></p>
-                  <p><strong>Hosting:</strong> Vercel Inc. (Serverless Infrastructure)</p>
-                  <p><strong>Ultimo aggiornamento:</strong> 01 Gennaio 2025</p>
-              </div>
-          </div>
+        </div>
+
+        <div className="flex flex-col items-center pb-12 mt-8 opacity-70">
+            <Heart size={32} className="text-red-500 fill-red-500 mb-2 animate-pulse" />
+            <p className="text-lg font-black text-slate-600 uppercase tracking-tighter text-center">Naviga in sicurezza con Lone Boo! 👻</p>
+        </div>
 
       </div>
     </div>

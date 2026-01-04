@@ -25,7 +25,7 @@ const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
         else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
         else if (id === 'chi_sono') setView(AppView.INTRO);
         else if (id === 'amici') setView(AppView.CHARACTERS);
-        else if (id === 'libri') setView(AppView.BOOKS);
+        else if (id === 'libri') setView(AppView.BOOKS_LIST);
     };
 
     const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
@@ -33,10 +33,24 @@ const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     return (
         <RoomLayout roomType={AppView.BOO_LIVING_ROOM} setView={setView} disableHint={true}>
             <div className="absolute inset-0 z-10 md:hidden">
-                {ZONES_MOBILE.map(z => <div key={z.id} onClick={() => handleZoneClick(z.id)} className="absolute inset-0 cursor-pointer" style={{ clipPath: getClipPath(z.points) }}></div>)}
+                {ZONES_MOBILE.map(z => (
+                    <div 
+                        key={z.id} 
+                        onClick={() => handleZoneClick(z.id)} 
+                        className="absolute inset-0 cursor-pointer active:bg-white/10" 
+                        style={{ clipPath: getClipPath(z.points) }}
+                    ></div>
+                ))}
             </div>
             <div className="absolute inset-0 z-10 hidden md:block">
-                {ZONES_DESKTOP.map(z => <div key={z.id} onClick={() => handleZoneClick(z.id)} className="absolute inset-0 cursor-pointer" style={{ clipPath: getClipPath(z.points) }}></div>)}
+                {ZONES_DESKTOP.map(z => (
+                    <div 
+                        key={z.id} 
+                        onClick={() => handleZoneClick(z.id)} 
+                        className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
+                        style={{ clipPath: getClipPath(z.points) }}
+                    ></div>
+                ))}
             </div>
         </RoomLayout>
     );

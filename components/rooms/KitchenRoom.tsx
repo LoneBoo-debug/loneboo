@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 import { Construction, X } from 'lucide-react';
 import FruitCatcherGame from '../FruitCatcherGame';
 import RecyclingGame from '../RecyclingGame';
+import TetrisGame from '../TetrisGame';
 
 const ZONES_MOBILE = [
   { id: "spazzatura", label: "Riciclo", points: [{ x: 11.46, y: 54.16 }, { x: 19.19, y: 65.22 }, { x: 1.87, y: 79.36 }, { x: 0, y: 60.29 }] },
@@ -68,6 +70,10 @@ const KitchenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
         return <RecyclingGame onBack={() => setActivePageId(null)} />;
     }
 
+    if (activePageId === 'frigorifero') {
+        return <TetrisGame onBack={() => setActivePageId(null)} />;
+    }
+
     const activePage = [...ZONES_MOBILE, ...ZONES_DESKTOP].find(z => z.id === activePageId);
 
     if (activePageId && activePage) {
@@ -75,7 +81,12 @@ const KitchenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     }
 
     return (
-        <RoomLayout roomType={AppView.BOO_KITCHEN} setView={setView} disableHint={true}>
+        <RoomLayout 
+            roomType={AppView.BOO_KITCHEN} 
+            setView={setView} 
+            hintMessage="Tocca gli oggetti!" 
+            hintVariant="YELLOW"
+        >
             <div className="absolute inset-0 z-10 md:hidden">
                 {ZONES_MOBILE.map(z => (
                     <div 

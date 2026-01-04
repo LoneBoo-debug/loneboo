@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AppView } from '../../types';
@@ -9,32 +8,32 @@ import { preloadImages } from '../../services/imagePreloader';
 // --- ASSET FISSI LAYOUT ---
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const ROOM_DECOR_IMG = 'https://i.postimg.cc/Y9wfF76h/arreddder.png';
-const RETURN_HOUSE_BTN_IMG = 'https://i.postimg.cc/BQCK3D7t/rientragiu.png';
+const RETURN_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-return-house.webp';
 
-// TASTI NAVIGAZIONE SPECIFICI
-const NAV_KITCHEN_LEFT_IMG = 'https://i.postimg.cc/Mp8f1HCL/salottosix.png';
-const NAV_KITCHEN_RIGHT_IMG = 'https://i.postimg.cc/nVykrv1Y/camera-dx.png';
-const NAV_LIVING_LEFT_IMG = 'https://i.postimg.cc/L5LjLbVf/cucinasx.png';
-const NAV_LIVING_RIGHT_IMG = 'https://i.postimg.cc/pdsCL40Z/bagnodx.png';
-const NAV_BATHROOM_LEFT_IMG = 'https://i.postimg.cc/LsWP7pQd/gardensx.png';
-const NAV_BATHROOM_RIGHT_IMG = 'https://i.postimg.cc/KY1ktWGK/salottodx.png';
-const NAV_BEDROOM_LEFT_IMG = 'https://i.postimg.cc/Mp8f1HCL/salottosix.png';
-const NAV_BEDROOM_RIGHT_IMG = 'https://i.postimg.cc/y8PXL2zs/cucina-dx.png';
+// TASTI NAVIGAZIONE SPECIFICI (AGGIORNATI CON AWS S3)
+const NAV_KITCHEN_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-living-sx.webp';
+const NAV_KITCHEN_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-bedroom-dx.webp';
+const NAV_LIVING_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-kitchen-sx.webp';
+const NAV_LIVING_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-bathroom-dx.webp';
+const NAV_BATHROOM_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-garden-sx.webp';
+const NAV_BATHROOM_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-living-dx.webp';
+const NAV_BEDROOM_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-living-sx.webp';
+const NAV_BEDROOM_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-kitchen-dx.webp';
 
 const ROOM_IMAGES_MOBILE: Record<string, string> = {
-    [AppView.BOO_KITCHEN]: 'https://i.postimg.cc/bNw01THX/cucina1692-(1).jpg',
-    [AppView.BOO_LIVING_ROOM]: 'https://i.postimg.cc/J41wZGh9/salotto1689.jpg',
-    [AppView.BOO_BEDROOM]: 'https://i.postimg.cc/sxwjLq6j/stanzalettoh44.jpg',
-    [AppView.BOO_BATHROOM]: 'https://i.postimg.cc/448VtJVN/bagnitt.jpg',
-    [AppView.BOO_GARDEN]: 'https://i.postimg.cc/sX3m3PK4/giardinogarden.jpg',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/kitchen-mobile.webp',
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-mobile.webp',
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-mobile.webp',
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-mobile.webp',
+    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/garden.webp',
 };
 
 const ROOM_IMAGES_DESKTOP: Record<string, string> = {
-    [AppView.BOO_KITCHEN]: 'https://i.postimg.cc/tTtyjxgs/cuxdfr.jpg', 
-    [AppView.BOO_LIVING_ROOM]: 'https://i.postimg.cc/59BWYLb2/salotttreer.jpg', 
-    [AppView.BOO_BEDROOM]: 'https://i.postimg.cc/6pVR2HTG/stanzadaletto.jpg',
-    [AppView.BOO_BATHROOM]: 'https://i.postimg.cc/cCGKGMks/bgno169.jpg',
-    [AppView.BOO_GARDEN]: 'https://i.postimg.cc/sX3m3PK4/giardinogarden.jpg',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/kitchen-desktop.webp', 
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-desktop.webp', 
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-desktop.webp',
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-desktop.webp',
+    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/garden.webp',
 };
 
 const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string }; right?: { view: AppView; label: string } }> = {
@@ -51,9 +50,10 @@ interface RoomLayoutProps {
     children: React.ReactNode;
     hintMessage?: string;
     disableHint?: boolean;
+    hintVariant?: 'ROBOT' | 'GHOST' | 'GREEN' | 'PURPLE' | 'YELLOW';
 }
 
-const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hintMessage, disableHint = false }) => {
+const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hintMessage, disableHint = false, hintVariant = 'GHOST' }) => {
     const [showHint, setShowHint] = useState(false);
     const room = HOUSE_ROOMS.find(r => r.id === roomType);
     const navigation = ROOM_NAVIGATION[roomType];
@@ -95,16 +95,16 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
     };
 
     return (
-        <div className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-black overflow-hidden flex flex-col animate-in fade-in" onClick={() => setShowHint(false)}>
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-black overflow-hidden flex flex-col animate-in fade-in touch-none overscroll-none select-none" onClick={() => setShowHint(false)}>
             
             {!disableHint && (
-                <RobotHint show={showHint} message={hintMessage || "TOCCA GLI OGGETTI EVIDENZIATI PER SCOPRIRLI"} variant="GHOST" />
+                <RobotHint show={showHint} message={hintMessage || "TOCCA GLI OGGETTI EVIDENZIATI PER SCOPRIRLI"} variant={hintVariant} />
             )}
 
             {/* BACKGROUNDS */}
             <div className="absolute inset-0 z-0">
-                <img src={bgMobile} alt="" className="block md:hidden w-full h-full object-cover select-none" style={{ objectPosition: roomType === AppView.BOO_BATHROOM ? '70% center' : 'center' }} />
-                <img src={bgDesktop} alt="" className="hidden md:block w-full h-full object-cover object-center select-none" />
+                <img src={bgMobile} alt="" className="block md:hidden w-full h-full object-fill select-none" style={{ objectPosition: roomType === AppView.BOO_BATHROOM ? '70% center' : 'center' }} />
+                <img src={bgDesktop} alt="" className="hidden md:block w-full h-full object-fill object-center select-none" />
             </div>
 
             {/* INTERACTIVE CONTENT (STANZA SPECIFICA) */}
@@ -112,17 +112,17 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
                 {children}
             </div>
 
-            {/* NAVIGATION */}
+            {/* NAVIGATION - Abbassati appena sotto l'area interattiva dell'header (top-20 mobile, top-32 desktop) */}
             {navigation && (
                 <>
                     {navigation.left && (
-                        <button onClick={() => setView(navigation.left!.view)} className="absolute top-4 left-4 z-30 hover:scale-105 active:scale-95 transition-transform">
-                            <img src={getNavImg('left') || ''} alt={navigation.left.label} className="h-32 md:h-44 w-auto drop-shadow-md" />
+                        <button onClick={() => setView(navigation.left!.view)} className="absolute top-20 md:top-32 left-2 md:left-4 z-30 hover:scale-105 active:scale-95 transition-transform">
+                            <img src={getNavImg('left') || ''} alt={navigation.left.label} className="h-28 md:h-40 w-auto drop-shadow-md" />
                         </button>
                     )}
                     {navigation.right && (
-                        <button onClick={() => setView(navigation.right!.view)} className="absolute top-4 right-4 z-30 hover:scale-105 active:scale-95 transition-transform">
-                            <img src={getNavImg('right') || ''} alt={navigation.right.label} className="h-32 md:h-44 w-auto drop-shadow-md" />
+                        <button onClick={() => setView(navigation.right!.view)} className="absolute top-20 md:top-32 right-2 md:right-4 z-30 hover:scale-105 active:scale-95 transition-transform">
+                            <img src={getNavImg('right') || ''} alt={navigation.right.label} className="h-28 md:h-40 w-auto drop-shadow-md" />
                         </button>
                     )}
                 </>

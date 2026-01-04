@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, RefreshCw, Trophy, Loader2, X, Star, Download, Gift, User, Check } from 'lucide-react';
 import { checkScavengerHuntMatch } from '../services/ai';
@@ -19,6 +18,8 @@ const BTN_CONTINUE_IMG = 'https://i.postimg.cc/tJGBptQz/cdjssjs-(1)-(1).png';
 const BAR_START_IMG = 'https://i.postimg.cc/263jkrwQ/ico32-(3).png';
 const BAR_PLAYER_IMG = 'https://i.postimg.cc/G2Z4641W/ico32-(1).png';
 const BAR_END_IMG = 'https://i.postimg.cc/4xJYCCrY/ico32-(2).png';
+
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 const HUNT_GOAL = 5; 
 

@@ -3,9 +3,8 @@ import React, { useRef } from 'react';
 import SoundLayout from './SoundLayout';
 import { DRUM_SOUNDS } from '../../constants';
 
-const DRUM_BG = 'https://i.postimg.cc/tJZ6XsdD/sfobatt.png';
-const DRUM_TITLE_IMG = 'https://i.postimg.cc/BQCFJfHV/batters.png';
-const DRUM_KIT_IMG = 'https://i.postimg.cc/wx5Gh3hY/batteriafx-(1).png';
+const DRUM_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbattera.webp';
+const DRUM_KIT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/drum-kit.webp';
 
 type Point = { x: number; y: number };
 
@@ -77,17 +76,28 @@ const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     return (
-        <SoundLayout onBack={onBack} titleImage={DRUM_TITLE_IMG} backgroundImage={DRUM_BG}>
-            <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden select-none touch-none pb-4">
+        <SoundLayout onBack={onBack} backgroundImage={DRUM_BG}>
+            {/* 
+                CONTENITORE ASSOLUTO: 
+                Occupa tutto lo spazio disponibile sotto il titolo e si ancora al fondo.
+                pointer-events-none per non bloccare eventuali click allo sfondo, 
+                mentre il contenuto interno riabilita i pointer-events.
+            */}
+            <div className="absolute inset-0 flex items-end justify-center overflow-visible pointer-events-none">
                 
-                <div className="relative w-full h-full max-w-5xl flex items-center justify-center p-0 md:p-4">
+                {/* 
+                   BOX BATTERIA:
+                   Posizionato in basso. Alzato di pochissimo rispetto a prima (ridotti translate-y).
+                   Essendo in un genitore con overflow-visible, non verrà tagliato.
+                */}
+                <div className="relative w-full max-w-5xl pointer-events-auto transform translate-y-2 md:translate-y-4">
                     <img 
                         ref={imgRef}
                         src={DRUM_KIT_IMG} 
                         alt="Batteria" 
-                        className="w-full h-full object-contain pointer-events-none"
+                        className="w-full h-auto max-h-[75vh] object-contain pointer-events-none drop-shadow-2xl"
                         style={{ 
-                            filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 5px rgba(255, 255, 255, 0.4))'
+                            filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))'
                         }}
                     />
 
@@ -96,18 +106,14 @@ const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         {Object.entries(FINAL_AREAS).map(([id, points]) => (
                             <div 
                                 key={id}
-                                onClick={(e) => { 
+                                onPointerDown={(e) => { 
                                     e.stopPropagation(); 
                                     playSound(id); 
                                 }}
-                                onTouchStart={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    playSound(id);
-                                }}
                                 className="absolute inset-0 bg-transparent"
                                 style={{ 
-                                    clipPath: getPolygonPath(points)
+                                    clipPath: getPolygonPath(points),
+                                    touchAction: 'none'
                                 }}
                             />
                         ))}

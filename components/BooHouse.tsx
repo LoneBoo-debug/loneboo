@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import RobotHint from './RobotHint';
 
-const BOO_HOUSE_MOBILE = 'https://i.postimg.cc/9F308yt9/houseplanss-(1).png';
-const BOO_HOUSE_DESKTOP = 'https://i.postimg.cc/7YLR63CN/hpuse169.jpg';
+const BOO_HOUSE_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/house-map-mobile.webp';
+const BOO_HOUSE_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/house-map-desktop.webp';
 
 type Point = { x: number; y: number };
 type HouseZone = {

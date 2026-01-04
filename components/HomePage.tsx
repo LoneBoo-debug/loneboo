@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { AppView } from '../types';
 import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
-import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
-import { X, Check, Star, Trophy } from 'lucide-react';
+import { Star } from 'lucide-react';
 import NewsletterModal from './NewsletterModal';
 import OptimizedImage from './OptimizedImage';
 
@@ -12,9 +11,9 @@ interface HomePageProps {
 }
 
 // ASSETS
-const CONTEST_LOGO = 'https://i.postimg.cc/LX7J1C7n/logoconcorso.png';
-const BTN_STAY_UPDATED = 'https://i.postimg.cc/VkQKrVmX/rimani-aggiornato-(1).png';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
+const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-concorso.webp';
+const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 // ZONES CONFIGURATION (Mobile)
 const ZONES_MOBILE = [
@@ -38,7 +37,7 @@ const ZONES_MOBILE = [
   }
 ];
 
-// ZONES CONFIGURATION (Desktop) - CALIBRATED
+// ZONES CONFIGURATION (Desktop)
 const ZONES_DESKTOP = [
   {
     id: AppView.CITY_MAP,
@@ -79,29 +78,27 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     };
 
     return (
-        <>
-            {/* --- MOBILE VIEW --- */}
-            <div className="md:hidden fixed inset-0 top-[64px] z-0 overflow-hidden bg-black">
-                <div className="w-full h-full relative">
-                    {/* Fixed: removed priority="high" because OptimizedImage does not support it */}
-                    <OptimizedImage 
-                        src={HOME_BG_MOBILE} 
-                        alt="Home Background Mobile" 
-                        className="w-full h-full pointer-events-none select-none"
-                    />
-                    
-                    {ZONES_MOBILE.map((zone, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleNavigation(zone.id)}
-                            className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors pointer-events-auto"
-                            style={{ clipPath: getClipPath(zone.points) }}
-                        />
-                    ))}
-                </div>
+        <div className="fixed inset-0 top-0 z-0 overflow-hidden bg-[#8B5CF6] flex flex-col">
+            
+            {/* BACKGROUND LAYER (Full height, no crop) */}
+            <div className="absolute inset-0 z-0">
+                <OptimizedImage 
+                    src={HOME_BG_MOBILE} 
+                    alt="" 
+                    className="block md:hidden w-full h-full object-fill pointer-events-none select-none"
+                />
+                <OptimizedImage 
+                    src={HOME_BG_DESKTOP} 
+                    alt="" 
+                    className="hidden md:block w-full h-full object-fill pointer-events-none select-none"
+                />
+            </div>
 
-                {/* UI ELEMENTS - LEFT (CONTEST) */}
-                <div className="absolute top-4 left-4 z-20">
+            {/* INTERACTIVE LAYER (Same size as background to keep mapping) */}
+            <div className="absolute inset-0 z-10 w-full h-full">
+                
+                {/* Contest Button */}
+                <div className="absolute top-24 md:top-32 left-4 z-20 flex flex-col gap-4">
                     <button 
                         onClick={() => setIsContestOpen(true)}
                         className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none touch-manipulation"
@@ -109,61 +106,51 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                         <OptimizedImage 
                             src={CONTEST_LOGO}
                             alt="Concorso"
-                            className="w-20 h-auto drop-shadow-md pointer-events-none animate-float"
+                            className="w-20 md:w-32 lg:w-[9vw] h-auto drop-shadow-md pointer-events-none animate-float"
                         />
                     </button>
                 </div>
-            </div>
 
-            {/* --- DESKTOP VIEW --- */}
-            <div className="hidden md:flex fixed inset-0 top-[96px] z-0 bg-black items-center justify-center overflow-hidden">
-                <div className="relative w-full h-full shadow-2xl">
-                    {/* Fixed: removed priority="high" because OptimizedImage does not support it */}
-                    <OptimizedImage 
-                        src={HOME_BG_DESKTOP} 
-                        alt="Home Background Desktop" 
-                        className="w-full h-full pointer-events-none select-none"
-                    />
+                {/* Clickable Area Container */}
+                <div className="relative w-full h-full">
+                    {/* MOBILE ZONES */}
+                    <div className="md:hidden absolute inset-0">
+                        {ZONES_MOBILE.map((zone, index) => (
+                            <div
+                                key={`mob-${index}`}
+                                onClick={() => handleNavigation(zone.id)}
+                                className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors pointer-events-auto"
+                                style={{ clipPath: getClipPath(zone.points) }}
+                            />
+                        ))}
+                    </div>
 
-                    {ZONES_DESKTOP.map((zone, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleNavigation(zone.id)}
-                            className="absolute inset-0 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors pointer-events-auto"
-                            style={{ clipPath: getClipPath(zone.points) }}
-                            title={zone.id === AppView.CITY_MAP ? "Vai in Città" : "Vai a Casa Boo"}
-                        />
-                    ))}
-                </div>
-
-                {/* UI ELEMENTS - LEFT */}
-                <div className="absolute top-[5%] left-[5%] z-20">
-                    <button 
-                        onClick={() => setIsContestOpen(true)}
-                        className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
-                    >
-                        <OptimizedImage 
-                            src={CONTEST_LOGO}
-                            alt="Concorso"
-                            className="w-[9vw] h-auto drop-shadow-xl pointer-events-none animate-float"
-                        />
-                    </button>
+                    {/* DESKTOP ZONES */}
+                    <div className="hidden md:block absolute inset-0">
+                        {ZONES_DESKTOP.map((zone, index) => (
+                            <div
+                                key={`desk-${index}`}
+                                onClick={() => handleNavigation(zone.id)}
+                                className="absolute inset-0 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors pointer-events-auto"
+                                style={{ clipPath: getClipPath(zone.points) }}
+                                title={zone.id === AppView.CITY_MAP ? "Vai in Città" : "Vai a Casa Boo"}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* --- CONTEST BANNER MODAL --- */}
             {isContestOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={() => setIsContestOpen(false)}>
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={() => setIsContestOpen(false)}>
                     <div 
                         className="bg-white relative w-full max-w-md p-8 rounded-[40px] border-8 border-yellow-400 shadow-[8px_8px_0px_0px_black] animate-in zoom-in-95 duration-300 flex flex-col items-center text-center"
                         onClick={e => e.stopPropagation()}
                     >
-                        {/* Decorative Star */}
                         <div className="absolute -top-8 -left-8 text-yellow-400 animate-spin-slow">
                             <Star size={64} fill="currentColor" strokeWidth={1} />
                         </div>
 
-                        {/* Custom Close Button */}
                         <button 
                             onClick={() => setIsContestOpen(false)}
                             className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10"
@@ -188,8 +175,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                         </h2>
 
                         <p className="text-gray-700 font-bold text-lg mb-8 leading-relaxed">
-                            Stiamo preparando dei nuovi concorsi magici per vincere premi fantastici direttamente qui nell'app in totale sicurezza!<br/><br/>
-                            Torna a trovarci presto. 🎁
+                            Stiamo preparando dei nuovi concorsi magici per vincere premi fantastici direttamente qui nell'app in totale sicurezza!
                         </p>
 
                         <button 
@@ -210,7 +196,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {isNewsletterOpen && (
                 <NewsletterModal onClose={() => setIsNewsletterOpen(false)} />
             )}
-        </>
+        </div>
     );
 };
 

@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { X, Check } from 'lucide-react';
 
-const LOCK_IMG = 'https://i.postimg.cc/3Nz0wMj1/lucchetto.png';
+const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 const ALBUM_ICON_IMG = 'https://i.postimg.cc/s2Hdk34g/goldedition-(1).png';
 const COINS_ICON_IMG = 'https://i.postimg.cc/zf0Pypyd/solid.png';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 interface UnlockModalProps {
     onClose: () => void;
@@ -26,18 +26,18 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ onClose, onUnlock, onOpenNews
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-sm p-4 pt-32 animate-in fade-in" onClick={onClose}>
             <div className="bg-white w-full max-w-md rounded-[40px] border-8 border-purple-600 p-6 relative shadow-[0_0_50px_rgba(147,51,234,0.5)] text-center" onClick={e => e.stopPropagation()}>
                 
-                <button onClick={onClose} className="absolute top-4 right-4 bg-gray-100 p-2 rounded-full hover:bg-red-100 text-gray-500 hover:text-red-500 transition-colors">
-                    <X size={24} />
+                <button onClick={onClose} className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10">
+                    <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow-md" />
                 </button>
 
                 <div className="mb-2 flex justify-center">
                     <img 
                         src={LOCK_IMG} 
                         alt="Livello Bloccato" 
-                        className="w-32 h-32 object-contain drop-shadow-xl rotate-12" 
+                        className="w-32 h-32 object-contain drop-shadow-xl" 
                     />
                 </div>
 

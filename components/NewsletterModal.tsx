@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Send, Check, AlertCircle, Loader2, Mail, User } from 'lucide-react';
 
@@ -7,9 +6,9 @@ interface NewsletterModalProps {
 }
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzt_QIilBK5UQ-jmXsD_gjl0kfKgUSsGBJWXlzavOEvzAtGsjcq5PdM-cnOoyWFJheMIw/exec';
-const BTN_SUBSCRIBE_IMG = 'https://i.postimg.cc/bYGX14fy/riceviaggiorn-(1).png';
+const BTN_SUBSCRIBE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riceviaggiorna.webp';
 const SUCCESS_TITLE_IMG = 'https://i.postimg.cc/MKQv3sVp/evviva-(1).png';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const SUBMISSION_COOLDOWN = 1000 * 60 * 5; // 5 minuti di attesa tra un invio e l'altro
 
 const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
@@ -83,13 +82,13 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                 className="bg-white relative w-full max-w-md p-6 md:p-10 rounded-[40px] border-8 border-boo-purple shadow-[8px_8px_0px_0px_black] animate-in zoom-in-95 duration-300 flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
-                {/* Close Button - Only visible if not success */}
+                {/* Close Button Image - Only visible if not success */}
                 {status !== 'SUCCESS' && (
                     <button 
                         onClick={onClose}
-                        className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 transition-transform shadow-[2px_2px_0_black] z-10"
+                        className="absolute -top-6 -right-6 md:-top-8 md:-right-8 hover:scale-110 active:scale-95 transition-all outline-none z-20"
                     >
-                        <X size={24} strokeWidth={4} />
+                        <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-xl" />
                     </button>
                 )}
 
@@ -108,7 +107,7 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                         </p>
                         <button 
                             onClick={onClose}
-                            className="w-full max-w-[100px] hover:scale-105 active:scale-95 transition-transform outline-none"
+                            className="w-full max-w-[100px] hover:scale-105 active:scale-95 transition-all outline-none"
                         >
                             <img 
                                 src={BTN_CLOSE_IMG} 

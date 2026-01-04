@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, RotateCcw, Trophy } from 'lucide-react';
 import { getProgress } from '../services/tokens';
 
-const TITLE_IMG = 'https://i.postimg.cc/NfwZ80Sc/indonum-(1).png';
-const GUESS_BG = 'https://i.postimg.cc/nVwNV707/Hailuo-Image-creami-una-immagine-per-uno-sf-457359369918926849.jpg';
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
-const BTN_PROVA_IMG = 'https://i.postimg.cc/hGbTFBM2/tasto-prova-(1).png';
+const GUESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfindilnmnnn.webp';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+const BTN_PROVA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tasto-prova-(1).webp';
 const BTN_PLAY_AGAIN_IMG = 'https://i.postimg.cc/fyF07TTv/tasto-gioca-ancora-(1).png';
 
 interface GuessNumberGameProps {
@@ -19,17 +17,17 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
   const [guess, setGuess] = useState('');
   const [message, setMessage] = useState('Indovina il numero tra 1 e 100!');
   
-  // New state to track visual hint direction
   const [hintDirection, setHintDirection] = useState<'UP' | 'DOWN' | null>(null);
-
   const [attempts, setAttempts] = useState(0);
   const [won, setWon] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [history, setHistory] = useState<{val: number, hint: 'high'|'low'}[]>([]);
   const [rewardGiven, setRewardGiven] = useState(false);
   const [earnedTokens, setEarnedTokens] = useState(0);
   
-  // Token State
   const [currentTokens, setCurrentTokens] = useState(0);
+
+  const MAX_ATTEMPTS = 5;
 
   useEffect(() => {
       try {
@@ -38,13 +36,12 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
       } catch (e) { console.error(e); }
   }, []);
 
-  // Update tokens locally when reward is given
   useEffect(() => {
       if (rewardGiven) {
           try {
               const p = getProgress();
               setCurrentTokens(p ? p.tokens : 0);
-      } catch (e) { console.error(e); }
+          } catch (e) { console.error(e); }
       }
   }, [rewardGiven]);
 
@@ -57,29 +54,37 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
       
       if (val === target) {
           setWon(true);
+          setIsGameOver(true);
           setHintDirection(null);
           
-          if (currentAttempt <= 5) {
-              if (onEarnTokens && !rewardGiven) {
-                  onEarnTokens(10);
-                  setEarnedTokens(10);
-                  setRewardGiven(true);
-                  // INSTANT UI UPDATE
-                  setCurrentTokens(prev => prev + 10);
-              }
-              setMessage(`🎉 MITICO! Era proprio il numero ${target}!`);
-          } else {
-              setMessage(`👏 Bravo! Era il numero ${target}!`);
+          if (onEarnTokens && !rewardGiven) {
+              onEarnTokens(10);
+              setEarnedTokens(10);
+              setRewardGiven(true);
+              setCurrentTokens(prev => prev + 10);
           }
+          setMessage(`🎉 MITICO! Era proprio il numero ${target}!`);
 
-      } else if (val < target) {
-          setMessage('Troppo BASSO! Prova a salire.');
-          setHintDirection('UP');
-          setHistory(prev => [{val, hint: 'low'}, ...prev]);
       } else {
-          setMessage('Troppo ALTO! Scendi un po\'.');
-          setHintDirection('DOWN');
-          setHistory(prev => [{val, hint: 'high'}, ...prev]);
+          // Non ha indovinato
+          if (currentAttempt >= MAX_ATTEMPTS) {
+              // FINE TENTATIVI
+              setWon(false);
+              setIsGameOver(true);
+              setHintDirection(null);
+              setMessage(`Peccato! Il numero era ${target}.`);
+          } else {
+              // CONTINUA A GIOCARE CON SUGGERIMENTO
+              if (val < target) {
+                  setMessage('Troppo BASSO! Sali!');
+                  setHintDirection('UP');
+                  setHistory(prev => [{val, hint: 'low'}, ...prev]);
+              } else {
+                  setMessage('Troppo ALTO! Scendi!');
+                  setHintDirection('DOWN');
+                  setHistory(prev => [{val, hint: 'high'}, ...prev]);
+              }
+          }
       }
       setGuess('');
   };
@@ -91,132 +96,140 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
       setHintDirection(null);
       setAttempts(0);
       setWon(false);
+      setIsGameOver(false);
       setHistory([]);
       setRewardGiven(false);
       setEarnedTokens(0);
   };
 
-  // WRAPPER STYLE FOR FULL SCREEN (NO SCROLL)
-  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-hidden bg-cover bg-center z-[60]";
+  const wrapperStyle = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
   return (
-    <div 
-        className={wrapperStyle}
-        style={{ backgroundImage: `url(${GUESS_BG})` }}
-    >
-      {/* BACK BUTTON */}
-      <div className="absolute top-4 left-4 z-50">
-          <button 
-              onClick={onBack} 
-              className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-          >
-              <img 
-                  src={EXIT_BTN_IMG} 
-                  alt="Ritorna al Parco" 
-                  className="h-12 w-auto drop-shadow-md" 
-              />
-          </button>
+    <div className={wrapperStyle}>
+      <img 
+          src={GUESS_BG} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" 
+          draggable={false}
+      />
+
+      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
+          <div className="pointer-events-auto">
+              <button 
+                  onClick={onBack} 
+                  className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation"
+              >
+                  <img 
+                      src={EXIT_BTN_IMG} 
+                      alt="Ritorna al Parco" 
+                      className="h-12 w-auto" 
+                  />
+              </button>
+          </div>
+
+          <div className="pointer-events-auto">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                </div>
+          </div>
       </div>
 
-      {/* TOP RIGHT TOKEN COUNTER */}
-      <div className="absolute top-4 right-4 z-50 pointer-events-none">
-           <div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg">
-               <span>{currentTokens}</span> <span className="text-xl">🪙</span>
-           </div>
-      </div>
-
-      {/* MAIN CONTAINER - FLEX CENTERED, NO SCROLL */}
-      <div className="w-full h-full flex flex-col items-center justify-center relative p-4 pb-16">
-          
-          {/* HEADER IMAGE - Enlarged */}
-          <img 
-               src={TITLE_IMG} 
-               alt="Indovina il Numero" 
-               className="h-28 md:h-40 w-auto mb-6 relative z-10 hover:scale-105 transition-transform duration-300 shrink-0"
-               style={{
-                   filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)'
-               }}
-           />
-
-          {/* INTEGRATED GAME AREA */}
-          <div className="w-[95%] max-w-xl flex flex-col items-center relative z-10">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-[132px] md:pt-[176px] px-4 overflow-hidden">
+          <div className="w-full max-w-xl flex flex-col items-center relative z-10">
              
-             {!won && (
-                 <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border-4 border-orange-500 mb-4 w-full shadow-[0_4px_0_#c2410c] transform rotate-[-1deg] max-w-sm shrink-0">
-                     <p className="text-orange-900 font-bold text-xs md:text-sm text-center leading-tight">
-                         Indovina in <span className="text-red-600 font-black">5 tentativi</span> per vincere <span className="text-black font-black">10 gettoni</span>!
+             {!isGameOver && (
+                 <div className="w-full text-center animate-in slide-in-from-top-4 duration-500">
+                     <p 
+                        className="font-luckiest text-white uppercase tracking-wide leading-tight text-xl md:text-4xl"
+                        style={{ 
+                            WebkitTextStroke: '1.5px black',
+                            textShadow: '3px 3px 0px rgba(0,0,0,0.5)'
+                        }}
+                     >
+                         Indovina in <span className="text-yellow-400">5 tentativi</span> <br className="md:hidden" /> per vincere <span className="text-yellow-400">10 gettoni</span>!
                      </p>
-                     <p className="text-gray-600 text-[10px] font-bold mt-0.5 uppercase tracking-wide text-center">
-                         Tentativo attuale: <span className="text-blue-600 text-lg font-black">{attempts + 1}</span>
+                     <p 
+                        className="font-luckiest text-white text-sm md:text-xl mt-1 uppercase tracking-widest flex items-center justify-center gap-1"
+                        style={{ 
+                            WebkitTextStroke: '1px black',
+                            textShadow: '2px 2px 0px rgba(0,0,0,0.3)'
+                        }}
+                     >
+                         Tentativo attuale: <span className="text-cyan-300 text-lg md:text-3xl ml-1">{attempts + 1}</span>
                      </p>
+
+                     <div className="mt-0 min-h-[3rem] flex items-center justify-center w-full px-2 relative">
+                        <div className="flex items-center gap-4 relative z-20">
+                            <p 
+                                className={`font-luckiest text-base md:text-2xl leading-tight text-center drop-shadow-md ${won ? 'text-green-500 animate-bounce' : 'text-white'}`}
+                                style={{ 
+                                    WebkitTextStroke: '1.2px black',
+                                    textShadow: '2px 2px 0px rgba(0,0,0,0.5)'
+                                }}
+                            >
+                                {message}
+                            </p>
+                            
+                            {hintDirection === 'UP' && (
+                                <div className="flex flex-col items-center animate-bounce scale-75 md:scale-90">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-400 rounded-full border-4 border-red-600 flex items-center justify-center shadow-[0_4px_0_#991b1b]">
+                                        <ArrowUp size={24} className="text-red-600" strokeWidth={4} />
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {hintDirection === 'DOWN' && (
+                                <div className="flex flex-col items-center animate-bounce scale-75 md:scale-90">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-400 rounded-full border-4 border-red-600 flex items-center justify-center shadow-[0_4px_0_#991b1b]">
+                                        <ArrowDown size={24} className="text-red-600" strokeWidth={4} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                  </div>
              )}
 
-             {/* MESSAGE AREA WITH CARTOON ICONS */}
-             <div className="mb-6 min-h-[5rem] flex items-center justify-center w-full px-2 shrink-0 relative">
-                 <div className="flex items-center gap-4 relative z-20">
-                     <p 
-                        className={`text-xl md:text-3xl font-black leading-tight text-center drop-shadow-md ${won ? 'text-green-500 animate-bounce' : 'text-red-600'}`}
-                        style={{ textShadow: '2px 2px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff' }}
-                     >
-                         {message}
-                     </p>
-                     
-                     {/* Dynamic Cartoon Icons for Hints */}
-                     {hintDirection === 'UP' && (
-                         <div className="flex flex-col items-center animate-bounce">
-                             <div className="w-14 h-14 bg-yellow-400 rounded-full border-4 border-red-600 flex items-center justify-center shadow-[0_4px_0_#991b1b]">
-                                <ArrowUp size={36} className="text-red-600" strokeWidth={4} />
-                             </div>
-                             <span className="bg-red-600 text-white text-[10px] font-black px-2 rounded-full -mt-2 z-10 border-2 border-white shadow-sm">SALI!</span>
-                         </div>
-                     )}
-                     
-                     {hintDirection === 'DOWN' && (
-                         <div className="flex flex-col items-center animate-bounce">
-                             <div className="w-14 h-14 bg-yellow-400 rounded-full border-4 border-red-600 flex items-center justify-center shadow-[0_4px_0_#991b1b]">
-                                <ArrowDown size={36} className="text-red-600" strokeWidth={4} />
-                             </div>
-                             <span className="bg-red-600 text-white text-[10px] font-black px-2 rounded-full -mt-2 z-10 border-2 border-white shadow-sm">SCENDI!</span>
-                         </div>
-                     )}
-                 </div>
-             </div>
+             {!isGameOver ? (
+                 <div className="flex flex-col items-center mt-56 md:mt-72 w-full animate-fade-in px-4 shrink-0">
+                     <div className="bg-white/20 backdrop-blur-[20px] py-2 px-6 md:py-3 md:px-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-row gap-6 items-center w-full max-w-[280px] md:max-w-[350px] justify-center">
+                         <button 
+                            onClick={handleGuess}
+                            className="w-24 md:w-36 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center shrink-0"
+                         >
+                             <img src={BTN_PROVA_IMG} alt="Prova" className="w-full h-auto drop-shadow-xl" />
+                         </button>
 
-             {!won ? (
-                 <div className="flex gap-4 justify-center items-center mb-6 w-full max-w-xs shrink-0">
-                     {/* INPUT */}
-                     <input 
-                        type="number" 
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={guess}
-                        onChange={(e) => setGuess(e.target.value)}
-                        placeholder="?"
-                        // [appearance:textfield] and inner/outer spin-button removal hides the arrows
-                        className="w-20 h-20 text-center text-3xl md:text-4xl font-black border-4 border-white rounded-2xl focus:border-orange-400 outline-none m-0 text-black bg-white/90 placeholder-gray-400 shadow-xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        onKeyDown={(e) => e.key === 'Enter' && handleGuess()}
-                     />
-                     {/* BUTTON IMAGE */}
-                     <button 
-                        onClick={handleGuess}
-                        className="flex-1 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center"
-                     >
-                         <img src={BTN_PROVA_IMG} alt="Prova" className="w-[75%] h-auto drop-shadow-xl" />
-                     </button>
+                         <input 
+                            type="number" 
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={guess}
+                            onChange={(e) => setGuess(e.target.value)}
+                            placeholder="?"
+                            className="w-16 h-16 md:w-20 md:h-20 text-center text-3xl md:text-4xl font-black border-4 border-white rounded-2xl focus:border-orange-400 outline-none m-0 text-black bg-white/90 placeholder-gray-400 shadow-xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shrink-0"
+                            onKeyDown={(e) => e.key === 'Enter' && handleGuess()}
+                         />
+                     </div>
                  </div>
              ) : (
-                 <div className="flex flex-col items-center w-full animate-in zoom-in shrink-0">
-                     
-                     {earnedTokens > 0 ? (
+                 <div className="flex flex-col items-center w-full animate-in zoom-in shrink-0 mt-6 md:mt-10">
+                     {won ? (
                          <div className="bg-yellow-400 text-black px-6 py-3 rounded-2xl font-black text-xl border-4 border-black mb-6 shadow-xl transform rotate-[-2deg] animate-pulse">
                              <Trophy className="inline mr-2" size={24} />
                              +10 GETTONI!
                          </div>
                      ) : (
-                         <div className="bg-white/90 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm border-4 border-gray-300 mb-6 shadow-lg text-center transform rotate-1">
-                             Peccato! Hai usato più di 5 tentativi.<br/>Niente gettoni questa volta.
-                         </div>
+                         <p 
+                            className="font-luckiest text-white text-lg md:text-3xl leading-tight text-center drop-shadow-md mb-8 px-4"
+                            style={{ 
+                                WebkitTextStroke: '1.2px black',
+                                textShadow: '2px 2px 0px rgba(0,0,0,0.5)'
+                            }}
+                         >
+                            PECCATO! Hai usato più di 5 tentativi.<br/>
+                            <span className="text-gray-300 text-base md:text-xl">Niente gettoni questa volta.</span>
+                         </p>
                      )}
 
                      <button 
@@ -228,11 +241,11 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
                  </div>
              )}
 
-             {history.length > 0 && (
-                 <div className="w-full mt-0 pt-2 border-t-4 border-white/20 max-w-md shrink-0">
+             {!isGameOver && history.length > 0 && (
+                 <div className="w-full mt-4 pt-2 border-t-4 border-white/20 max-w-md shrink-0">
                      <p className="text-white font-black text-xs uppercase tracking-widest mb-2 drop-shadow-md text-center" style={{ textShadow: '1px 1px 0 #000' }}>PRECEDENTI:</p>
-                     <div className="flex flex-wrap justify-center gap-2 max-h-[100px] overflow-y-auto">
-                         {history.slice(0, 8).map((h, i) => (
+                     <div className="flex flex-wrap justify-center gap-2 max-h-[100px] overflow-y-auto custom-scrollbar">
+                         {history.slice(0, 5).map((h, i) => (
                              <div key={i} className={`flex items-center gap-1 px-3 py-1 rounded-lg text-white font-black text-sm border-b-4 shadow-md animate-in slide-in-from-top-2 ${h.hint === 'low' ? 'bg-blue-500 border-blue-700' : 'bg-red-500 border-red-700'}`}>
                                  {h.val} {h.hint === 'low' ? <ArrowUp size={16} strokeWidth={4}/> : <ArrowDown size={16} strokeWidth={4}/>}
                              </div>

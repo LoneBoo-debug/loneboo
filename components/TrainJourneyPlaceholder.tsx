@@ -4,8 +4,8 @@ import { AppView } from '../types';
 import { X } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 
-const MAP_BG_MOBILE = 'https://i.postimg.cc/xC47Y3X9/mappa-ellecitties.jpg';
-const MAP_BG_DESKTOP = 'https://i.postimg.cc/wMJdGG0W/mapdsfertss.jpg';
+const MAP_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/train-journey-mobile.webp';
+const MAP_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/train-journey-desktop.webp';
 
 interface TrainJourneyPlaceholderProps {
     setView: (view: AppView) => void;
@@ -32,7 +32,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     }, []);
 
     return (
-        <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden">
+        <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-sky-900">
             
             {!isLoaded && (
                 <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-sky-900/95 backdrop-blur-md">
@@ -52,15 +52,15 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <img 
                     src={MAP_BG_MOBILE} 
                     alt="" 
-                    className={`block md:hidden w-full h-full object-cover object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`block md:hidden w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                 />
                 <img 
                     src={MAP_BG_DESKTOP} 
                     alt="" 
-                    className={`hidden md:block w-full h-full object-cover object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`hidden md:block w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                 />
                 {/* Overlay scurito leggero per far risaltare il testo bianco */}
-                <div className="absolute inset-0 bg-black/15"></div>
+                <div className="absolute inset-0 bg-black/5"></div>
             </div>
             
             {/* FLOATING CLOSE BUTTON (TOP RIGHT) */}
@@ -72,9 +72,9 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <X size={28} strokeWidth={4} />
             </button>
 
-            {/* CENTERED CARTOON TEXT */}
+            {/* CENTERED CARTOON TEXT - NOW FIXED WITHOUT BOUNCE */}
             <div className="relative z-10 p-8 text-center pointer-events-none flex flex-col items-center justify-center h-full">
-                <div className="animate-bounce">
+                <div className="transform transition-transform duration-500">
                     <h2 
                         className="text-5xl md:text-8xl font-luckiest text-white uppercase tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] leading-tight"
                         style={{ 
@@ -86,8 +86,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     </h2>
                 </div>
             </div>
-
-            {/* Rimosse le decorazioni inferiori (bande grigie) che disturbavano l'immagine */}
         </div>
     );
 };

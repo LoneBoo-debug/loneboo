@@ -1,337 +1,217 @@
+
 import React, { useState, useEffect } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { BOOKS_DATABASE } from '../services/booksDatabase';
-import { ShoppingCart, Star, X, Loader2, BookOpen } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Book, AppView } from '../types';
-import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
 
-const LIBRARY_BG_MOBILE = 'https://i.postimg.cc/L4GpYBGK/bibliot.jpg';
-const LIBRARY_BG_DESKTOP = 'https://i.postimg.cc/52wDc7cS/biblio169.jpg';
-const AMAZON_STORE_URL = 'https://www.amazon.it/stores/Lone-Boo/author/B0G3JTJSTB?ref=sr_ntt_srch_lnk_3&qid=1765027075&sr=8-3&isDramIntegrated=true&shoppingPortalEnabled=true';
+const LIBRARY_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/library.webp';
+const AMAZON_STORE_URL = 'https://www.amazon.it/stores/Lone-Boo/author/B0G3JTJSTB';
+const BTN_LIBRERIA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-library-shelf.webp';
+const BTN_SEE_AMAZON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-amazon.webp';
 
 type Point = { x: number; y: number };
 type ZoneConfig = {
-    id: string; 
+    id: string;
+    name: string;
     points: Point[];
 };
 
-// ZONE CALIBRATE (MOBILE)
-const ZONES_MOBILE: ZoneConfig[] = [
-  {
-    "id": "book3",
-    "points": [
-      { "x": 41.58, "y": 8.08 },
-      { "x": 57.84, "y": 8.08 },
-      { "x": 57.84, "y": 27.1 },
-      { "x": 41.58, "y": 27.1 }
-    ]
-  },
+// --- COORDINATE CALIBRATE ---
+const ZONES_DATA: ZoneConfig[] = [
   {
     "id": "book1",
-    "points": [
-      { "x": 40.98, "y": 39.33 },
-      { "x": 57.97, "y": 39.15 },
-      { "x": 57.97, "y": 56.57 },
-      { "x": 41.31, "y": 56.39 }
-    ]
+    "name": "Libro: Concerto Vita",
+    "points": [{ "x": 11.47, "y": 22.49 }, { "x": 12.53, "y": 32.23 }, { "x": 21.87, "y": 32.83 }, { "x": 20.27, "y": 23.54 }]
   },
   {
     "id": "book2",
-    "points": [
-      { "x": 40.25, "y": 69.81 },
-      { "x": 40.51, "y": 87.76 },
-      { "x": 58.9, "y": 87.94 },
-      { "x": 59.17, "y": 69.63 }
-    ]
+    "name": "Libro: Enigmi",
+    "points": [{ "x": 25.87, "y": 24.44 }, { "x": 26.93, "y": 33.28 }, { "x": 35.73, "y": 33.43 }, { "x": 34.4, "y": 25.19 }]
   },
-  {
-    "id": "amazon_link_1",
-    "points": [
-      { "x": 5.86, "y": 44.15 },
-      { "x": 12.79, "y": 53.66 },
-      { "x": 32.52, "y": 45.76 },
-      { "x": 26.12, "y": 37.69 }
-    ]
-  },
-  {
-    "id": "amazon_link_2",
-    "points": [
-      { "x": 21.06, "y": 30.15 },
-      { "x": 21.06, "y": 35 },
-      { "x": 32.25, "y": 35.71 },
-      { "x": 31.98, "y": 30.51 }
-    ]
-  }
-];
-
-// ZONE DEFINITIVE (DESKTOP)
-const ZONES_DESKTOP: ZoneConfig[] = [
   {
     "id": "book3",
-    "points": [
-      { "x": 46.28, "y": 7.61 },
-      { "x": 46.28, "y": 27.54 },
-      { "x": 53.51, "y": 27.8 },
-      { "x": 53.62, "y": 7.08 }
-    ]
+    "name": "Libro: Avventure",
+    "points": [{ "x": 11.47, "y": 38.23 }, { "x": 12.27, "y": 46.63 }, { "x": 21.6, "y": 46.78 }, { "x": 20.8, "y": 38.53 }]
   },
   {
-    "id": "book1",
-    "points": [
-      { "x": 45.95, "y": 39.34 },
-      { "x": 45.95, "y": 57.96 },
-      { "x": 53.96, "y": 57.7 },
-      { "x": 53.85, "y": 39.6 }
-    ]
+    "id": "amazon_store",
+    "name": "Store Amazon",
+    "points": [{ "x": 44, "y": 50.07 }, { "x": 50.4, "y": 57.72 }, { "x": 72.27, "y": 56.97 }, { "x": 64, "y": 49.18 }]
   },
   {
-    "id": "book2",
-    "points": [
-      { "x": 46.17, "y": 70.55 },
-      { "x": 46.06, "y": 88.13 },
-      { "x": 53.74, "y": 88.13 },
-      { "x": 53.74, "y": 70.55 }
-    ]
-  },
-  {
-    "id": "amazon_link_1",
-    "points": [
-      { "x": 31.27, "y": 43.8 },
-      { "x": 34.54, "y": 54.82 },
-      { "x": 43.35, "y": 46.42 },
-      { "x": 40.3, "y": 37.77 }
-    ]
-  },
-  {
-    "id": "amazon_link_2",
-    "points": [
-      { "x": 38.16, "y": 30.42 },
-      { "x": 38.04, "y": 36.98 },
-      { "x": 42.79, "y": 36.98 },
-      { "x": 42.67, "y": 29.38 }
-    ]
+    "id": "back_city",
+    "name": "Torna in Città",
+    "points": [{ "x": 5.87, "y": 76.01 }, { "x": 6.13, "y": 87.86 }, { "x": 32.8, "y": 82.91 }, { "x": 32, "y": 72.86 }]
   }
 ];
-
-const BookDetailsModal: React.FC<{ book: Book; onClose: () => void }> = ({ book, onClose }) => {
-    
-    // Fallback Handler
-    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-        const target = e.currentTarget;
-        const currentSrc = target.getAttribute('src') || '';
-        const originalUrl = Object.keys(LOCAL_ASSET_MAP).find(key => LOCAL_ASSET_MAP[key] === currentSrc || (currentSrc.startsWith(window.location.origin) && currentSrc.endsWith(LOCAL_ASSET_MAP[key])));
-        
-        if (originalUrl && currentSrc !== originalUrl) {
-            target.src = originalUrl;
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-300 backdrop-blur-sm" onClick={onClose}>
-            <div className="relative w-full max-w-lg bg-white rounded-[30px] md:rounded-[40px] border-4 border-black shadow-[0_0_50px_rgba(251,191,36,0.6)] animate-in zoom-in duration-300 flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
-                
-                <div className="absolute top-2 right-2 z-50">
-                    <button 
-                        onClick={onClose}
-                        className="bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-90 transition-transform shadow-lg"
-                    >
-                        <X size={20} strokeWidth={3} />
-                    </button>
-                </div>
-
-                <div className="overflow-y-auto p-6 md:p-8 flex flex-col items-center custom-scrollbar w-full">
-                    <div className="w-32 h-48 md:w-40 md:h-56 flex-shrink-0 relative group mb-6 mt-4">
-                       <div className="absolute inset-0 bg-black/30 rounded-r-lg transform rotate-[-6deg] translate-x-3 translate-y-3 blur-sm"></div>
-                       <div className="relative w-full h-full transform rotate-[-6deg] transition-transform duration-300 hover:rotate-0 hover:scale-105">
-                          <div className="absolute top-[2px] bottom-[2px] -left-3 w-4 bg-gray-900 border-l border-gray-700 rounded-l-sm transform skew-y-[0deg]"></div>
-                          <img 
-                            src={book.coverImage} 
-                            alt={book.title} 
-                            className="relative w-full h-full object-cover rounded-r-md border-r-2 border-b-2 border-t-2 border-white/20 shadow-[inset_4px_0_10px_rgba(0,0,0,0.3)]"
-                            onError={handleImageError}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-tr from-black/10 via-transparent to-white/20 pointer-events-none rounded-r-md"></div>
-                          <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-black/20 to-transparent"></div>
-                       </div>
-                    </div>
-
-                    <h3 className="text-xl md:text-3xl font-black text-gray-800 mb-2 leading-tight text-center">{book.title}</h3>
-                    {book.subtitle && (
-                        <p className="text-boo-purple font-black text-base md:text-lg mb-3 leading-tight text-center uppercase tracking-wide">{book.subtitle}</p>
-                    )}
-                    <div className="flex justify-center gap-1 mb-4">
-                        {[1,2,3,4,5].map(s => <Star key={s} size={24} className="text-yellow-400 fill-current" />)}
-                    </div>
-
-                    <div className="text-gray-600 font-medium mb-8 text-sm md:text-base leading-relaxed text-left w-full">
-                        {book.description}
-                    </div>
-
-                    <a 
-                        href={book.amazonUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 bg-yellow-400 text-black text-lg font-black px-8 py-4 rounded-full border-4 border-black hover:scale-105 active:scale-95 transition-all shadow-[4px_4px_0px_0px_black] active:shadow-none active:translate-y-1 shrink-0"
-                    >
-                        <ShoppingCart size={24} strokeWidth={3} />
-                        LO VOGLIO!
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 interface BookShelfProps {
     setView: (view: AppView) => void;
 }
 
 const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [activeBook, setActiveBook] = useState<Book | null>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  useEffect(() => {
-      const imgMobile = new Image();
-      imgMobile.src = LIBRARY_BG_MOBILE;
-      const imgDesktop = new Image();
-      imgDesktop.src = LIBRARY_BG_DESKTOP;
+    useEffect(() => {
+        const img = new Image();
+        img.src = LIBRARY_BG_MOBILE;
+        img.onload = () => setIsLoaded(true);
+        setTimeout(() => setIsLoaded(true), 2000);
+        window.scrollTo(0, 0);
+    }, []);
 
-      let loadedCount = 0;
-      const checkLoad = () => {
-          loadedCount++;
-          if (loadedCount >= 1) setIsLoaded(true);
-      };
+    const handleZoneInteraction = (zoneId: string) => {
+        if (zoneId.startsWith('book')) {
+            const book = BOOKS_DATABASE.find(b => b.id === zoneId);
+            if (book) setSelectedBook(book);
+        } else if (zoneId === 'amazon_store') {
+            window.open(AMAZON_STORE_URL, '_blank');
+        } else if (zoneId === 'back_city') {
+            setView(AppView.CITY_MAP);
+        }
+    };
 
-      imgMobile.onload = checkLoad;
-      imgDesktop.onload = checkLoad;
+    const getClipPath = (points: Point[]) => {
+        if (points.length < 3) return 'none';
+        return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    };
 
-      setTimeout(() => setIsLoaded(true), 1500);
+    const getBoundingBox = (points: Point[]) => {
+        if (points.length === 0) return null;
+        const xs = points.map(p => p.x);
+        const ys = points.map(p => p.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        return {
+            left: `${minX}%`,
+            top: `${minY}%`,
+            width: `${maxX - minX}%`,
+            height: `${maxY - minY}%`,
+            minX, minY, maxX, maxY
+        };
+    };
 
-      window.scrollTo(0, 0);
-  }, []); 
+    const getRelativeClipPath = (points: Point[], box: any) => {
+        const { minX, minY, maxX, maxY } = box;
+        const w = maxX - minX;
+        const h = maxY - minY;
+        if (w === 0 || h === 0) return 'none';
+        const relPoints = points.map(p => {
+            const rx = ((p.x - minX) / w) * 100;
+            const ry = ((p.y - minY) / h) * 100;
+            return `${rx}% ${ry}%`;
+        });
+        return `polygon(${relPoints.join(', ')})`;
+    };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      const target = e.currentTarget;
-      const currentSrc = target.getAttribute('src') || '';
-      const originalUrl = Object.keys(LOCAL_ASSET_MAP).find(key => LOCAL_ASSET_MAP[key] === currentSrc || (currentSrc.startsWith(window.location.origin) && currentSrc.endsWith(LOCAL_ASSET_MAP[key])));
-      
-      if (originalUrl && currentSrc !== originalUrl) {
-          target.src = originalUrl;
-      }
-  };
+    return (
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-amber-900 overflow-hidden touch-none overscroll-none select-none">
+            
+            {!isLoaded && (
+                <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-amber-900/95 backdrop-blur-md">
+                    <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
+                </div>
+            )}
 
-  const getPositioning = (points: Point[]) => {
-      if (points.length < 3) return null;
-      const xs = points.map(p => p.x);
-      const ys = points.map(p => p.y);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-      const width = maxX - minX;
-      const height = maxY - minY;
-      const localPoints = points.map(p => {
-          const lx = ((p.x - minX) / width) * 100;
-          const ly = ((p.y - minY) / height) * 100;
-          return `${lx}% ${ly}%`;
-      });
-      return {
-          style: {
-              top: `${minY}%`,
-              left: `${minX}%`,
-              width: `${width}%`,
-              height: `${height}%`,
-              clipPath: `polygon(${localPoints.join(', ')})`
-          }
-      };
-  };
+            {/* BACKGROUND LAYER */}
+            <div className="absolute inset-0 z-0 w-full h-full cursor-default">
+                <img src={LIBRARY_BG_MOBILE} alt="Biblioteca" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
 
-  const getSimpleClipPath = (points: Point[]) => {
-      const poly = points.map(p => `${p.x}% ${p.y}%`).join(', ');
-      return `polygon(${poly})`;
-  };
+                {/* AREA INTERATTIVA CON MINIATURE LIBRI */}
+                {isLoaded && ZONES_DATA.map(zone => {
+                    const book = zone.id.startsWith('book') ? BOOKS_DATABASE.find(b => b.id === zone.id) : null;
+                    const box = getBoundingBox(zone.points);
+                    
+                    if (book && box) {
+                        return (
+                            <div
+                                key={zone.id}
+                                onClick={(e) => { e.stopPropagation(); handleZoneInteraction(zone.id); }}
+                                className="absolute cursor-pointer hover:brightness-110 transition-all shadow-sm"
+                                style={{ 
+                                    left: box.left, 
+                                    top: box.top, 
+                                    width: box.width, 
+                                    height: box.height, 
+                                    clipPath: getRelativeClipPath(zone.points, box) 
+                                }}
+                            >
+                                <img src={book.coverImage} className="w-full h-full object-cover" alt={book.title} />
+                            </div>
+                        );
+                    }
 
-  const renderZones = (zones: ZoneConfig[], isDesktop: boolean) => {
-      return zones.map((zone) => {
-          const book = BOOKS_DATABASE.find(b => b.id === zone.id);
-          
-          if (book) {
-              const pos = getPositioning(zone.points);
-              if (!pos) return null;
-              return (
-                  <div
-                      key={zone.id}
-                      onClick={(e) => { e.stopPropagation(); setActiveBook(book); }}
-                      className="absolute group z-20 cursor-pointer"
-                      style={pos.style}
-                      title={book.title}
-                  >
-                      <img 
-                          src={book.coverImage} 
-                          alt={book.title} 
-                          className="w-full h-full object-fill transform transition-transform duration-300 group-hover:scale-105 relative z-10"
-                          onError={handleImageError}
-                      />
-                  </div>
-              );
-          } 
-          else if (zone.id.startsWith('amazon_link')) {
-              if (zone.points.length < 3) return null;
-              return (
-                  <a
-                      key={zone.id}
-                      href={AMAZON_STORE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute group z-20 cursor-pointer"
-                      style={{ clipPath: getSimpleClipPath(zone.points), inset: 0 }}
-                      title="Vai allo Store Amazon"
-                  ></a>
-              );
-          }
-          return null;
-      });
-  };
-
-  return (
-    <div className="relative w-full h-[calc(100vh-75px)] md:h-[calc(100vh-106px)] bg-amber-900 overflow-hidden flex flex-col">
-        {!isLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-amber-900/90 backdrop-blur-md">
-                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
-                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
-                    STO CARICANDO...
-                </span>
-            </div>
-        )}
-
-        <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden w-full h-full relative">
-                <img src={LIBRARY_BG_MOBILE} alt="Biblioteca Mobile" className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} onError={handleImageError} />
-                {isLoaded && renderZones(ZONES_MOBILE, false)}
-            </div>
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
-                <img src={LIBRARY_BG_DESKTOP} alt="Biblioteca Desktop" className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} onError={handleImageError} />
-                {isLoaded && renderZones(ZONES_DESKTOP, true)}
+                    return (
+                        <div key={zone.id} onClick={(e) => { e.stopPropagation(); handleZoneInteraction(zone.id); }} className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors" style={{ clipPath: getClipPath(zone.points) }} />
+                    );
+                })}
             </div>
 
-            {/* PULSANTE VAI AI LIBRI - In basso a destra */}
-            {isLoaded && (
+            {/* TASTO VISIVO LIBRERIA (DESTRA) */}
+            <div className="absolute top-[58%] right-6 md:right-12 z-40">
                 <button 
                     onClick={() => setView(AppView.BOOKS_LIST)}
-                    className="absolute bottom-5 right-2 md:bottom-10 md:right-4 z-30 hover:scale-110 active:scale-95 transition-all outline-none group flex flex-col items-center gap-1"
+                    className="outline-none group"
                 >
                     <img 
-                        src="https://i.postimg.cc/gkmFGw6M/LIBRERIA-(1).png" 
+                        src={BTN_LIBRERIA_IMG} 
                         alt="Vai alla Libreria" 
-                        className="w-40 md:w-64 h-auto drop-shadow-2xl" 
+                        className="w-24 md:w-40 lg:w-48 h-auto drop-shadow-2xl" 
                     />
                 </button>
+            </div>
+
+            {/* MODALE DETTAGLI LIBRO */}
+            {selectedBook && (
+                <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in" onClick={() => setSelectedBook(null)}>
+                    <style>{`
+                        .no-scrollbar::-webkit-scrollbar { display: none; }
+                        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                    `}</style>
+                    <div className="bg-white w-full max-w-lg rounded-[40px] border-8 border-blue-500 p-6 shadow-2xl relative animate-in zoom-in flex flex-col h-[75vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+                        
+                        <button onClick={() => setSelectedBook(null)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all shadow-lg z-[450] flex items-center justify-center"><X size={24} strokeWidth={4} /></button>
+                        
+                        {/* Area Contenuto Scrollabile ma senza scrollbar visibile */}
+                        <div className="flex-1 overflow-y-auto no-scrollbar pr-0">
+                            <div className="flex flex-col items-center mb-6 pt-2">
+                                <div className="w-48 md:w-64 aspect-[3/4] rounded-2xl overflow-hidden border-4 border-black shadow-2xl mb-4 transform -rotate-2">
+                                    <img src={selectedBook.coverImage} alt={selectedBook.title} className="w-full h-full object-cover" />
+                                </div>
+                                <h3 className="text-2xl md:text-3xl font-black text-blue-700 uppercase leading-none text-center mb-1">{selectedBook.title}</h3>
+                                <span className="bg-orange-400 text-white px-3 py-1 rounded-full font-black text-xs uppercase shadow-sm">{selectedBook.subtitle}</span>
+                            </div>
+
+                            <div className="bg-blue-50 p-4 rounded-3xl border-2 border-blue-100 mb-6">
+                                 <p className="text-gray-700 font-bold text-sm md:text-base leading-relaxed whitespace-pre-wrap">{selectedBook.description}</p>
+                            </div>
+                        </div>
+
+                        {/* Footer con tasto immagine Amazon ridimensionato */}
+                        <div className="pt-4 mt-auto border-t-2 border-gray-100 flex justify-center shrink-0">
+                            <a 
+                                href={selectedBook.amazonUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="w-full max-w-[200px] hover:scale-105 active:scale-95 transition-transform outline-none"
+                            >
+                                <img 
+                                    src={BTN_SEE_AMAZON_IMG} 
+                                    alt="Vedi su Amazon" 
+                                    className="w-full h-auto drop-shadow-xl" 
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
-
-        {activeBook && <BookDetailsModal book={activeBook} onClose={() => setActiveBook(null)} />}
-    </div>
-  );
+    );
 };
 
 export default BookShelf;

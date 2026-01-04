@@ -1,4 +1,3 @@
-
 export interface Video {
   id: string;
   title: string;
@@ -47,6 +46,7 @@ export enum AppView {
   GUIDE = 'GUIDE', // NEW: User Guide Page
   CONTACT = 'CONTACT', // NEW: Contacts Page
   SERVICE_PAGE = 'SERVICE_PAGE', // NEW: Internal Tool for Migration
+  NEWSSTAND = 'NEWSSTAND', // NEW: Newsstand as a full page
   
   // BOO HOUSE ROOMS
   BOO_GARDEN = 'BOO_GARDEN',
@@ -75,7 +75,14 @@ export enum AppView {
   
   // NEW PAGE
   SVEGLIA_BOO = 'SVEGLIA_BOO',
-  TRAIN_JOURNEY = 'TRAIN_JOURNEY'
+  TRAIN_JOURNEY = 'TRAIN_JOURNEY',
+  
+  // NEW LIBRARY PAGES
+  LIBRARY_READ = 'LIBRARY_READ',
+  LIBRARY_CARDS = 'LIBRARY_CARDS',
+  LIBRARY_SCOPA = 'LIBRARY_SCOPA',
+  LIBRARY_UNO = 'LIBRARY_UNO',
+  LIBRARY_SOLITARIO = 'LIBRARY_SOLITARIO'
 }
 
 export interface ChatMessage {

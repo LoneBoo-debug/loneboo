@@ -1,24 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Timer, Trophy, Play, Settings, Lock, Brain, Zap, ArrowLeft } from 'lucide-react';
+import { Timer, Trophy, Heart, XCircle, AlertTriangle } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
+import { INTRUSO_DATABASE, IntrusoItem } from '../services/dbIntruso';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
-const EMOJIS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵'];
-const TITLE_IMG = 'https://i.postimg.cc/MZcdc8G6/intru-(1).png';
-const BTN_EASY_IMG = 'https://i.postimg.cc/MpVqCtbx/facile.png';
-const BTN_MEDIUM_IMG = 'https://i.postimg.cc/3x5HFmMp/intermedio.png';
-const BTN_HARD_IMG = 'https://i.postimg.cc/tRsTr3f4/difficile.png';
-const LOCK_IMG = 'https://i.postimg.cc/3Nz0wMj1/lucchetto.png'; // New Lock Image
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp'; 
 const BTN_PLAY_AGAIN_IMG = 'https://i.postimg.cc/fyF07TTv/tasto-gioca-ancora-(1).png';
-const BTN_BACK_MENU_IMG = 'https://i.postimg.cc/Dw1bshV7/tasto-torna-al-menu-(1).png';
-const BTN_RETRY_IMG = 'https://i.postimg.cc/Y0S1fsNj/tasto-riprova-(1).png';
-const BTN_EXIT_GAME_IMG = 'https://i.postimg.cc/X7mwdxpc/tasto-esci-(1).png';
-const BG_IMG = 'https://i.postimg.cc/DZxTQwLB/sfondotrovalintrusodef.jpg';
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
+const BTN_RETRY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tasto-riprova-(1).webp';
+const BTN_EXIT_GAME_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tasto-esci-(1).webp';
+const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/odd-one-out-bg.webp';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+const VICTORY_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dfersaasa-(1).webp';
+const GAMEOVER_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dsfdfs-(1).webp';
 
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+type GameOverReason = 'TIME' | 'LIVES' | null;
 
 interface OddOneOutProps {
     onBack: () => void;
@@ -29,13 +30,14 @@ interface OddOneOutProps {
 const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [gridSize, setGridSize] = useState(2); 
-  const [items, setItems] = useState<string[]>([]);
+  const [items, setItems] = useState<IntrusoItem[]>([]);
   const [oddIndex, setOddIndex] = useState(0);
   const [level, setLevel] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [lives, setLives] = useState(4);
   const [gameState, setGameState] = useState<'MENU' | 'PLAYING' | 'GAME_OVER' | 'VICTORY'>('MENU');
+  const [gameOverReason, setGameOverReason] = useState<GameOverReason>(null);
   const [rewardGiven, setRewardGiven] = useState(false);
-  const [earnedTokens, setEarnedTokens] = useState(0);
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -47,131 +49,222 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
   }, []);
 
-  useEffect(() => { if (showUnlockModal) { const p = getProgress(); setUserTokens(p.tokens); } }, [showUnlockModal]);
-
   const handleUnlockHard = () => { if (unlockHardMode()) { setIsHardUnlocked(true); const p = getProgress(); setUserTokens(p.tokens); setShowUnlockModal(false); startGame('HARD', true); } };
   const handleOpenNewsstand = () => { if (onOpenNewsstand) { onOpenNewsstand(); setShowUnlockModal(false); } };
-  const getInitialTime = (diff: Difficulty) => { switch (diff) { case 'EASY': return 60; case 'MEDIUM': return 45; case 'HARD': return 30; default: return 60; } };
+  
+  const getInitialTime = (diff: Difficulty) => { 
+    switch (diff) { 
+        case 'EASY': return 60; 
+        case 'MEDIUM': return 45; 
+        case 'HARD': return 30; 
+        default: return 60; 
+    } 
+  };
 
   const generateLevel = (currentLevel: number) => {
-    const size = Math.min(6, 2 + Math.floor((currentLevel - 1) / 5)); 
+    const size = Math.min(5, 2 + Math.floor((currentLevel - 1) / 5)); 
     setGridSize(size);
-    const mainEmoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    let oddEmoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    while (oddEmoji === mainEmoji) { oddEmoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)]; }
     const totalCells = size * size;
+
+    const categories = Array.from(new Set(INTRUSO_DATABASE.map(i => i.category)));
+    const sortedCats = categories.sort((a,b) => 
+        INTRUSO_DATABASE.filter(i => i.category === b).length - INTRUSO_DATABASE.filter(i => i.category === a).length
+    );
+    const mainCat = sortedCats[Math.floor(Math.random() * Math.min(sortedCats.length, 2))]; 
+
+    const otherCats = categories.filter(c => c !== mainCat);
+    const intruderCat = otherCats.length > 0 ? otherCats[Math.floor(Math.random() * otherCats.length)] : mainCat;
+
+    const mainPool = [...INTRUSO_DATABASE.filter(i => i.category === mainCat)].sort(() => 0.5 - Math.random());
+    const intruderPool = [...INTRUSO_DATABASE.filter(i => i.category === intruderCat)].sort(() => 0.5 - Math.random());
+
+    const boardItems: IntrusoItem[] = [];
+    for (let i = 0; i < totalCells - 1; i++) {
+        boardItems.push(mainPool[i % mainPool.length]);
+    }
+    
+    let intruderItem = intruderPool[0];
+    if (mainCat === intruderCat) {
+        intruderItem = intruderPool.find(item => !boardItems.some(bi => bi.id === item.id)) || intruderPool[0];
+    }
+
     const newOddIndex = Math.floor(Math.random() * totalCells);
     setOddIndex(newOddIndex);
-    const newItems = Array(totalCells).fill(mainEmoji);
-    newItems[newOddIndex] = oddEmoji;
-    setItems(newItems);
+    const finalItems = [...boardItems];
+    finalItems.splice(newOddIndex, 0, intruderItem);
+    setItems(finalItems);
   };
 
   const startGame = (diff: Difficulty, forceStart = false) => {
       if (diff === 'HARD' && !isHardUnlocked && !forceStart) { setShowUnlockModal(true); return; }
-      setDifficulty(diff); setLevel(1); setRewardGiven(false); setEarnedTokens(0); setGameState('PLAYING'); setTimeLeft(getInitialTime(diff));
+      setDifficulty(diff); 
+      setLevel(1); 
+      setLives(4);
+      setRewardGiven(false); 
+      setGameState('PLAYING'); 
+      setGameOverReason(null);
+      setTimeLeft(getInitialTime(diff));
+      generateLevel(1);
   };
-
-  useEffect(() => { if (gameState === 'PLAYING') { generateLevel(level); } }, [gameState]);
 
   useEffect(() => {
     let timer: any;
-    if (gameState === 'PLAYING' && timeLeft > 0) { timer = setInterval(() => { setTimeLeft((prev) => prev - 1); }, 1000); } else if (timeLeft === 0 && gameState === 'PLAYING') { setGameState('GAME_OVER'); }
+    if (gameState === 'PLAYING' && timeLeft > 0) { 
+        timer = setInterval(() => { setTimeLeft((prev) => prev - 1); }, 1000); 
+    } else if (timeLeft === 0 && gameState === 'PLAYING') { 
+        setGameOverReason('TIME');
+        setGameState('GAME_OVER'); 
+    }
     return () => clearInterval(timer);
   }, [timeLeft, gameState]);
 
   useEffect(() => {
-      const isWin = gameState === 'VICTORY';
-      const isGameOver = gameState === 'GAME_OVER';
-      if ((isWin || (isGameOver && level >= 20)) && !rewardGiven && onEarnTokens && difficulty) {
-          let reward = 0;
-          if (difficulty === 'EASY') reward = 5; else if (difficulty === 'MEDIUM') reward = 10; else if (difficulty === 'HARD') reward = 15;
-          if (reward > 0) { onEarnTokens(reward); setEarnedTokens(reward); setRewardGiven(true); setUserTokens(prev => prev + reward); }
+      if (gameState === 'VICTORY' && !rewardGiven && onEarnTokens) {
+          const reward = 5;
+          onEarnTokens(reward);
+          setRewardGiven(true);
+          setUserTokens(prev => prev + reward);
       }
-  }, [gameState, rewardGiven, onEarnTokens, difficulty, level]);
+  }, [gameState, rewardGiven, onEarnTokens]);
 
   const handleClick = (index: number) => {
     if (gameState !== 'PLAYING') return;
     if (index === oddIndex) {
       const nextLevel = level + 1;
-      if (nextLevel > 30) { setGameState('VICTORY'); } else { setLevel(nextLevel); generateLevel(nextLevel); }
-    } else { setTimeLeft(prev => Math.max(0, prev - 3)); }
+      if (nextLevel > 20) { 
+        setGameState('VICTORY'); 
+      } else { 
+        setLevel(nextLevel); 
+        generateLevel(nextLevel); 
+      }
+    } else { 
+      const nextLives = lives - 1;
+      setLives(nextLives);
+      if (nextLives <= 0) {
+          setGameOverReason('LIVES');
+          setGameState('GAME_OVER');
+      }
+    }
   };
 
   const returnToMenu = () => { setGameState('MENU'); setDifficulty(null); };
 
-  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-y-auto bg-cover bg-center z-[60]";
-
-  if (gameState === 'MENU') {
-      return (
-          <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
-               <div className="absolute top-4 left-4 z-50"><button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"><img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" /></button></div>
-               <div className="absolute top-4 right-4 z-50 pointer-events-none"><div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg"><span>{userTokens}</span> <span className="text-xl">🪙</span></div></div>
-               {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
-               <div className="w-full h-full flex flex-col items-center justify-center p-4 pt-16">
-                   <img src={TITLE_IMG} alt="Trova l'Intruso" className="w-72 md:w-96 h-auto mb-6 relative z-10 hover:scale-105 transition-transform duration-300" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
-                   <div className="flex flex-col gap-4 items-center w-full relative z-10">
-                       <p className="text-gray-800 font-black mb-2 text-sm drop-shadow-sm bg-white/80 px-4 py-1 rounded-full border-2 border-white shadow-md">Regola: Arriva al <span className="text-red-600 font-black">Livello 20</span> per vincere i gettoni! 🪙</p>
-                       <button onClick={() => startGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" /></button>
-                       <button onClick={() => startGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-48"><img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto drop-shadow-md" /></button>
-                       <div className="relative hover:scale-105 active:scale-95 transition-transform w-48">
-                           <button onClick={() => startGame('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}><img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" /></button>
-                           {!isHardUnlocked && (
-                               <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
-                                   <img src={LOCK_IMG} alt="Bloccato" className="w-12 h-12 drop-shadow-lg rotate-12" />
-                               </div>
-                           )}
-                       </div>
-                   </div>
-               </div>
-          </div>
-      );
-  }
+  const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
   return (
-    <div className={wrapperStyle} style={{ backgroundImage: `url(${BG_IMG})` }}>
-        <div className="absolute top-4 right-4 z-50 pointer-events-none"><div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg"><span>{userTokens}</span> <span className="text-xl">🪙</span></div></div>
-        <div className="w-full flex justify-between items-center mb-2 px-4 pt-4 z-10 relative">
-            <button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"><img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 w-auto drop-shadow-md" /></button>
-            <img src={TITLE_IMG} alt="Trova l'Intruso" className="h-12 md:h-16 w-auto drop-shadow-md hidden sm:block" style={{ filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 2px #000000)' }} />
-            <div className="w-9 hidden sm:block"></div> 
+    <div className={wrapperStyle}>
+        <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" draggable={false} />
+
+        {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA (ALZATI) */}
+        <div className="fixed top-[70px] md:top-[105px] left-4 z-50 flex flex-col items-start pointer-events-none">
+            <div className="pointer-events-auto">
+                {gameState === 'MENU' ? (
+                    <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-2 cursor-pointer touch-manipulation">
+                        <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto" />
+                    </button>
+                ) : (
+                    <button onClick={returnToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-2 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto" />
+                    </button>
+                )}
+            </div>
         </div>
-        <div className="flex-1 w-full flex flex-col items-center justify-center p-2 min-h-0 relative z-10">
-            {gameState === 'PLAYING' && (
-               <div className="w-full h-full max-w-4xl flex flex-col items-center justify-center">
-                   <div className="flex justify-between w-full mb-6 px-4 max-w-md">
-                        <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl border-2 border-blue-400 shadow-lg"><span className="font-black text-sm uppercase tracking-wider">LIV</span><span className="font-black text-2xl">{level}/30</span></div>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 shadow-lg transition-colors ${timeLeft <= 5 ? 'bg-red-600 border-red-400 animate-pulse' : 'bg-gray-800 border-gray-600'}`}><Timer size={24} className="text-white" /><span className="font-black text-2xl text-white">{timeLeft}s</span></div>
+
+        {/* SALDO GETTONI (ALTO A DESTRA) */}
+        <div className="absolute top-[80px] md:top-[120px] right-4 z-50 pointer-events-none">
+            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                <span>{userTokens}</span> <span className="text-xl">🪙</span>
+            </div>
+        </div>
+
+        {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
+        
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
+            {gameState === 'MENU' ? (
+                <div className="flex flex-col items-center w-full animate-fade-in px-4">
+                    <div className="mb-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
+                        <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
+                            Trova <span className="text-yellow-300">20 intrusi</span> con massimo <span className="text-red-400">4 errori</span> per vincere!
+                        </p>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                        <button onClick={() => startGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full"><img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" /></button>
+                        <button onClick={() => startGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full"><img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto drop-shadow-md" /></button>
+                        <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
+                            <button onClick={() => startGame('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}><img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" /></button>
+                            {!isHardUnlocked && <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20"><img src={LOCK_IMG} alt="Bloccato" className="w-10 h-10 drop-shadow-lg rotate-12" /></div>}
+                        </div>
+                    </div>
+                </div>
+            ) : gameState === 'PLAYING' ? (
+               <div className="w-full h-full max-w-4xl flex flex-col items-center justify-start pt-0">
+                   <div className="flex justify-between w-full mb-6 px-4 max-xl items-center">
+                        {/* LIVELLO (SX) */}
+                        <div className="bg-blue-600/80 backdrop-blur-md text-white px-3 py-1 rounded-xl border-2 border-white/40 shadow-lg flex items-center gap-1.5">
+                            <span className="font-black text-[10px] uppercase tracking-wider">LIV</span>
+                            <span className="font-black text-xl">{level}/20</span>
+                        </div>
+                        
+                        {/* CUORI (CENTRO) */}
+                        <div className="flex gap-1.5 bg-black/40 p-2 rounded-full backdrop-blur-md border-2 border-white/20 shadow-lg">
+                            {[...Array(4)].map((_, i) => (
+                                <Heart key={i} size={18} className={`${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-500 opacity-50'} transition-all`} />
+                            ))}
+                        </div>
+
+                        {/* TIMER (DX) */}
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-xl border-2 border-white/40 shadow-lg transition-colors backdrop-blur-md ${timeLeft <= 5 ? 'bg-red-600/80 animate-pulse' : 'bg-black/60'}`}>
+                            <Timer size={20} className="text-white" />
+                            <span className="font-black text-xl text-white">{timeLeft}s</span>
+                        </div>
                    </div>
-                   <div className="flex-1 w-full flex items-center justify-center min-h-0">
-                       <div className="grid gap-2 md:gap-3 p-3 bg-white/40 rounded-[30px] border-4 border-white/50 shadow-2xl aspect-square w-full max-h-[60vh] max-w-[60vh] backdrop-blur-md" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
+                   
+                   <div className="bg-white/30 backdrop-blur-md p-3 md:p-5 rounded-[40px] border-4 border-white/50 shadow-2xl aspect-square w-full max-h-[60vh] max-w-[60vh] flex items-center justify-center relative z-10">
+                       <div className="grid gap-2 md:gap-3 w-full h-full" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
                            {items.map((item, idx) => (
-                               <button key={idx} onMouseDown={() => handleClick(idx)} onTouchStart={(e) => { e.preventDefault(); handleClick(idx); }} className="w-full h-full flex items-center justify-center bg-white rounded-xl md:rounded-2xl hover:bg-blue-50 border-b-4 border-gray-200 active:border-b-0 active:translate-y-1 active:bg-blue-100 transition-all shadow-md overflow-hidden" style={{ touchAction: 'manipulation' }}>
-                                   <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl select-none drop-shadow-sm pointer-events-none transform transition-transform active:scale-95">{item}</span>
+                               <button key={item.id + '-' + idx} onPointerDown={(e) => { e.preventDefault(); handleClick(idx); }} className="w-full h-full flex items-center justify-center bg-white rounded-xl md:rounded-2xl hover:bg-blue-50 border-b-4 border-gray-200 active:border-b-0 active:translate-y-1 active:bg-blue-100 transition-all shadow-md overflow-hidden p-1.5 md:p-3" style={{ touchAction: 'none' }}>
+                                   <img src={item.url} alt={item.label} className="w-full h-full object-contain pointer-events-none select-none drop-shadow-sm" draggable={false} />
                                </button>
                            ))}
                        </div>
                    </div>
                </div>
-            )}
-            {gameState === 'GAME_OVER' && (
-               <div className="bg-white p-8 rounded-[40px] border-8 border-red-500 shadow-2xl text-center max-w-md w-full animate-in zoom-in relative">
-                   {onOpenNewsstand && earnedTokens > 0 && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
-                   <div className="text-6xl mb-4 animate-bounce">⏰</div>
-                   <h3 className="text-3xl font-black text-red-600 mb-2">TEMPO SCADUTO!</h3>
-                   <p className="text-gray-600 font-bold mb-6 text-lg">Sei arrivato al livello {level}.</p>
-                   {earnedTokens > 0 ? <div className="bg-yellow-400 text-black px-6 py-3 rounded-2xl font-black text-xl border-4 border-black mb-6 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">+{earnedTokens} GETTONI! 🪙</div> : <p className="text-sm font-bold text-gray-500 mb-6 bg-gray-100 p-3 rounded-xl">Raggiungi il livello 20 per vincere!</p>}
-                   <div className="flex flex-row gap-4 justify-center items-center mt-4"><button onClick={() => startGame(difficulty!)} className="hover:scale-105 active:scale-95 transition-transform w-36"><img src={BTN_RETRY_IMG} alt="Riprova" className="w-full h-auto drop-shadow-xl" /></button><button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-transform w-36"><img src={BTN_EXIT_GAME_IMG} alt="Esci" className="w-full h-auto drop-shadow-xl" /></button></div>
-               </div>
-            )}
-            {gameState === 'VICTORY' && (
-               <div className="bg-white p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl text-center max-w-md w-full animate-in zoom-in relative">
-                   {onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
-                   <Trophy size={80} className="text-yellow-400 mx-auto mb-4 animate-bounce drop-shadow-lg" />
-                   <h3 className="text-4xl font-black text-purple-600 mb-2 drop-shadow-sm">INCREDIBILE!</h3>
-                   <p className="text-gray-600 font-bold mb-6 text-lg">Hai completato tutti i 30 livelli!</p>
-                   <div className="bg-yellow-100 text-yellow-800 px-8 py-4 rounded-2xl font-black text-3xl border-4 border-yellow-400 mb-8 inline-block animate-pulse shadow-lg transform rotate-2">+{earnedTokens} GETTONI! 🪙</div>
-                   <div className="flex flex-col gap-3 items-center"><button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-transform w-full max-w-[150px]"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button></div>
+            ) : (
+                <div className="bg-white p-5 md:p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl text-center max-sm w-[90%] animate-in zoom-in mt-2 relative z-50">
+                   {onOpenNewsstand && gameState === 'VICTORY' && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                   
+                   <div className="flex flex-col items-center mb-4">
+                       {gameState === 'VICTORY' ? (
+                           <img src={VICTORY_HEADER_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain mb-1 mt-4 transform translate-y-2 md:translate-y-4" />
+                       ) : (
+                           <img src={GAMEOVER_HEADER_IMG} alt="Game Over" className="h-40 md:h-56 w-auto object-contain mb-1" />
+                       )}
+                   </div>
+
+                   <h3 className={`text-2xl md:text-3xl font-black mb-1 drop-shadow-sm uppercase ${gameState === 'VICTORY' ? 'text-purple-600' : 'text-red-600'}`}>
+                       {gameState === 'VICTORY' ? 'INCREDIBILE!' : (gameOverReason === 'LIVES' ? 'HAI PERSO!' : 'TEMPO SCADUTO!')}
+                   </h3>
+                   
+                   <p className="text-gray-600 font-bold mb-4 text-sm md:text-lg leading-tight">
+                       {gameState === 'VICTORY' 
+                          ? 'Hai completato tutti i livelli!' 
+                          : (gameOverReason === 'LIVES' ? 'Troppi errori! Riprova con più calma.' : 'Purtroppo il tempo è finito!')}
+                   </p>
+
+                   {gameState === 'VICTORY' ? (
+                       <div className="bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black text-lg border-4 border-black mb-4 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">
+                           +5 GETTONI! 🪙
+                       </div>
+                   ) : (
+                       <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-xl font-bold text-xs mb-4 border-2 border-gray-200">
+                           Premio: 0 gettoni <br/> (Arriva al liv. 20 senza finire le vite)
+                       </div>
+                   )}
+
+                   <div className="flex flex-row gap-3 justify-center items-center mt-2 w-full">
+                       <button onClick={() => startGame(difficulty!)} className="hover:scale-105 active:scale-95 transition-transform w-32 md:w-48 shrink-0"><img src={BTN_RETRY_IMG} alt="Riprova" className="w-full h-auto drop-shadow-xl" /></button>
+                       <button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-transform w-32 md:w-48 shrink-0"><img src={BTN_EXIT_GAME_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>
+                   </div>
                </div>
             )}
         </div>

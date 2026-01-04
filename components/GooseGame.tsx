@@ -1,11 +1,7 @@
+import React, { useState } from 'react';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
-
-const BG_GAME_URL = 'https://i.postimg.cc/J7ybdtCv/sdsad.jpg';
+const BG_GAME_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-goose.webp';
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
-// Suono dadi standard molto compatibile
-const DICE_ROLL_SOUND = 'https://www.soundjay.com/misc/sounds/dice-roll-1.mp3';
 
 interface GooseGameProps {
     onBack: () => void;
@@ -45,40 +41,9 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
     const [dice2, setDice2] = useState(6);
     const [isRolling, setIsRolling] = useState(false);
     const [showResult, setShowResult] = useState(false);
-    const [audioEnabled, setAudioEnabled] = useState(true);
-    
-    // Audio reference
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    useEffect(() => {
-        // Inizializza l'audio
-        audioRef.current = new Audio(DICE_ROLL_SOUND);
-        audioRef.current.preload = 'auto';
-        
-        // Tenta di sbloccare l'audio al primo click globale se necessario
-        const unlockAudio = () => {
-            if (audioRef.current) {
-                audioRef.current.play().then(() => {
-                    audioRef.current?.pause();
-                    if (audioRef.current) audioRef.current.currentTime = 0;
-                }).catch(() => {});
-            }
-            window.removeEventListener('click', unlockAudio);
-        };
-        window.addEventListener('click', unlockAudio);
-        
-        return () => window.removeEventListener('click', unlockAudio);
-    }, []);
 
     const rollDice = () => {
         if (isRolling) return;
-
-        // Riproduzione immediata al click (fondamentale per i browser mobile)
-        if (audioEnabled && audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.volume = 1.0;
-            audioRef.current.play().catch(e => console.error("Errore audio:", e));
-        }
 
         setIsRolling(true);
         setShowResult(false);
@@ -92,11 +57,6 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
             setDice2(res2);
             setIsRolling(false);
             setShowResult(true);
-
-            // Ferma l'audio se è ancora in riproduzione (opzionale)
-            if (audioRef.current) {
-                // Lasciamo finire il suono naturale dei dadi
-            }
 
             // Nascondi risultato dopo 3 secondi per permettere nuovo lancio
             setTimeout(() => {
@@ -124,7 +84,7 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
                     gap: 20px;
                     align-items: center;
                     justify-content: center;
-                    height: 200px;
+                    height: 180px; /* Ridotta altezza per avvicinare il numero */
                 }
                 .dice-container {
                     width: 60px;
@@ -134,7 +94,7 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
                 }
                 @media (min-width: 768px) {
                     .dice-container { width: 80px; height: 80px; }
-                    .scene { gap: 40px; }
+                    .scene { gap: 40px; height: 220px; }
                 }
                 .dice {
                     width: 100%;
@@ -207,7 +167,7 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
 
             {/* TASTI SUPERIORI */}
             <div className="absolute top-28 left-0 right-0 px-4 flex justify-between items-start z-[100]">
-                {/* COLONNA SINISTRA: LANCIO + AUDIO */}
+                {/* COLONNA SINISTRA: SOLO LANCIO */}
                 <div className="flex flex-col gap-4">
                     <button 
                         onClick={rollDice}
@@ -217,13 +177,6 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
                         <span className="font-luckiest text-black text-[9px] md:text-sm leading-tight uppercase text-center px-1 group-hover:scale-110 transition-transform">
                             Tira i <br/> dadi
                         </span>
-                    </button>
-
-                    <button 
-                        onClick={() => setAudioEnabled(!audioEnabled)}
-                        className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-yellow-400 border-4 border-black shadow-[0_4px_0_0_#000] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center"
-                    >
-                        {audioEnabled ? <Volume2 className="text-black w-6 h-6 md:w-10 md:h-10" /> : <VolumeX className="text-red-600 w-6 h-6 md:w-10 md:h-10" />}
                     </button>
                 </div>
 
@@ -236,14 +189,14 @@ const GooseGame: React.FC<GooseGameProps> = ({ onBack }) => {
             <div className="flex-1 flex flex-col items-center justify-center p-4">
                 {(isRolling || showResult) && (
                     <div className="flex flex-col items-center animate-in zoom-in duration-300">
-                        <div className="scene mb-8 md:mb-12">
+                        <div className="scene mb-2 md:mb-4"> {/* Margine ridotto per avvicinare il numero */}
                             <Dice3D value={dice1} isRolling={isRolling} color="red" />
                             <Dice3D value={dice2} isRolling={isRolling} color="blue" />
                         </div>
 
                         {/* RISULTATO SOLO NUMERO */}
                         {showResult && !isRolling && (
-                            <div className="animate-in slide-in-from-bottom-4 duration-500">
+                            <div className="animate-in slide-in-from-top-4 duration-500">
                                 <span 
                                     className="text-8xl md:text-[12rem] font-luckiest text-white uppercase drop-shadow-[0_10px_0_#000]"
                                     style={{ 

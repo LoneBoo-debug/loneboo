@@ -1,171 +1,159 @@
 
 import React, { useEffect } from 'react';
-/* Added CheckCircle to imports from lucide-react */
-import { Info, Instagram, Facebook, Youtube, X, Music, Heart, Send, ExternalLink, Globe, Cloud, ShieldCheck, Sparkles, BookOpen, CheckCircle } from 'lucide-react';
+import { 
+  Info, Instagram, Facebook, Youtube, X, Music, 
+  Heart, Send, ExternalLink, Globe, Cloud, 
+  ShieldCheck, Sparkles, BookOpen, CheckCircle2,
+  Tv, Gamepad2, Package, Star, Lock
+} from 'lucide-react';
 import { AppView } from '../types';
 
-const INFO_BG = 'https://i.postimg.cc/brjgmCV4/sfondoinfo.jpg';
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const ICON_ABOUT = 'https://i.postimg.cc/63yjTby9/chisiamo-(1).png';
+
+const SOCIAL_LINKS = [
+    { name: 'YouTube', url: 'https://www.youtube.com/@ILoneBoo', icon: Youtube, color: 'text-red-600' },
+    { name: 'Instagram', url: 'https://www.instagram.com/loneboo_official', icon: Instagram, color: 'text-pink-600' },
+    { name: 'TikTok', url: 'https://www.tiktok.com/@lone_._boo', icon: Music, color: 'text-slate-900' },
+    { name: 'Facebook', url: 'https://www.facebook.com/LoneBooFanPage', icon: Facebook, color: 'text-blue-600' },
+    { name: 'Spotify', url: 'https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', icon: Music, color: 'text-green-600' },
+    { name: 'Telegram', url: 'https://t.me/loneboo_official', icon: Send, color: 'text-sky-500' },
+];
 
 interface AboutPageProps {
     setView: (view: AppView) => void;
 }
-
-const SOCIAL_LINKS = [
-    { name: 'YouTube', url: 'https://www.youtube.com/@ILoneBoo', icon: Youtube, color: 'bg-red-600' },
-    { name: 'Instagram', url: 'https://www.instagram.com/loneboo_official', icon: Instagram, color: 'bg-pink-600' },
-    { name: 'TikTok', url: 'https://www.tiktok.com/@lone_._boo', icon: Music, color: 'bg-black' },
-    { name: 'Facebook', url: 'https://www.facebook.com/LoneBooFanPage', icon: Facebook, color: 'bg-blue-600' },
-    { name: 'X (Twitter)', url: 'https://x.com/IloneBoo', icon: X, color: 'bg-black' },
-    { name: 'Spotify', url: 'https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', icon: Music, color: 'bg-green-600' },
-    { name: 'Amazon Music', url: 'https://music.amazon.it/artists/B0FY6VS1XC/lone-boo', icon: Music, color: 'bg-cyan-600' },
-    { name: 'SoundCloud', url: 'https://soundcloud.com/lone-boo', icon: Cloud, color: 'bg-orange-600' },
-    { name: 'Telegram', url: 'https://t.me/loneboo_official', icon: Send, color: 'bg-sky-500' },
-    { name: 'Patreon', url: 'https://www.patreon.com/cw/LoneBoo', icon: Heart, color: 'bg-red-500' },
-    { name: 'Sito Ufficiale', url: 'https://loneboo.online', icon: Globe, color: 'bg-indigo-600' },
-];
 
 const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleExit = () => setView(AppView.INFO_MENU);
-
   return (
-    <div 
-        className="min-h-screen bg-cover bg-center bg-fixed pb-24"
-        style={{ backgroundImage: `url(${INFO_BG})` }}
-    >
+    <div className="min-h-screen relative overflow-x-hidden">
       
-      {/* FIXED EXIT BUTTON */}
+      {/* SFONDO AZZURRO INTENSO E FISSO */}
+      <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
+      
+      {/* STRATO EFFETTO SPECCHIO/VETRO */}
+      <div className="fixed inset-0 bg-white/20 backdrop-blur-[45px] z-[1] pointer-events-none border-t-8 border-white/30"></div>
+      
+      {/* TASTO CHIUDI FISSO */}
       <button 
-          onClick={handleExit}
-          className="fixed top-20 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-          aria-label="Indietro"
+          onClick={() => setView(AppView.INFO_MENU)}
+          className="fixed top-20 right-4 z-[100] hover:scale-110 active:scale-95 transition-all outline-none"
       >
-          <img 
-            src={BTN_CLOSE_IMG} 
-            alt="Chiudi" 
-            className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" 
-          />
+          <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" />
       </button>
 
-      <div className="max-w-5xl mx-auto p-4 md:p-8 pt-32 animate-fade-in">
+      {/* CONTENUTO SCROLLABILE */}
+      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
         
-        {/* Header - Unified Style */}
-        <div className="text-center mb-12">
+        {/* Intestazione Principale Compatta */}
+        <div className="text-center mb-8">
             <h2 
-                className="text-4xl md:text-7xl font-cartoon text-white tracking-tight leading-none mb-3"
-                style={{ WebkitTextStroke: '2px #ef4444', textShadow: '4px 4px 0px rgba(0,0,0,0.2)' }}
+                className="text-4xl md:text-6xl font-cartoon text-[#ef4444] tracking-tight leading-none"
+                style={{ 
+                    WebkitTextStroke: '1.5px white', 
+                    textShadow: '6px 6px 0px rgba(0,0,0,0.1)',
+                }}
             >
-               Chi Siamo
+               Benvenuti da Lone Boo!
             </h2>
-            <div className="inline-flex items-center gap-2 bg-yellow-500/80 text-white px-6 py-2 rounded-full text-lg font-bold backdrop-blur-md border border-white/20 shadow-lg">
-                 <Info size={24} />
-                 <span>Il Mondo di Lone Boo</span>
+            <div className="inline-block bg-white/80 border-4 border-white px-6 py-1 rounded-full shadow-md mt-3">
+                <p className="text-xs md:text-sm font-black text-blue-600 uppercase tracking-tighter">
+                    Il Protagonista del Divertimento 👻
+                </p>
             </div>
         </div>
 
-        <div className="space-y-8">
-            {/* 1. INTRODUZIONE */}
-            <div className="border-l-[8px] border-boo-purple bg-white/70 backdrop-blur-md pl-6 py-6 pr-6 rounded-r-3xl shadow-xl border-y border-r border-white/30">
-                <h3 className="text-3xl font-black text-boo-purple mb-4 tracking-tight flex items-center gap-3">
-                    <img src={ICON_ABOUT} alt="" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
-                    Il mondo di Lone Boo
-                </h3>
-                <p className="text-lg md:text-xl font-bold text-gray-700 mb-4 leading-relaxed">
-                    Lone Boo è un progetto musicale, educativo e narrativo pensato per i bambini dai <strong>3 ai 13 anni (ma anche per ragazzi più grandi!)</strong>, creato per offrire un ambiente digitale <strong>sicuro, positivo e ricco di stimoli</strong>.
-                </p>
-                <p className="text-lg md:text-xl font-bold text-gray-700 leading-relaxed">
-                    Attraverso canzoni originali, coreografie semplici, favole animate, giochi interattivi e illustrazioni colorate, Lone Boo accompagna i più piccoli nella crescita, incoraggiando movimento, creatività e immaginazione.
-                </p>
-            </div>
-
-            {/* 2. CITTA COLORATA */}
-            <div className="border-l-[8px] border-blue-500 bg-white/70 backdrop-blur-md pl-6 py-6 pr-6 rounded-r-3xl shadow-xl border-y border-r border-white/30">
-                <h3 className="text-2xl font-black text-blue-800 mb-4 flex items-center gap-2 tracking-tight">
-                    🌈 Un universo chiamato “Città Colorata”
-                </h3>
-                <p className="text-lg font-bold text-gray-700 leading-relaxed mb-4">
-                    Tutte le avventure di Boo prendono vita in <strong>Città Colorata</strong>, un luogo magico dove musica, amicizia e fantasia aiutano i bambini a esplorare emozioni, imparare nuove parole e sviluppare abilità motorie e cognitive.
-                </p>
-                <p className="text-lg font-bold text-gray-700 leading-relaxed">
-                    Ogni personaggio, canzone e storia è progettato con cura per trasmettere valori positivi, coinvolgere i più piccoli e regalare un’esperienza sicura sia per loro che per i genitori.
+        {/* GRIGLIA COMPATTA BENTO-STYLE */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            
+            {/* 1. LONE BOO: IL PROTAGONISTA */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col md:col-span-2">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <Star className="text-yellow-500 fill-yellow-500" size={28} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Lone Boo: Il Protagonista Assoluto</h3>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-slate-700 leading-relaxed">
+                    Lone Boo non è solo un personaggio, è la **guida ufficiale** di tutto questo universo! È il fantasmino pasticcione che accompagna i bambini alla scoperta delle emozioni, del gioco e dell'apprendimento. Insieme ai suoi amici di Città Colorata (come Gaia, Zuccotto e Grufo), Lone Boo rende ogni momento un'occasione per imparare sorridendo.
                 </p>
             </div>
 
-            {/* 3. INTRATTENIMENTO EDUCATIVO */}
-            <div className="border-l-[8px] border-green-500 bg-white/70 backdrop-blur-md pl-6 py-6 pr-6 rounded-r-3xl shadow-xl border-y border-r border-white/30">
-                <h3 className="text-2xl font-black text-green-800 mb-4 flex items-center gap-2 tracking-tight">
-                    🎵 Intrattenimento educativo
-                </h3>
-                <p className="text-gray-700 font-bold mb-4">Il progetto nasce per offrire:</p>
-                <ul className="space-y-3 font-bold text-gray-600">
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Musica per bambini divertente e facilmente imitabile.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Coreografie educative per favorire coordinazione e movimento.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Cartoni animati educativi con storie brevi e intuitive.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Favole interattive che stimolano ascolto e partecipazione.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Giochi digitali semplici e senza pubblicità invadente.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-green-500 text-xl leading-none">●</span> <span>Un ambiente digitale sicuro, controllato e adatto all’età.</span></li>
-                </ul>
-                <p className="mt-4 text-green-700 font-black italic">Tutti i contenuti includono temi come collaborazione, amicizia, emozioni e fantasia.</p>
+            {/* 2. IL CANALE YOUTUBE: IL CUORE DEL PROGETTO */}
+            <div className="bg-red-50/80 backdrop-blur-md p-5 rounded-[30px] border-4 border-red-500 shadow-lg flex flex-col md:col-span-2">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-red-200 pb-2">
+                    <Youtube className="text-red-600" size={32} />
+                    <h3 className="text-xl font-black text-red-700 uppercase leading-none">Il Canale YouTube Ufficiale</h3>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-red-900 leading-relaxed mb-4">
+                    Il vero motore di Lone Boo World è il nostro **Canale YouTube**. Con migliaia di visualizzazioni, è qui che prendono vita le hit musicali, i balletti originali e i cartoni animati che i bambini adorano guardare e ballare!
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white/40 p-3 rounded-2xl border border-red-200">
+                        <span className="font-black text-red-600 text-xs uppercase block mb-1">Video & Cartoni</span>
+                        <p className="text-[11px] font-bold text-red-800">Serie animate originali prodotte con amore per intrattenere i più piccoli.</p>
+                    </div>
+                    <div className="bg-white/40 p-3 rounded-2xl border border-red-200">
+                        <span className="font-black text-red-600 text-xs uppercase block mb-1">Canzoni & Ballo</span>
+                        <p className="text-[11px] font-bold text-red-800">Musica per stimolare il coordinamento motorio attraverso coreografie semplici.</p>
+                    </div>
+                </div>
+                <a href="https://www.youtube.com/@ILoneBoo" target="_blank" rel="noopener noreferrer" className="mt-4 bg-red-600 text-white font-black py-3 rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-red-700 transition-all uppercase tracking-widest text-sm">
+                    ISCRIVITI AL CANALE <ExternalLink size={16} />
+                </a>
             </div>
 
-            {/* 4. NETWORK */}
-            <div className="border-l-[8px] border-orange-500 bg-white/70 backdrop-blur-md pl-6 py-6 pr-6 rounded-r-3xl shadow-xl border-y border-r border-white/30">
-                <h3 className="text-2xl font-black text-orange-800 mb-4 flex items-center gap-2 tracking-tight">
-                    📚 Un network multimediale in crescita
-                </h3>
-                <p className="text-gray-700 font-bold mb-4">Lone Boo è un ecosistema che comprende:</p>
-                <ul className="space-y-3 font-bold text-gray-600">
-                    <li className="flex gap-3 items-start"><span className="text-orange-500 text-xl leading-none">★</span> <span>Il canale YouTube ufficiale (canzoni, balli e storie).</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-orange-500 text-xl leading-none">★</span> <span>Pagine Instagram e TikTok per genitori e dietro le quinte.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-orange-500 text-xl leading-none">★</span> <span>Libri narrativi e illustrati sullo store Amazon.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-orange-500 text-xl leading-none">★</span> <span>Un’app dedicata con giochi educativi e favole.</span></li>
-                    <li className="flex gap-3 items-start"><span className="text-orange-500 text-xl leading-none">★</span> <span>Pupazzi e peluche ufficiali dei personaggi.</span></li>
-                </ul>
-                <p className="mt-4 text-gray-700 font-bold">L’obiettivo è costruire una piattaforma educativa completa dove tornare giorno dopo giorno.</p>
+            {/* 3. L'APP E IL GIOCO */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <Gamepad2 className="text-purple-600" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">L'App Interattiva</h3>
+                </div>
+                <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
+                    Questa applicazione è l'estensione interattiva dei video. Qui Lone Boo sfida i bambini a superare prove di logica, memoria e riflessi, premiandoli con gettoni e figurine per completare l'album ufficiale.
+                </p>
             </div>
 
-            {/* 5. SICUREZZA */}
-            <div className="border-l-[8px] border-cyan-500 bg-white/70 backdrop-blur-md pl-6 py-6 pr-6 rounded-r-3xl shadow-xl border-y border-r border-white/30">
-                <h3 className="text-2xl font-black text-cyan-800 mb-4 flex items-center gap-2 tracking-tight">
-                    🔐 Sicurezza e Affidabilità
-                </h3>
-                <p className="text-gray-700 font-bold mb-4">Il progetto segue linee guida chiare per garantire:</p>
-                <ul className="space-y-3 font-bold text-gray-600">
-                    <li className="flex gap-3 items-start text-green-700"><CheckCircle size={20} className="shrink-0" /> <span>Contenuti privi di pubblicità invasiva</span></li>
-                    <li className="flex gap-3 items-start text-green-700"><CheckCircle size={20} className="shrink-0" /> <span>Linguaggio semplice e adatto</span></li>
-                    <li className="flex gap-3 items-start text-green-700"><CheckCircle size={20} className="shrink-0" /> <span>Assenza di temi violenti</span></li>
-                    <li className="flex gap-3 items-start text-green-700"><CheckCircle size={20} className="shrink-0" /> <span>Musica per pubblico 3-15 anni</span></li>
-                    <li className="flex gap-3 items-start text-green-700"><CheckCircle size={20} className="shrink-0" /> <span>Rispetto delle normative sulla privacy</span></li>
-                </ul>
+            {/* 4. LIBRI E PRODOTTI */}
+            <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col">
+                <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
+                    <BookOpen className="text-blue-500" size={24} />
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Libri su Amazon</h3>
+                </div>
+                <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
+                    La magia di Lone Boo arriva anche sulla carta! Abbiamo una collezione di libri illustrati e di enigmi disponibili su Amazon per stimolare la lettura e la creatività lontano dagli schermi.
+                </p>
             </div>
+
+            {/* 5. NETWORK SOCIAL (LAYOUT ICONA + TESTO) */}
+            <div className="md:col-span-2 bg-white/40 p-4 rounded-[30px] border-2 border-white/50">
+                <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+                    {SOCIAL_LINKS.map((link) => (
+                        <a 
+                            key={link.name} 
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95"
+                        >
+                            <div className="p-2 bg-white rounded-full shadow-sm border border-gray-100 group-hover:shadow-md transition-shadow">
+                                <link.icon size={18} className={link.color} />
+                            </div>
+                            <span className="font-black text-xs md:text-sm text-slate-700 uppercase tracking-tight group-hover:text-blue-600 transition-colors">
+                                {link.name}
+                            </span>
+                        </a>
+                    ))}
+                </div>
+            </div>
+
         </div>
 
-        {/* SECTION: LINK UTILI */}
-        <div className="text-center mt-12 mb-8">
-            <h3 className="text-3xl font-black text-white mb-6 drop-shadow-[0_2px_0_black]">🔗 I Nostri Canali</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {SOCIAL_LINKS.map((link) => (
-                    <a 
-                        key={link.name}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`
-                            flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-4 rounded-xl text-white font-bold transition-all hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
-                            ${link.color} border-2 border-white/20
-                        `}
-                    >
-                        <link.icon size={20} className="md:w-6 md:h-6 shrink-0" />
-                        <span className="truncate flex-1 text-left text-xs md:text-sm">{link.name}</span>
-                        <ExternalLink size={14} className="opacity-70 hidden md:block" />
-                    </a>
-                ))}
-            </div>
+        <div className="flex flex-col items-center pb-12 mt-6 opacity-70">
+            <Heart size={32} className="text-red-500 fill-red-500 mb-2 animate-pulse" />
+            <p className="text-lg font-black text-slate-600 uppercase tracking-tighter text-center">Grazie per far parte del mondo di Lone Boo! 👻</p>
         </div>
 
       </div>

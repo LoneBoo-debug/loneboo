@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
-import RobotHint from './RobotHint';
 import { OFFICIAL_LOGO } from '../constants';
 
 // --- LAZY LOADING STRUMENTI ---
@@ -8,11 +8,12 @@ const PianoInstrument = lazy(() => import('./sound/PianoInstrument'));
 const DjConsole = lazy(() => import('./sound/DjConsole'));
 const DrumKit = lazy(() => import('./sound/DrumKit'));
 const AnimalOrchestra = lazy(() => import('./sound/AnimalOrchestra'));
+const ChoirVoiceChanger = lazy(() => import('./sound/ChoirVoiceChanger'));
+const GuitarHeroGame = lazy(() => import('./sound/GuitarHeroGame'));
 const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument'));
 
-const DISCO_BG_MOBILE = 'https://i.postimg.cc/9M86Fxpz/disco3.png';
-const DISCO_BG_DESKTOP = 'https://i.postimg.cc/136sRMS0/disco169.jpg';
-const DISCO_LOGO_IMG = 'https://i.postimg.cc/3rsyb2R6/logodisco-(2).png';
+const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
+const DISCO_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-desktop.webp';
 
 enum SoundMode {
     NONE = 'NONE',
@@ -54,22 +55,23 @@ const ZONES_DESKTOP: ZoneConfig[] = [
 const SoundZone: React.FC = () => {
   const [activeMode, setActiveMode] = useState<SoundMode>(SoundMode.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
       const imgMobile = new Image(); imgMobile.src = DISCO_BG_MOBILE;
       const imgDesktop = new Image(); imgDesktop.src = DISCO_BG_DESKTOP;
       let loadedCount = 0;
-      const checkLoad = () => { loadedCount++; if (loadedCount >= 1) setIsLoaded(true); };
-      imgMobile.onload = checkLoad; imgDesktop.onload = checkLoad;
+      const checkLoad = () => { 
+          loadedCount++; 
+          if (loadedCount >= 1) setIsLoaded(true); 
+      };
+      imgMobile.onload = checkLoad; 
+      imgDesktop.onload = checkLoad;
+      
       setTimeout(() => setIsLoaded(true), 2000);
       window.scrollTo(0, 0);
-      const timer = setTimeout(() => { if (activeMode === SoundMode.NONE) setShowHint(true); }, 1500); 
-      return () => clearTimeout(timer);
-  }, [activeMode]); 
+  }, []); 
 
   const handleZoneClick = (zoneId: string) => {
-      setShowHint(false); 
       switch (zoneId) {
           case 'Piano': setActiveMode(SoundMode.PIANO); break;
           case 'Batteria': setActiveMode(SoundMode.DRUMS); break;
@@ -96,38 +98,80 @@ const SoundZone: React.FC = () => {
               {activeMode === SoundMode.DJ && <DjConsole onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.DRUMS && <DrumKit onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.ANIMALS && <AnimalOrchestra onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.CHOIR && <ChoirVoiceChanger onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.GUITAR && <GuitarHeroGame onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.XYLOPHONE && <PlaceholderInstrument title="Xilofono" onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.GUITAR && <PlaceholderInstrument title="Chitarra" onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.CHOIR && <PlaceholderInstrument title="Coro" onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.BONGO && <PlaceholderInstrument title="Bongo" onBack={() => setActiveMode(SoundMode.NONE)} />}
           </Suspense>
       );
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gray-900 overflow-hidden flex flex-col" onClick={() => setShowHint(false)}>
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-indigo-900 overflow-hidden touch-none overscroll-none select-none">
         {!isLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/90 backdrop-blur-md">
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
-                <span className="text-white font-bold text-lg tracking-widest animate-pulse">STO CARICANDO...</span>
+                <span className="text-white font-bold text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
             </div>
         )}
 
-        {isLoaded && (
-            <div className="absolute top-4 left-4 z-30 pointer-events-none animate-in slide-in-from-left duration-700">
-                <img src={DISCO_LOGO_IMG} alt="Disco Zone" className="w-32 md:w-56 h-auto drop-shadow-xl" style={{ filter: 'drop-shadow(0_0_4px_#FFFFFF) drop-shadow(0_0_8px_#FFFFFF)' }} />
-            </div>
-        )}
+        <div className="relative w-full h-full overflow-hidden">
+            <div className="block md:hidden absolute inset-0 w-full h-full overflow-hidden">
+                <img 
+                    src={DISCO_BG_MOBILE} 
+                    alt="Disco Zone Mobile" 
+                    className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    draggable={false}
+                />
+                
+                {isLoaded && (
+                    <div className="absolute top-[68%] left-[47%] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 w-full flex justify-center">
+                        <span 
+                            className="font-luckiest text-3xl sm:text-4xl text-white uppercase text-center transform -rotate-[38deg] transition-all duration-300"
+                            style={{ WebkitTextStroke: '1.5px black' }}
+                        >
+                            Tocca uno <br/> strumento
+                        </span>
+                    </div>
+                )}
 
-        <RobotHint show={showHint} message="Tocca uno strumento o un personaggio!" variant="ROBOT"/>
-        <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden w-full h-full relative">
-                <img src={DISCO_BG_MOBILE} alt="" className={`w-full h-full object-fill object-center ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
-                {ZONES_MOBILE.map(z => <div key={z.id} onClick={(e) => { e.stopPropagation(); handleZoneClick(z.id); }} className="absolute inset-0 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>)}
+                {isLoaded && ZONES_MOBILE.map(z => (
+                    <div 
+                        key={z.id} 
+                        onClick={(e) => { e.stopPropagation(); handleZoneClick(z.id); }} 
+                        className="absolute inset-0 cursor-pointer active:bg-white/10 z-20" 
+                        style={{ clipPath: getClipPath(z.points) }}
+                    ></div>
+                ))}
             </div>
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
-                <img src={DISCO_BG_DESKTOP} alt="" className={`absolute inset-0 w-full h-full object-fill object-center ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
-                {ZONES_DESKTOP.map(z => <div key={z.id} onClick={(e) => { e.stopPropagation(); handleZoneClick(z.id); }} className="absolute inset-0 cursor-pointer hover:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>)}
+
+            <div className="hidden md:block absolute inset-0 w-full h-full overflow-hidden">
+                <img 
+                    src={DISCO_BG_DESKTOP} 
+                    alt="Disco Zone Desktop" 
+                    className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    draggable={false}
+                />
+
+                {isLoaded && (
+                    <div className="absolute top-[70%] left-[47%] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 w-full flex justify-center">
+                        <span 
+                            className="font-luckiest text-5xl lg:text-7xl text-white uppercase text-center transform -rotate-[38deg] transition-all duration-300"
+                            style={{ WebkitTextStroke: '2.5px black' }}
+                        >
+                            Tocca uno strumento
+                        </span>
+                    </div>
+                )}
+
+                {isLoaded && ZONES_DESKTOP.map(z => (
+                    <div 
+                        key={z.id} 
+                        onClick={(e) => { e.stopPropagation(); handleZoneClick(z.id); }} 
+                        className="absolute inset-0 cursor-pointer hover:bg-white/10 z-20" 
+                        style={{ clipPath: getClipPath(z.points) }}
+                    ></div>
+                ))}
             </div>
         </div>
     </div>

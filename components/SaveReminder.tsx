@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Download, X } from 'lucide-react';
 
-const SAVE_PROGRESS_IMG = 'https://i.postimg.cc/DyC6jbyZ/salva-i-progressi-(1).png';
+const SAVE_PROGRESS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-save-progress.webp';
 
 interface SaveReminderProps {
     onOpenNewsstand: () => void;

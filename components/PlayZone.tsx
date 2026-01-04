@@ -2,8 +2,8 @@ import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { Loader2, ArrowLeft, Store, ShoppingBag, Check, Sparkles } from 'lucide-react';
 import RobotHint from './RobotHint';
 import { getProgress, addTokens } from '../services/tokens';
-import Newsstand from './Newsstand';
 import { OFFICIAL_LOGO } from '../constants';
+import { AppView } from '../types';
 
 // Lazy Load Games
 const QuizGame = React.lazy(() => import('./QuizGame'));
@@ -28,12 +28,13 @@ const FlappyBooGame = React.lazy(() => import('./FlappyBooGame'));
 const FallingNotesGame = React.lazy(() => import('./FallingNotesGame'));
 const MazeGame = React.lazy(() => import('./MazeGame'));
 const RainDodgeGame = React.lazy(() => import('./RainDodgeGame'));
+const BingoGame = React.lazy(() => import('./BingoGame'));
 
-const PARK_BG_MOBILE = 'https://i.postimg.cc/fLFPzmRh/percoooox.jpg';
-const PARK_BG_DESKTOP = 'https://i.postimg.cc/85n0dxWj/parco169.jpg';
-const NEWSSTAND_ICON = 'https://i.postimg.cc/50GkpGd7/edicolabooo.png';
+const PARK_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/park-mobile.webp';
+const PARK_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/park-desktop.webp';
+const NEWSSTAND_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newsstand.webp';
 const TUTORIAL_GHOST_IMG = 'https://i.postimg.cc/L6gGcsb3/indicafre-(1).png';
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const PARK_TITLE_IMG = 'https://i.postimg.cc/ydM78X3g/sfondoparco-(1)-(1).png';
 
 enum GameType {
@@ -59,7 +60,8 @@ enum GameType {
   FLAPPY = 'FLAPPY',
   FALLING = 'FALLING',
   MAZE = 'MAZE',
-  RAIN = 'RAIN'
+  RAIN = 'RAIN',
+  BINGO = 'BINGO'
 }
 
 type Point = { x: number; y: number };
@@ -78,7 +80,7 @@ const ZONES_MOBILE: ZoneConfig[] = [
   { "id": "Dama", "points": [ { "x": 74.09, "y": 68.38 }, { "x": 82.36, "y": 72.15 }, { "x": 90.88, "y": 68.74 }, { "x": 82.89, "y": 64.79 } ] },
   { "id": "Math", "points": [ { "x": 9.33, "y": 79.33 }, { "x": 14.66, "y": 81.66 }, { "x": 19.72, "y": 79.86 }, { "x": 14.66, "y": 75.92 } ] },
   { "id": "Indovina Parola", "points": [ { "x": 19.72, "y": 75.2 }, { "x": 24.52, "y": 77.89 }, { "x": 30.38, "y": 76.45 }, { "x": 25.32, "y": 72.86 } ] },
-  { "id": "Indovina Numero", "points": [ { "x": 45.58, "y": 72.33 }, { "x": 46.64, "y": 87.94 }, { "x": 57.84, "y": 88.84 }, { "x": 58.37, "y": 71.61 } ] },
+  { "id": "Indovina Numero", "points": [ { "x": 45.58, "y": 72.33 }, { "x": 46.64, "y": 87.94 }, { "x": 57.84, "y": 88.84 }, { "x": 57.84, "y": 71.61 } ] },
   { "id": "Memory", "points": [ { "x": 28.52, "y": 91.89 }, { "x": 27.72, "y": 98.17 }, { "x": 44.78, "y": 98.17 }, { "x": 42.11, "y": 90.99 } ] },
   { "id": "Trova Intruso", "points": [ { "x": 77.29, "y": 76.63 }, { "x": 77.56, "y": 95.3 }, { "x": 86.62, "y": 96.2 }, { "x": 86.35, "y": 76.99 } ] }
 ];
@@ -101,26 +103,28 @@ const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "Trova Intruso", "points": [ { "x": 60.55, "y": 76.96 }, { "x": 60.55, "y": 94.51 }, { "x": 64.35, "y": 95.18 }, { "x": 64.35, "y": 76.28 } ] }
 ];
 
-const PlayZone: React.FC = () => {
+interface PlayZoneProps {
+    setView: (view: AppView) => void;
+}
+
+const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [activeGame, setActiveGame] = useState<GameType>(GameType.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
   
   // TOKEN ECONOMY STATE
   const [tokenBalance, setTokenBalance] = useState(0);
-  const [showNewsstand, setShowNewsstand] = useState(false);
-  const [newsstandTab, setNewsstandTab] = useState<'SHOP' | 'ALBUM' | 'PASSPORT'>('SHOP');
   const [tokensEarnedAnimation, setTokensEarnedAnimation] = useState<number | null>(null);
 
   // TUTORIAL STATE
   const [showTutorial, setShowTutorial] = useState(false);
 
-  // Interaction Tracking to prevent Hint from reappearing after playing
+  // Interaction Tracking
   const hasInteractedRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // 1. INITIALIZATION & HINT EFFECT (Runs ONCE on mount)
+  // 1. INITIALIZATION & HINT EFFECT
   useEffect(() => {
-      // Preload both images
       const imgMobile = new Image();
       imgMobile.src = PARK_BG_MOBILE;
       const imgDesktop = new Image();
@@ -134,47 +138,35 @@ const PlayZone: React.FC = () => {
 
       imgMobile.onload = checkLoad;
       imgDesktop.onload = checkLoad;
-
-      // Fallback
       setTimeout(() => setIsLoaded(true), 1500);
 
       window.scrollTo(0, 0);
 
-      // --- TUTORIAL LOGIC (SESSION BASED) ---
       const tutorialSeen = sessionStorage.getItem('playzone_tutorial_seen');
       if (!tutorialSeen) {
-          // If first time in this session, show tutorial
-          // We wait a moment for the background to load to make the frosted effect look good
           setTimeout(() => {
               setShowTutorial(true);
               sessionStorage.setItem('playzone_tutorial_seen', 'true');
           }, 1000);
       } else {
-          // Normal hint timer only if tutorial is NOT shown
           const timer = setTimeout(() => {
               if (!hasInteractedRef.current) setShowHint(true);
           }, 5000);
           return () => clearTimeout(timer);
       }
-
   }, []); 
 
-  // 2. GAME STATE & TOKEN EFFECT (Runs when activeGame changes)
+  // 2. GAME STATE & TOKEN EFFECT
   useEffect(() => {
-      // Load Tokens (Refresh when returning from game)
       const current = getProgress();
       setTokenBalance(current.tokens);
 
-      // Listen for updates from other tabs/modals
       const updateHandler = () => {
           const updated = getProgress();
           setTokenBalance(updated.tokens);
       };
       window.addEventListener('progressUpdated', updateHandler);
-
-      return () => {
-          window.removeEventListener('progressUpdated', updateHandler);
-      };
+      return () => window.removeEventListener('progressUpdated', updateHandler);
   }, [activeGame]);
 
   const handleInteraction = () => {
@@ -189,7 +181,7 @@ const PlayZone: React.FC = () => {
 
   const handleZoneClick = (zoneId: string) => {
       setShowHint(false);
-      setShowTutorial(false); // Ensure tutorial is closed if they manage to click through
+      setShowTutorial(false);
       hasInteractedRef.current = true; 
       
       switch (zoneId) {
@@ -212,24 +204,22 @@ const PlayZone: React.FC = () => {
   };
 
   const handleEarnTokens = (amount: number) => {
-      // addTokens returns the new total, explicitly typed as number
       const newTotal = addTokens(amount);
       setTokenBalance(newTotal);
       setTokensEarnedAnimation(amount);
       setTimeout(() => setTokensEarnedAnimation(null), 2000);
   };
 
-  const handleOpenNewsstand = (tab?: 'SHOP' | 'ALBUM' | 'PASSPORT') => {
-      setNewsstandTab(tab || 'SHOP');
-      setShowNewsstand(true);
-      setShowTutorial(false);
+  const handleOpenNewsstand = () => {
+      // Invece di mostrare un modale, naviga alla AppView.NEWSSTAND
+      setView(AppView.NEWSSTAND);
   };
 
   const renderGame = () => {
     const commonProps = { 
         onBack: () => setActiveGame(GameType.NONE),
         onEarnTokens: handleEarnTokens,
-        onOpenNewsstand: () => handleOpenNewsstand('PASSPORT')
+        onOpenNewsstand: handleOpenNewsstand
     };
 
     const Component = (() => {
@@ -256,6 +246,7 @@ const PlayZone: React.FC = () => {
         case GameType.FALLING: return FallingNotesGame;
         case GameType.MAZE: return MazeGame;
         case GameType.RAIN: return RainDodgeGame;
+        case GameType.BINGO: return BingoGame;
         default: return null;
       }
     })();
@@ -277,44 +268,39 @@ const PlayZone: React.FC = () => {
     );
   };
 
-  // VISTA GIOCO ATTIVO (FISSA E RESPONSIVA)
+  // VISTA GIOCO ATTIVO
   if (activeGame !== GameType.NONE) {
       return (
-          <div className="w-full h-full flex flex-col relative overflow-hidden">
-                {/* TOKEN EARNED POPUP */}
-                {tokensEarnedAnimation && (
-                    <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none">
+          <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-black flex flex-col overflow-hidden">
+                {tokensEarnedAnimation && 
+                 activeGame !== GameType.CONNECT4 && 
+                 activeGame !== GameType.QUIZ && 
+                 activeGame !== GameType.MEMORY && 
+                 activeGame !== GameType.ODD && 
+                 activeGame !== GameType.TICTACTOE && 
+                 activeGame !== GameType.CHECKERS && (
+                    <div className="absolute top-24 left-1/2 -translate-x-1/2 z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none">
                         <div className="bg-yellow-400 text-black font-black text-3xl px-6 py-3 rounded-full border-4 border-white shadow-[0_0_30px_gold] flex items-center gap-2">
                             <span>+{tokensEarnedAnimation}</span> 🪙
                         </div>
                     </div>
                 )}
 
-                {showNewsstand && <Newsstand onClose={() => setShowNewsstand(false)} initialTab={newsstandTab} />}
-
-                {/* HEADER FOR GAMES (ARCADE HAS ITS OWN HEADER usually but we can keep minimal padding if needed) */}
                 {activeGame !== GameType.ARCADE && (
-                    <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40">
+                    <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40 pt-[64px] md:pt-[96px]">
                         <button
                             onClick={() => setActiveGame(GameType.NONE)}
                             className="hover:scale-105 active:scale-95 transition-transform"
                         >
-                            <img 
-                                src={EXIT_BTN_IMG} 
-                                alt="Ritorna al Parco" 
-                                className="h-12 md:h-14 w-auto drop-shadow-md" 
-                            />
+                            <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 md:h-14 w-auto drop-shadow-md" />
                         </button>
                         
-                        <div 
-                            className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black hover:bg-black/60 transition-colors cursor-default"
-                        >
+                        <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black">
                             <span>{tokenBalance}</span> 🪙
                         </div>
                     </div>
                 )}
 
-                {/* GAME CONTAINER: Flex-1 to take remaining space, hidden overflow to prevent scroll */}
                 <div className={`flex-1 w-full h-full relative overflow-hidden flex flex-col items-center justify-center ${activeGame === GameType.ARCADE ? 'p-0' : 'p-2'}`}>
                     {renderGame()}
                 </div>
@@ -322,16 +308,16 @@ const PlayZone: React.FC = () => {
       );
   }
 
-  // VISTA PRINCIPALE (PARCO GIOCHI)
+  // VISTA PRINCIPALE (PARCO GIOCHI) - CONFIGURATA COME CITY MAP
   return (
     <div 
-        className="relative w-full h-[calc(100vh-80px)] md:h-[calc(100vh-106px)] bg-gradient-to-b from-[#b388f4] to-white overflow-hidden flex flex-col"
+        className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#b388f4] overflow-hidden touch-none overscroll-none select-none"
         onClick={handleInteraction}
     >
         {!isLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-600/90 backdrop-blur-md">
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-600/95 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
-                <span className="text-white font-bold text-lg tracking-widest animate-pulse">
+                <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">
                     STO CARICANDO...
                 </span>
             </div>
@@ -339,63 +325,30 @@ const PlayZone: React.FC = () => {
 
         {isLoaded && (
             <>
-                {/* PARK TITLE IMAGE (TOP LEFT) - RESIZED AND STYLED AS REQUESTED */}
-                <div className="absolute top-2 left-2 z-30 animate-in slide-in-from-left duration-500 pointer-events-none">
-                    <img 
-                        src={PARK_TITLE_IMG} 
-                        alt="Parco Giochi" 
-                        className="w-28 md:w-48 h-auto object-contain transition-transform duration-500" 
-                        style={{
-                            // "Cloud" effect: Multiple white drop shadows to create a thick, soft glow
-                            filter: 'drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.9)) drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.7))'
-                        }}
-                    />
-                </div>
-
-                {/* --- TUTORIAL OVERLAY (FROSTED GLASS, NO BOX, HIGHLIGHTED ICON) --- */}
                 {showTutorial && (
                     <div 
                         className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-in fade-in cursor-pointer"
                         onClick={() => setShowTutorial(false)}
                     >
-                        {/* TEXT & ARROW - Spostato leggermente verso destra */}
                         <div className="absolute top-24 right-16 md:right-64 w-72 text-right flex flex-col items-end z-[101] pointer-events-none">
-                             <div className="mb-0 mr-20 md:mr-6 mt-12 animate-bounce">
-                                <img 
-                                    src={TUTORIAL_GHOST_IMG} 
-                                    alt="Guarda qui" 
-                                    className="w-40 h-40 object-contain drop-shadow-xl transform rotate-12" 
-                                />
+                             <div className="mb-0 mr-20 md:mr-6 mt-12">
+                                <img src={TUTORIAL_GHOST_IMG} alt="" className="w-40 h-40 object-contain drop-shadow-xl transform rotate-12" />
                              </div>
-                             
                              <div className="flex flex-col gap-1 items-end drop-shadow-[0_4px_0_black]">
-                                 <p className="font-luckiest text-3xl text-white uppercase leading-none transform -rotate-2">
-                                     EHI! PSST!
-                                 </p>
-                                 <p className="font-luckiest text-2xl text-yellow-300 uppercase leading-none transform -rotate-1">
-                                     PRIMA DI GIOCARE...
-                                 </p>
-                                 <p className="font-luckiest text-xl text-white uppercase leading-tight mt-2 w-full text-right">
-                                     Tocca qui per fare <br/> la tua <span className="text-cyan-300">TESSERA</span>!
-                                 </p>
-                                 <p className="font-bold text-white/80 text-xs mt-1">
-                                     (Salva i tuoi gettoni!)
-                                 </p>
+                                 <p className="font-luckiest text-3xl text-white uppercase leading-none transform -rotate-2">EHI! PSST!</p>
+                                 <p className="font-luckiest text-2xl text-yellow-300 uppercase leading-none transform -rotate-1">PRIMA DI GIOCARE...</p>
+                                 <p className="font-luckiest text-xl text-white uppercase leading-tight mt-2 w-full text-right">Tocca qui per fare <br/> la tua <span className="text-cyan-300">TESSERA</span>!</p>
+                                 <p className="font-bold text-white/80 text-xs mt-1">(Salva i tuoi gettoni!)</p>
                              </div>
                         </div>
 
-                        {/* THE "CUTOUT" / HIGHLIGHTED NEWSSTAND CLONE */}
-                        <div className="absolute top-0 right-0 z-[102] p-0 md:p-2 pointer-events-auto">
-                            <div className="relative group cursor-pointer" onClick={(e) => { e.stopPropagation(); handleOpenNewsstand('PASSPORT'); }}>
-                                <div className="group-hover:scale-105 transition-transform w-32 h-32 md:w-64 md:h-64 origin-top-right">
-                                    <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                                    <img 
-                                        src={NEWSSTAND_ICON} 
-                                        alt="Edicola Highlight" 
-                                        className="w-full h-full object-contain drop-shadow-2xl relative z-10" 
-                                    />
+                        <div className="absolute top-[35%] -translate-y-1/2 right-0 z-[102] p-0 md:p-2 pointer-events-auto">
+                            <div className="relative group cursor-pointer" onClick={(e) => { e.stopPropagation(); handleOpenNewsstand(); }}>
+                                <div className="w-28 h-28 md:w-56 md:h-56 origin-right">
+                                    <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl opacity-50"></div>
+                                    <img src={NEWSSTAND_ICON} alt="" className="w-full h-full object-contain drop-shadow-2xl relative z-10" />
                                 </div>
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black font-black text-sm md:text-lg px-4 py-1 rounded-full border-4 border-black shadow-lg whitespace-nowrap z-20">
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-black font-black text-[10px] md:text-sm px-3 py-0.5 rounded-full border-2 border-black shadow-lg whitespace-nowrap z-20">
                                     {tokenBalance} 🪙
                                 </div>
                             </div>
@@ -403,40 +356,32 @@ const PlayZone: React.FC = () => {
                     </div>
                 )}
 
-                {/* NORMAL NEWSSTAND ICON (Visible underneath overlay or when overlay is gone) */}
-                <div className="absolute top-0 right-0 z-30 animate-in slide-in-from-right duration-500 p-0 md:p-2 pointer-events-none">
-                    <div className="relative group cursor-pointer pointer-events-auto" onClick={() => handleOpenNewsstand('SHOP')}>
-                        <div className="group-hover:scale-105 transition-transform w-32 h-32 md:w-64 md:h-64 origin-top-right">
-                            <img 
-                                src={NEWSSTAND_ICON} 
-                                alt="Edicola" 
-                                className="w-full h-full object-contain drop-shadow-2xl" 
-                            />
-                        </div>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black font-black text-sm md:text-lg px-4 py-1 rounded-full border-4 border-black shadow-lg whitespace-nowrap z-10">
-                            {tokenBalance} 🪙
+                {!showTutorial && (
+                    <div className="absolute top-[35%] -translate-y-1/2 right-0 z-30 animate-in slide-in-from-right duration-500 p-0 md:p-2 pointer-events-none">
+                        <div className="relative group cursor-pointer pointer-events-auto" onClick={() => handleOpenNewsstand()}>
+                            <div className="w-28 h-28 md:w-56 md:h-56 origin-right">
+                                <img src={NEWSSTAND_ICON} alt="" className="w-full h-full object-contain drop-shadow-2xl" />
+                            </div>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-black font-black text-[10px] md:text-sm px-3 py-0.5 rounded-full border-2 border-black shadow-lg whitespace-nowrap z-10">
+                                {tokenBalance} 🪙
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </>
         )}
 
-        {showNewsstand && <Newsstand onClose={() => setShowNewsstand(false)} initialTab={newsstandTab} />}
+        <RobotHint show={showHint && isLoaded && !showTutorial} message="Tocca un gioco per vincere gettoni!" variant="ROBOT" />
 
-        <RobotHint 
-            show={showHint && isLoaded && !showTutorial} 
-            message="Tocca un gioco per vincere gettoni!"
-        />
-
-        <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden w-full h-full relative">
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden select-none">
+            <div className="block md:hidden absolute inset-0">
                 <img 
                     src={PARK_BG_MOBILE} 
-                    alt="Lone Boo Parco Giochi Mobile" 
-                    className={`w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    alt="Parco Mobile" 
+                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                     draggable={false}
                 />
-                {ZONES_MOBILE.map((zone, i) => (
+                {isLoaded && ZONES_MOBILE.map((zone, i) => (
                     <div
                         key={i}
                         className="absolute inset-0 cursor-pointer"
@@ -446,14 +391,14 @@ const PlayZone: React.FC = () => {
                 ))}
             </div>
 
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
+            <div className="hidden md:block absolute inset-0">
                 <img 
                     src={PARK_BG_DESKTOP} 
-                    alt="Lone Boo Parco Giochi Desktop" 
-                    className={`absolute inset-0 w-full h-full object-fill object-center animate-in fade-in duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    alt="Parco Desktop" 
+                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                     draggable={false}
                 />
-                {ZONES_DESKTOP.map((zone, i) => (
+                {isLoaded && ZONES_DESKTOP.map((zone, i) => (
                     <div
                         key={i}
                         className="absolute inset-0 cursor-pointer"

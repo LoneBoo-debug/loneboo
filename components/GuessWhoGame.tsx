@@ -3,19 +3,20 @@ import { Send, Check, X, Loader2, MessageCircle, Trophy, User, HelpCircle, Searc
 import { GoogleGenAI } from "@google/genai";
 import { GW_DATABASE, GuessWhoCharacter, Trait } from '../services/dbCardChi';
 
-const EXIT_BTN_IMG = 'https://i.postimg.cc/K80g02mb/erde-(1).png';
-const BTN_PLAY_AGAIN_IMG = 'https://i.postimg.cc/65mhQnG6/tasto-gioca-ancora-(1).png';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bksalagii+(1).webp';
+const BTN_BACK_ARCADE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bksalagii+(1).webp';
+const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
 const GAME_BG = encodeURI('https://i.postimg.cc/zX3FSsXL/sfchi-(1).jpg');
 
-const GAIA_BOX_ICON = 'https://i.postimg.cc/WbvK1b2k/gaiagag.png';
-const IMG_SI = 'https://i.postimg.cc/C1p5QqV3/sisisis-(1)-(1).png';
-const IMG_NO = 'https://i.postimg.cc/tCvTHfjr/nonono-(1)-(1).png';
-const IMG_THINKING = 'https://i.postimg.cc/FRxrCCGQ/stosotos-(1)-(1).png';
+const GAIA_BOX_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaiagag+(1).webp';
+const IMG_SI = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaia-yes.webp';
+const IMG_NO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaia-no.webp';
+const IMG_THINKING = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaia-thinking.webp';
 const IMG_UNKNOWN = 'https://i.postimg.cc/Hk7BwqWR/nohoda-(1)-(1).png';
-const IMG_CORRECT_GUESS = 'https://i.postimg.cc/s2hq2BZp/indovinato-(1)-(1).png';
-const IMG_WRONG_GUESS = 'https://i.postimg.cc/bvkVhKKB/nlui-(1)-(1).png';
-const IMG_GAIA_WINS = 'https://i.postimg.cc/d0kCSxW9/givinc-(1).png';
-const IMG_VICTORY_REWARD = 'https://i.postimg.cc/BvMw38yb/giouty-(1)-(1).png';
+const IMG_CORRECT_GUESS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaia-correct.webp';
+const IMG_WRONG_GUESS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gaia-wrong.webp';
+const IMG_GAIA_WINS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/givinc-(1).webp';
+const IMG_VICTORY_REWARD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giouty-(1)-(1).webp';
 
 // NUOVI PULSANTI INTERAZIONE
 const BTN_YES_ACTION = 'https://i.postimg.cc/K8czzwjv/sipuls-(1).png';
@@ -291,12 +292,18 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
         return (
             <div className="w-full h-full relative flex flex-col items-center overflow-hidden bg-black">
                 <BackgroundLayer />
-                <div className="relative z-10 w-full pt-16 md:pt-24 pb-2 px-4 flex flex-col items-center shrink-0">
-                    <div className="bg-black/40 backdrop-blur-sm p-3 rounded-2xl border-2 border-white/20 shadow-2xl text-center">
-                        <h2 className="text-3xl md:text-5xl font-cartoon text-red-600 uppercase tracking-tighter mb-1" style={{ WebkitTextStroke: '2px black', textShadow: '3px 3px 0px black' }}>Scegli il tuo personaggio!</h2>
-                        <p className="text-white font-bold text-[10px] md:text-sm">Tocca chi vuoi far indovinare a Gaia</p>
+                {/* INTESTAZIONE SELEZIONE - RESTRUTTURATA */}
+                <div className="relative z-10 w-full pt-[70px] md:pt-[105px] px-4 md:px-10 flex flex-row items-center justify-between shrink-0">
+                    <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                        <img src={BTN_BACK_ARCADE_IMG} alt="Torna in Sala Giochi" className="h-16 md:h-32 w-auto drop-shadow-2xl" />
+                    </button>
+                    <div className="text-right flex-1 pl-4">
+                        <h2 className="text-2xl md:text-5xl font-cartoon text-red-600 uppercase tracking-tighter leading-none" style={{ WebkitTextStroke: '1.5px black', textShadow: '3px 3px 0px black' }}>Scegli il tuo personaggio!</h2>
+                        <p className="text-white font-black text-[10px] md:text-lg mt-1 drop-shadow-md" style={{ WebkitTextStroke: '0.5px black' }}>Tocca chi vuoi far indovinare a Gaia</p>
                     </div>
                 </div>
+
+                {/* GRIGLIA PERSONAGGI */}
                 <div className="relative z-10 flex-1 w-full max-w-5xl px-2 py-2 flex items-center justify-center min-h-0">
                     <div className="grid grid-cols-5 grid-rows-4 gap-1.5 md:gap-3 w-full h-full max-h-full">
                         {gameCharacters.map(char => (
@@ -310,9 +317,6 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
                             </button>
                         ))}
                     </div>
-                </div>
-                <div className="relative z-20 w-full bg-black/30 backdrop-blur-sm flex justify-start p-2 pl-4 shrink-0 border-t border-white/10">
-                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform"><img src={EXIT_BTN_IMG} alt="Indietro" className="h-10 md:h-14 w-auto" /></button>
                 </div>
             </div>
         );
@@ -492,9 +496,8 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
                     </div>
                 </div>
                 
-                {/* Footer Indietro */}
+                {/* Footer Indietro - Svuotato per rimuovere il tasto durante il gioco attivo */}
                 <div className="bg-gray-100 flex justify-start p-1 pl-4 border-t border-slate-200 shrink-0 h-12 md:h-16 items-center">
-                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform"><img src={EXIT_BTN_IMG} alt="Indietro" className="h-8 md:h-12 w-auto" /></button>
                 </div>
             </div>
 
@@ -527,7 +530,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
             {zoomedChar && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setZoomedChar(null)}>
                     <div className="bg-white rounded-[40px] border-8 border-yellow-400 p-0 md:p-0 shadow-2xl relative max-w-sm w-full animate-in zoom-in duration-300 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => setZoomedChar(null)} className="absolute top-4 right-4 bg-red-500 text-white p-3 rounded-full border-4 border-white shadow-lg hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
+                        <button onClick={setZoomedChar.bind(null, null)} className="absolute top-4 right-4 bg-red-500 text-white p-3 rounded-full border-4 border-white shadow-lg hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
                         <div className="aspect-square w-full bg-slate-50 overflow-hidden">
                             <img src={zoomedChar.image} alt={zoomedChar.name} className="w-full h-full object-contain" />
                         </div>
@@ -557,16 +560,16 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
                         
                         <div className="flex flex-row gap-4 w-full justify-center">
                             <button 
-                                onClick={initGame} 
-                                className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[160px]"
-                            >
-                                <img src={BTN_PLAY_AGAIN_IMG} alt="Rigioca" className="w-full h-auto drop-shadow-lg" />
-                            </button>
-                            <button 
                                 onClick={onBack} 
                                 className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[160px]"
                             >
                                 <img src={EXIT_BTN_IMG} alt="Sala Giochi" className="w-full h-auto drop-shadow-lg" />
+                            </button>
+                            <button 
+                                onClick={initGame} 
+                                className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[160px]"
+                            >
+                                <img src={BTN_PLAY_AGAIN_IMG} alt="Rigioca" className="w-full h-auto drop-shadow-lg" />
                             </button>
                         </div>
                     </div>

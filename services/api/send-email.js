@@ -2,80 +2,65 @@ import { Resend } from 'resend';
 
 export default async function handler(request, response) {
   try {
-    // 1. Basic Environment Check
-    if (typeof process === 'undefined' || !process.env) {
-       console.error("Critical: process.env is missing");
-       return response.status(500).json({ error: 'Server configuration error: Environment missing' });
-    }
-
-    // 2. API Key Check
+    // 1. Controllo Ambiente
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.error("Critical: RESEND_API_KEY is missing in environment variables");
-      return response.status(500).json({ error: 'Server configuration error: Missing API Key' });
+      console.error("Critical: RESEND_API_KEY is missing");
+      return response.status(500).json({ error: 'Errore configurazione server' });
     }
 
-    // 3. Method Check
+    // 2. Controllo Metodo
     if (request.method !== 'POST') {
-      return response.status(405).json({ error: 'Method not allowed' });
+      return response.status(405).json({ error: 'Metodo non consentito' });
     }
 
-    // 4. Body Check
-    if (!request.body) {
-        return response.status(400).json({ error: 'Request body is empty' });
-    }
-
-    // Initialize Resend
+    // 3. Inizializzazione Resend
     const resend = new Resend(apiKey);
-
     const { name, age, city, province, image } = request.body;
 
-    // 5. Data Validation
-    if (!image) {
-        return response.status(400).json({ error: 'Manca l\'immagine' });
-    }
-    if (!name) {
-        return response.status(400).json({ error: 'Manca il nome' });
+    // 4. Validazione Dati
+    if (!image || !name) {
+        return response.status(400).json({ error: 'Nome o immagine mancanti' });
     }
 
-    // Prepare Base64
+    // Preparazione Base64 per allegato
     const base64Content = image.includes(',') ? image.split(',')[1] : image;
 
-    // Send Email
+    // 5. Invio Email
     const data = await resend.emails.send({
-      from: 'Lone Boo App <onboarding@resend.dev>',
+      from: 'Museo Lone Boo <onboarding@resend.dev>',
       to: ['artloneboo@protonmail.com'],
-      subject: `Nuovo Disegno da ${name}! 🎨`,
+      subject: `🎨 Nuovo Disegno da ${name}!`,
       html: `
-        <h1>Nuova Fan Art Ricevuta! 👻</h1>
-        <p>Ecco i dettagli del piccolo artista:</p>
-        <ul>
-            <li><strong>Nome:</strong> ${name}</li>
-            <li><strong>Età:</strong> ${age}</li>
-            <li><strong>Città:</strong> ${city} (${province})</li>
-        </ul>
-        <p>Il disegno è in allegato.</p>
-        <p><em>Inviato dall'app Lone Boo World.</em></p>
+        <div style="font-family: sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 4px solid #8B5CF6; padding: 20px; border-radius: 20px;">
+          <h1 style="color: #8B5CF6; text-align: center;">Nuova Fan Art! 👻</h1>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <p style="margin: 5px 0;"><strong>Nome Artista:</strong> ${name}</p>
+            <p style="margin: 5px 0;"><strong>Età:</strong> ${age || 'N/D'}</p>
+            <p style="margin: 5px 0;"><strong>Città:</strong> ${city || 'N/D'} ${province ? `(${province})` : ''}</p>
+          </div>
+          <p style="text-align: center;">Trovi il capolavoro in allegato a questa email!</p>
+          <hr style="border: 0; border-top: 2px dashed #8B5CF6; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #999; text-align: center;">Inviato dall'App Lone Boo World</p>
+        </div>
       `,
       attachments: [
         {
           filename: `disegno-${name.replace(/\s+/g, '_')}.jpg`,
           content: base64Content,
-          encoding: 'base64',
         },
       ],
     });
 
     if (data.error) {
         console.error("Resend API Error:", data.error);
-        throw new Error(data.error.message);
+        return response.status(500).json({ error: data.error.message });
     }
 
-    return response.status(200).json({ success: true, data });
+    return response.status(200).json({ success: true, id: data.id });
 
   } catch (error) {
     console.error('Server Handler Error:', error);
-    // Ensure we always return JSON, even for unknown errors
-    return response.status(500).json({ error: error.message || 'Internal Server Error' });
+    return response.status(500).json({ error: 'Errore interno del server' });
   }
 }

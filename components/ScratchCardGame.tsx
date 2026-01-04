@@ -1,15 +1,17 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Star, Percent, Check, Lock, ShieldCheck } from 'lucide-react';
 import { addTokens } from '../services/tokens';
 
-const BG_SCRATCH = 'https://i.postimg.cc/7YRV2Cd1/referf-(1).jpg';
+const BG_SCRATCH = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-scratch-card.webp';
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const BTN_NEW_IMG = 'https://i.postimg.cc/cC0DFrNT/nuododeo-(1)-(1).png';
 const BTN_RULES_IMG = 'https://i.postimg.cc/FsFWcdpV/regolejd-(1)-(1).png';
-const ICON_PARENTS = 'https://i.postimg.cc/Y2YYPq1C/area-genitori-(1).png';
-const IMG_LOCKED_GAMES = 'https://i.postimg.cc/mkRJzmXw/yesno-(1)-(1).png';
+const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
+const IMG_LOCKED_GAMES = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/yesnoi.webp';
 
-type Point = { x: number; y: number };
+// Renamed to ScratchPoint to avoid potential collisions
+type ScratchPoint = { x: number; y: number };
 
 // COORDINATE NORMALIZZATE PER ALLINEAMENTO PERFETTO
 const X_COLS = [20.25, 36.00, 52.00, 67.75]; 
@@ -40,6 +42,74 @@ const FIXED_ZONES = {
     { "id": "play-10", "points": [{ "x": X_COLS[2], "y": PLAY_Y3.top }, { "x": X_COLS[2], "y": PLAY_Y3.bottom }, { "x": X_COLS[2] + BOX_WIDTH, "y": PLAY_Y3.bottom }, { "x": X_COLS[2] + BOX_WIDTH, "y": PLAY_Y3.top }] },
     { "id": "play-11", "points": [{ "x": X_COLS[3], "y": PLAY_Y3.top }, { "x": X_COLS[3], "y": PLAY_Y3.bottom }, { "x": X_COLS[3] + BOX_WIDTH, "y": PLAY_Y3.bottom }, { "x": X_COLS[3] + BOX_WIDTH, "y": PLAY_Y3.top }] }
   ]
+};
+
+// Moved ScratchArea up to avoid temporal dead zone and ensure correct type inference for default export
+const ScratchArea: React.FC<{ points: ScratchPoint[], value: number, prize?: number, onRevealed: () => void }> = ({ points, value, prize, onRevealed }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isDrawing = useRef(false);
+    const lastPos = useRef<{x: number, y: number} | null>(null);
+    const [hasTriggered, setHasTriggered] = useState(false);
+
+    const xs = points.map(p => p.x); const ys = points.map(p => p.y);
+    const minX = Math.min(...xs); const maxX = Math.max(...xs);
+    const minY = Math.min(...ys); const maxY = Math.max(...ys);
+    const width = maxX - minX; const height = maxY - minY;
+
+    useEffect(() => {
+        const canvas = canvasRef.current; if (!canvas) return;
+        const ctx = canvas.getContext('2d'); if (!ctx) return;
+        canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+        ctx.fillStyle = '#94a3b8'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'destination-out'; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = 40;
+    }, []);
+
+    const checkRevealed = () => {
+        if (hasTriggered) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d', { willReadFrequently: true });
+        if (!canvas || !ctx) return;
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let transparent = 0; 
+        const data = imageData.data;
+        for (let i = 3; i < data.length; i += 16) { if (data[i] === 0) transparent++; }
+        
+        if ((transparent / (data.length / 16)) * 100 > 3) { 
+            setHasTriggered(true); 
+            onRevealed(); 
+        }
+    };
+
+    const scratch = (clientX: number, clientY: number) => {
+        if (!isDrawing.current) return;
+        const canvas = canvasRef.current; const ctx = canvas?.getContext('2d');
+        if (!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = clientX - rect.left; const y = clientY - rect.top;
+        ctx.beginPath();
+        if (lastPos.current) { ctx.moveTo(lastPos.current.x, lastPos.current.y); ctx.lineTo(x, y); ctx.stroke(); } 
+        else { ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill(); }
+        lastPos.current = { x, y };
+        checkRevealed();
+    };
+
+    return (
+        <div className="absolute overflow-hidden" style={{ left: `${minX}%`, top: `${minY}%`, width: `${width}%`, height: `${height}%` }}>
+            <div className="absolute inset-0 bg-white flex flex-col items-center justify-center p-1 pointer-events-none select-none">
+                <span className="font-black text-blue-900 text-xl md:text-4xl leading-none">{value}</span>
+                {prize && <span className="text-[8px] md:text-xs font-black text-green-600 mt-0.5">{prize}🪙</span>}
+            </div>
+            <canvas ref={canvasRef} className="absolute inset-0 cursor-crosshair touch-none" 
+                onMouseDown={(e) => { isDrawing.current = true; scratch(e.clientX, e.clientY); }}
+                onMouseMove={(e) => scratch(e.clientX, e.clientY)}
+                onMouseUp={() => { isDrawing.current = false; lastPos.current = null; }}
+                onTouchStart={(e) => { isDrawing.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY); }}
+                onTouchMove={(e) => { if(e.cancelable) e.preventDefault(); scratch(e.touches[0].clientX, e.touches[0].clientY); }}
+                onTouchEnd={() => { isDrawing.current = false; lastPos.current = null; }}
+            />
+        </div>
+    );
 };
 
 const ScratchCardGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -173,13 +243,13 @@ const ScratchCardGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             <div className="fixed top-28 right-4 z-[95] flex flex-col gap-4 items-center">
                 <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                    <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-16 h-16 md:w-24 h-auto drop-shadow-2xl" />
+                    <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-12 h-12 md:w-20 h-auto drop-shadow-2xl" />
                 </button>
                 <button onClick={initNumbers} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                    <img src={BTN_NEW_IMG} alt="Nuovo" className="w-16 h-16 md:w-24 h-auto drop-shadow-2xl" />
+                    <img src={BTN_NEW_IMG} alt="Nuovo" className="w-12 h-12 md:w-20 h-auto drop-shadow-2xl" />
                 </button>
                 <button onClick={() => setShowRules(true)} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                    <img src={BTN_RULES_IMG} alt="Regole" className="w-16 h-16 md:w-24 h-auto drop-shadow-2xl" />
+                    <img src={BTN_RULES_IMG} alt="Regole" className="w-12 h-12 md:w-20 h-auto drop-shadow-2xl" />
                 </button>
             </div>
 
@@ -200,11 +270,11 @@ const ScratchCardGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <h4 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2 font-luckiest uppercase"><Percent className="text-boo-purple" size={26} /> Vincite</h4>
                             <table className="w-full text-sm md:text-lg">
                                 <tbody className="font-bold text-slate-600">
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">500 Gettoni 🪙</td><td className="text-right text-red-500 font-black">Rarissimo</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">100 Gettoni 🪙</td><td className="text-right text-orange-500 font-black">Raro</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">50 Gettoni 🪙</td><td className="text-right text-yellow-600 font-black">Speciale</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">10-20 Gettoni 🪙</td><td className="text-right text-blue-600 font-black">Buona</td></tr>
-                                    <tr><td className="py-2">2-5 Gettoni 🪙</td><td className="text-right text-green-600 font-black">Comune</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2">500 Gettoni 🪙</td><td className="text-right text-red-500 font-black">Rarissimo (0.5%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2">100 Gettoni 🪙</td><td className="text-right text-orange-500 font-black">Raro (1.5%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2">50 Gettoni 🪙</td><td className="text-right text-yellow-600 font-black">Speciale (4%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2">10-20 Gettoni 🪙</td><td className="text-right text-blue-600 font-black">Buona (19%)</td></tr>
+                                    <tr><td className="py-2">2-5 Gettoni 🪙</td><td className="text-right text-green-600 font-black">Comune (75%)</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -212,75 +282,6 @@ const ScratchCardGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 </div>
             )}
-        </div>
-    );
-};
-
-const ScratchArea: React.FC<{ points: Point[], value: number, prize?: number, onRevealed: () => void }> = ({ points, value, prize, onRevealed }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const isDrawing = useRef(false);
-    const lastPos = useRef<{x: number, y: number} | null>(null);
-    const [hasTriggered, setHasTriggered] = useState(false);
-
-    const xs = points.map(p => p.x); const ys = points.map(p => p.y);
-    const minX = Math.min(...xs); const maxX = Math.max(...xs);
-    const minY = Math.min(...ys); const maxY = Math.max(...ys);
-    const width = maxX - minX; const height = maxY - minY;
-
-    useEffect(() => {
-        const canvas = canvasRef.current; if (!canvas) return;
-        const ctx = canvas.getContext('2d'); if (!ctx) return;
-        canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-        ctx.fillStyle = '#94a3b8'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalCompositeOperation = 'destination-out'; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = 40;
-    }, []);
-
-    const checkRevealed = () => {
-        if (hasTriggered) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d', { willReadFrequently: true });
-        if (!canvas || !ctx) return;
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let transparent = 0; 
-        const data = imageData.data;
-        // Campionamento fitto ogni 16 pixel per performance e precisione
-        for (let i = 3; i < data.length; i += 16) { if (data[i] === 0) transparent++; }
-        
-        // Soglia ridotta al 3%: basta grattare un pochino per vedere il numero e attivare il risultato
-        if ((transparent / (data.length / 16)) * 100 > 3) { 
-            setHasTriggered(true); 
-            onRevealed(); 
-        }
-    };
-
-    const scratch = (clientX: number, clientY: number) => {
-        if (!isDrawing.current) return;
-        const canvas = canvasRef.current; const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = clientX - rect.left; const y = clientY - rect.top;
-        ctx.beginPath();
-        if (lastPos.current) { ctx.moveTo(lastPos.current.x, lastPos.current.y); ctx.lineTo(x, y); ctx.stroke(); } 
-        else { ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill(); }
-        lastPos.current = { x, y };
-        checkRevealed();
-    };
-
-    return (
-        <div className="absolute overflow-hidden" style={{ left: `${minX}%`, top: `${minY}%`, width: `${width}%`, height: `${height}%` }}>
-            <div className="absolute inset-0 bg-white flex flex-col items-center justify-center p-1 pointer-events-none select-none">
-                <span className="font-black text-blue-900 text-xl md:text-4xl leading-none">{value}</span>
-                {prize && <span className="text-[8px] md:text-xs font-black text-green-600 mt-0.5">{prize}🪙</span>}
-            </div>
-            <canvas ref={canvasRef} className="absolute inset-0 cursor-crosshair touch-none" 
-                onMouseDown={(e) => { isDrawing.current = true; scratch(e.clientX, e.clientY); }}
-                onMouseMove={(e) => scratch(e.clientX, e.clientY)}
-                onMouseUp={() => { isDrawing.current = false; lastPos.current = null; }}
-                onTouchStart={(e) => { isDrawing.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY); }}
-                onTouchMove={(e) => { if(e.cancelable) e.preventDefault(); scratch(e.touches[0].clientX, e.touches[0].clientY); }}
-                onTouchEnd={() => { isDrawing.current = false; lastPos.current = null; }}
-            />
         </div>
     );
 };

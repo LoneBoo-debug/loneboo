@@ -3,8 +3,8 @@ import { addTokens, getProgress } from '../services/tokens';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 
-const BG_MOBILE = 'https://i.postimg.cc/NfHM644y/fiond.jpg';
-const BG_DESKTOP = 'https://i.postimg.cc/vT94ZL27/dfsfdsds.jpg';
+const BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-slingshot-mobile.webp';
+const BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-slingshot-desktop.webp';
 
 const CAN_IMG = 'https://i.postimg.cc/T27xKDvK/baratt-(1)-(1)-(1).png'; 
 const PROJECTILE_IMG = 'https://i.postimg.cc/3xJYNFdv/sass-(1).png'; 
@@ -42,9 +42,16 @@ const SlingShotGame: React.FC<SlingShotGameProps> = ({ onBack, onEarnTokens }) =
     const [projectile, setProjectile] = useState<{ x: number, y: number, z: number, vx: number, vy: number, vz: number } | null>(null);
     const audioCtx = useRef<AudioContext | null>(null);
 
-    useEffect(() => {
+    // Sincronizzazione iniziale e listener per aggiornamenti esterni
+    const syncTokens = useCallback(() => {
         setTotalTokens(getProgress().tokens);
     }, []);
+
+    useEffect(() => {
+        syncTokens();
+        window.addEventListener('progressUpdated', syncTokens);
+        return () => window.removeEventListener('progressUpdated', syncTokens);
+    }, [syncTokens]);
 
     // --- AUDIO ENGINE ---
     const playSfx = (type: 'LAUNCH' | 'HIT' | 'VICTORY') => {
@@ -183,8 +190,10 @@ const SlingShotGame: React.FC<SlingShotGameProps> = ({ onBack, onEarnTokens }) =
                             if (newScore === 6) {
                                 playSfx('VICTORY');
                                 const bonus = 6;
+                                // SALVATAGGIO DIRETTO
+                                addTokens(bonus);
                                 if (onEarnTokens) onEarnTokens(bonus);
-                                setTotalTokens(t => t + bonus);
+                                syncTokens();
                             }
                             return finalCans;
                         }
@@ -198,8 +207,10 @@ const SlingShotGame: React.FC<SlingShotGameProps> = ({ onBack, onEarnTokens }) =
                         if (remaining === 0 && score < 6) {
                             if (score >= 3) {
                                 const tokens = 2;
+                                // SALVATAGGIO DIRETTO
+                                addTokens(tokens);
                                 if (onEarnTokens) onEarnTokens(tokens);
-                                setTotalTokens(prev => prev + tokens);
+                                syncTokens();
                             }
                         }
                         return Math.max(0, remaining);
@@ -210,7 +221,7 @@ const SlingShotGame: React.FC<SlingShotGameProps> = ({ onBack, onEarnTokens }) =
             });
         }, 16); 
         return () => clearInterval(interval);
-    }, [projectile, score, onEarnTokens]);
+    }, [projectile, score, onEarnTokens, syncTokens]);
 
     const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
         if (gameState !== 'PLAYING' || projectile || shots <= 0 || score === 6) return;

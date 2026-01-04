@@ -435,6 +435,24 @@ const SvegliaBoo: React.FC<SvegliaBooProps> = ({ setView }) => {
       setInputText(prev => prev + emoji);
   };
 
+    const speakTextManual = (text: string) => {
+        if (!audioEnabled || !window.speechSynthesis) return;
+        let cleanText = text
+            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/gu, '')
+            .replace(/\[.*?\]/g, '')
+            .trim();
+        const phoneticText = cleanText
+            .replace(/Maragno/gi, 'Mara-nio')
+            .replace(/Lone\s*Boo/gi, 'Lon Bu');
+        window.speechSynthesis.cancel();
+        // FIX: Corrected SynthesisUtterance to SpeechSynthesisUtterance
+        const utterance = new SpeechSynthesisUtterance(phoneticText);
+        utterance.lang = 'it-IT';
+        utterance.rate = 1.05; 
+        utterance.pitch = 1.15; 
+        window.speechSynthesis.speak(utterance);
+    };
+
   // --- LOCK SCREEN (SERVICE PAGE) UI ---
   if (!isUnlocked) {
       return (

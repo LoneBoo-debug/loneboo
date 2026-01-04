@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Move } from 'lucide-react';
+import { Move } from 'lucide-react';
 
 // --- DATA: LE 12 COSTELLAZIONI ---
 const CONSTELLATIONS = [
@@ -19,6 +18,7 @@ const CONSTELLATIONS = [
 ];
 
 const MAP_SIZE = 2000;
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [offset, setOffset] = useState({ x: -300, y: -300 });
@@ -56,10 +56,10 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             
             // Impediamo di uscire troppo dai bordi della mappa rispetto alla finestra corrente
             const containerWidth = window.innerWidth;
-            const containerHeight = window.innerHeight; // Altezza totale viewport
+            const containerHeight = window.innerHeight; 
             
             const minX = -(MAP_SIZE - containerWidth);
-            const minY = -(MAP_SIZE - (containerHeight - 100)); // Consideriamo l'header
+            const minY = -(MAP_SIZE - containerHeight); 
             
             if (newX > 0) newX = 0;
             if (newY > 0) newY = 0;
@@ -75,27 +75,27 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const handleEnd = () => setIsDragging(false);
 
     return (
-        <div className="w-full h-full bg-black flex flex-col overflow-hidden select-none touch-none animate-in fade-in duration-500">
+        <div className="fixed inset-0 z-[200] bg-black flex flex-col overflow-hidden select-none touch-none animate-in fade-in duration-500">
             
-            {/* Header Mappa - Robusto e fisso */}
-            <div className="bg-slate-900 p-4 md:p-6 flex items-center justify-between border-b-4 border-cyan-800 shrink-0 shadow-lg relative z-50">
+            {/* Header Mappa - Robusto e fisso sopra l'header globale */}
+            <div className="bg-slate-900 p-4 md:p-6 flex items-center justify-between border-b-4 border-cyan-800 shrink-0 shadow-xl relative z-[210]">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={onClose} 
-                        className="bg-red-600 w-10 h-10 md:w-16 md:h-16 rounded-full border-4 border-white hover:scale-110 active:scale-95 transition-transform flex items-center justify-center text-white shadow-lg"
+                        className="hover:scale-110 active:scale-95 transition-transform flex items-center justify-center pointer-events-auto outline-none"
                         title="Torna in Camera"
                     >
-                        <X size={24} strokeWidth={4} />
+                        <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-20 md:h-20 drop-shadow-xl" />
                     </button>
                     <div>
                         <h2 className="text-xl md:text-3xl font-black uppercase tracking-tight text-cyan-400 drop-shadow-sm leading-none">Telescopio 🔭</h2>
-                        <p className="text-[10px] md:text-xs font-bold text-cyan-700 flex items-center gap-1 uppercase mt-1">
+                        <p className="text-[10px] md:text-xs font-bold text-cyan-600 flex items-center gap-1 uppercase mt-1">
                             <Move size={12} /> Trascina per esplorare il cielo
                         </p>
                     </div>
                 </div>
                 <div className="hidden md:block">
-                   <span className="text-cyan-900 font-black text-4xl opacity-20">LONE BOO SKY</span>
+                   <span className="text-cyan-900 font-black text-4xl opacity-20 select-none">LONE BOO SKY</span>
                 </div>
             </div>
 

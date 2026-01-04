@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Trash2, Shield, ExternalLink, Clock, Moon, AlertTriangle, CheckCircle, ShieldAlert, ChevronDown, ChevronUp, FileText, ArrowRight, Minus, Plus, Gamepad2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { AppView } from '../types';
 
-const ICON_PARENTS = 'https://i.postimg.cc/Y2YYPq1C/area-genitori-(1).png';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
+const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 interface ParentalAreaProps {
     onClose: () => void;

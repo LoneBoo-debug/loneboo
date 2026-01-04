@@ -1,23 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Trophy, ArrowRight } from 'lucide-react';
+import { getProgress } from '../services/tokens';
 
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
-const RPS_BG = 'https://i.postimg.cc/wvPQtn0v/sfondomorra.jpg';
-const TITLE_IMG = 'https://i.postimg.cc/5yRWT94T/testomorr-(1).png';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+const RPS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rps-morra-bg.webp';
 const BTN_NEXT_ROUND_IMG = 'https://i.postimg.cc/XYkkds7t/proxround-(1)-(1).png';
+
+const PLAYER_SCORE_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gfghgf-(1).webp';
+const MONSTER_SCORE_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monstffderd.webp';
 
 // STYLE FOR NEON GREEN OUTLINE (FOLLOWS PNG BORDER)
 const IMG_GLOW = 'drop-shadow(0 0 3px #39FF14) drop-shadow(0 0 6px #39FF14)';
 
 // IMAGES FOR CHOICES
 const choices = [
-  { name: 'Sasso', img: 'https://i.postimg.cc/Lskz4nZw/pugddno-(1).png', beats: 'Forbice' },
-  { name: 'Carta', img: 'https://i.postimg.cc/1XvBm4b1/mno-(1).png', beats: 'Sasso' },
-  { name: 'Forbice', img: 'https://i.postimg.cc/5NZvww5J/forbix-(1).png', beats: 'Carta' },
+  { name: 'Sasso', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pugddno-(1).webp', beats: 'Forbice' },
+  { name: 'Carta', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mno-(1).webp', beats: 'Sasso' },
+  { name: 'Forbice', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/forbix-(1).webp', beats: 'Carta' },
 ];
 
-const TOTAL_ROUNDS = 5;
+const TOTAL_ROUNDS = 3;
 const TURNS_PER_ROUND = 5;
 
 type GameState = 'PLAYING' | 'ROUND_OVER' | 'GAME_OVER';
@@ -38,6 +40,12 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   const [playerChoice, setPlayerChoice] = useState<string | null>(null);
   const [computerChoice, setComputerChoice] = useState<string | null>(null);
   const [turnResult, setTurnResult] = useState<string | null>(null);
+  const [userTokens, setUserTokens] = useState(0);
+
+  useEffect(() => {
+      const progress = getProgress();
+      setUserTokens(progress.tokens);
+  }, []);
 
   const handleChoice = (choiceName: string) => {
     const randomChoice = choices[Math.floor(Math.random() * choices.length)];
@@ -49,7 +57,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
         setComputerChoice(randomChoice.name);
 
         let winner = 'draw';
-        // Strings updated: Removed Emojis
         let resultMsg = "PAREGGIO!"; 
 
         if (choiceName !== randomChoice.name) {
@@ -122,8 +129,10 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   useEffect(() => {
       if (gameState === 'GAME_OVER' && !rewardGiven && onEarnTokens) {
           if (totalWins.player > totalWins.computer) {
-              onEarnTokens(5);
+              const amount = 5;
+              onEarnTokens(amount);
               setRewardGiven(true);
+              setUserTokens(prev => prev + amount);
           }
       }
   }, [gameState, totalWins, rewardGiven, onEarnTokens]);
@@ -186,10 +195,9 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   const renderRoundOver = () => {
       const playerWonRound = roundScore.player > roundScore.computer;
       return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in">
-              <div className="bg-black/70 backdrop-blur-md p-8 rounded-[40px] shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-sm w-full mx-4 text-center transform animate-in zoom-in duration-300 relative flex flex-col items-center gap-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">
+              <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[40px] border-4 border-white/40 shadow-2xl max-sm w-full mx-4 text-center transform animate-in zoom-in duration-300 relative flex flex-col items-center gap-4">
                   
-                  {/* TITOLO */}
                   <h2 
                       className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-md font-cartoon"
                       style={{ textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}
@@ -197,14 +205,11 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                       ROUND {currentRound} FINITO
                   </h2>
                   
-                  {/* MESSAGGIO RISULTATO */}
                   <p className={`text-xl font-black uppercase mb-2 ${playerWonRound ? 'text-green-400' : (roundScore.player === roundScore.computer ? 'text-yellow-400' : 'text-red-400')}`} style={{ textShadow: '1px 1px 0 #000' }}>
                       {playerWonRound ? 'HAI VINTO IL ROUND!' : (roundScore.player === roundScore.computer ? 'PAREGGIO!' : 'IL MOSTRO VINCE!')}
                   </p>
                   
-                  {/* PANNELLO RISULTATO (QUADRATI INCLINATI) */}
                   <div className="flex items-center justify-center gap-8 py-4 mb-4">
-                      {/* MOSTRO */}
                       <div className="flex flex-col items-center">
                           <div className="bg-orange-500/90 border-4 border-white w-20 h-20 rounded-2xl shadow-lg transform -rotate-12 flex items-center justify-center">
                               <span className="font-black text-4xl text-white drop-shadow-md">{roundScore.computer}</span>
@@ -214,7 +219,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
 
                       <div className="text-white font-black text-2xl italic opacity-50">VS</div>
 
-                      {/* TU */}
                       <div className="flex flex-col items-center">
                           <div className="bg-boo-purple/90 border-4 border-white w-20 h-20 rounded-2xl shadow-lg transform rotate-12 flex items-center justify-center">
                               <span className="font-black text-4xl text-white drop-shadow-md">{roundScore.player}</span>
@@ -223,7 +227,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                       </div>
                   </div>
 
-                  {/* TASTO PROSSIMO ROUND */}
                   <button 
                       onClick={nextRound}
                       className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
@@ -235,37 +238,36 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
       );
   };
 
-  // WRAPPER STYLE FOR FULL SCREEN
-  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-hidden bg-cover bg-center z-[60]";
+  const wrapperStyle = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
   return (
-    <div className={wrapperStyle} style={{ backgroundImage: `url(${RPS_BG})` }}>
+    <div className={wrapperStyle}>
+      <img 
+          src={RPS_BG} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" 
+          draggable={false}
+      />
       
-      {/* BACK BUTTON */}
-      <div className="absolute top-4 left-4 z-50">
-          <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-              <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto drop-shadow-md" />
-          </button>
+      {/* HUD SUPERIORE: TASTO ESCI E SALDO GETTONI */}
+      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
+          <div className="pointer-events-auto">
+              <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                  <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto drop-shadow-md" />
+              </button>
+          </div>
+
+          <div className="pointer-events-auto">
+              <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                  <span>{userTokens}</span> <span className="text-xl">🪙</span>
+              </div>
+          </div>
       </div>
 
-      <div className="w-full h-full flex flex-col items-center p-4 relative">
+      <div className="w-full h-full flex flex-col items-center p-4 relative z-10">
           
-          {/* HEADER SECTION (Title + Round Info) - Shrink to fit */}
-          <div className="w-full flex flex-col items-center shrink-0 z-10">
-            {/* TITLE IMAGE */}
-            <img 
-                src={TITLE_IMG} 
-                alt="Morra Mostruosa" 
-                className="w-64 md:w-[400px] h-auto mb-2 mt-16 md:mt-12 hover:scale-105 transition-transform duration-300 relative z-10"
-                style={{
-                    filter: 'drop-shadow(0px 0px 4px #FF6600) drop-shadow(0px 0px 8px #FF6600) drop-shadow(0px 0px 2px #000)'
-                }}
-            />
-
-            {/* INTEGRATED ROUND INDICATOR (No Box) */}
-            <div className="flex justify-between items-end w-full max-w-lg mb-2 px-2">
-                
-                {/* MONSTER STATS (LEFT) */}
+          <div className="w-full flex flex-col items-center shrink-0 z-10 pt-36 md:pt-48 lg:pt-52">
+            <div className="flex justify-between items-end w-full max-w-lg mb-4 px-2">
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black text-orange-500 uppercase drop-shadow-[0_1px_1px_black] bg-black/40 px-2 rounded-full mb-1">MOSTRO</span>
                     <div className="flex gap-1">
@@ -275,7 +277,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </div>
                 </div>
 
-                {/* ROUND TITLE (CENTER) */}
                 <div className="flex flex-col items-center">
                     <h2 
                         className="text-3xl md:text-4xl font-black text-yellow-400 tracking-widest uppercase"
@@ -288,7 +289,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </h2>
                 </div>
 
-                {/* PLAYER STATS (RIGHT) */}
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black text-boo-purple uppercase drop-shadow-[0_1px_1px_black] bg-black/40 px-2 rounded-full mb-1">TU</span>
                     <div className="flex gap-1">
@@ -298,38 +298,41 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </div>
                 </div>
             </div>
-          </div>
 
-          {/* MAIN GAME AREA - Flex 1 to take space, Center alignment */}
-          <div className="flex-1 w-full flex flex-col justify-center items-center min-h-0 relative">
-            
-            {/* VS AREA */}
-            <div className="flex justify-center items-center gap-4 md:gap-12 mb-4 shrink-0">
-                {/* LEFT: MONSTER */}
-                <div className="flex flex-col items-center">
-                    <div className="bg-orange-500/80 backdrop-blur-sm border-4 border-white px-4 py-2 rounded-2xl shadow-lg transform -rotate-6">
-                        <span className="font-black text-4xl md:text-5xl text-white drop-shadow-md">{roundScore.computer}</span>
+            {/* BOX STILE AEREO SOTTO ROUND X CON ICONE PUNTEGGIO ULTERIORMENTE INGRANDITE */}
+            <div className="bg-white/20 backdrop-blur-md rounded-[30px] border-4 border-white/40 shadow-xl p-3 md:p-6 flex items-center justify-center gap-4 md:gap-10 w-full max-w-lg">
+                
+                {/* GRUPPO PUNTEGGIO MOSTRO */}
+                <div className="flex items-center gap-2">
+                    <img src={MONSTER_SCORE_ICON} alt="Mostro" className="h-24 md:h-36 w-auto drop-shadow-md" />
+                    <div className="flex flex-col items-center">
+                        <div className="bg-orange-500/80 backdrop-blur-sm border-4 border-white px-4 py-2 rounded-2xl shadow-lg transform -rotate-6">
+                            <span className="font-black text-4xl md:text-5xl text-white drop-shadow-md">{roundScore.computer}</span>
+                        </div>
+                        <span className="text-xs font-black text-white bg-black/40 px-2 py-0.5 rounded-full mt-2 uppercase">MOSTRO</span>
                     </div>
-                    <span className="text-xs font-black text-white bg-black/40 px-2 py-0.5 rounded-full mt-2">MOSTRO</span>
                 </div>
                 
                 <div className="text-white font-black text-4xl italic drop-shadow-[0_4px_0_black]">VS</div>
                 
-                {/* RIGHT: PLAYER */}
-                <div className="flex flex-col items-center">
-                    <div className="bg-boo-purple/80 backdrop-blur-sm border-4 border-white px-4 py-2 rounded-2xl shadow-lg transform rotate-6">
-                        <span className="font-black text-4xl md:text-5xl text-white drop-shadow-md">{roundScore.player}</span>
+                {/* GRUPPO PUNTEGGIO GIOCATORE */}
+                <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-center">
+                        <div className="bg-boo-purple/80 backdrop-blur-sm border-4 border-white px-4 py-2 rounded-2xl shadow-lg transform rotate-6">
+                            <span className="font-black text-4xl md:text-5xl text-white drop-shadow-md">{roundScore.player}</span>
+                        </div>
+                        <span className="text-xs font-black text-white bg-black/40 px-2 py-0.5 rounded-full mt-2 uppercase">TU</span>
                     </div>
-                    <span className="text-xs font-black text-white bg-black/40 px-2 py-0.5 rounded-full mt-2">TU</span>
+                    <img src={PLAYER_SCORE_ICON} alt="Tu" className="h-24 md:h-36 w-auto drop-shadow-md" />
                 </div>
             </div>
+          </div>
 
-            {/* GAMEPLAY / SELECTION AREA - Fixed Height Container to prevent layout jumps */}
+          <div className="flex-1 w-full flex flex-col justify-center items-center min-h-0 relative">
             <div className="w-full flex justify-center items-center h-[280px] md:h-[350px]">
                 {isShaking ? (
                     <div className="flex flex-col items-center justify-center animate-in fade-in duration-200">
                         <div className="flex items-center gap-4 md:gap-12 mb-4">
-                            {/* SHAKING: Using Rock Image for both with NEON GLOW */}
                             <img 
                                 src={choices[0].img} 
                                 className="w-32 h-32 md:w-48 md:h-48 object-contain animate-bounce transform scale-x-[-1]" 
@@ -347,13 +350,11 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </div>
                 ) : playerChoice ? (
                     <div className="animate-in zoom-in duration-200 w-full flex flex-col items-center">
-                        
-                        {/* RESULT TEXT - CARTOON STYLE, NO BOX, NO ICON */}
                         <div className="mb-8 animate-in zoom-in duration-300">
                             <h2 
                                 className="text-4xl md:text-5xl font-black uppercase tracking-wider text-center animate-bounce"
                                 style={{ 
-                                    color: turnResult?.includes('TE') ? '#4ade80' : (turnResult?.includes('MOSTRO') ? '#ef4444' : '#fbbf24'),
+                                    color: 'white',
                                     textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
                                     fontFamily: '"Titan One", cursive',
                                     WebkitTextStroke: '2px black'
@@ -364,8 +365,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                         </div>
 
                         <div className="flex items-center justify-center gap-8 md:gap-16 w-full">
-                            {/* RESULTS: Large Images with NEON GLOW */}
-                            {/* Monster (Left) */}
                             <div className="flex flex-col items-center gap-2">
                                 <div className="relative w-32 h-32 md:w-48 md:h-48 transform -rotate-12 scale-110 transition-transform duration-500">
                                     <img 
@@ -378,7 +377,6 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                                 <span className="text-xs font-black text-white bg-black/30 px-2 rounded-full mt-4">MOSTRO</span>
                             </div>
 
-                            {/* Player (Right) */}
                             <div className="flex flex-col items-center gap-2">
                                 <div className="relative w-32 h-32 md:w-48 md:h-48 transform rotate-12 scale-110 transition-transform duration-500">
                                     <img 
@@ -393,42 +391,41 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                         </div>
                     </div>
                 ) : (
-                    <>
-                        <div className="flex justify-center items-center gap-2 md:gap-8 w-full px-2">
-                            {choices.map((choice) => (
-                                <button 
-                                    key={choice.name} 
-                                    onClick={() => handleChoice(choice.name)} 
-                                    className="flex-1 flex flex-col items-center justify-center gap-2 transition-transform hover:scale-110 active:scale-95 group focus:outline-none"
-                                    style={{ touchAction: 'manipulation' }}
-                                >
+                    <div className="bg-white/20 backdrop-blur-md rounded-[40px] border-4 border-white/40 shadow-xl p-4 md:p-8 flex justify-center items-center gap-2 md:gap-8 w-full max-w-xl mx-2">
+                        {choices.map((choice) => (
+                            <button 
+                                key={choice.name} 
+                                onClick={() => handleChoice(choice.name)} 
+                                className="flex-1 flex flex-col items-center justify-center gap-2 transition-transform hover:scale-110 active:scale-95 group focus:outline-none"
+                                style={{ touchAction: 'manipulation' }}
+                            >
+                                {/* CONTENITORE AD ALTEZZA FISSA PER LE IMMAGINI */}
+                                <div className="w-24 md:w-36 h-24 md:h-36 flex items-center justify-center">
                                     <img 
                                         src={choice.img} 
                                         alt={choice.name} 
-                                        className="w-24 md:w-36 h-auto transition-all drop-shadow-xl" 
+                                        className="max-w-full max-h-full transition-all drop-shadow-xl object-contain" 
                                         style={{ filter: IMG_GLOW }}
                                     />
-                                    <span 
-                                        className={`font-black text-lg md:text-2xl uppercase tracking-wider mt-1 ${choice.name === 'Sasso' ? 'text-stone-300' : choice.name === 'Carta' ? 'text-yellow-300' : 'text-pink-400'}`}
-                                        style={{ 
-                                            textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
-                                            fontFamily: '"Titan One", cursive',
-                                            WebkitTextStroke: '1px black'
-                                        }}
-                                    >
-                                        {choice.name}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </>
+                                </div>
+                                <span 
+                                    className={`font-black text-lg md:text-2xl uppercase tracking-wider mt-1 ${choice.name === 'Sasso' ? 'text-stone-300' : choice.name === 'Carta' ? 'text-yellow-300' : 'text-pink-400'}`}
+                                    style={{ 
+                                        textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                                        fontFamily: '"Titan One", cursive',
+                                        WebkitTextStroke: '1px black'
+                                    }}
+                                >
+                                    {choice.name}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
                 )}
             </div>
           </div>
 
-          {/* FOOTER SECTION: Stats & Token Info */}
-          <div className="w-full max-w-3xl shrink-0 mt-auto pb-2 flex items-end justify-between px-2 gap-2">
-                {/* TURN COUNTER */}
+          <div className="w-full max-w-3xl shrink-0 mt-auto pb-6 flex items-end justify-between px-2 gap-2">
                 <div className="flex flex-col items-center bg-black/40 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/20 shadow-lg shrink-0">
                     <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest mb-1">SFIDA</span>
                     <span className="text-2xl font-black text-white leading-none drop-shadow-md">
@@ -436,15 +433,13 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </span>
                 </div>
 
-                {/* NEW TOKEN REWARD INFO BUBBLE */}
                 <div className="bg-yellow-400 text-black border-2 border-black rounded-xl p-2 px-3 shadow-[4px_4px_0_black] flex-1 transform -rotate-1 animate-pulse flex items-center justify-center max-w-[200px]">
                     <p className="text-xs md:text-sm font-black text-center leading-tight">
-                        Vinci 5 sfide <br/> <span className="text-base">= 5 GETTONI! 🪙</span>
+                        Tocca la tua mossa <br/> <span className="text-base">e inizia a giocare!</span>
                     </p>
                 </div>
           </div>
 
-          {/* OVERLAYS */}
           {gameState === 'GAME_OVER' && renderGameOver()}
           {gameState === 'ROUND_OVER' && renderRoundOver()}
 

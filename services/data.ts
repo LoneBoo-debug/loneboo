@@ -1,6 +1,5 @@
-
-import { NOTIFICATIONS_CSV_URL, COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL } from '../constants';
-import { AppNotification, CommunityPost, FanArt, SocialStats } from '../types';
+import { COMMUNITY_CSV_URL, SOCIAL_STATS_CSV_URL, FAN_ART_CSV_URL } from '../constants';
+import { CommunityPost, FanArt, SocialStats } from '../types';
 import { FAN_ART_DATABASE } from './dbfanart';
 
 const parseCSVLine = (line: string): string[] => {
@@ -16,22 +15,6 @@ const parseCSVLine = (line: string): string[] => {
     }
     result.push(current.trim());
     return result;
-};
-
-export const getAllNotifications = async (): Promise<AppNotification[]> => {
-    if (!NOTIFICATIONS_CSV_URL) return [];
-    try {
-        const res = await fetch(NOTIFICATIONS_CSV_URL);
-        if (!res.ok) return [];
-        const text = await res.text();
-        return text.split('\n').slice(1).map((line, i) => {
-            const p = parseCSVLine(line);
-            if (p.length < 5) return null;
-            const active = p[4].trim().toUpperCase() === 'TRUE' || p[4].trim().toUpperCase() === 'SI';
-            if (!active) return null;
-            return { id: p[0], message: p[1], link: p[2] === '-' ? undefined : p[2], linkText: p[3] === '-' ? undefined : p[3], active: true, image: p[5]?.startsWith('http') ? p[5] : undefined } as AppNotification;
-        }).filter((n): n is AppNotification => n !== null).reverse();
-    } catch (e) { return []; }
 };
 
 export const getCommunityPosts = async (): Promise<CommunityPost[]> => {
@@ -87,17 +70,12 @@ export const getFanArt = async (): Promise<FanArt[]> => {
                     } as FanArt;
                 }).filter((a): a is FanArt => a !== null).reverse();
             }
-        } catch (e) {
-            console.warn("Could not fetch dynamic Fan Art, using database fallback.");
-        }
+        } catch (e) { console.warn("Could not fetch dynamic Fan Art."); }
     }
-    
-    // Se abbiamo meno di 4 disegni dal foglio, riempiamo con quelli del database
     if (dynamicArts.length < 4) {
         const needed = 4 - dynamicArts.length;
         const fill = FAN_ART_DATABASE.slice(0, needed);
         return [...dynamicArts, ...fill];
     }
-    
     return dynamicArts;
 };

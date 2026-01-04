@@ -1,25 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Store, ArrowLeft, Clock, Heart, Trophy, Volume2, VolumeX, Music, Zap } from 'lucide-react';
+import { Store, ArrowLeft, Clock, Heart, Volume2, VolumeX } from 'lucide-react';
 import { getFruitGameState, saveFruitGameState, FruitGameState, sellFruit, buyFruitUpgrade, FruitUpgrades } from '../services/fruitGameLogic';
 
-const BG_MEADOW = 'https://i.postimg.cc/63vv9WmD/sfondfrut-(1).jpg';
-const BOO_CHARACTER = 'https://i.postimg.cc/65NPhQsS/spaoiu-(1).png';
+const BG_MEADOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-bg.webp';
+const BOO_CHARACTER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boo-shooter.webp';
 const ROUND_TIME = 60;
-const BTN_START_IMG = 'https://i.postimg.cc/J0NhGGmX/hggf-(1).png';
-const BTN_NEXT_LEVEL_IMG = 'https://i.postimg.cc/CKm96sNy/nexeree-(1).png';
-const BTN_RETRY_IMG = 'https://i.postimg.cc/DwqT5GHw/riprofe-(1).png';
-const BTN_GO_BARN_IMG = 'https://i.postimg.cc/7P3tn0Hz/fienid-(1)-(1).png';
-const BARN_HEADER_IMG = 'https://i.postimg.cc/VNBQrTHT/fienilea-(1).png';
-const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
-const BTN_SELL_ALL_IMG = 'https://i.postimg.cc/W33pwTrd/vendi-tutto-(1)-(1).png';
-const ICON_UP_SPEED = 'https://i.postimg.cc/GtmMpgZG/velocitr-(1)-(1).png';
-const ICON_UP_POWER = 'https://i.postimg.cc/5yrm2452/superfer-(1)-(1).png';
-const ICON_UP_MAGNET = 'https://i.postimg.cc/rp2Q4wBr/calamita-(1)-(1).png';
-const ICON_UP_SHIELD = 'https://i.postimg.cc/hGn1j3mw/sudied-(1)-(1).png';
-const TITLE_LOGO_IMG = 'https://i.postimg.cc/DfQFBfmT/cacciafrutta-(1)-(1)-(1).png';
+const BTN_START_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/startfruit.webp';
+const BTN_NEXT_LEVEL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-next.webp';
+const BTN_RETRY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-retry.webp';
+const BTN_GO_BARN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-go-barn.webp';
+const BARN_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/barn-header.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const BTN_SELL_ALL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-sell-all.webp';
+const ICON_UP_SPEED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/up-speed.webp';
+const ICON_UP_POWER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/up-power.webp';
+const ICON_UP_MAGNET = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/up-magnet.webp';
+const ICON_UP_SHIELD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/up-shield.webp';
+const TITLE_LOGO_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-hunt.webp';
 
-const IMG_GAME_OVER = 'https://i.postimg.cc/CKDvTHY3/gameover-(1).png';
-const IMG_LEVEL_COMPLETED = 'https://i.postimg.cc/vHkLYgPY/livellocompleted-(1).png';
+const IMG_GAME_OVER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gameover-fruit.webp';
+const IMG_LEVEL_COMPLETED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fruit-win.webp';
+
+// Costanti per il controllo del framerate (60 FPS fissi)
+const TARGET_FPS = 60;
+const FRAME_DURATION = 1000 / TARGET_FPS;
 
 interface Entity {
     id: number;
@@ -55,6 +59,7 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number>(0);
+    const lastFrameTime = useRef<number>(0); // Per controllo velocità su mobile 120Hz
     const lastShotTime = useRef(0);
     const playerPos = useRef({ x: 0, y: 0 });
     const touchOffset = useRef({ x: 0, y: 0 }); 
@@ -170,14 +175,12 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (gameStatus === 'PLAYING' && timeLeft > 0 && !isHit) {
             timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
         } else if ((timeLeft === 0 || lives <= 0) && gameStatus === 'PLAYING') {
-            // Nuova regola: vittoria se timeLeft è 0 e lives > 0
             if (timeLeft === 0 && lives > 0) {
                 const nextLevel = roundLevel + 1;
                 const updatedState = { ...getFruitGameState(), reachedLevel: nextLevel };
                 saveFruitGameState(updatedState);
                 setRoundLevel(nextLevel);
             }
-            
             setGameStatus('SUMMARY');
             isDragging.current = false;
         }
@@ -188,15 +191,7 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         unlockAudioContext();
         const currentState = getFruitGameState();
         const currentReachedLevel = currentState.reachedLevel || 1;
-
-        if (mode === 'initial') {
-            setRoundLevel(currentReachedLevel);
-        } else if (mode === 'next') {
-            setRoundLevel(currentReachedLevel);
-        } else if (mode === 'restart') {
-            setRoundLevel(currentReachedLevel);
-        }
-
+        setRoundLevel(currentReachedLevel);
         setLives(3);
         setRoundStats({ strawberries: 0, bananas: 0, grapes: 0, oranges: 0, apples: 0, pears: 0, pineapples: 0, watermelons: 0 });
         setTimeLeft(ROUND_TIME);
@@ -208,15 +203,14 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         bubblesRef.current = [];
         setGameStatus('PLAYING');
         bgY.current = 0;
+        lastFrameTime.current = performance.now();
     };
 
     const spawnFruit = (canvas: HTMLCanvasElement) => {
         if (Math.random() > 0.04) return;
         const rand = Math.random();
-        
         const isMobile = window.innerWidth < 768;
         const fruitBaseSize = isMobile ? 42 : 60;
-        
         const leftMargin = isMobile ? 40 : 60;
         const rightMargin = isMobile ? 20 : 40;
         const availableWidth = canvas.width - (leftMargin + rightMargin + fruitBaseSize);
@@ -230,7 +224,7 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         else if (rand > 0.50) { type = 'grapes'; hp = 3; emoji = '🍇'; baseSpeed = 2.4; }
         else if (rand > 0.35) { type = 'bananas'; hp = 3; emoji = '🍌'; baseSpeed = 2.0; }
 
-        const difficultyLevel = gameStatus === 'PLAYING' ? (roundLevel - 1 || 1) : roundLevel;
+        const difficultyLevel = roundLevel || 1;
         const speedMultiplier = 1 + (difficultyLevel - 1) * 0.12;
         
         fruitsRef.current.push({
@@ -270,18 +264,29 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         invulnEndTimeRef.current = now + 4000;
     };
 
-    const gameLoop = () => {
+    const gameLoop = (timestamp: number) => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx || isShopOpen) {
             requestRef.current = requestAnimationFrame(gameLoop);
             return;
         }
+
+        // --- SINCRONIZZAZIONE VELOCITÀ GIOCO ---
+        const elapsed = timestamp - lastFrameTime.current;
+        if (elapsed < FRAME_DURATION && gameStatus === 'PLAYING') {
+            requestRef.current = requestAnimationFrame(gameLoop);
+            return;
+        }
+        lastFrameTime.current = timestamp;
+
         const now = Date.now();
         if (isHit && now > hitEndTimeRef.current) { setIsHit(false); setIsInvulnerable(true); }
         if (isInvulnerable && now > invulnEndTimeRef.current) { setIsInvulnerable(false); }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // DISEGNO SFONDO A TUTTO SCHERMO
         if (bgImgRef.current) {
             const img = bgImgRef.current;
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -302,15 +307,12 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 if (gameState.upgrades.magnet > 0) {
                     const magnetRadius = 150 + (gameState.upgrades.magnet * 60);
                     const magnetForce = 0.5 + (gameState.upgrades.magnet * 0.8);
-                    
                     fruitsRef.current.forEach(f => {
                         if (!f.isTrapped) {
                             const dx = playerPos.current.x - (f.x + f.w/2);
                             const dy = playerPos.current.y - (f.y + f.h/2);
                             const dist = Math.sqrt(dx*dx + dy*dy);
-                            if (dist < magnetRadius) {
-                                f.x += (dx / dist) * magnetForce;
-                            }
+                            if (dist < magnetRadius) { f.x += (dx / dist) * magnetForce; }
                         }
                     });
                 }
@@ -346,8 +348,9 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             }
                         });
                         if (!isInvulnerable && !isHit) {
-                            const playerDist = Math.sqrt(Math.pow(playerPos.current.x - (f.x + f.w/2), 2) + Math.pow(playerPos.current.y - (f.y + f.h/2), 2));
-                            if (playerDist < (40 + f.w/3)) { handleHit(); }
+                            const playerDist = Math.sqrt(Math.pow(playerPos.current.x - (f.x + f.w/3), 2) + Math.pow(playerPos.current.y - (f.y + f.h/3), 2));
+                            // Riduzione area di collisione da 40 a 25 per facilitare il passaggio tra i frutti
+                            if (playerDist < (25 + f.w/3)) { handleHit(); }
                         }
                         if (f.y > canvas.height + 100) fruitsRef.current.splice(i, 1);
                     }
@@ -358,12 +361,7 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
 
         bubblesRef.current.forEach(b => {
-            ctx.save();
-            ctx.font = '24px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(b.emoji, b.x, b.y);
-            ctx.restore();
+            ctx.save(); ctx.font = '24px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.emoji, b.x, b.y); ctx.restore();
         });
 
         fruitsRef.current.forEach(f => {
@@ -377,27 +375,12 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 grad.addColorStop(0.5, 'rgba(170, 220, 255, 0.15)');
                 grad.addColorStop(0.9, 'rgba(200, 240, 255, 0.4)');
                 grad.addColorStop(1, 'rgba(255, 255, 255, 0.6)');
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
-                ctx.beginPath();
-                ctx.ellipse(centerX - radius * 0.4, centerY - radius * 0.4, radius * 0.25, radius * 0.12, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.fill();
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = "white";
+                ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
             }
-            ctx.font = `${f.w}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(f.emoji, centerX, centerY);
+            ctx.font = `${f.w}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(f.emoji, centerX, centerY);
             if (!f.isTrapped && f.hp && f.maxHp && f.maxHp > 1) {
-                const barW = f.w;
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillRect(f.x, f.y - 10, barW, 6);
-                ctx.fillStyle = f.hp <= 1 ? '#ef4444' : '#4ade80';
-                ctx.fillRect(f.x, f.y - 10, barW * (f.hp / f.maxHp), 6);
+                const barW = f.w; ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(f.x, f.y - 10, barW, 6);
+                ctx.fillStyle = f.hp <= 1 ? '#ef4444' : '#4ade80'; ctx.fillRect(f.x, f.y - 10, barW * (f.hp / f.maxHp), 6);
             }
             ctx.restore();
         });
@@ -407,22 +390,17 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             let shouldDraw = true;
             let currentShakeX = 0; let currentShakeY = 0;
             if (isHit) {
-                const elapsed = 2000 - (hitEndTimeRef.current - now);
-                if (elapsed < 500) { currentShakeX = shakeOffset.current.x; currentShakeY = shakeOffset.current.y; }
+                const elapsedHurt = 2000 - (hitEndTimeRef.current - now);
+                if (elapsedHurt < 500) { currentShakeX = shakeOffset.current.x; currentShakeY = shakeOffset.current.y; }
                 else { shouldDraw = false; }
             } else if (isFlashing) { shouldDraw = false; }
             if (shouldDraw) {
-                const charW = 70;
-                const charH = 90;
+                // Riduzione larghezza Boo da 70 a 50 per scivolare meglio tra i frutti
+                const charW = 50; const charH = 90;
                 if (booImgRef.current) { 
                     ctx.drawImage(booImgRef.current, playerPos.current.x - (charW / 2) + currentShakeX, playerPos.current.y - (charH / 2) + currentShakeY, charW, charH); 
                 } else { 
-                    ctx.save();
-                    ctx.font = '60px Arial'; 
-                    ctx.textAlign = 'center'; 
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('👻', playerPos.current.x + currentShakeX, playerPos.current.y + currentShakeY); 
-                    ctx.restore();
+                    ctx.save(); ctx.font = '60px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👻', playerPos.current.x + currentShakeX, playerPos.current.y + currentShakeY); ctx.restore();
                 }
             }
         }
@@ -432,37 +410,25 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const handleInputStart = (e: any) => {
         if (e.target.closest('button') || e.target.closest('.ui-layer')) return;
         if (gameStatus !== 'PLAYING' || isHit) return;
-
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const canvas = canvasRef.current; if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-
+        const x = clientX - rect.left; const y = clientY - rect.top;
         const dist = Math.sqrt(Math.pow(x - playerPos.current.x, 2) + Math.pow(y - playerPos.current.y, 2));
-        
         if (dist < 120) {
             isDragging.current = true;
-            touchOffset.current = {
-                x: x - playerPos.current.x,
-                y: y - playerPos.current.y
-            };
+            touchOffset.current = { x: x - playerPos.current.x, y: y - playerPos.current.y };
         }
     };
 
     const updatePlayerPos = (e: any) => {
         if (!isDragging.current || isHit) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const canvas = canvasRef.current; if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        const touchX = clientX - rect.left;
-        const touchY = clientY - rect.top;
-
+        const touchX = clientX - rect.left; const touchY = clientY - rect.top;
         playerPos.current.x = Math.max(45, Math.min(canvas.width - 45, touchX - touchOffset.current.x));
         playerPos.current.y = Math.max(100, Math.min(canvas.height - 125, touchY - touchOffset.current.y));
     };
@@ -470,19 +436,23 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const hasWon = timeLeft === 0 && lives > 0;
 
     return (
-        <div className="absolute inset-0 z-50 bg-green-900 flex flex-col animate-in fade-in overflow-hidden">
-            <div className="ui-layer bg-amber-800/90 backdrop-blur-md p-3 border-b-4 border-black flex justify-between items-center z-20 shadow-xl shrink-0">
-                <div className="flex items-center gap-3">
-                    <button onClick={onBack} className="bg-red-500 text-white p-2 rounded-full border-2 border-black hover:scale-110 active:scale-95 transition-transform shadow-md">
-                        <ArrowLeft size={18} />
+        <div className="fixed inset-0 z-0 bg-sky-200 flex flex-col animate-in fade-in overflow-hidden">
+            <style>{`
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}</style>
+            
+            {/* FLOATING GAME UI - Posizionata sotto l'header globale */}
+            <div className="ui-layer absolute top-20 md:top-28 left-0 right-0 p-3 md:p-6 flex justify-between items-center z-50 pointer-events-none">
+                <div className="flex items-center gap-3 pointer-events-auto">
+                    <button onClick={onBack} className="bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-transform shadow-xl">
+                        <ArrowLeft size={24} strokeWidth={3} />
                     </button>
-                    <div className="bg-yellow-400 px-3 py-1 rounded-full border-2 border-black font-black flex items-center gap-2 text-black shadow-sm text-xs md:text-sm">
-                        {gameState.banknotes} 💵
-                    </div>
                 </div>
-                <button onClick={() => { setIsShopOpen(true); }} className="bg-green-600 text-white px-3 py-1.5 rounded-xl border-2 border-black font-black flex items-center gap-2 shadow-[2px_2px_0_black] hover:scale-105 active:translate-y-0.5 transition-all text-xs">
-                    <Store size={16} /> FIENILE
-                </button>
+                {/* Saldo banconote posizionato a destra al posto del tasto fienile */}
+                <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl border-4 border-black font-black flex items-center gap-2 text-black shadow-xl text-sm md:text-lg pointer-events-auto">
+                    {gameState.banknotes} 💵
+                </div>
             </div>
 
             <div ref={containerRef} className="flex-1 relative overflow-hidden bg-sky-200" onMouseDown={handleInputStart} onTouchStart={handleInputStart}>
@@ -497,42 +467,40 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 />
 
                 {gameStatus === 'PLAYING' && (
-                    <div className="ui-layer pointer-events-none absolute bottom-4 left-4 right-4 flex items-center justify-between z-40 bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl p-2 shadow-lg pointer-events-auto">
-                        <div className="flex flex-col items-center gap-1.5 shrink-0 min-w-[60px]">
-                            <div className={`flex items-center gap-1.5 transition-all ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-                                <Clock size={16} strokeWidth={3} className="drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]" />
-                                <span className="text-lg font-black drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">{timeLeft}s</span>
+                    <div className="ui-layer pointer-events-none absolute bottom-6 left-4 right-4 flex items-center justify-between z-40 bg-black/40 backdrop-blur-md border-4 border-white/20 rounded-[2.5rem] p-3 shadow-2xl pointer-events-auto max-w-2xl mx-auto">
+                        <div className="flex flex-col items-center gap-1.5 shrink-0 min-w-[80px]">
+                            <div className={`flex items-center gap-2 transition-all ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+                                <Clock size={20} strokeWidth={4} className="drop-shadow-md" />
+                                <span className="text-2xl font-black drop-shadow-md">{timeLeft}s</span>
                             </div>
                             <button 
                                 onClick={(e) => { e.stopPropagation(); e.preventDefault(); setSfxEnabled(!sfxEnabled); }}
-                                className={`p-1.5 rounded-lg border border-black/20 transition-all active:scale-95 shadow-md ${sfxEnabled ? 'bg-cyan-400 text-black' : 'bg-gray-400 text-gray-200'}`}
+                                className={`p-2 rounded-xl border-2 border-black/20 transition-all active:scale-95 shadow-md ${sfxEnabled ? 'bg-cyan-400 text-black' : 'bg-gray-400 text-gray-200'}`}
                             >
-                                {sfxEnabled ? <Volume2 size={14} strokeWidth={3} /> : <VolumeX size={14} strokeWidth={3} />}
+                                {sfxEnabled ? <Volume2 size={18} strokeWidth={3} /> : <VolumeX size={18} strokeWidth={3} />}
                             </button>
                         </div>
 
-                        <div className="flex-1 grid grid-cols-8 gap-0.5 md:gap-1 px-1 items-center justify-items-center">
+                        <div className="flex-1 grid grid-cols-8 gap-1 md:gap-3 px-2 w-full items-center justify-items-center">
                             {FRUIT_TYPES.map((fruit) => {
                                 // @ts-ignore
                                 const count = roundStats[fruit.key];
                                 return (
-                                    <div key={fruit.key} className={`flex flex-col items-center transition-all duration-300 ${count > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
-                                        <span className="text-xl md:text-2xl drop-shadow-md">{fruit.emoji}</span>
-                                        <div className="text-yellow-400 text-sm md:text-lg font-black -mt-1 relative z-10 text-center drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
-                                            {count}
-                                        </div>
+                                    <div key={fruit.key} className={`flex flex-col items-center transition-all duration-300 ${count > 0 ? 'opacity-100 scale-110' : 'opacity-15 scale-75'}`}>
+                                        <span className="text-2xl md:text-3xl drop-shadow-md">{fruit.emoji}</span>
+                                        <div className="text-yellow-400 text-[10px] md:text-base font-black -mt-1 relative z-10 text-center drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">{count}</div>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        <div className="flex flex-col items-center gap-1.5 shrink-0 min-w-[70px]">
-                            <div className="text-white font-black text-[10px] px-2 py-0.5 rounded-full bg-black/30 border border-white/10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] uppercase">
-                                LIV {gameStatus === 'PLAYING' ? roundLevel : (hasWon ? roundLevel - 1 : roundLevel)}
+                        <div className="flex flex-col items-center gap-1.5 shrink-0 min-w-[90px]">
+                            <div className="text-white font-black text-[10px] px-3 py-1 rounded-full bg-black/30 border-2 border-white/20 drop-shadow-md uppercase mb-1">
+                                LIV {roundLevel}
                             </div>
-                            <div className="flex gap-0.5">
+                            <div className="flex gap-1">
                                 {[...Array(3)].map((_, i) => (
-                                    <Heart key={i} size={16} strokeWidth={3} className={`transition-all duration-300 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-400/50 fill-transparent'}`} />
+                                    <Heart key={i} size={22} strokeWidth={3} className={`transition-all duration-300 drop-shadow-md ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-400/50 fill-transparent'}`} />
                                 ))}
                             </div>
                         </div>
@@ -540,63 +508,53 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 )}
 
                 {gameStatus === 'START' && (
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in z-30">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in z-50">
                         <div className="bg-white p-8 rounded-[40px] border-8 border-amber-900 shadow-2xl transform -rotate-1 max-w-md relative flex flex-col items-center">
                             <button onClick={onBack} className="absolute -top-6 -right-6 hover:scale-110 active:scale-95 transition-all outline-none z-10">
                                 <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-xl" />
                             </button>
                             <img src={TITLE_LOGO_IMG} alt="Caccia alla Frutta" className="w-[115%] h-auto -mt-6 mb-6 drop-shadow-md" />
-                            <p className="text-gray-600 font-bold mb-4 text-lg">Sei al livello <span className="text-purple-600">{roundLevel}</span></p>
-                            <div className="text-gray-600 font-bold mb-8 text-lg leading-snug px-4">
+                            <p className="text-gray-600 font-bold mb-4 text-xl">Livello Attuale: <span className="text-purple-600 font-black">{roundLevel}</span></p>
+                            <p className="text-gray-600 font-bold mb-8 text-lg leading-snug px-4">
                                 Imprigiona i frutti con le bolle per venderli al fienile e aumentare la potenza di Boo!
-                            </div>
+                            </p>
                             <button onClick={() => startRound('initial')} className="hover:scale-105 active:scale-95 transition-all outline-none">
-                                <img src={BTN_START_IMG} alt="Inizia" className="w-48 h-auto drop-shadow-xl" />
+                                <img src={BTN_START_IMG} alt="Inizia" className="w-56 h-auto drop-shadow-xl" />
                             </button>
                         </div>
                     </div>
                 )}
 
                 {gameStatus === 'SUMMARY' && (
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in z-50 overflow-hidden">
-                        <div className="bg-white rounded-[40px] border-8 border-amber-900 p-5 w-full max-w-md text-center shadow-2xl relative flex flex-col items-center">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in z-[60] overflow-hidden">
+                        <div className="bg-white rounded-[40px] border-8 border-amber-900 p-6 w-full max-w-md text-center shadow-2xl relative flex flex-col items-center">
                             <button onClick={onBack} className="absolute -top-4 -right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10">
-                                <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-xl" />
+                                <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain drop-shadow-xl" />
                             </button>
-                            
-                            <img 
-                                src={hasWon ? IMG_LEVEL_COMPLETED : IMG_GAME_OVER} 
-                                alt={hasWon ? 'Livello Completato' : 'Game Over'} 
-                                className="h-48 md:h-80 w-auto mb-2 drop-shadow-lg" 
-                            />
-
-                            <h3 className={`text-2xl font-black mb-1 uppercase ${hasWon ? 'text-green-600' : 'text-red-600'}`}>
+                            <img src={hasWon ? IMG_LEVEL_COMPLETED : IMG_GAME_OVER} alt="" className="h-48 md:h-72 w-auto mb-2 drop-shadow-lg" />
+                            <h3 className={`text-3xl font-black mb-1 uppercase ${hasWon ? 'text-green-600' : 'text-red-600'}`}>
                                 {hasWon ? 'Ottimo lavoro!' : 'Riprova ancora!'}
                             </h3>
-                            <p className="text-gray-600 font-bold mb-3 text-sm">
-                                {hasWon ? 'Hai catturato un bel po\' di frutta!' : 'Non mollare, Boo ha bisogno di te!'}
-                            </p>
-
-                            <div className="bg-amber-50 rounded-2xl p-3 border-4 border-amber-100 mb-4 grid grid-cols-4 gap-2 shadow-inner w-full">
+                            <div className="bg-amber-50 rounded-3xl p-4 border-4 border-amber-100 mb-6 grid grid-cols-4 gap-2 shadow-inner w-full">
                                 {FRUIT_TYPES.map((item) => (
-                                    <div key={item.key} className="bg-white p-1 rounded-lg border border-amber-100 flex flex-col items-center">
-                                        <span className="text-xl">{item.emoji}</span>
-                                        <span className="font-black text-gray-800 text-xs">x{roundStats[item.key as keyof typeof roundStats] || 0}</span>
+                                    <div key={item.key} className="bg-white p-1 rounded-xl border-2 border-amber-100 flex flex-col items-center">
+                                        <span className="text-2xl">{item.emoji}</span>
+                                        <span className="font-black text-gray-800 text-sm">x{roundStats[item.key as keyof typeof roundStats] || 0}</span>
                                     </div>
                                 ))}
                             </div>
                             <div className="flex flex-row gap-4 items-center justify-center w-full">
                                 {hasWon ? (
                                     <button onClick={() => startRound('next')} className="hover:scale-105 active:scale-95 transition-all outline-none flex-1">
-                                        <img src={BTN_NEXT_LEVEL_IMG} alt="Prossimo Livello" className="h-16 w-auto drop-shadow-xl mx-auto" />
+                                        <img src={BTN_NEXT_LEVEL_IMG} alt="Prossimo Livello" className="h-16 md:h-24 w-auto drop-shadow-xl mx-auto" />
                                     </button>
                                 ) : (
                                     <button onClick={() => startRound('restart')} className="hover:scale-105 active:scale-95 transition-all outline-none flex-1">
-                                        <img src={BTN_RETRY_IMG} alt="Ricomincia" className="h-16 w-auto drop-shadow-xl mx-auto" />
+                                        <img src={BTN_RETRY_IMG} alt="Ricomincia" className="h-20 w-auto drop-shadow-xl mx-auto" />
                                     </button>
                                 )}
                                 <button onClick={() => { setIsShopOpen(true); setGameStatus('START'); }} className="hover:scale-105 active:scale-95 transition-all outline-none flex-1">
-                                    <img src={BTN_GO_BARN_IMG} alt="Vai al Fienile" className="h-14 w-auto drop-shadow-xl mx-auto" />
+                                    <img src={BTN_GO_BARN_IMG} alt="Vai al Fienile" className="h-16 w-auto drop-shadow-xl mx-auto" />
                                 </button>
                             </div>
                         </div>
@@ -606,13 +564,13 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {isShopOpen && (
                 <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[40px] border-8 border-amber-900 p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col shadow-2xl relative">
+                    <div className="bg-white rounded-[40px] border-8 border-amber-900 p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto no-scrollbar flex flex-col shadow-2xl relative">
                         <button onClick={() => setIsShopOpen(false)} className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10">
                             <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-lg" />
                         </button>
-                        <div className="text-center mb-6 pt-4">
-                            <img src={BARN_HEADER_IMG} alt="Il Fienile di Boo" className="h-16 md:h-24 w-auto mx-auto mb-2 drop-shadow-lg" />
-                            <div className="bg-yellow-400 px-4 py-2 rounded-full border-2 border-black inline-flex items-center gap-2 font-black text-black shadow-md">
+                        <div className="text-center mb-4 pt-4">
+                            <img src={BARN_HEADER_IMG} alt="Il Fienile di Boo" className="h-16 md:h-22 w-auto mx-auto mb-2 drop-shadow-lg" />
+                            <div className="bg-yellow-400 px-6 py-2 rounded-full border-4 border-black inline-flex items-center gap-2 font-black text-black shadow-md text-xl">
                                 {gameState.banknotes} 💵
                             </div>
                         </div>
@@ -620,7 +578,7 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                                 {FRUIT_TYPES.map((item, i) => (
                                     <div key={i} className="flex flex-col items-center p-2 bg-white rounded-2xl border-2 border-amber-100 shadow-sm">
-                                        <span className="text-3xl mb-1">{item.emoji}</span>
+                                        <span className="text-4xl mb-1">{item.emoji}</span>
                                         <span className="font-black text-amber-900">
                                             {item.key === 'strawberries' ? 2 : 
                                              item.key === 'bananas' ? 3 : 
@@ -630,12 +588,12 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                              item.key === 'pears' ? 15 : 
                                              item.key === 'pineapples' ? 17 : 20} 💵
                                         </span>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase">NEL CESTO: {gameState.inventory[item.key as keyof typeof gameState.inventory]}</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase">IN CESTO: {gameState.inventory[item.key as keyof typeof gameState.inventory]}</span>
                                     </div>
                                 ))}
                             </div>
                             <button onClick={() => { const earned = sellFruit(); if (earned > 0) setGameState(getFruitGameState()); else alert("Il cesto è vuoto! 🍎"); }} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center">
-                                <img src={BTN_SELL_ALL_IMG} alt="Vendi Tutto" className="w-1/2 h-auto drop-shadow-xl" />
+                                <img src={BTN_SELL_ALL_IMG} alt="Vendi Tutto" className="w-1/2 md:w-1/4 h-auto drop-shadow-xl" />
                             </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
@@ -645,22 +603,22 @@ const FruitCatcherGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 { id: 'magnet', label: 'Calamita Frutta', img: ICON_UP_MAGNET, color: 'bg-purple-500' },
                                 { id: 'shield', label: 'Scudo Magico', img: ICON_UP_SHIELD, color: 'bg-red-500' }
                             ].map((up) => {
-                                const level = gameState.upgrades[up.id as keyof FruitUpgrades] as number;
+                                const upLevel = gameState.upgrades[up.id as keyof FruitUpgrades] as number;
                                 const costs = [200, 500, 1200, 2500, 5000];
-                                const cost = costs[level] || 0;
+                                const upCost = costs[upLevel] || 0;
                                 return (
-                                    <div key={up.id} className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-200 flex flex-col shadow-sm">
+                                    <div key={up.id} className="bg-gray-50 p-4 rounded-3xl border-2 border-gray-200 flex flex-col shadow-sm">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-12 h-12 flex items-center justify-center shrink-0"><img src={up.img} alt={up.label} className="w-full h-full object-contain" /></div>
-                                            <span className="font-black text-gray-800 uppercase text-sm tracking-tight">{up.label}</span>
+                                            <div className="w-14 h-14 flex items-center justify-center shrink-0"><img src={up.img} alt={up.label} className="w-full h-full object-contain" /></div>
+                                            <span className="font-black text-gray-800 uppercase text-base tracking-tight">{up.label}</span>
                                         </div>
                                         <div className="flex gap-1.5 mb-4 px-1">
-                                            {[1,2,3,4,5].map(i => (<div key={i} className={`flex-1 h-3 rounded-full border border-black/10 ${i <= level ? up.color : 'bg-gray-200'}`}></div>))}
+                                            {[1,2,3,4,5].map(lv => (<div key={lv} className={`flex-1 h-3.5 rounded-full border border-black/10 ${lv <= upLevel ? up.color : 'bg-gray-200'}`}></div>))}
                                         </div>
-                                        {level < 5 ? (
-                                            <button onClick={() => { if (buyFruitUpgrade(up.id as any)) setGameState(getFruitGameState()); }} disabled={gameState.banknotes < cost} className={`py-2 rounded-xl font-black text-sm border-b-4 transition-all active:border-b-0 active:translate-y-1 ${gameState.banknotes >= cost ? 'bg-yellow-400 border-yellow-600 text-black shadow-md' : 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'}`}>POTENZIA ({cost} 💵)</button>
+                                        {upLevel < 5 ? (
+                                            <button onClick={() => { if (buyFruitUpgrade(up.id as any)) setGameState(getFruitGameState()); }} disabled={gameState.banknotes < upCost} className={`py-3 rounded-2xl font-black text-sm md:text-base border-b-6 transition-all active:border-b-0 active:translate-y-1 ${gameState.banknotes >= upCost ? 'bg-yellow-400 border-yellow-600 text-black shadow-md' : 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'}`}>POTENZIA ({upCost} 💵)</button>
                                         ) : (
-                                            <div className="bg-green-100 text-green-700 py-2 rounded-xl text-center font-black text-sm border-2 border-green-200">MAX! ✨</div>
+                                            <div className="bg-green-100 text-green-700 py-3 rounded-2xl text-center font-black text-lg border-2 border-green-200">MAX! ✨</div>
                                         )}
                                     </div>
                                 );

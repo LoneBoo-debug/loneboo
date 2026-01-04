@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import StoryDice from './StoryDice';
@@ -7,13 +6,13 @@ import GhostPassport from './GhostPassport';
 import MagicHat from './MagicHat';
 import RobotHint from './RobotHint'; 
 
-const TOWER_BG_MOBILE = 'https://i.postimg.cc/KY2JJg7L/torremagicddsjpeg.jpg';
-const TOWER_BG_DESKTOP = 'https://i.postimg.cc/yxmrqxt3/magia169.jpg';
-const TOWER_ICON = 'https://i.postimg.cc/G2mVkBG8/torretr-(1).png';
+const TOWER_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-mobile.webp';
+const TOWER_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-desktop.webp';
 const BTN_BACK_TOWER_IMG = 'https://i.postimg.cc/65YbdbPv/ornatorre-(1)-(1).png';
 const BG_PASSPORT_GHOST = 'https://i.postimg.cc/sxR91466/passfants-(1).jpg';
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
 const BG_STORY_DICE = 'https://i.postimg.cc/nL82vGr7/gfddfg.jpg';
+const BG_MAGIC_HAT = 'https://i.postimg.cc/X7VBMLG9/gfffsrr.jpg';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
@@ -35,23 +34,23 @@ const ZONES_DESKTOP: ZoneConfig[] = [
 const MagicEye: React.FC = () => {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
       const imgM = new Image(); imgM.src = TOWER_BG_MOBILE;
       const imgD = new Image(); imgD.src = TOWER_BG_DESKTOP;
       
-      const timer = setTimeout(() => setIsLoaded(true), 800);
-      const hintTimer = setTimeout(() => { if (!activeGame) setShowHint(true); }, 5000); 
-      
-      return () => {
-          clearTimeout(timer);
-          clearTimeout(hintTimer);
+      const checkLoaded = () => {
+          setIsLoaded(true);
       };
-  }, [activeGame]);
+
+      imgM.onload = checkLoaded;
+      imgD.onload = checkLoaded;
+
+      const timer = setTimeout(() => setIsLoaded(true), 2500);
+      return () => clearTimeout(timer);
+  }, []);
 
   const handleZoneClick = (gameId: string) => {
-      setShowHint(false);
       setActiveGame(gameId);
   };
 
@@ -61,15 +60,16 @@ const MagicEye: React.FC = () => {
   };
 
   if (activeGame) {
-      const bg = activeGame === 'passport' ? BG_PASSPORT_GHOST : (activeGame === 'hunt' ? BG_MAGIC_HUNT : BG_STORY_DICE);
+      const bg = activeGame === 'passport' ? BG_PASSPORT_GHOST : 
+                 activeGame === 'hunt' ? BG_MAGIC_HUNT : 
+                 activeGame === 'hat' ? BG_MAGIC_HAT : 
+                 BG_STORY_DICE;
       
       return (
           <div className="fixed inset-0 z-50 bg-black overflow-y-auto custom-scrollbar">
-              {/* Sfondo fisso che copre tutto */}
               <img src={bg} alt="" className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none" />
               
               <div className="relative z-10 w-full min-h-full pb-20">
-                  {/* Container tasto indietro con padding per scavalcare l'header */}
                   <div className="sticky top-0 left-0 w-full px-4 pt-[70px] md:pt-[110px] pb-4 flex justify-start z-[60] pointer-events-none">
                       <button 
                           onClick={() => setActiveGame(null)}
@@ -91,32 +91,43 @@ const MagicEye: React.FC = () => {
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-68px)] md:h-[calc(100vh-106px)] bg-purple-900 overflow-hidden flex flex-col">
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-purple-900 overflow-hidden touch-none overscroll-none select-none">
         {!isLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900">
-                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 animate-spin-horizontal mb-4" />
-                <span className="text-white font-bold tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
+                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
+                <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
             </div>
         )}
         
-        {isLoaded && (
-            <div className="absolute top-4 left-4 z-30 pointer-events-none animate-in slide-in-from-left duration-700">
-                <img src={TOWER_ICON} alt="Torre Magica" className="w-32 md:w-48 h-auto drop-shadow-xl" />
-            </div>
-        )}
-
-        <RobotHint show={showHint} message="Tocca un oggetto magico!" />
+        <RobotHint 
+            show={isLoaded} 
+            message="Tocca un oggetto magico e divertiti.." 
+            variant="PURPLE"
+        />
         
-        <div className="relative flex-1 w-full h-full overflow-hidden select-none">
+        <div className="relative w-full h-full overflow-hidden select-none">
+            {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
-                <img src={TOWER_BG_MOBILE} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-                {ZONES_MOBILE.map((zone, i) => (
+                <img 
+                    src={TOWER_BG_MOBILE} 
+                    alt="Torre Magica" 
+                    className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    draggable={false} 
+                />
+                {isLoaded && ZONES_MOBILE.map((zone, i) => (
                     <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>
-            <div className="hidden md:block w-full h-full relative">
-                <img src={TOWER_BG_DESKTOP} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-                {ZONES_DESKTOP.map((zone, i) => (
+
+            {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
+            <div className="hidden md:block w-full h-full relative overflow-hidden">
+                <img 
+                    src={TOWER_BG_DESKTOP} 
+                    alt="Torre Magica Desktop" 
+                    className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    draggable={false} 
+                />
+                {isLoaded && ZONES_DESKTOP.map((zone, i) => (
                     <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>

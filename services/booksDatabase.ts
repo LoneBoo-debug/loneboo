@@ -13,7 +13,7 @@ Il libro raccoglie pensieri, brevi testi, riflessioni e immagini nate dal proget
 Lo scopo del libro è offrire al lettore un momento di respiro: una pausa silenziosa in cui trovare conforto, riconoscersi e magari scoprire che ciò che sentiamo non è mai davvero solo nostro. Lone Boo, con la sua semplicità, accompagna i piccoli lettori in un percorso fatto di piccole verità quotidiane, frammenti di luce e ombre che non fanno paura.
 
 Tra le pagine si parla di emozioni, legami invisibili, battiti trattenuti e speranze che si riaccendono. Non è un romanzo né un diario: è uno spazio libero, un rifugio creativo in cui ogni lettore può ritrovare un pezzo di sé.`, 
-        coverImage: getAsset('https://i.postimg.cc/mDXNKfCn/Immagine-2025-12-01-221132.jpg'), 
+        coverImage: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/book1.webp'), 
         amazonUrl: 'https://amzn.eu/d/fcAwaA4' 
     },
     { 
@@ -27,7 +27,7 @@ Ogni attività è progettata per offrire un’esperienza divertente e allo stess
 Con il suo stile vivace e unico, Lone Boo accompagna i piccoli lettori in un viaggio pieno di colori, sorrisi e scoperte, rendendo ogni pagina una piccola avventura da vivere.
 
 Prendi una matita, apri il libro… e lascia che la magia degli enigmi inizi!`, 
-        coverImage: getAsset('https://i.postimg.cc/WbCjTdsM/Immagine-2025-12-01-221617.jpg'), 
+        coverImage: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/book2.webp'), 
         amazonUrl: 'https://amzn.eu/d/d04JGSx' 
     },
     { 
@@ -46,7 +46,7 @@ crescere significa accettarsi con gentilezza.
 È un libro ideale per la lettura della buonanotte, ma anche uno strumento prezioso per genitori, educatori e insegnanti che desiderano introdurre l’educazione emotiva nella vita quotidiana dei bambini.
 Perfetto dai 4 ai 10 anni, aiuta a sviluppare empatia, sicurezza interiore e capacità di esprimere ciò che si prova. Una piccola guida poetica per diventare grandi… un passo alla volta.
 Regalo ideale per compleanni, ricorrenze, feste scolastiche e per tutti i bambini che amano le storie che fanno bene al cuore.`, 
-        coverImage: getAsset('https://i.postimg.cc/fLY8QxFq/Immagine-2025-12-05-001741.jpg'), 
+        coverImage: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/book3.webp'), 
         amazonUrl: 'https://amzn.eu/d/1PLVotd' 
     }
 ];

@@ -1,13 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
-import { Heart, Trophy, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Heart, Trophy, ArrowLeft, ArrowBigDown } from 'lucide-react';
 import SaveReminder from './SaveReminder';
 import { getProgress } from '../services/tokens';
 
-const TITLE_IMG = 'https://i.postimg.cc/h4Tk6xq4/paolowsw-(1).png';
-const NEW_WORD_BTN_IMG = 'https://i.postimg.cc/WbGGtwSC/nuvoa-parola-buuton-(1).png';
-const BG_IMG = 'https://i.postimg.cc/gcS9Q3vk/sfondo-parola-magicadef.jpg';
-const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
+const NEW_WORD_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoa-parola-buuton-(1).webp';
+const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfoparolmagdsse.webp';
+const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 
 const WORDS = [
     'FANTASMA', 'ZUCCA', 'CASTELLO', 'MAGIA', 'AMICI', 'NOTTE', 'STELLA', 'LUNA', 'DRAGO', 'FORESTA',
@@ -35,6 +33,7 @@ const WORDS = [
 ];
 
 const ALPHABET = "ABCDEFGHILMNOPQRSTUVZ".split('');
+const VOWELS = ['A', 'E', 'I', 'O', 'U'];
 
 interface WordGuessProps {
     onBack: () => void;
@@ -48,7 +47,6 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
   const [lives, setLives] = useState(5);
   const [gameStatus, setGameStatus] = useState<'PLAYING' | 'WON' | 'LOST'>('PLAYING');
   
-  // Progression Logic
   const [wordsWonCount, setWordsWonCount] = useState(0);
   const [currentTokens, setCurrentTokens] = useState(0);
   const [rewardGivenForThisWord, setRewardGivenForThisWord] = useState(false);
@@ -70,6 +68,12 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
       setRewardGivenForThisWord(false);
   };
 
+  // Calcolo dinamico indizi
+  const vowelCount = useMemo(() => {
+      if (!targetWord) return 0;
+      return targetWord.split('').filter(char => VOWELS.includes(char)).length;
+  }, [targetWord]);
+
   const handleGuess = (letter: string) => {
       if (gameStatus !== 'PLAYING' || guessedLetters.includes(letter)) return;
 
@@ -86,7 +90,6 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
       }
   };
 
-  // Handle Rewards when word is won
   useEffect(() => {
       if (gameStatus === 'WON' && !rewardGivenForThisWord) {
           const newCount = wordsWonCount + 1;
@@ -94,14 +97,12 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
           setRewardGivenForThisWord(true);
 
           let reward = 0;
-          // Rules: 3 words -> 5 coins, 6 words -> 10 coins, 10 words -> 15 coins
           if (newCount === 3) reward = 5;
           else if (newCount === 6) reward = 10;
           else if (newCount === 10) reward = 15;
 
           if (reward > 0 && onEarnTokens) {
               onEarnTokens(reward);
-              // Update local display immediately
               setCurrentTokens(prev => prev + reward);
           }
       }
@@ -114,81 +115,91 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
       return 'w-10 h-14 text-3xl md:w-14 md:h-20 md:text-5xl';
   };
 
-  // Wrapper style for full screen fixed background
-  const wrapperStyle = "fixed top-[64px] md:top-[96px] left-0 right-0 bottom-0 w-full h-[calc(100%-64px)] md:h-[calc(100%-96px)] overflow-y-auto bg-cover bg-center z-[60]";
+  const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
   return (
-    <div 
-        className={wrapperStyle}
-        style={{ backgroundImage: `url(${BG_IMG})` }}
-    >
-        {/* BACK BUTTON */}
-        <div className="absolute top-4 left-4 z-50">
-            <button 
-                onClick={onBack} 
-                className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            >
-                <img 
-                    src={EXIT_BTN_IMG} 
-                    alt="Ritorna al Parco" 
-                    className="h-12 w-auto drop-shadow-md" 
-                />
-            </button>
-        </div>
+    <div className={wrapperStyle}>
+        <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" draggable={false} />
 
-        {/* TOP RIGHT TOKEN COUNTER */}
-        <div className="absolute top-4 right-4 z-50 pointer-events-none">
-           <div className="bg-yellow-400 text-black px-4 py-2 rounded-full border-4 border-white shadow-md flex items-center gap-2 font-black text-lg">
-               <span>{currentTokens}</span> <span className="text-xl">🪙</span>
-           </div>
-        </div>
-
-        {/* MAIN CONTAINER: min-h-full to allow scrolling on desktop if needed, without clipping */}
-        <div className="w-full min-h-full flex flex-col items-center pt-24 md:pt-32 pb-24 relative">
-            
-            {/* TITLE */}
-            <img 
-                src={TITLE_IMG} 
-                alt="Parola Magica" 
-                className="h-24 md:h-36 w-auto mb-2 relative z-10 hover:scale-105 transition-transform duration-300"
-                style={{
-                    filter: 'drop-shadow(0px 0px 2px #F97316) drop-shadow(0px 0px 3px #F97316) drop-shadow(0px 0px 5px #F97316) drop-shadow(0px 0px 2px #000000)'
-                }}
-            />
-
-            {/* MAIN GAME BOX (Translucent) */}
-            <div className="bg-white/40 backdrop-blur-md w-[95%] max-w-3xl rounded-[30px] border-4 border-white/50 shadow-2xl overflow-hidden p-3 md:p-5 text-center relative flex flex-col items-center z-10 min-h-[200px] justify-center">
-                
-                {/* WORD DISPLAY - Reduced bottom margin */}
-                <div className="flex flex-nowrap justify-center gap-1 md:gap-2 mb-4 px-1 w-full overflow-hidden">
-                    {targetWord.split('').map((char, idx) => (
-                        <div 
-                            key={idx} 
-                            className={`
-                                border-b-4 border-purple-800 flex items-center justify-center font-black text-purple-900 bg-white/90 rounded-lg shrink-0 shadow-sm
-                                ${getBoxSizeClass()}
-                                ${gameStatus === 'LOST' && !guessedLetters.includes(char) ? 'text-red-500 bg-red-50' : ''}
-                                ${gameStatus === 'WON' ? 'bg-green-100 text-green-700 border-green-600' : ''}
-                            `}
-                        >
-                            {guessedLetters.includes(char) || gameStatus === 'LOST' ? char : ''}
-                        </div>
-                    ))}
+        {/* HUD FISSA: TASTO ESCI E SALDO GETTONI */}
+        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
+            <div className="pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Indietro" className="h-12 w-auto" />
+                </button>
+            </div>
+            <div className="pointer-events-auto">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
                 </div>
+            </div>
+        </div>
+
+        {/* MAIN CONTAINER: pt diminuito per alzare tutto */}
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-36 md:pt-40 px-4 overflow-hidden">
+            
+            {/* BOX TITOLI TRASLUCIDO */}
+            {gameStatus === 'PLAYING' && (
+                <div className="bg-white/40 backdrop-blur-md w-full max-w-3xl rounded-[30px] border-4 border-white/50 shadow-2xl p-3 md:p-5 text-center mb-4 animate-in slide-in-from-top-4 duration-500">
+                    <h2 
+                        className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-lg md:text-4xl"
+                        style={{ WebkitTextStroke: '1.2px black', lineHeight: '1.1' }}
+                    >
+                        Indovina la parola, sono {targetWord.length} lettere!
+                    </h2>
+                    <p 
+                        className="font-luckiest text-yellow-300 uppercase text-center tracking-tight drop-shadow-[1px_1px_0_black] text-sm md:text-2xl mt-1"
+                        style={{ WebkitTextStroke: '0.8px black' }}
+                    >
+                        Ti do un indizio, {vowelCount === 1 ? "c'è 1 vocale" : `ci sono ${vowelCount} vocali`}
+                    </p>
+                </div>
+            )}
+
+            {/* MAIN GAME BOX (Translucent) - mb aggiunto per staccarlo dall'HUD sotto */}
+            <div className="bg-white/40 backdrop-blur-md w-full max-w-3xl rounded-[30px] border-4 border-white/50 shadow-2xl p-3 md:p-5 text-center relative flex flex-col items-center min-h-[220px] justify-center mb-8">
+                
+                {/* WORD DISPLAY - Solo durante il gioco (PLAYING) */}
+                {gameStatus === 'PLAYING' && (
+                    <div className="flex flex-nowrap justify-center gap-1 md:gap-2 mb-6 px-1 w-full overflow-hidden">
+                        {targetWord.split('').map((char, idx) => (
+                            <div 
+                                key={idx} 
+                                className={`
+                                    border-b-4 border-purple-800 flex items-center justify-center font-black text-purple-900 bg-white/90 rounded-lg shrink-0 shadow-sm
+                                    ${getBoxSizeClass()}
+                                `}
+                            >
+                                {guessedLetters.includes(char) ? char : ''}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* GAME AREA OR WIN/LOSS MESSAGE */}
                 {gameStatus === 'PLAYING' ? (
-                    <div className="grid grid-cols-7 gap-1 md:gap-2 w-full">
-                        {ALPHABET.map((letter) => {
+                    <div className="grid grid-cols-7 gap-2 md:gap-3 w-full px-1">
+                        {ALPHABET.map((letter, idx) => {
                             const isGuessed = guessedLetters.includes(letter);
                             const isCorrect = targetWord.includes(letter);
                             
-                            let bgClass = '';
+                            // Palette di colori per la tastiera
+                            const bubbleColors = [
+                                'bg-pink-400 border-pink-600 shadow-pink-800/40',
+                                'bg-sky-400 border-sky-600 shadow-sky-800/40',
+                                'bg-yellow-400 border-yellow-600 shadow-yellow-800/40',
+                                'bg-orange-400 border-orange-600 shadow-orange-800/40',
+                                'bg-purple-400 border-purple-600 shadow-purple-800/40',
+                                'bg-lime-400 border-lime-600 shadow-lime-800/40'
+                            ];
+                            const myColor = bubbleColors[idx % bubbleColors.length];
+
+                            let statusStyles = '';
                             if (isGuessed) {
-                                if (isCorrect) bgClass = 'bg-green-500 border-green-700 text-white opacity-80 border-b-2 translate-y-1';
-                                else bgClass = 'bg-gray-400 border-gray-500 text-gray-200 opacity-60 border-b-2 translate-y-1';
+                                if (isCorrect) statusStyles = 'bg-green-500 border-green-700 text-white opacity-40 grayscale-[0.5] translate-y-1 shadow-none';
+                                else statusStyles = 'bg-gray-400 border-gray-500 text-gray-200 opacity-20 grayscale translate-y-1 shadow-none';
                             } else {
-                                bgClass = 'bg-white border-purple-300 hover:bg-purple-50 text-purple-900 border-b-[4px] md:border-b-[5px] active:border-b-0 active:translate-y-1 shadow-sm';
+                                statusStyles = `${myColor} text-white border-b-[5px] md:border-b-[7px] active:border-b-0 active:translate-y-1 shadow-lg hover:scale-105`;
                             }
 
                             return (
@@ -197,37 +208,63 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
                                     onClick={() => handleGuess(letter)}
                                     disabled={isGuessed}
                                     className={`
-                                        aspect-square w-full rounded-xl md:rounded-2xl border-x-2 border-t-2 font-black text-lg md:text-2xl transition-all flex items-center justify-center
-                                        ${bgClass}
+                                        aspect-square w-full rounded-2xl md:rounded-3xl border-x-2 border-t-2 
+                                        font-black text-lg md:text-3xl transition-all flex items-center justify-center 
+                                        relative overflow-hidden ${statusStyles}
                                     `}
+                                    style={{ 
+                                        // Forma a bolla asimmetrica
+                                        borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%' 
+                                    }}
                                 >
-                                    {letter}
+                                    {/* Effetto luce bolla */}
+                                    {!isGuessed && (
+                                        <div className="absolute top-1 left-2 w-2 h-4 md:w-3 md:h-6 bg-white/40 rounded-full blur-[1px] rotate-[-15deg]"></div>
+                                    )}
+                                    <span className="drop-shadow-md">{letter}</span>
                                 </button>
                             );
                         })}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center animate-in zoom-in w-full py-4">
+                    <div className={`flex flex-col items-center animate-in zoom-in w-full py-4 ${gameStatus === 'WON' ? 'pt-12 md:pt-16' : ''}`}>
                         {gameStatus === 'WON' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                        
+                        {/* PAROLA ESATTA SPOSTATA SOPRA IL TITOLO */}
+                        <p className="text-gray-800 font-bold mb-2 text-xl px-4 text-center leading-tight">
+                            La parola era: <br className="sm:hidden" />
+                            <span className="text-purple-700 uppercase font-black break-all">{targetWord}</span>
+                        </p>
 
-                        <h3 className={`text-4xl font-black mb-2 ${gameStatus === 'WON' ? 'text-green-700' : 'text-red-600'}`}>
+                        <h3 className={`text-4xl md:text-5xl font-black mb-4 ${gameStatus === 'WON' ? 'text-green-700' : 'text-red-600'}`}>
                             {gameStatus === 'WON' ? 'HAI VINTO! 🎉' : 'OH NO! 😱'}
                         </h3>
-                        <p className="text-gray-800 font-bold mb-4 text-xl">
-                            La parola era: <span className="text-purple-700 uppercase font-black">{targetWord}</span>
-                        </p>
                         
                         {gameStatus === 'WON' && rewardGivenForThisWord && (
                             <div className="bg-yellow-400 text-black px-6 py-2 rounded-xl font-black text-xl border-2 border-black mb-4 animate-pulse inline-block transform rotate-[-2deg]">
                                 + PUNTO LIVELLO!
                             </div>
                         )}
+
+                        {/* FRECCIA CARTOON CHE PUNTA IN BASSO AL TASTO NUOVA PAROLA */}
+                        {gameStatus === 'WON' && (
+                            <div className="absolute bottom-4 right-4 animate-bounce">
+                                <div className="relative">
+                                    <ArrowBigDown 
+                                        size={64} 
+                                        className="text-yellow-400 fill-yellow-400 drop-shadow-[0_4px_0_rgba(0,0,0,1)]" 
+                                        stroke="black"
+                                        strokeWidth={2}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* BOTTOM INFO HUD - Absolute on Mobile, Static on Desktop */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl z-50 md:static md:transform-none md:mt-6 md:mb-8">
+            {/* BOTTOM INFO HUD - Mantiene la posizione fissa a bottom-24 */}
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl z-50">
                 <div className="bg-white/40 backdrop-blur-md p-2 rounded-[30px] border-4 border-white/50 shadow-xl flex items-center justify-between h-24">
                     
                     {/* LEFT: RULES */}
@@ -249,7 +286,6 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
 
                     {/* MIDDLE: STATS (LIVES & LEVEL) */}
                     <div className="flex flex-col items-center justify-center flex-1">
-                        {/* Lives (5 Hearts) */}
                         <div className="flex gap-1 mb-2">
                             {[...Array(5)].map((_, i) => (
                                 <Heart 
@@ -260,7 +296,6 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
                                 />
                             ))}
                         </div>
-                        {/* Level Progress */}
                         <div className="text-center">
                             <span className="text-xs font-bold text-gray-700 uppercase">PAROLE INDOVINATE</span>
                             <div className="text-2xl font-black text-purple-800 leading-none">{wordsWonCount}</div>
