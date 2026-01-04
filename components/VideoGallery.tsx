@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VIDEOS } from '../constants';
 import { Video } from '../types';
 import { getChannelPlaylists, getPlaylistVideos, getLatestVideos, searchChannelVideos, getFeaturedVideo } from '../services/api';
-import { Search, CirclePlay, Loader2, List, X, ChevronUp, ChevronDown, Star } from 'lucide-react';
+import { Search, CirclePlay, Loader2, List, X, ChevronDown } from 'lucide-react';
 
 const CLOSE_BTN_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 
@@ -26,7 +26,7 @@ const VideoGallery: React.FC = () => {
     setLoading(true);
     
     try {
-        // Carichiamo tutto in parallelo per non aspettare
+        // Chiamate parallele al servizio consolidato
         const [fv, pls, lts] = await Promise.all([
             getFeaturedVideo(),
             getChannelPlaylists(),
@@ -44,10 +44,11 @@ const VideoGallery: React.FC = () => {
             setPlaylistsMap(map);
         }
 
-        setVideos(lts && lts.length > 0 ? lts : VIDEOS);
+        // Se lts è uguale a VIDEOS (fallback), carichiamo comunque quelli
+        setVideos(lts);
 
     } catch (err) {
-        console.error("Gallery Error:", err);
+        console.error("Gallery UI Error:", err);
         setVideos(VIDEOS);
     } finally {
         if (isMounted.current) setLoading(false);
@@ -102,7 +103,7 @@ const VideoGallery: React.FC = () => {
             const pid = playlistsMap[cat];
             fetched = pid ? await getPlaylistVideos(pid) : await getLatestVideos();
         }
-        if (isMounted.current) setVideos(fetched.length > 0 ? fetched : VIDEOS);
+        if (isMounted.current) setVideos(fetched);
     } catch (e) {
         setVideos(VIDEOS);
     } finally {
@@ -115,7 +116,6 @@ const VideoGallery: React.FC = () => {
   return (
     <div className="px-3 md:px-6 pt-[70px] md:pt-[110px] pb-24 max-w-6xl mx-auto animate-fade-in min-h-screen">
       
-      {/* 1. FEATURED */}
       {featuredVideo && !searchTerm && (
         <div className="mb-8 cursor-pointer" onClick={() => setSelectedVideo(featuredVideo)}>
             <div className="relative bg-gradient-to-br from-yellow-300 to-orange-400 p-1.5 rounded-[40px] shadow-2xl border-4 border-black">
@@ -135,12 +135,10 @@ const VideoGallery: React.FC = () => {
         </div>
       )}
 
-      {/* 2. CONTROLS */}
       <div className="flex flex-col md:flex-row gap-4 mb-10 sticky top-20 md:top-28 z-40">
         <div className="relative flex-1" ref={dropdownRef}>
             <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex items-center justify-between px-6 py-4 rounded-2xl border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
                 <div className="flex items-center gap-3">
-                    <List size={24} className="text-boo-purple" />
                     <span className="font-black text-lg uppercase">{activeCategory}</span>
                 </div>
                 <ChevronDown size={24} />
@@ -160,7 +158,6 @@ const VideoGallery: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. GRID */}
       {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
               <Loader2 size={64} className="animate-spin text-white" />
@@ -184,7 +181,6 @@ const VideoGallery: React.FC = () => {
           </div>
       )}
 
-      {/* MODAL */}
       {selectedVideo && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-4 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
            <div className="relative w-full max-w-5xl bg-white rounded-[40px] border-[8px] border-red-600 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
