@@ -12,20 +12,23 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className = "", 
   ...props 
 }) => {
+  // getAsset(src) restituisce già l'URL con il parametro ?v=...
   const [currentSrc, setCurrentSrc] = useState<string>(getAsset(src));
-  const [retryCount, setRetryCount] = useState(0);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   useEffect(() => {
     setCurrentSrc(getAsset(src));
-    setRetryCount(0);
+    setRetryAttempt(0);
   }, [src]);
 
   const handleError = () => {
-    // Se l'immagine fallisce, proviamo l'URL originale senza filtri
-    if (retryCount < 1) {
-      console.warn(`Asset fallito: ${currentSrc}. Tento ripristino sorgente diretta.`);
-      setCurrentSrc(src);
-      setRetryCount(1);
+    // Se l'immagine fallisce (molto probabile cache sporca o CORS transitorio)
+    // riproviamo una sola volta aggiungendo un timestamp unico
+    if (retryAttempt < 1) {
+      console.warn(`Tentativo di ripristino per: ${src}`);
+      const separator = src.includes('?') ? '&' : '?';
+      setCurrentSrc(`${src}${separator}retry=${Date.now()}`);
+      setRetryAttempt(1);
     }
   };
 
@@ -35,8 +38,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       alt={alt}
       className={className}
       onError={handleError}
-      loading="lazy"
-      // crossOrigin rimosso per evitare blocchi del browser su normali immagini UI
+      loading="eager" // Cambiato da lazy a eager per velocizzare la visualizzazione critica
+      decoding="async"
       {...props}
     />
   );

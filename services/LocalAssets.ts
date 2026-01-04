@@ -10,16 +10,22 @@ export const LOCAL_ASSET_MAP: Record<string, string> = {
 
 /**
  * Restituisce l'URL dell'asset. 
- * Se siamo in produzione o se non abbiamo specificato di usare asset locali,
- * restituisce sempre il link originale S3.
+ * In produzione aggiungiamo un parametro di versione (?v=...) per forzare S3 
+ * a servire l'immagine fresca ed evitare errori di cache/CORS del passato.
  */
 export const getAsset = (url: string): string => {
   if (!url) return "";
   
-  // Se è già un percorso relativo locale, non toccarlo
+  // Se è un percorso locale relativo, lo teniamo così com'è
   if (url.startsWith('assets/') || url.startsWith('/assets/')) return url;
 
-  // Usa asset locali solo se esplicitamente richiesto (modalità debug/offline)
+  // Se è un URL di AWS S3, aggiungiamo il cache-buster
+  if (url.includes('amazonaws.com')) {
+      const separator = url.includes('?') ? '&' : '?';
+      // Cambiando questo numero (es. 1.1) forziamo il refresh totale di tutte le immagini
+      return `${url}${separator}v=1.0.1`;
+  }
+
   try {
       const forceLocal = localStorage.getItem('force_local_assets') === 'true';
       if (forceLocal && LOCAL_ASSET_MAP[url]) {
@@ -27,6 +33,5 @@ export const getAsset = (url: string): string => {
       }
   } catch (e) {}
 
-  // DEFAULT: Sempre URL S3 (Garantisce visibilità)
   return url;
 };
