@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'loneboo-static-v22'; // Incrementato v22 per reset totale
+const CACHE_NAME = 'loneboo-static-v23'; // Incremento v23 per reset totale
 
 const urlsToCache = [
   '/',
@@ -20,7 +20,6 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Pulizia aggressiva di tutte le vecchie cache
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
@@ -34,10 +33,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Se la richiesta è per un'immagine S3, bypassiamo completamente il Service Worker
-  // per evitare che risposte "corrotte" vengano servite dalla cache.
+  // STRATEGIA PASS-THROUGH ESPLICITA PER AWS S3
+  // Questo istruisce il Service Worker a non toccare minimamente le richieste verso S3
   if (requestUrl.hostname.includes('amazonaws.com')) {
-    return; // Lascia che il browser gestisca la richiesta normalmente
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   // Network First per i file di sistema
@@ -48,6 +48,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Fallback normale per tutto il resto
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);

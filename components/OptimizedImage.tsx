@@ -12,23 +12,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className = "", 
   ...props 
 }) => {
-  // getAsset(src) restituisce già l'URL con il parametro ?v=...
   const [currentSrc, setCurrentSrc] = useState<string>(getAsset(src));
-  const [retryAttempt, setRetryAttempt] = useState(0);
 
   useEffect(() => {
     setCurrentSrc(getAsset(src));
-    setRetryAttempt(0);
   }, [src]);
 
   const handleError = () => {
-    // Se l'immagine fallisce (molto probabile cache sporca o CORS transitorio)
-    // riproviamo una sola volta aggiungendo un timestamp unico
-    if (retryAttempt < 1) {
-      console.warn(`Tentativo di ripristino per: ${src}`);
-      const separator = src.includes('?') ? '&' : '?';
-      setCurrentSrc(`${src}${separator}retry=${Date.now()}`);
-      setRetryAttempt(1);
+    console.error(`Errore caricamento asset: ${src}`);
+    // In caso di errore, assicuriamoci di riprovare l'URL originale senza modifiche
+    if (currentSrc !== src) {
+      setCurrentSrc(src);
     }
   };
 
@@ -38,7 +32,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       alt={alt}
       className={className}
       onError={handleError}
-      loading="eager" // Cambiato da lazy a eager per velocizzare la visualizzazione critica
+      loading="eager"
       decoding="async"
       {...props}
     />
