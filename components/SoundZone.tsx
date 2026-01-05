@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
+import { AppView } from '../types';
 
 // --- LAZY LOADING STRUMENTI ---
 const PianoInstrument = lazy(() => import('./sound/PianoInstrument'));
@@ -12,6 +14,7 @@ const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument')
 
 const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
 const DISCO_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-desktop.webp';
+const BTN_EXIT_DISCO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitdiscocit.webp';
 
 enum SoundMode {
     NONE = 'NONE',
@@ -50,7 +53,7 @@ const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "Bongo", "points": [ { "x": 41.77, "y": 88.39 }, { "x": 42.11, "y": 97.04 }, { "x": 45.38, "y": 96.78 }, { "x": 45.95, "y": 87.6 } ] }
 ];
 
-const SoundZone: React.FC = () => {
+const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
   const [activeMode, setActiveMode] = useState<SoundMode>(SoundMode.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -114,6 +117,18 @@ const SoundZone: React.FC = () => {
         )}
 
         <div className="relative w-full h-full overflow-hidden">
+            {/* TASTO ESCI PER LA CITTÀ */}
+            {isLoaded && (
+                <div className="absolute top-20 md:top-28 left-4 z-50">
+                    <button 
+                        onClick={() => setView(AppView.CITY_MAP)}
+                        className="hover:scale-105 active:scale-95 transition-transform outline-none drop-shadow-xl"
+                    >
+                        <img src={BTN_EXIT_DISCO} alt="Esci" className="h-16 md:h-24 w-auto" />
+                    </button>
+                </div>
+            )}
+
             <div className="block md:hidden absolute inset-0 w-full h-full overflow-hidden">
                 <img 
                     src={DISCO_BG_MOBILE} 

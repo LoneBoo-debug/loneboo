@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, RotateCcw, Trophy } from 'lucide-react';
 import { getProgress } from '../services/tokens';
 
-const GUESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfindilnmnnn.webp';
+const GUESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfindilnmnnnffsa.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const BTN_PROVA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tasto-prova-(1).webp';
 const BTN_PLAY_AGAIN_IMG = 'https://i.postimg.cc/fyF07TTv/tasto-gioca-ancora-(1).png';

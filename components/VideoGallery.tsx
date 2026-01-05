@@ -58,6 +58,18 @@ const VideoGallery: React.FC = () => {
     return () => { isMounted.current = false; };
   }, [initGallery]);
 
+  // Gestione classe allow-landscape per sbloccare la rotazione
+  useEffect(() => {
+    if (selectedVideo) {
+      document.body.classList.add('allow-landscape');
+    } else {
+      document.body.classList.remove('allow-landscape');
+    }
+    return () => {
+      document.body.classList.remove('allow-landscape');
+    };
+  }, [selectedVideo]);
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
         if (searchTerm.trim().length > 2) {
@@ -77,23 +89,43 @@ const VideoGallery: React.FC = () => {
   return (
     <div className="bg-white min-h-screen">
       <style>{`
-        /* Nasconde la barra di scorrimento ma mantiene la funzionalità */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Ottimizzazione per video a tutto schermo in landscape su smartphone */
-        @media (orientation: landscape) and (max-height: 500px) {
-          .video-modal-container {
+        /* FULLSCREEN LANDSCAPE OPTIMIZATION */
+        @media (orientation: landscape) {
+          .video-modal-overlay {
             padding: 0 !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            height: 100vh !important;
+            background: black !important;
           }
-          .video-modal-header { display: none !important; }
-          .video-modal-footer { display: none !important; }
-          .video-modal-close { top: 10px !important; right: 10px !important; width: 40px !important; height: 40px !important; }
+          .video-modal-container {
+            width: 100vw !important;
+            height: 100dvh !important;
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+          }
+          .video-modal-header, .video-modal-footer {
+            display: none !important;
+          }
+          .video-modal-close {
+            top: 20px !important;
+            right: 20px !important;
+            width: 50px !important;
+            height: 50px !important;
+            opacity: 0.5;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            padding: 5px;
+          }
+          .video-modal-close:hover {
+            opacity: 1;
+          }
+          .iframe-container {
+            border-radius: 0 !important;
+          }
         }
       `}</style>
 
@@ -181,12 +213,12 @@ const VideoGallery: React.FC = () => {
 
         {/* PLAYER MODALE */}
         {selectedVideo && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
+          <div className="video-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 md:p-4 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
              <div className="video-modal-container relative w-full max-w-5xl bg-white rounded-[40px] border-[8px] border-red-600 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                 <button onClick={() => setSelectedVideo(null)} className="video-modal-close absolute top-4 right-4 z-[210] hover:scale-110 transition-transform">
                    <img src={CLOSE_BTN_IMG} alt="Chiudi" className="w-12 h-12 md:w-20 md:h-20" />
                 </button>
-                <div className="flex-1 w-full aspect-video bg-black">
+                <div className="iframe-container flex-1 w-full aspect-video bg-black">
                     <iframe 
                       src={`https://www.youtube.com/embed/${selectedVideo.id}?autoplay=1&rel=0`} 
                       className="w-full h-full border-0" 

@@ -83,7 +83,7 @@ export const SOCIALS: SocialLink[] = [
     { platform: 'YouTube', url: 'https://www.youtube.com/@ILoneBoo', iconName: 'Youtube', color: 'bg-red-600' },
     { platform: 'Instagram', url: 'https://www.instagram.com/loneboo_official', iconName: 'Instagram', color: 'bg-pink-600' },
     { platform: 'TikTok', url: 'https://www.tiktok.com/@lone_._boo', iconName: 'Music', color: 'bg-slate-900' },
-    { platform: 'Facebook', url: 'https://www.facebook.com/LoneBooFanPage', iconName: 'Facebook', color: 'bg-blue-600' }
+    { platform: 'Facebook', url: 'https://www.facebook.com/LoneBooOfficialPage/', iconName: 'Facebook', color: 'bg-blue-600' }
 ];
 
 export const SUPPORT_LINKS: SocialLink[] = [

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
@@ -55,6 +56,16 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Listener per attivazione cancello parentale da remoto (es. Baule dei Segreti)
+    useEffect(() => {
+        const handleRemoteTrigger = () => {
+            setIsMenuOpen(false);
+            setShowParentalGate(true);
+        };
+        window.addEventListener('triggerParentalGate', handleRemoteTrigger);
+        return () => window.removeEventListener('triggerParentalGate', handleRemoteTrigger);
+    }, []);
+
     // Recupero dati periodico
     useEffect(() => {
         const loadNotifs = async () => {
@@ -98,8 +109,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             {showParentalArea && <ParentalArea onClose={() => setShowParentalArea(false)} setView={setView} />}
 
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
-                <div className="relative w-full h-full max-w-7xl mx-auto px-4 flex items-center justify-between pointer-events-auto">
-                    <div className="absolute left-2 md:left-4 md:top-2 z-40 flex items-end gap-2" ref={menuRef}>
+                <div className="relative w-full h-full max-w-7xl mx-auto px-4 flex items-center justify-between pointer-events-none">
+                    <div className="absolute left-2 md:left-4 md:top-2 z-40 flex items-end gap-2 pointer-events-auto" ref={menuRef}>
                         <div className="relative">
                             <div className="absolute inset-0 bg-white/40 blur-2xl rounded-full scale-150 -z-10"></div>
                             <button 
@@ -144,11 +155,11 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    <div className="flex-grow flex items-center justify-start pl-[45px] md:pl-[85px] h-full py-2">
+                    <div className="flex-grow flex items-center justify-start pl-[45px] md:pl-[85px] h-full py-2 pointer-events-none">
                         <img src={HEADER_TITLE_IMG} alt="Lone Boo" className="h-[65%] md:h-full w-auto object-contain transition-all" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 2px rgba(255,255,255,1))' }} onError={handleImageError} />
                     </div>
 
-                    <div className="absolute right-2 md:right-4 md:top-2 z-40 flex items-end gap-2 md:gap-3">
+                    <div className="absolute right-2 md:right-4 md:top-2 z-40 flex items-end gap-2 md:gap-3 pointer-events-auto">
                         {!isHome && <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full scale-x-125 scale-y-110 -z-10 translate-x-4"></div>}
                         {!isHome && (
                             <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => { setView(AppView.HOME); window.scrollTo(0, 0); }}>
@@ -188,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                                 <p className="font-bold text-gray-800 text-base md:text-lg leading-snug mb-3">{n.message}</p>
                                                 {n.link && (
                                                     <a href={n.link} target="_blank" rel="noopener noreferrer" className="self-start bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-black uppercase flex items-center gap-2 hover:bg-blue-600 transition-colors shadow-[2px_2px_0_black] active:translate-y-[1px] active:shadow-none border-2 border-black">
-                                                        {n.linkText || "Vedi"} <ExternalLink size={16}/>
+                                                        {n.linkText || "VAI"} <ExternalLink size={16}/>
                                                     </a>
                                                 )}
                                             </div>

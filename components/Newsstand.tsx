@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ShoppingBag, Check, Lock, Star, Download, Settings, Move, ArrowRight, Upload, Camera, ScanLine, Copy, RotateCcw, Trash2, Smile, BookOpen, LogOut, Image as ImageIcon, User, HelpCircle, Share, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
@@ -89,7 +90,6 @@ type CardLayoutConfig = {
     info: Coords;
 };
 
-// Layout ricalibrato per la nuova tessera card-passport.webp
 const FINAL_LAYOUT: CardLayoutConfig = {
     qr: { x: 77.0, y: 58.0 }, 
     info: { x: 50.0, y: 92.0 } 
@@ -372,10 +372,10 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
 
             {/* HEADER EDICOLA */}
             <div className="relative bg-transparent p-3 md:p-4 flex justify-between items-center z-20 shrink-0">
-                {/* TASTO RITORNA AL PARCO (Coerente con altri minigiochi) */}
+                {/* TASTO RITORNA AL PARCO */}
                 <button
                     onClick={() => setView(AppView.PLAY)}
-                    className="hover:scale-105 active:scale-95 transition-transform"
+                    className="hover:scale-105 active:scale-95 transition-transform outline-none"
                 >
                     <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-14 w-auto drop-shadow-md" />
                 </button>
@@ -386,15 +386,21 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
                 </div>
             </div>
 
-            {/* TABS */}
-            <div className="flex bg-black/20 backdrop-blur-sm p-1 shrink-0 gap-1 overflow-x-auto z-10 border-y border-white/10">
+            {/* TABS - Fix sovrapposizione e precisione clic */}
+            <div className="relative z-30 flex bg-black/40 backdrop-blur-md p-1 shrink-0 gap-1 overflow-x-auto border-y border-white/10 mx-2 rounded-2xl shadow-xl">
                 {['SHOP', 'ALBUM', 'PASSPORT'].map((tab) => (
-                    <button key={tab} onClick={() => setActiveTab(tab as any)} className={`flex-1 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm uppercase tracking-wide transition-all ${activeTab === tab ? 'bg-white text-blue-600 shadow-lg scale-105' : 'bg-white/10 text-white hover:bg-white/20'}`}>{tab === 'SHOP' ? 'NEGOZIO' : tab}</button>
+                    <button 
+                        key={tab} 
+                        onClick={() => setActiveTab(tab as any)} 
+                        className={`flex-1 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wide transition-all border-2 border-transparent ${activeTab === tab ? 'bg-white text-blue-600 shadow-inner scale-100 border-blue-100' : 'text-white hover:bg-white/10'}`}
+                    >
+                        {tab === 'SHOP' ? 'NEGOZIO' : tab}
+                    </button>
                 ))}
             </div>
 
-            {/* CONTENUTO PRINCIPALE */}
-            <div className="flex-1 bg-transparent overflow-hidden relative z-10">
+            {/* CONTENUTO PRINCIPALE - Aggiunto mt per distanziarlo dalle tab */}
+            <div className="flex-1 bg-transparent overflow-hidden relative z-10 mt-2">
                 {activeTab === 'SHOP' && (
                     <div className="w-full h-full flex flex-col items-center justify-start md:justify-center p-4 gap-4 md:gap-6 animate-in slide-in-from-right">
                         {tempSticker ? (
@@ -435,7 +441,7 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
                     <div className="w-full h-full flex flex-col bg-transparent">
                         <div className="p-3 flex justify-center gap-2 bg-black/20 backdrop-blur-sm border-b border-white/10 shrink-0 shadow-sm">
                             <button onClick={() => setViewingAlbum(1)} className={`px-4 py-1 rounded-full font-black text-xs uppercase border-2 transition-all ${viewingAlbum === 1 ? 'bg-blue-500 border-white text-white shadow-lg' : 'bg-white/10 border-white/30 text-white/60'}`}>Volume 1</button>
-                            <button onClick={() => setViewingAlbum(2)} disabled={maxUnlockedAlbum < 2} className={`px-4 py-1 rounded-full font-black text-xs uppercase border-2 flex items-center gap-1 transition-all ${viewingAlbum === 2 ? 'bg-yellow-500 border-white text-white shadow-lg' : 'bg-white/10 border-white/30 text-white/60 opacity-50'}`}>{maxUnlockedAlbum < 2 && <Lock size={10} />} Volume 2</button>
+                            <button onClick={() => setViewingAlbum(2)} disabled={maxUnlockedAlbum < 2} className={`px-4 py-1 rounded-full font-black text-xs uppercase border-2 flex items-center gap-1 transition-all ${viewingAlbum === 2 ? 'bg-yellow-500 border-white text-white shadow-lg' : 'bg-white/10 border-white/30 text-white/60'}`}>{maxUnlockedAlbum < 2 && <Lock size={10} />} Volume 2</button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 pb-20">
@@ -459,25 +465,25 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
                             </div>
                         )}
 
-                        <div className="flex-1 w-full flex items-center justify-center min-h-0 relative">
-                            <div className="relative shadow-2xl rounded-xl border-4 border-white overflow-hidden flex justify-center items-center bg-white/20">
-                                <img src={currentCardBg} className="block w-auto h-auto max-w-full max-h-[60vh] md:max-h-[65vh] object-contain pointer-events-none" alt="Tessera" />
+                        <div className="flex-1 w-full flex items-center justify-center min-h-0 relative mt-2">
+                            <div className="relative shadow-2xl rounded-xl border-4 border-white overflow-hidden flex justify-center items-center bg-white/20 max-h-full">
+                                <img src={currentCardBg} className="block w-auto h-auto max-w-full max-h-[50vh] md:max-h-[60vh] object-contain pointer-events-none" alt="Tessera" />
                             </div>
                         </div>
 
                         {/* Pulsanti alzati ulteriormente con pb-24 */}
-                        <div className="w-full max-w-[500px] flex flex-row gap-2 shrink-0 pb-24">
-                            <label className="flex-1 bg-yellow-400 text-black font-black text-sm md:text-lg py-3 rounded-xl border-b-4 border-yellow-600 active:translate-y-1 shadow-md flex items-center justify-center gap-2 uppercase cursor-pointer">
-                                <Upload size={20} /> CARICA TESSERA
+                        <div className="w-full max-w-[500px] flex flex-row gap-2 shrink-0 pb-24 px-4">
+                            <label className="flex-1 bg-yellow-400 text-black font-black text-xs md:text-base py-4 rounded-xl border-b-4 border-yellow-600 active:translate-y-1 shadow-md flex items-center justify-center gap-2 uppercase cursor-pointer">
+                                <Upload size={20} /> CARICA
                                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
                             </label>
                             <button 
                                 onClick={generateAndDownloadCard} 
                                 disabled={isGeneratingImg} 
-                                className="flex-1 bg-cyan-500 text-white font-black text-sm md:text-lg py-3 rounded-xl border-b-4 border-cyan-700 active:translate-y-1 shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 uppercase"
+                                className="flex-1 bg-cyan-500 text-white font-black text-xs md:text-base py-4 rounded-xl border-b-4 border-cyan-700 active:translate-y-1 shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 uppercase"
                             >
                                 {isGeneratingImg ? <ArrowRight className="animate-spin" size={20} /> : (isMobileDevice ? <Share size={20} /> : <Download size={20} />)} 
-                                {isGeneratingImg ? '...' : 'SALVA TESSERA'}
+                                {isGeneratingImg ? '...' : 'SALVA'}
                             </button>
                         </div>
                     </div>

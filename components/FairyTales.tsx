@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { FAIRY_TALES } from '../services/talesDatabase';
 import { Play, Pause, Clock, Loader2, RotateCcw, X, BookOpen } from 'lucide-react';
-import RobotHint from './RobotHint';
 import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
 import { AppView } from '../types';
 
@@ -12,6 +11,7 @@ const FOREST_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ta
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const TALES_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tales-header.webp';
 const MARAGNO_EASTER_EGG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mrarafilo+(1).webp';
+const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fungindiccitt.png';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
@@ -21,7 +21,6 @@ const ZONES_DESKTOP: ZoneConfig[] = [ { id: "Fata", points: [ { "x": 53.62, "y":
 
 const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const [currentAudio, setCurrentAudio] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -130,7 +129,7 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
             </div>
         )}
 
-        {/* MARAGNO EASTER EGG - Posizionamento ricalibrato: ancora più in alto (top-[-130px]/top-[-260px]) */}
+        {/* MARAGNO EASTER EGG */}
         {showSpider && isLoaded && !isMenuOpen && !showPlayerModal && (
             <button 
                 onClick={() => setView(AppView.CHAT)}
@@ -144,11 +143,20 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
             </button>
         )}
 
-        <RobotHint 
-            show={showHint && isLoaded && !isMenuOpen && !showPlayerModal} 
-            message="Tocca Fata Flora per ascoltare una fiaba" 
-            variant="GREEN"
-        />
+        {/* TASTO TORNA IN CITTÀ */}
+        {isLoaded && !isMenuOpen && !showPlayerModal && (
+            <button 
+                onClick={() => setView(AppView.CITY_MAP)}
+                className="fixed bottom-6 right-6 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                title="Torna in Città"
+            >
+                <img 
+                    src={BTN_BACK_CITY} 
+                    alt="Torna in Città" 
+                    className="w-40 md:w-72 h-auto drop-shadow-2xl" 
+                />
+            </button>
+        )}
 
         <div className="relative flex-1 w-full h-full overflow-hidden">
             <div className="block md:hidden w-full h-full relative">

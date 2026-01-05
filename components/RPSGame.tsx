@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Trophy, ArrowRight } from 'lucide-react';
 import { getProgress } from '../services/tokens';
@@ -299,12 +300,12 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                 </div>
             </div>
 
-            {/* BOX STILE AEREO SOTTO ROUND X CON ICONE PUNTEGGIO ULTERIORMENTE INGRANDITE */}
+            {/* BOX STILE AEREO SOTTO ROUND X CON ICONE PUNTEGGIO RIDIMENSIONATE */}
             <div className="bg-white/20 backdrop-blur-md rounded-[30px] border-4 border-white/40 shadow-xl p-3 md:p-6 flex items-center justify-center gap-4 md:gap-10 w-full max-w-lg">
                 
                 {/* GRUPPO PUNTEGGIO MOSTRO */}
                 <div className="flex items-center gap-2">
-                    <img src={MONSTER_SCORE_ICON} alt="Mostro" className="h-24 md:h-36 w-auto drop-shadow-md" />
+                    <img src={MONSTER_SCORE_ICON} alt="Mostro" className="h-16 md:h-24 w-auto drop-shadow-md" />
                     <div className="flex flex-col items-center">
                         <div className="bg-orange-500/80 backdrop-blur-sm border-4 border-white px-4 py-2 rounded-2xl shadow-lg transform -rotate-6">
                             <span className="font-black text-4xl md:text-5xl text-white drop-shadow-md">{roundScore.computer}</span>
@@ -323,7 +324,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                         </div>
                         <span className="text-xs font-black text-white bg-black/40 px-2 py-0.5 rounded-full mt-2 uppercase">TU</span>
                     </div>
-                    <img src={PLAYER_SCORE_ICON} alt="Tu" className="h-24 md:h-36 w-auto drop-shadow-md" />
+                    <img src={PLAYER_SCORE_ICON} alt="Tu" className="h-16 md:h-24 w-auto drop-shadow-md" />
                 </div>
             </div>
           </div>

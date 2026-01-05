@@ -33,5 +33,29 @@ export const READING_DATABASE: BookReading[] = [
             'https://loneboo-images.s3.eu-south-1.amazonaws.com/7pagepeterabberte.webp',
             'https://loneboo-images.s3.eu-south-1.amazonaws.com/8paggefpeterabberre.webp'
         ]
+    },
+    {
+        id: 'i-tre-porcellini',
+        title: "I Tre Porcellini",
+        thumbnail: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trporcminiat.webp',
+        description: 'La classica storia dei tre fratellini e del lupo cattivo, tutta da leggere!',
+        pages: [
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/1paggerporc.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/2paggetorporc.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/3%C3%A8paggertrporcde.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/4paggertreporcsdser.webp'
+        ]
+    },
+    {
+        id: 'cappuccetto-rosso',
+        title: "Cappuccetto Rosso",
+        thumbnail: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mincapprfde.webp',
+        description: 'Attraversa il bosco con la bambina dal mantello rosso e fai attenzione al lupo cattivo!',
+        pages: [
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/1paggredcappux.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/2paggredcapuxsa.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/3paggredcappusder.webp',
+            'https://loneboo-images.s3.eu-south-1.amazonaws.com/4paggredcapuser.webp'
+        ]
     }
 ];

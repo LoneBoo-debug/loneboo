@@ -163,30 +163,30 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
         )}
 
         <div className="relative w-full h-full overflow-hidden">
-            {/* PULSANTI DI NAVIGAZIONE */}
+            {/* PULSANTI DI NAVIGAZIONE - SPOSTATI PIÙ IN BASSO E INGRANDITI */}
             {setView && bgLoaded && (
                 <>
                     <button 
                         onClick={() => setView(AppView.CITY_MAP)}
-                        className="absolute bottom-4 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                        className="absolute bottom-0 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Torna in città"
                     >
                         <img 
                             src={BTN_BACK_CITY_IMG} 
                             alt="Torna in città" 
-                            className="w-32 md:w-56 h-auto drop-shadow-xl" 
+                            className="w-40 md:w-72 h-auto drop-shadow-xl" 
                         />
                     </button>
 
                     <button 
                         onClick={() => setView(AppView.TRAIN_JOURNEY)}
-                        className="absolute bottom-4 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                        className="absolute bottom-0 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Inizia il viaggio"
                     >
                         <img 
                             src={BTN_PARTI_IMG} 
                             alt="Parti" 
-                            className="w-40 md:w-64 h-auto drop-shadow-xl" 
+                            className="w-48 md:w-80 h-auto drop-shadow-xl" 
                         />
                     </button>
                 </>

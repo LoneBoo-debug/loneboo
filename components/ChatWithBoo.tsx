@@ -8,8 +8,8 @@ import { OFFICIAL_LOGO } from '../constants';
 const INFO_POINT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/info-point.webp';
 const MARAGNO_FULL_BODY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/maragno-full.webp';
 const MARAGNO_OFFENDED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/maragno-offended.webp';
-const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-city.webp';
-const BTN_CHAT_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-chat-maragno.webp';
+const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bkcitmaraginfpo.webp';
+const BTN_CHAT_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/askmaragncart.webp';
 const MARLO_TAXI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlo-taxi.webp';
 
 const INSULT_LIMIT = 5;
@@ -208,12 +208,12 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             )}
 
             {isLoaded && !isChatOpen && (
-                <div className="absolute bottom-20 left-0 right-0 px-6 z-30 flex justify-between items-end animate-in slide-in-from-bottom-4 duration-500">
+                <div className="absolute bottom-0 left-0 right-0 px-6 z-30 flex justify-between items-end animate-in slide-in-from-bottom-4 duration-500">
                     <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_BACK_CITY} alt="Torna in Città" className="w-28 md:w-40 h-auto drop-shadow-xl" />
+                        <img src={BTN_BACK_CITY} alt="Torna in Città" className="w-32 md:w-48 h-auto drop-shadow-xl" />
                     </button>
                     <button onClick={toggleChat} disabled={timeLeft > 0} className={`hover:scale-110 active:scale-95 transition-all outline-none ${timeLeft > 0 ? 'grayscale opacity-50 cursor-not-allowed' : ''}`}>
-                        <img src={BTN_CHAT_MARAGNO} alt="Chatta!" className="w-24 md:w-44 h-auto drop-shadow-xl" />
+                        <img src={BTN_CHAT_MARAGNO} alt="Chatta!" className="w-28 md:w-52 h-auto drop-shadow-xl" />
                     </button>
                 </div>
             )}
