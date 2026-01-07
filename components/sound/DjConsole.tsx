@@ -19,12 +19,26 @@ const DJ_BASES: DjBase[] = [
     { id: 6, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base6+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oz-dance-olistik-sound-project-patrizio-yoga-116429.mp3' }
 ];
 
+const DJ_EFFECTS = [
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/explo.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/campanello.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/papera+gommosa.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/tromba+stadio.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/elastico.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/blea.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/molla.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/boom+cartoon.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/ahia.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/campana.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/stromba.mp3',
+    'https://loneboo-images.s3.eu-south-1.amazonaws.com/rutto.mp3'
+];
+
 const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [activeId, setActiveId] = useState<number | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const toggleSound = (base: DjBase) => {
-        // Se lo stesso suono è attivo, lo fermiamo
         if (activeId === base.id) {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -34,21 +48,24 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             return;
         }
 
-        // Se c'è un altro suono attivo, fermiamolo prima
         if (audioRef.current) {
             audioRef.current.pause();
         }
 
-        // Avviamo il nuovo suono con volume ridotto (0.25)
         const audio = new Audio(base.src);
         audio.loop = true;
-        audio.volume = 0.25; // Volume ridotto ulteriormente del 15% circa rispetto a 0.3
+        audio.volume = 0.25; 
         audio.play().catch(e => console.error("Errore riproduzione base:", e));
         audioRef.current = audio;
         setActiveId(base.id);
     };
 
-    // Pulizia alla chiusura
+    const playEffect = (src: string) => {
+        const audio = new Audio(src);
+        audio.volume = 0.5;
+        audio.play().catch(e => console.error("Errore effetto:", e));
+    };
+
     useEffect(() => {
         return () => {
             if (audioRef.current) {
@@ -60,16 +77,18 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     return (
         <SoundLayout onBack={onBack} backgroundImage={DJ_BG}>
-            {/* BOX TRASLUCIDO PER I TASTI - SPOSTATO PIÙ IN ALTO (top-24 / top-32) */}
-            <div className="absolute top-24 md:top-32 left-0 right-0 flex justify-center p-4 z-40">
-                <div className="bg-white/10 backdrop-blur-xl rounded-[2.5rem] border-2 border-white/20 p-4 md:p-6 shadow-2xl animate-in slide-in-from-top duration-500 w-full max-w-5xl">
-                    <div className="grid grid-cols-6 gap-2 md:gap-6 items-center justify-items-center">
+            <div className="absolute top-14 md:top-20 left-0 right-0 flex flex-col items-center p-4 z-40 gap-4 md:gap-6 overflow-y-auto max-h-[85vh] no-scrollbar">
+                
+                {/* BOX DELLE BASI */}
+                <div className="bg-white/10 backdrop-blur-xl rounded-[2.5rem] border-2 border-white/20 p-4 md:p-6 shadow-2xl animate-in slide-in-from-top duration-500 w-full max-w-6xl shrink-0">
+                    <h3 className="text-white font-black text-xs md:text-sm uppercase tracking-widest mb-4 opacity-70 text-center md:text-left">Seleziona Base</h3>
+                    <div className="grid grid-cols-6 gap-1.5 md:gap-3 items-center justify-items-center">
                         {DJ_BASES.map((base) => (
                             <button
                                 key={base.id}
                                 onClick={() => toggleSound(base)}
                                 className={`
-                                    relative aspect-square w-full max-w-[120px] transition-all duration-300 outline-none
+                                    relative aspect-square w-full max-w-[160px] transition-all duration-300 outline-none
                                     ${activeId === base.id ? 'scale-110 brightness-125' : 'hover:scale-105 active:scale-95 opacity-70 hover:opacity-100'}
                                 `}
                             >
@@ -88,6 +107,25 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ))}
                     </div>
                 </div>
+
+                {/* BOX DEGLI EFFETTI (12 TASTI) */}
+                <div className="bg-white/10 backdrop-blur-xl rounded-[2.5rem] border-2 border-white/20 p-4 md:p-6 shadow-2xl animate-in slide-in-from-top duration-700 w-full max-w-2xl shrink-0">
+                    <h3 className="text-white font-black text-xs md:text-sm uppercase tracking-widest mb-4 opacity-70 text-center md:text-left">Effetti Sonori</h3>
+                    <div className="grid grid-cols-4 gap-3 md:gap-6 items-center justify-items-center">
+                        {DJ_EFFECTS.map((src, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => playEffect(src)}
+                                className="w-full aspect-square md:aspect-video flex items-center justify-center bg-yellow-400 border-b-4 border-yellow-600 rounded-xl md:rounded-2xl transition-all hover:scale-105 active:translate-y-1 active:border-b-0 shadow-lg group outline-none"
+                            >
+                                <span className="font-luckiest text-2xl md:text-4xl text-black drop-shadow-sm group-hover:scale-110 transition-transform">
+                                    {idx + 1}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
             </div>
         </SoundLayout>
     );

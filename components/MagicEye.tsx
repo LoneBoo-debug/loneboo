@@ -8,10 +8,10 @@ import RobotHint from './RobotHint';
 
 const TOWER_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-mobile.webp';
 const TOWER_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-desktop.webp';
-const BTN_BACK_TOWER_IMG = 'https://i.postimg.cc/65YbdbPv/ornatorre-(1)-(1).png';
-const BG_PASSPORT_GHOST = 'https://i.postimg.cc/sxR91466/passfants-(1).jpg';
+const BTN_BACK_TOWER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-tower.webp';
+const BG_PASSPORT_GHOST = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfghtpasswde.webp';
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
-const BG_STORY_DICE = 'https://i.postimg.cc/nL82vGr7/gfddfg.jpg';
+const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflancdadersdd.webp';
 const BG_MAGIC_HAT = 'https://i.postimg.cc/X7VBMLG9/gfffsrr.jpg';
 
 type Point = { x: number; y: number };

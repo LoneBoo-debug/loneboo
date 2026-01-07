@@ -15,36 +15,6 @@
     <meta name="keywords" content="Lone Boo, giochi bambini, disegni da colorare, video per bambini, favole della buonanotte, intrattenimento educativo" />
     <link rel="canonical" href="https://loneboo.online/" />
 
-    <!-- JSON-LD Structured Data per Google Sitelinks -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Lone Boo World",
-      "url": "https://loneboo.online/",
-      "description": "Ecosistema digitale educativo per bambini con Lone Boo.",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://loneboo.online/?search={search_term_string}",
-        "query-input": "required name=search_term_string"
-      },
-      "hasPart": [
-        { "@type": "WebPage", "name": "Parco Giochi", "url": "https://loneboo.online/?view=PLAY" },
-        { "@type": "WebPage", "name": "Cinema Lone Boo", "url": "https://loneboo.online/?view=VIDEOS" },
-        { "@type": "WebPage", "name": "Accademia dei Colori", "url": "https://loneboo.online/?view=COLORING" },
-        { "@type": "WebPage", "name": "Info Point", "url": "https://loneboo.online/?view=CHAT" }
-      ]
-    }
-    </script>
-
-    <meta property="og:title" content="Lone Boo World - Il Protagonista del Divertimento">
-    <meta property="og:description" content="Giochi, musica e fantasia in un mondo sicuro per i più piccoli.">
-    <meta property="og:image" content="https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp">
-    
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#8B5CF6" />
-    <link rel="icon" type="image/png" href="https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -65,47 +35,36 @@
             animation: {
               'spin-horizontal': 'spin-h 2s linear infinite',
               'float': 'float 3s ease-in-out infinite',
-              'rotate-phone': 'rotate-device 2s ease-in-out infinite',
             },
             keyframes: {
               'spin-h': { '0%': { transform: 'rotateY(0deg)' }, '100%': { transform: 'rotateY(360deg)' } },
-              'float': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-              'rotate-device': { 
-                '0%, 10%': { transform: 'rotate(0deg)' },
-                '40%, 60%': { transform: 'rotate(-90deg)' },
-                '90%, 100%': { transform: 'rotate(0deg)' }
-              }
+              'float': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
             }
           }
         }
       }
     </script>
     <style>
-      /* Fix reattività Touch */
       * {
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
       
-      button, a, [role="button"] {
-        cursor: pointer;
-        touch-action: manipulation;
+      body { 
+        background-color: #8B5CF6; 
+        overflow-x: hidden; 
+        margin: 0;
+        padding: 0;
+        height: 100dvh;
       }
 
-      body { background-color: #8B5CF6; overflow-x: hidden; }
-      .font-luckiest { font-family: 'Luckiest Guy', cursive !important; }
-      body.a11y-font-dyslexic { font-family: 'OpenDyslexic', sans-serif !important; }
-      
-      /* Ottimizzazione Scrollbar */
-      .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
-
-      /* ORIENTATION GUARD CSS - AGGIORNATO CON IMMAGINE FULL SCREEN */
+      /* ORIENTATION GUARD CSS - AGGIORNATO PER COPERTURA TOTALE */
       #orientation-guard {
         display: none;
         position: fixed;
         inset: 0;
+        width: 100vw;
+        height: 100dvh;
         z-index: 99999;
         background-color: #000;
         background-image: url('https://loneboo-images.s3.eu-south-1.amazonaws.com/norotationbgk.webp');
@@ -122,7 +81,34 @@
           display: none;
         }
       }
+
+      /* HIDE SCROLLBARS */
+      ::-webkit-scrollbar { display: none; }
     </style>
+    
+    <script>
+      // Funzione per forzare il Fullscreen (nasconde la barra degli indirizzi)
+      // Deve essere attivata da un gesto dell'utente (click/touch)
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+            document.documentElement.webkitRequestFullscreen();
+          } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+            document.documentElement.msRequestFullscreen();
+          }
+        }
+      }
+
+      // Se l'utente tocca lo schermo mentre è in landscape, proviamo ad andare in fullscreen
+      window.addEventListener('touchstart', function() {
+        if (window.innerHeight < window.innerWidth) {
+          toggleFullScreen();
+        }
+      }, false);
+    </script>
+
   <script type="importmap">
 {
   "imports": {
@@ -143,8 +129,8 @@
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
-    <!-- ORIENTATION GUARD OVERLAY - SVUOTATO E BASATO SU CSS BG -->
-    <div id="orientation-guard"></div>
+    <!-- ORIENTATION GUARD OVERLAY -->
+    <div id="orientation-guard" onclick="toggleFullScreen()"></div>
 
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

@@ -3,21 +3,21 @@ import { Camera, RefreshCw, Trophy, Loader2, X, Star, Download, Gift, User, Chec
 import { checkScavengerHuntMatch } from '../services/ai';
 import { CHANNEL_LOGO, OFFICIAL_LOGO } from '../constants';
 
-const TITLE_IMG = 'https://i.postimg.cc/G2jmLsc6/cacciamagica-(1)-(1).png';
+const TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-hunt.webp';
 const BOO_DIPLO_IMG = 'https://i.postimg.cc/cLdsKxJp/boodiplo-(1).png';
 const DIPLOMA_ART_IMG = 'https://i.postimg.cc/GhCRNLvL/foto-diploma-ricerca-(1).png';
 const DIPLOMA_SYMBOL = 'https://i.postimg.cc/zX4RgRhJ/lofofodp-(1).png';
 const DIPLOMA_STAMP = 'https://i.postimg.cc/B6hrvF6X/timbgrro-(1).png';
-const BTN_OPEN_CAMERA_IMG = 'https://i.postimg.cc/tRsR832Z/aperifot-(1).png';
+const BTN_OPEN_CAMERA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/aperifotreddessae.webp';
 
-// Nuovi asset per i pulsanti di azione
-const BTN_RETRY_IMG = 'https://i.postimg.cc/nLcbtxKg/riprovea-(1)-(1).png';
-const BTN_CHANGE_IMG = 'https://i.postimg.cc/y8jtj54C/cambuss-(1).png';
-const BTN_CONTINUE_IMG = 'https://i.postimg.cc/tJGBptQz/cdjssjs-(1)-(1).png';
+// Nuovi asset per i pulsanti di azione aggiornati
+const BTN_RETRY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riproveatastfotocam.webp';
+const BTN_CHANGE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cambuss-(1).webp';
+const BTN_CONTINUE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cdjssjs-(1)-(1).webp';
 
-const BAR_START_IMG = 'https://i.postimg.cc/263jkrwQ/ico32-(3).png';
-const BAR_PLAYER_IMG = 'https://i.postimg.cc/G2Z4641W/ico32-(1).png';
-const BAR_END_IMG = 'https://i.postimg.cc/4xJYCCrY/ico32-(2).png';
+const BAR_START_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bar-start.webp';
+const BAR_PLAYER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bar-player.webp';
+const BAR_END_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bar-end.webp';
 
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
@@ -330,7 +330,7 @@ const MagicHunt: React.FC<MagicHuntProps> = ({ onClose }) => {
         )}
 
         {/* CHALLENGE CARD - RESA TRASLUCIDA */}
-        <div className="bg-white/70 backdrop-blur-md p-8 rounded-[40px] border-4 border-orange-500 shadow-xl w-full max-w-md text-center relative overflow-hidden">
+        <div className="bg-white/70 backdrop-blur-md p-8 rounded-[40px] border-4 border-orange-500 shadow-xl w-full max-md text-center relative overflow-hidden">
              <div className="bg-orange-100/50 p-4 rounded-2xl border-2 border-orange-200 mb-6 inline-block">
                  <h3 className="text-xl md:text-2xl font-black text-orange-700 leading-tight">{challenge.text}</h3>
              </div>
@@ -523,8 +523,8 @@ const CHALLENGES = [
     { text: "Trova un DISEGNO 🎨", target: "Un disegno o un quadro" },
     { text: "Trova una FORCHETTA 🍴", target: "Una forchetta" },
     { text: "Trova uno SPAZZOLINO 🪥", target: "Uno spazzolino da denti" },
-    { text: "Trova un CALZINO 🧦", target: "Un calzino" },
-    { text: "Trova un PETTINE o SPAZZOLA 🪮", target: "Un pettine o una spazzola per capelli" },
+    { text: "Trova un CALZINO 6;", target: "Un calzino" },
+    { text: "Trova un PETTINE o SPAZZOLA ", target: "Un pettine o una spazzola per capelli" },
     { text: "Trova una MONETA 🪙", target: "Una moneta" },
     { text: "Trova un CUSCINO 🛋️", target: "Un cuscino da divano o letto" },
 ];

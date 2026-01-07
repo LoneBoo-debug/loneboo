@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User, Sparkles, Fingerprint, Camera, X, RotateCcw } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 
-const TITLE_IMG = 'https://i.postimg.cc/y6fm1Drs/passfanta-(1).png';
-const LONE_BOO_PHOTO = 'https://i.postimg.cc/L6T1RpzJ/fotopass.jpg';
-const BTN_CAPTURE_IMG = 'https://i.postimg.cc/d1s057x4/SCATTAREA-(1)-(1).png';
-const BTN_SKIP_IMG = 'https://i.postimg.cc/MGxZGMx0/usaboo-(1)-(1).png';
-const BTN_RETRY_IMG = 'https://i.postimg.cc/mrJsHPGx/crealtro-(1)-(1).png';
+const TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/passport-title.webp';
+const LONE_BOO_PHOTO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/passport-boo.webp';
+const BTN_CAPTURE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fotofantpasspw.webp';
+const BTN_SKIP_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nofotopassfantsaed.webp';
+const BTN_RETRY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/generalrtropasswd.webp';
 
 const GHOST_ROLES = [
     'Acchiappa-Nuvole', 'Spaventatore Gentile', 'Mangiatore di Biscotti', 
@@ -123,7 +123,7 @@ const GhostPassport: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center pt-6 md:pt-10 pb-20">
+    <div className="fixed inset-0 flex flex-col items-center justify-start p-4 pt-40 md:pt-56 overflow-hidden">
         
         {/* FOTOCAMERA OVERLAY */}
         {isCameraOpen && (
@@ -147,8 +147,8 @@ const GhostPassport: React.FC = () => {
             </div>
         )}
 
-        {/* HEADER GIOCO - Ingrandito e alzato */}
-        <div className={`text-center flex flex-col items-center shrink-0 ${passport ? 'mb-4' : 'mb-3'}`}>
+        {/* HEADER GIOCO - FISSO E ABBASSATO ULTERIORMENTE */}
+        <div className={`text-center flex flex-col items-center shrink-0 mb-8 animate-in slide-in-from-top duration-500`}>
             <img 
                 src={TITLE_IMG} 
                 alt="Passaporto Fantasma" 
@@ -161,12 +161,12 @@ const GhostPassport: React.FC = () => {
             )}
         </div>
 
-        {/* AREA PRINCIPALE */}
-        <div className="w-full flex flex-col items-center justify-center">
+        {/* AREA PRINCIPALE - FISSA */}
+        <div className="w-full flex flex-col items-center justify-center min-h-0">
             {!passport ? (
                 /* BOX INSERIMENTO NOME */
-                <div className="bg-white/80 backdrop-blur-md p-6 md:p-10 rounded-[30px] md:rounded-[40px] border-4 border-cyan-500 shadow-2xl w-full max-w-sm text-center animate-in zoom-in duration-300">
-                    <div className="mb-4">
+                <div className="bg-white/80 backdrop-blur-md p-6 md:p-8 rounded-[30px] md:rounded-[40px] border-4 border-cyan-500 shadow-2xl w-full max-w-md text-center animate-in zoom-in duration-300">
+                    <div className="mb-6">
                         <label className="block text-cyan-900 font-black text-xs md:text-lg mb-1 uppercase">IL TUO NOME:</label>
                         <input 
                             type="text" 
@@ -178,70 +178,68 @@ const GhostPassport: React.FC = () => {
                         />
                     </div>
                     
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-row gap-4 justify-center items-center">
                         <button 
                             onClick={startCamera}
                             disabled={!name.trim()}
-                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none disabled:opacity-50 flex justify-center"
+                            className="w-24 md:w-32 hover:scale-105 active:scale-95 transition-all outline-none disabled:opacity-50"
                         >
-                            <img src={BTN_CAPTURE_IMG} alt="Scatta foto" className="w-[85%] h-auto drop-shadow-lg" />
+                            <img src={BTN_CAPTURE_IMG} alt="Scatta foto" className="w-full h-auto drop-shadow-lg" />
                         </button>
-
-                        <div className="w-full h-px bg-cyan-200 my-1"></div>
                         
                         <button 
                             onClick={() => generatePassport(null)}
                             disabled={!name.trim()}
-                            className="hover:scale-105 active:scale-95 transition-all outline-none disabled:opacity-50 flex items-center justify-center mx-auto"
+                            className="w-24 md:w-32 hover:scale-105 active:scale-95 transition-all outline-none disabled:opacity-50"
                         >
-                            <img src={BTN_SKIP_IMG} alt="Usa Lone Boo" className="w-full h-auto max-w-[140px] md:max-w-[200px] drop-shadow-md" />
+                            <img src={BTN_SKIP_IMG} alt="Usa Lone Boo" className="w-full h-auto drop-shadow-md" />
                         </button>
                     </div>
                 </div>
             ) : (
                 /* PASSPORT CARD */
-                <div className="animate-in flip-in-y duration-700 w-full max-w-4xl flex flex-col items-center px-4">
-                    <div className="bg-gradient-to-br from-cyan-600 to-blue-900 p-3 md:p-8 rounded-[25px] md:rounded-[50px] border-4 md:border-[6px] border-black shadow-2xl text-white relative overflow-hidden w-full aspect-[1.6/1] max-h-[60vh]">
+                <div className="animate-in flip-in-y duration-700 w-full max-w-4xl flex flex-col items-center px-4 overflow-hidden">
+                    <div className="bg-gradient-to-br from-cyan-600 to-blue-900 p-3 md:p-6 rounded-[25px] md:rounded-[40px] border-4 md:border-[6px] border-black shadow-2xl text-white relative overflow-hidden w-full aspect-[1.6/1] max-h-[50vh] md:max-h-[60vh]">
                         
                         <Fingerprint className="absolute -bottom-10 -right-10 text-white/10 w-40 h-40 md:w-96 md:h-96" />
                         
-                        <div className="flex items-center gap-2 md:gap-4 border-b-2 md:border-b-4 border-white/20 pb-2 mb-2 md:mb-6">
-                            <img src={OFFICIAL_LOGO} alt="Logo" className="w-8 h-8 md:w-20 md:h-20 bg-white rounded-full p-0.5 md:p-1 shadow-md" />
+                        <div className="flex items-center gap-2 md:gap-4 border-b-2 md:border-b-4 border-white/20 pb-1.5 mb-1.5 md:mb-5">
+                            <img src={OFFICIAL_LOGO} alt="Logo" className="w-8 h-8 md:w-16 md:h-16 bg-white rounded-full p-0.5 md:p-1 shadow-md" />
                             <div className="flex-1">
-                                <h3 className="font-black text-[10px] md:text-3xl uppercase tracking-wider leading-none">LONE BOO WORLD</h3>
-                                <p className="text-[7px] md:text-lg font-bold text-cyan-200 uppercase">Documento Ufficiale</p>
+                                <h3 className="font-black text-[10px] md:text-2xl uppercase tracking-wider leading-none">LONE BOO WORLD</h3>
+                                <p className="text-[7px] md:text-sm font-bold text-cyan-200 uppercase">Documento Ufficiale</p>
                             </div>
                             <div className="text-right">
-                                <div className="text-[6px] md:text-sm uppercase font-black text-white/40 leading-none">ID NO.</div>
-                                <div className="font-mono text-[8px] md:text-2xl text-cyan-200 font-bold leading-none">{passport.id}</div>
+                                <div className="text-[6px] md:text-xs uppercase font-black text-white/40 leading-none">ID NO.</div>
+                                <div className="font-mono text-[8px] md:text-xl text-cyan-200 font-bold leading-none">{passport.id}</div>
                             </div>
                         </div>
 
-                        <div className="flex flex-row gap-3 md:gap-10 items-stretch relative z-10 flex-1">
-                            <div className="w-20 h-28 md:w-48 md:h-64 rounded-xl md:rounded-[40px] border-2 md:border-8 border-white shadow-xl shrink-0 overflow-hidden bg-white relative self-center">
+                        <div className="flex flex-row gap-3 md:gap-8 items-stretch relative z-10 flex-1">
+                            <div className="w-20 h-28 md:w-40 md:h-56 rounded-xl md:rounded-[30px] border-2 md:border-6 border-white shadow-xl shrink-0 overflow-hidden bg-white relative self-center">
                                 <img src={passport.photo} alt="Passport" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none"></div>
                             </div>
 
                             <div className="flex flex-col justify-around py-0.5 md:py-1 flex-1 min-w-0 pr-1 text-left">
-                                <div className="mb-1 md:mb-4">
-                                    <p className="text-cyan-200 text-[6px] md:text-lg uppercase font-black tracking-wider opacity-80 mb-0.5">NOME FANTASMA</p>
+                                <div className="mb-1 md:mb-3">
+                                    <p className="text-cyan-200 text-[6px] md:text-sm uppercase font-black tracking-wider opacity-80 mb-0.5">NOME FANTASMA</p>
                                     <p 
-                                        className="font-cartoon text-sm md:text-5xl leading-none text-yellow-400 drop-shadow-[1px_1px_0_rgba(0,0,0,1)] tracking-wide uppercase break-words"
+                                        className="font-cartoon text-sm md:text-4xl leading-none text-yellow-400 drop-shadow-[1px_1px_0_rgba(0,0,0,1)] tracking-wide uppercase break-words"
                                         style={{ WebkitTextStroke: '0.5px black' }}
                                     >
                                         {passport.fullName}
                                     </p>
                                 </div>
                                 
-                                <div className="space-y-1.5 md:space-y-6">
+                                <div className="space-y-1 md:space-y-4">
                                     <div>
-                                        <p className="text-cyan-200 text-[6px] md:text-lg uppercase font-black tracking-wider opacity-80 mb-0.5">IL TUO RUOLO</p>
-                                        <p className="font-black text-[9px] md:text-3xl text-white drop-shadow-md uppercase truncate italic leading-tight">{passport.role}</p>
+                                        <p className="text-cyan-200 text-[6px] md:text-sm uppercase font-black tracking-wider opacity-80 mb-0.5">IL TUO RUOLO</p>
+                                        <p className="font-black text-[9px] md:text-2xl text-white drop-shadow-md uppercase truncate italic leading-tight">{passport.role}</p>
                                     </div>
                                     <div>
-                                        <p className="text-cyan-200 text-[6px] md:text-lg uppercase font-black tracking-wider opacity-80 mb-0.5">SUPERPOTERE</p>
-                                        <p className="font-black text-[8px] md:text-2xl text-white leading-tight drop-shadow-md italic">
+                                        <p className="text-cyan-200 text-[6px] md:text-sm uppercase font-black tracking-wider opacity-80 mb-0.5">SUPERPOTERE</p>
+                                        <p className="font-black text-[8px] md:text-xl text-white leading-tight drop-shadow-md italic">
                                             {passport.power}
                                         </p>
                                     </div>
@@ -250,15 +248,15 @@ const GhostPassport: React.FC = () => {
                         </div>
 
                         <div className="absolute bottom-2 right-4 flex items-center gap-2 opacity-80">
-                            <Sparkles className="text-yellow-400 animate-pulse w-5 h-5 md:w-12 md:h-12" />
+                            <Sparkles className="text-yellow-400 animate-pulse w-5 h-5 md:w-10 md:h-10" />
                         </div>
                     </div>
 
                     <button 
                         onClick={() => { setPassport(null); setName(''); }}
-                        className="mt-6 md:mt-10 hover:scale-105 active:scale-95 transition-all outline-none shrink-0 animate-in slide-in-from-bottom duration-500 mb-4"
+                        className="mt-6 md:mt-8 hover:scale-105 active:scale-95 transition-all outline-none shrink-0 animate-in slide-in-from-bottom duration-500 mb-2"
                     >
-                        <img src={BTN_RETRY_IMG} alt="Crea un altro" className="h-12 md:h-24 w-auto drop-shadow-lg" />
+                        <img src={BTN_RETRY_IMG} alt="Crea un altro" className="h-24 md:h-40 w-auto drop-shadow-lg" />
                     </button>
                 </div>
             )}

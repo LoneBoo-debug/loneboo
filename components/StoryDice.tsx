@@ -4,8 +4,8 @@ import { RefreshCw, Sparkles, Loader2, Star } from 'lucide-react';
 import { generateDiceStory } from '../services/ai';
 import { STORY_DICE_DATABASE, DiceItem } from '../services/dbdadi';
 
-const TITLE_IMG = 'https://i.postimg.cc/sDjwgFcf/dadi-storia-(1)-(1).png';
-const ROLL_BTN_IMG = 'https://i.postimg.cc/BZ5P82PB/lanciadadi-(1)-(1).png';
+const TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dice-title.webp';
+const ROLL_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-roll-dice.webp';
 const GRUFO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grufo.webp';
 
 // --- COMPONENTE RULLO ---

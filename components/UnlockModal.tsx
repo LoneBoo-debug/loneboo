@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, Check } from 'lucide-react';
 
@@ -26,67 +27,67 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ onClose, onUnlock, onOpenNews
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-sm p-4 pt-32 animate-in fade-in" onClick={onClose}>
-            <div className="bg-white w-full max-w-md rounded-[40px] border-8 border-purple-600 p-6 relative shadow-[0_0_50px_rgba(147,51,234,0.5)] text-center" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-md p-4 pt-16 md:pt-24 animate-in fade-in" onClick={onClose}>
+            <div className="bg-white w-full max-w-md rounded-[40px] border-8 border-purple-600 p-5 md:p-6 relative shadow-[0_0_50px_rgba(147,51,234,0.5)] text-center" onClick={e => e.stopPropagation()}>
                 
                 <button onClick={onClose} className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10">
-                    <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow-md" />
+                    <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-md" />
                 </button>
 
-                <div className="mb-2 flex justify-center">
+                <div className="mb-1 flex justify-center">
                     <img 
                         src={LOCK_IMG} 
                         alt="Livello Bloccato" 
-                        className="w-32 h-32 object-contain drop-shadow-xl" 
+                        className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-xl" 
                     />
                 </div>
 
-                <h3 className="text-2xl font-black text-gray-800 mb-2 uppercase">Livello Bloccato</h3>
+                <h3 className="text-xl md:text-2xl font-black text-gray-800 mb-1 uppercase">Livello Bloccato</h3>
                 
                 {step === 'CHOICE' ? (
                     <>
-                        <p className="text-gray-600 font-bold mb-8 leading-relaxed">
+                        <p className="text-gray-600 font-bold mb-4 md:mb-6 text-sm md:text-base leading-tight">
                             Questo livello è per veri esperti!<br/>
                             Per entrare hai due strade:
                         </p>
 
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3 md:gap-4">
                             {/* OPTION 1: ALBUM */}
                             <button 
                                 onClick={onOpenNewsstand}
-                                className="bg-blue-500 text-white p-4 rounded-2xl border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-4 hover:brightness-110 shadow-md group"
+                                className="bg-blue-500 text-white p-3 md:p-4 rounded-2xl border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 md:gap-4 hover:brightness-110 shadow-md group"
                             >
                                 <img 
                                     src={ALBUM_ICON_IMG} 
                                     alt="Album" 
-                                    className="w-16 h-16 object-contain group-hover:scale-110 transition-transform drop-shadow-md" 
+                                    className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:scale-110 transition-transform drop-shadow-md" 
                                 />
                                 <div className="text-left flex-1">
-                                    <span className="block font-black text-sm uppercase opacity-80">Opzione 1</span>
-                                    <span className="block font-black text-lg">COMPLETA L'ALBUM</span>
+                                    <span className="block font-black text-[10px] md:text-sm uppercase opacity-80">Opzione 1</span>
+                                    <span className="block font-black text-base md:text-lg">COMPLETA L'ALBUM</span>
                                 </div>
                             </button>
 
-                            <div className="flex items-center gap-4 py-1">
+                            <div className="flex items-center gap-4 py-0.5">
                                 <div className="h-px bg-gray-300 flex-1"></div>
-                                <span className="font-black text-gray-400 text-sm">OPPURE</span>
+                                <span className="font-black text-gray-400 text-xs">OPPURE</span>
                                 <div className="h-px bg-gray-300 flex-1"></div>
                             </div>
 
                             {/* OPTION 2: COINS */}
                             <button 
                                 onClick={handleCoinClick}
-                                className="bg-orange-300 text-black p-4 rounded-2xl border-b-4 border-orange-500 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-4 hover:brightness-110 shadow-md group"
+                                className="bg-orange-300 text-black p-3 md:p-4 rounded-2xl border-b-4 border-orange-500 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 md:gap-4 hover:brightness-110 shadow-md group"
                             >
                                 <img 
                                     src={COINS_ICON_IMG} 
                                     alt="Gettoni" 
-                                    className="w-16 h-16 object-contain group-hover:scale-110 transition-transform drop-shadow-md" 
+                                    className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:scale-110 transition-transform drop-shadow-md" 
                                 />
                                 <div className="text-left flex-1">
-                                    <span className="block font-black text-xs uppercase opacity-70">Opzione 2</span>
-                                    <span className="block font-black text-lg">SBLOCCA SUBITO</span>
-                                    <span className={`text-xs font-bold ${currentTokens >= COST ? 'text-green-700' : 'text-red-700'}`}>
+                                    <span className="block font-black text-[10px] md:text-xs uppercase opacity-70">Opzione 2</span>
+                                    <span className="block font-black text-base md:text-lg">SBLOCCA SUBITO</span>
+                                    <span className={`text-[10px] md:text-xs font-bold ${currentTokens >= COST ? 'text-green-700' : 'text-red-700'}`}>
                                         Prezzo: 1500 (Hai: {currentTokens})
                                     </span>
                                 </div>
@@ -95,8 +96,8 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ onClose, onUnlock, onOpenNews
                     </>
                 ) : (
                     /* CONFIRMATION STEP */
-                    <div className="animate-in zoom-in duration-300">
-                        <p className="text-xl font-bold text-gray-700 mb-6 leading-relaxed">
+                    <div className="animate-in zoom-in duration-300 py-2">
+                        <p className="text-lg md:text-xl font-bold text-gray-700 mb-6 leading-relaxed">
                             Sei sicuro? <br/>
                             Spenderai <span className="text-orange-500 font-black">1500 Gettoni</span> per sbloccare questo livello per sempre.
                         </p>

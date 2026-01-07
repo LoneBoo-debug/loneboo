@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
@@ -88,7 +87,7 @@ const App: React.FC = () => {
                 {currentView === AppView.BOO_HOUSE && <RoomView setView={setView} />}
                 {currentView === AppView.INTRO && <IntroPage setView={setView} />}
                 {currentView === AppView.PLAY && <PlayZone setView={setView} />}
-                {currentView === AppView.VIDEOS && <VideoGallery />}
+                {currentView === AppView.VIDEOS && <VideoGallery setView={setView} />}
                 {currentView === AppView.BOOKS && <BookShelf setView={setView} />}
                 {currentView === AppView.BOOKS_LIST && <BooksListView setView={setView} />}
                 {currentView === AppView.LIBRARY_READ && <LibraryReadView setView={setView} />}
