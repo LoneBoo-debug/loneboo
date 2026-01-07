@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { 
   Info, Instagram, Facebook, Youtube, X, Music, 
@@ -28,6 +27,16 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleExternalClick = (e: React.MouseEvent, url: string) => {
+      const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
+      if (linksDisabled) {
+          e.preventDefault();
+          alert("Navigazione esterna bloccata dai genitori! 🔒");
+          return;
+      }
+      window.open(url, '_blank');
+  };
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -100,9 +109,12 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
                         <p className="text-[11px] font-bold text-red-800">Musica per stimolare il coordinamento motorio attraverso coreografie semplici.</p>
                     </div>
                 </div>
-                <a href="https://www.youtube.com/@ILoneBoo" target="_blank" rel="noopener noreferrer" className="mt-4 bg-red-600 text-white font-black py-3 rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-red-700 transition-all uppercase tracking-widest text-sm">
+                <button 
+                  onClick={(e) => handleExternalClick(e, 'https://www.youtube.com/@ILoneBoo')}
+                  className="mt-4 bg-red-600 text-white font-black py-3 rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-red-700 transition-all uppercase tracking-widest text-sm"
+                >
                     ISCRIVITI AL CANALE <ExternalLink size={16} />
-                </a>
+                </button>
             </div>
 
             {/* 3. L'APP E IL GIOCO */}
@@ -131,12 +143,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
             <div className="md:col-span-2 bg-white/40 p-4 rounded-[30px] border-2 border-white/50">
                 <div className="flex flex-wrap justify-center gap-4 md:gap-8">
                     {SOCIAL_LINKS.map((link) => (
-                        <a 
+                        <button 
                             key={link.name} 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95"
+                            onClick={(e) => handleExternalClick(e, link.url)} 
+                            className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95 outline-none"
                         >
                             <div className="p-2 bg-white rounded-full shadow-sm border border-gray-100 group-hover:shadow-md transition-shadow">
                                 <link.icon size={18} className={link.color} />
@@ -144,7 +154,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
                             <span className="font-black text-xs md:text-sm text-slate-700 uppercase tracking-tight group-hover:text-blue-600 transition-colors">
                                 {link.name}
                             </span>
-                        </a>
+                        </button>
                     ))}
                 </div>
             </div>

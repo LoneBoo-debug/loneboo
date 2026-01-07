@@ -33,7 +33,6 @@ const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "BOO_MEGAPHONE", "points": [ { "x": 47.19, "y": 27.8 }, { "x": 46.96, "y": 42.49 }, { "x": 52.16, "y": 43.28 }, { "x": 52.95, "y": 28.59 } ] }
 ];
 
-// Fixed: Added React namespace import above
 const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -76,6 +75,17 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
       }
   }, []); 
 
+  const handleExternalClick = (e: React.MouseEvent, url: string) => {
+      const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
+      if (linksDisabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          alert("Navigazione esterna bloccata dai genitori! 🔒");
+          return;
+      }
+      window.open(url, '_blank');
+  };
+
   const handleBooClick = async () => {
       setShowHint(false);
       setIsNotifModalOpen(true);
@@ -98,7 +108,6 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                                   <div className="flex-1"><p className="text-gray-800 font-black text-base md:text-xl leading-snug">{notif.message}</p></div>
                               </div>
                               
-                              {/* BOX IMMAGINE MINIATURA (YouTube o Manuale) */}
                               {notif.image && (
                                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-purple-200 shadow-inner group">
                                       <img src={notif.image} alt="Preview" className="w-full h-full object-cover" />
@@ -111,14 +120,12 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                               )}
 
                               {notif.link && (
-                                  <a 
-                                    href={notif.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-b-6 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-lg md:text-xl shadow-lg uppercase tracking-wider"
+                                  <button 
+                                    onClick={(e) => handleExternalClick(e, notif.link!)} 
+                                    className="bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-b-6 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-lg md:text-xl shadow-lg uppercase tracking-wider outline-none"
                                   >
                                     {notif.linkText || "VAI"} <ExternalLink size={20} />
-                                  </a>
+                                  </button>
                               )}
                           </div>
                       ))
@@ -148,9 +155,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                     <div className="flex-1 overflow-y-auto p-4 bg-gray-100 custom-scrollbar space-y-6">
                         {posts.map((post) => (
                             <div key={post.id} className="bg-[#fdfbf7] p-5 rounded-sm shadow-[2px_2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 border-l-4 border-gray-300 relative overflow-hidden group">
-                                {/* Pattern carta giornale */}
                                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]"></div>
-                                
                                 <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-gray-200/50 relative z-10">
                                     <img src={OFFICIAL_LOGO} alt="Lone Boo" className="w-12 h-12 rounded-full border-2 border-gray-300 object-contain bg-white p-0.5" />
                                     <div className="flex flex-col">
@@ -158,18 +163,14 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                                         <span className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-widest">{post.date}</span>
                                     </div>
                                 </div>
-                                
                                 <p className="text-gray-800 font-bold text-base md:text-xl mb-4 leading-relaxed relative z-10 font-sans">
                                     {post.content}
                                 </p>
-                                
                                 {post.type === 'IMAGE' && post.image && (
                                     <div className="mb-2 rounded-lg overflow-hidden aspect-video bg-gray-200 border-2 border-gray-300 relative z-10">
                                         <img src={post.image} alt="Post" className="w-full h-full object-cover" />
                                     </div>
                                 )}
-                                
-                                {/* Decorazione a piè di pagina stile giornale */}
                                 <div className="mt-4 flex justify-between items-center opacity-40 pt-2 border-t border-dashed border-gray-300 relative z-10">
                                     <span className="text-[8px] font-black uppercase tracking-[0.2em]">Città Colorata Press</span>
                                     <div className="flex gap-1">
@@ -194,7 +195,11 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                         <div className="absolute z-20 cursor-pointer flex items-center justify-center" style={getBoundingBoxStyle(ZONES_MOBILE[0].points)} onClick={() => setIsFullFeedOpen(true)}>
                             <img src={BOARD_BANNER_IMG} alt="Notizie di Boo" className="w-full h-full object-contain" />
                         </div>
-                        <a href={FACEBOOK_GROUP_URL} target="_blank" rel="noopener noreferrer" className="absolute z-30" style={{ clipPath: getClipPath(ZONES_MOBILE[1].points), inset: 0 }}></a>
+                        <div 
+                          onClick={(e) => handleExternalClick(e, FACEBOOK_GROUP_URL)} 
+                          className="absolute z-30 cursor-pointer" 
+                          style={{ clipPath: getClipPath(ZONES_MOBILE[1].points), inset: 0 }}
+                        ></div>
                         <div onClick={() => setView && setView(AppView.FANART)} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_MOBILE[2].points), inset: 0 }}></div>
                         <div onClick={handleBooClick} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_MOBILE[3].points), inset: 0 }}></div>
                     </>
@@ -207,7 +212,11 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                         <div className="absolute z-20 cursor-pointer flex items-center justify-center" style={getBoundingBoxStyle(ZONES_DESKTOP[0].points)} onClick={() => setIsFullFeedOpen(true)}>
                             <img src={BOARD_BANNER_IMG} alt="Notizie di Boo" className="w-full h-full object-contain" />
                         </div>
-                        <a href={FACEBOOK_GROUP_URL} target="_blank" rel="noopener noreferrer" className="absolute z-30" style={{ clipPath: getClipPath(ZONES_DESKTOP[1].points), inset: 0 }}></a>
+                        <div 
+                          onClick={(e) => handleExternalClick(e, FACEBOOK_GROUP_URL)} 
+                          className="absolute z-30 cursor-pointer" 
+                          style={{ clipPath: getClipPath(ZONES_DESKTOP[1].points), inset: 0 }}
+                        ></div>
                         <div onClick={() => setView && setView(AppView.FANART)} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_DESKTOP[2].points), inset: 0 }}></div>
                         <div onClick={handleBooClick} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_DESKTOP[3].points), inset: 0 }}></div>
                     </>
