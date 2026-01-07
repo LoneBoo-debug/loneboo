@@ -12,14 +12,22 @@
   "categories": ["entertainment", "education", "games"],
   "icons": [
     {
-      "src": "https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

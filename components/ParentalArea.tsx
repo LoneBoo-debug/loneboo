@@ -11,8 +11,8 @@ interface ParentalAreaProps {
 }
 
 const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
-    // State
-    const [linksDisabled, setLinksDisabled] = useState(false);
+    // State - DEFAULT IS TRUE for Play Store compliance
+    const [linksDisabled, setLinksDisabled] = useState(true);
     const [gamesEnabled, setGamesEnabled] = useState(false);
     const [timerMinutes, setTimerMinutes] = useState<number | null>(null);
     const [confirmReset, setConfirmReset] = useState(false);
@@ -23,9 +23,15 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
     const [customMinutes, setCustomMinutes] = useState(0);
 
     useEffect(() => {
-        // Load settings
-        const linksSetting = localStorage.getItem('disable_external_links') === 'true';
+        // Load settings - If not set, default is 'true' (blocked)
+        const savedLinks = localStorage.getItem('disable_external_links');
+        const linksSetting = savedLinks === null ? true : savedLinks === 'true';
         setLinksDisabled(linksSetting);
+        
+        // Ensure it's saved if it was null
+        if (savedLinks === null) {
+            localStorage.setItem('disable_external_links', 'true');
+        }
 
         const gamesSetting = localStorage.getItem('authorized_games_enabled') === 'true';
         setGamesEnabled(gamesSetting);
@@ -127,7 +133,7 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6">
 
-                    {/* 1. GESTIONE GIOCHI (NUOVO) */}
+                    {/* 1. GESTIONE GIOCHI */}
                     <section className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-orange-100 p-2 rounded-xl text-orange-600"><Gamepad2 size={24} /></div>
@@ -144,14 +150,6 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                             {gamesEnabled ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
                             {gamesEnabled ? 'TUTTI I GIOCHI ABILITATI' : 'GIOCHI SPECIALI DISATTIVATI'}
                         </button>
-
-                        <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Giochi controllati:</span>
-                            <div className="flex flex-wrap gap-2">
-                                <span className="px-3 py-1 bg-white border border-gray-300 rounded-full text-xs font-bold text-gray-600">✨ Gratta e Vinci</span>
-                                <span className="px-3 py-1 bg-white border border-gray-300 rounded-full text-xs font-bold text-gray-600">🏹 Tiro alla Fionda</span>
-                            </div>
-                        </div>
                     </section>
 
                     {/* 2. TIMER BUONANOTTE */}
@@ -164,7 +162,6 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                             Imposta un limite di tempo. Allo scadere, l'app mostrerà una schermata di "nanna" bloccante.
                         </p>
                         
-                        {/* Presets */}
                         <div className="grid grid-cols-3 gap-3 mb-4">
                             {[15, 30, 60].map(m => (
                                 <button 
@@ -177,7 +174,6 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                             ))}
                         </div>
 
-                        {/* Manual Toggle */}
                         <div className="border-t border-slate-100 pt-4">
                             <button 
                                 onClick={() => setShowManualTimer(!showManualTimer)}
@@ -190,7 +186,6 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                             {showManualTimer && (
                                 <div className="mt-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 animate-in slide-in-from-top-2">
                                     <div className="flex justify-center gap-6 mb-4">
-                                        {/* Hours */}
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="text-xs font-black text-slate-400 uppercase">ORE</span>
                                             <div className="flex items-center gap-2">
@@ -199,7 +194,6 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                                                 <button onClick={() => adjustTime('H', 1)} className="p-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm active:scale-95 hover:bg-indigo-200 transition-colors"><Plus size={20} strokeWidth={3}/></button>
                                             </div>
                                         </div>
-                                        {/* Minutes */}
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="text-xs font-black text-slate-400 uppercase">MINUTI</span>
                                             <div className="flex items-center gap-2">
@@ -245,7 +239,7 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                         </button>
                     </section>
 
-                    {/* 4. INFO PRIVACY & DISCLAIMER */}
+                    {/* 4. PRIVACY */}
                     <section className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-green-100 p-2 rounded-xl text-green-600"><ShieldAlert size={24} /></div>
@@ -264,16 +258,12 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                         </button>
                     </section>
 
-                    {/* 5. RESET DATI */}
+                    {/* 5. RESET */}
                     <section className="bg-red-50 p-5 rounded-3xl border-2 border-red-100 shadow-sm">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-red-100 p-2 rounded-xl text-red-600"><Trash2 size={24} /></div>
                             <h3 className="text-lg font-black text-red-700">Zona Pericolo</h3>
                         </div>
-                        <p className="text-sm text-red-800/70 font-medium mb-4 leading-relaxed">
-                            Questa azione cancellerà <strong>tutto</strong>: gettoni, album figurine, disegni salvati e avatar. Non si può annullare.
-                        </p>
-                        
                         {!confirmReset ? (
                             <button 
                                 onClick={() => setConfirmReset(true)}
@@ -283,18 +273,8 @@ const ParentalArea: React.FC<ParentalAreaProps> = ({ onClose, setView }) => {
                             </button>
                         ) : (
                             <div className="flex gap-2">
-                                <button 
-                                    onClick={() => setConfirmReset(false)}
-                                    className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl"
-                                >
-                                    ANNULLA
-                                </button>
-                                <button 
-                                    onClick={handleReset}
-                                    className="flex-1 bg-red-600 text-white font-black py-3 rounded-xl border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
-                                >
-                                    CONFERMO
-                                </button>
+                                <button onClick={() => setConfirmReset(false)} className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">ANNULLA</button>
+                                <button onClick={handleReset} className="flex-1 bg-red-600 text-white font-black py-3 rounded-xl border-b-4 border-red-800 active:border-b-0 active:translate-y-1">CONFERMO</button>
                             </div>
                         )}
                     </section>
