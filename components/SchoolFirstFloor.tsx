@@ -92,7 +92,9 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                     {/* FUMETTO FISSO IN BASSO A DESTRA (ABBASSATO AL 6%) */}
                     <div className="absolute bottom-[6%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
-                            <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter">scegli un'aula o sali le scale</span>
+                            <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter text-center block">
+                                scegli un'aula o sali le scale <br className="md:hidden" /> (al momento le classi sono chiuse)
+                            </span>
                         </div>
                     </div>
                 </>
