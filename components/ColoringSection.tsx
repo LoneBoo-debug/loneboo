@@ -7,7 +7,7 @@ import { OFFICIAL_LOGO } from '../constants';
 const SCHOOL_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/academy-mobile.webp';
 const BTN_BACK_ACCADEMIA_IMG = 'https://i.postimg.cc/sDLjTmQX/TORNACCADEMIA-(1)-(1).png';
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
-const BTN_SALA_GIOCHI_IMG = 'https://i.postimg.cc/2ShDpgB5/parfders-(2).png';
+const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gotoschoolarcoiu.webp';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; name: string; points: Point[]; };
@@ -115,7 +115,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
       );
   }
 
-  // VISTA PRINCIPALE (CITY STYLE)
+  // VISTA PRINCIPALE (ACADEMY MAP)
   return (
     <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-purple-900 overflow-hidden touch-none overscroll-none select-none">
         
@@ -146,24 +146,18 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             ))}
         </div>
 
-        {/* --- TASTO SALA GIOCHI --- */}
+        {/* --- TASTO VAI A SCUOLA (IN BASSO A DESTRA) - GRANDE E ADATTIVO --- */}
         {isLoaded && (
             <div 
-                className="absolute z-40 pointer-events-auto flex items-center justify-center"
-                style={{ 
-                    top: '64%', 
-                    left: '35.5%',
-                    width: '4.4rem',
-                    transform: 'translate(-50%, -50%)'
-                }}
+                className="absolute bottom-[4%] right-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
             >
                 <button 
-                    onClick={() => setView(AppView.PLAY)}
-                    className="outline-none active:scale-95 transition-transform"
+                    onClick={() => setView(AppView.SCHOOL)}
+                    className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
                 >
                     <img 
-                        src={BTN_SALA_GIOCHI_IMG} 
-                        alt="Sala Giochi" 
+                        src={BTN_GOTO_SCHOOL_IMG} 
+                        alt="Vai a Scuola" 
                         className="w-full h-auto drop-shadow-2xl"
                     />
                 </button>

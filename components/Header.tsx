@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
@@ -56,7 +55,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Listener per attivazione cancello parentale da remoto (es. Baule dei Segreti)
     useEffect(() => {
         const handleRemoteTrigger = () => {
             setIsMenuOpen(false);
@@ -66,7 +64,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         return () => window.removeEventListener('triggerParentalGate', handleRemoteTrigger);
     }, []);
 
-    // Recupero dati periodico
     useEffect(() => {
         const loadNotifs = async () => {
             const data = await fetchAppNotifications();
@@ -76,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         };
 
         loadNotifs();
-        const interval = setInterval(loadNotifs, 30000); // Ogni 30 secondi
+        const interval = setInterval(loadNotifs, 30000); 
         
         const handleReadUpdate = () => setHasNew(false);
         window.addEventListener('notificationsRead', handleReadUpdate);
@@ -92,11 +89,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const handleOpenNotifications = async () => {
         setIsMenuOpen(false);
         setShowNotificationsModal(true);
-        // Quando il modale si apre, segnamo come lette
         await markNotificationsAsRead();
     };
 
-    const handleOpenAccessibility = () => { setIsMenuOpen(false); setShowAccessibilityModal(true); };
+    const handleOpenAccessibility = () => { setIsMenuOpen(false); setShowAccessibilityModal(false); setShowAccessibilityModal(true); };
     const handleOpenParental = () => { setIsMenuOpen(false); setShowParentalGate(true); };
     const handleParentalSuccess = () => { setShowParentalGate(false); setShowParentalArea(true); };
     const handleOpenInfo = () => { setIsMenuOpen(false); setView(AppView.INFO_MENU); };
@@ -109,18 +105,20 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             {showParentalArea && <ParentalArea onClose={() => setShowParentalArea(false)} setView={setView} />}
 
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
-                <div className="relative w-full h-full max-w-7xl mx-auto px-4 flex items-center justify-between pointer-events-none">
-                    <div className="absolute left-2 md:left-4 md:top-2 z-40 flex items-end gap-2 pointer-events-auto" ref={menuRef}>
+                <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
+                    
+                    {/* Pulsante Plus (Menu) - Dimensioni Adattive VW */}
+                    <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                         <div className="relative">
                             <div className="absolute inset-0 bg-white/40 blur-2xl rounded-full scale-150 -z-10"></div>
                             <button 
                                 onClick={handlePlusClick}
-                                className={`relative bg-yellow-400 hover:bg-yellow-300 active:scale-95 transition-all w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full border-4 border-black shadow-[3px_3px_0_rgba(0,0,0,0.6)] flex items-center justify-center flex-shrink-0 z-50 ${isMenuOpen ? 'rotate-45 bg-red-400 border-red-800' : ''}`}
+                                className={`relative bg-yellow-400 hover:bg-yellow-300 active:scale-95 transition-all w-[11.5vw] h-[11.5vw] md:w-[6vw] md:h-[6vw] lg:w-[5.5vw] lg:h-[5.5vw] rounded-full border-[0.8vw] md:border-4 border-black shadow-[0.6vw_0.6vw_0_rgba(0,0,0,0.6)] md:shadow-[3px_3px_0_rgba(0,0,0,0.6)] flex items-center justify-center flex-shrink-0 z-50 ${isMenuOpen ? 'rotate-45 bg-red-400 border-red-800' : ''}`}
                             >
                                 {hasNew && !isMenuOpen && (
                                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-white animate-pulse z-20"></span>
                                 )}
-                                <Plus className="text-black drop-shadow-sm w-6 h-6 md:w-10 md:h-10 transition-transform duration-300" strokeWidth={3} />
+                                <Plus className="text-black drop-shadow-sm w-[7vw] h-[7vw] md:w-[3.5vw] md:h-[3.5vw] transition-transform duration-300" strokeWidth={3} />
                             </button>
 
                             {isMenuOpen && (
@@ -155,27 +153,49 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    <div className="flex-grow flex items-center justify-start pl-[45px] md:pl-[85px] h-full py-2 pointer-events-none">
-                        <img src={HEADER_TITLE_IMG} alt="Lone Boo" className="h-[65%] md:h-full w-auto object-contain transition-all" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 2px rgba(255,255,255,1))' }} onError={handleImageError} />
+                    {/* Logo Intestazione - Dimensioni Adattive VW */}
+                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-none py-2">
+                        <img 
+                            src={HEADER_TITLE_IMG} 
+                            alt="Lone Boo" 
+                            className="h-[65%] md:h-[85%] w-auto object-contain transition-all" 
+                            style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 2px rgba(255,255,255,1))' }} 
+                            onError={handleImageError} 
+                        />
                     </div>
 
-                    <div className="absolute right-2 md:right-4 md:top-2 z-40 flex items-end gap-2 md:gap-3 pointer-events-auto">
+                    {/* Gruppo Icone Destra - Dimensioni e Spaziatura Adattive VW */}
+                    <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto">
                         {!isHome && <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full scale-x-125 scale-y-110 -z-10 translate-x-4"></div>}
                         {!isHome && (
                             <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => { setView(AppView.HOME); window.scrollTo(0, 0); }}>
-                                <div className="relative w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[2px_2px_0_rgba(0,0,0,0.4)] border-2 border-black/5"><img src={OFFICIAL_LOGO} alt="Inizio" className="w-full h-full object-cover" onError={handleImageError} /></div>
-                                <div className="mt-1 bg-white border-2 border-black/80 px-2 py-0.5 rounded-full shadow-sm"><span className="text-[8px] md:text-[10px] lg:text-xs font-black text-green-500 uppercase tracking-wide leading-none block">INIZIO</span></div>
+                                <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[0.4vw_0.4vw_0_rgba(0,0,0,0.4)] md:shadow-[2px_2px_0_rgba(0,0,0,0.4)] border-2 border-black/5">
+                                    <img src={OFFICIAL_LOGO} alt="Inizio" className="w-full h-full object-cover" onError={handleImageError} />
+                                </div>
+                                <div className="mt-[0.5vw] bg-white border-2 border-black/80 px-[1.5vw] py-[0.2vw] md:px-2 md:py-0.5 rounded-full shadow-sm">
+                                    <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase tracking-wide leading-none block">INIZIO</span>
+                                </div>
                             </div>
                         )}
                         {!isHome && (
                             <div className={`flex flex-col items-center group transition-transform ${isBooHouseMain ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooHouseMain ? undefined : () => setView(AppView.BOO_HOUSE)}>
-                                <div className="relative w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[2px_2px_0_rgba(0,0,0,0.4)] border-4 border-[#F97316]"><img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover" onError={handleImageError} /></div>
-                                <div className="mt-1 bg-white border-2 border-black/80 px-2 py-0.5 rounded-full shadow-sm"><span className="text-[8px] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase tracking-wide leading-none block">CASA</span></div>
+                                <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[0.4vw_0.4vw_0_rgba(0,0,0,0.4)] md:shadow-[2px_2px_0_rgba(0,0,0,0.4)] border-[0.8vw] md:border-4 border-[#F97316]">
+                                    <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover" onError={handleImageError} />
+                                </div>
+                                <div className="mt-[0.5vw] bg-white border-2 border-black/80 px-[1.5vw] py-[0.2vw] md:px-2 md:py-0.5 rounded-full shadow-sm">
+                                    <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase tracking-wide leading-none block">CASA</span>
+                                </div>
                             </div>
                         )}
                         <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`} onClick={isHome ? undefined : handleCityClick}>
-                            <div className={`relative w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${!isHome ? 'border-4 border-[#60A5FA]' : ''}`}><img src={logoImage} alt="Logo" className={`object-cover ${isHome ? 'w-full h-full' : 'w-[110%] h-[110%] max-w-none'}`} onError={handleImageError} /></div>
-                            {!isHome && <div className="mt-1 bg-white border-2 border-black/80 px-2 py-0.5 rounded-full shadow-sm"><span className="text-[8px] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase tracking-wide leading-none block">CITTÀ</span></div>}
+                            <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-[0.4vw_0.4vw_0_rgba(0,0,0,0.4)] md:shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`}>
+                                <img src={logoImage} alt="Logo" className={`object-cover ${isHome ? 'w-full h-full' : 'w-[110%] h-[110%] max-w-none'}`} onError={handleImageError} />
+                            </div>
+                            {!isHome && (
+                                <div className="mt-[0.5vw] bg-white border-2 border-black/80 px-[1.5vw] py-[0.2vw] md:px-2 md:py-0.5 rounded-full shadow-sm">
+                                    <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase tracking-wide leading-none block">CITTÀ</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

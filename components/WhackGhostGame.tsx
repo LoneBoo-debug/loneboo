@@ -128,7 +128,24 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   };
   
   useEffect(() => { return () => clearAllTimers(); }, []);
-  const handleHoleTouch = (index: number) => { if (!isPlaying) return; if (index === ghostIndex) { setScore((prev) => prev + 1); setHitFeedback({ index, id: Date.now() }); setGhostIndex(null); if (ghostStayTimer.current) clearTimeout(ghostStayTimer.current); scheduleNextGhost(); } };
+  
+  const handleHoleTouch = (index: number) => { 
+    if (!isPlaying) return; 
+    if (index === ghostIndex) { 
+        setScore((prev) => prev + 1); 
+        const feedbackId = Date.now();
+        setHitFeedback({ index, id: feedbackId }); 
+        
+        // Rimuove il feedback dopo l'animazione (800ms)
+        setTimeout(() => {
+            setHitFeedback(prev => (prev?.id === feedbackId ? null : prev));
+        }, 800);
+
+        setGhostIndex(null); 
+        if (ghostStayTimer.current) clearTimeout(ghostStayTimer.current); 
+        scheduleNextGhost(); 
+    } 
+  };
 
   const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 overflow-hidden touch-none overscroll-none select-none";
 
@@ -144,9 +161,8 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
-      {/* CONTENITORE PULSANTI SECONDARI - ALZATO DI POCO COME RICHIESTO */}
+      {/* CONTENSingle player - HUD SUPERIORE */}
       <div className="fixed top-[110px] md:top-[160px] left-4 z-[200] flex flex-col items-start gap-2 pointer-events-auto">
-          {/* Tasto Torna ai Livelli - Mostrato solo se abbiamo scelto un livello */}
           {difficulty && (
               <button 
                   onClick={resetMenu} 

@@ -47,6 +47,9 @@ export enum AppView {
   CONTACT = 'CONTACT', // NEW: Contacts Page
   SERVICE_PAGE = 'SERVICE_PAGE', // NEW: Internal Tool for Migration
   NEWSSTAND = 'NEWSSTAND', // NEW: Newsstand as a full page
+  SCHOOL = 'SCHOOL', // NEW: School Section
+  SCHOOL_FIRST_FLOOR = 'SCHOOL_FIRST_FLOOR', // NEW: School First Floor
+  SCHOOL_SECOND_FLOOR = 'SCHOOL_SECOND_FLOOR', // NEW: School Second Floor
   
   // BOO HOUSE ROOMS
   BOO_GARDEN = 'BOO_GARDEN',

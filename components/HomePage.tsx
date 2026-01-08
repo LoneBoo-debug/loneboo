@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppView } from '../types';
 import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
@@ -81,7 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     return (
         <div className="fixed inset-0 top-0 z-0 overflow-hidden bg-[#8B5CF6] flex flex-col">
             
-            {/* BACKGROUND LAYER - Re-impostato su object-fill per eliminare le strisce */}
+            {/* BACKGROUND LAYER */}
             <div className="absolute inset-0 z-0">
                 <OptimizedImage 
                     src={HOME_BG_MOBILE} 
@@ -98,16 +97,16 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* INTERACTIVE LAYER */}
             <div className="absolute inset-0 z-10 w-full h-full">
                 
-                {/* Contest Button */}
-                <div className="absolute top-24 md:top-32 left-4 z-20 flex flex-col gap-4">
+                {/* Contest Button - Percentuale Adattiva */}
+                <div className="absolute top-[12.5%] left-[4%] md:top-[14%] md:left-[3%] w-[22%] md:w-[12%] z-20 flex flex-col gap-4">
                     <button 
                         onClick={() => setIsContestOpen(true)}
-                        className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none touch-manipulation"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none touch-manipulation"
                     >
                         <OptimizedImage 
                             src={CONTEST_LOGO}
                             alt="Concorso"
-                            className="w-20 md:w-32 lg:w-[9vw] h-auto drop-shadow-md pointer-events-none animate-float"
+                            className="w-full h-auto drop-shadow-md pointer-events-none animate-float"
                         />
                     </button>
                 </div>

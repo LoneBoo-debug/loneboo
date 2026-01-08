@@ -22,6 +22,9 @@ const CommunityFeed = lazy(() => import('./components/CommunityFeed'));
 const SoundZone = lazy(() => import('./components/SoundZone'));
 const FairyTales = lazy(() => import('./components/FairyTales'));
 const ColoringSection = lazy(() => import('./components/ColoringSection'));
+const SchoolSection = lazy(() => import('./components/SchoolSection'));
+const SchoolFirstFloor = lazy(() => import('./components/SchoolFirstFloor'));
+const SchoolSecondFloor = lazy(() => import('./components/SchoolSecondFloor'));
 const CharactersPage = lazy(() => import('./components/CharactersPage'));
 const CityMap = lazy(() => import('./components/CityMap'));
 const RoomView = lazy(() => import('./components/RoomView')); 
@@ -63,6 +66,19 @@ const PageLoader = () => (
 const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
 
+  // Deep Linking Logic
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    const pageParam = params.get('page');
+
+    if (viewParam === 'DISCLAIMER' || pageParam === 'privacy') {
+      setView(AppView.DISCLAIMER);
+    } else if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
+      setView(viewParam as AppView);
+    }
+  }, []);
+
   useEffect(() => {
     const meta = SEO_DATA[currentView] || SEO_DATA[AppView.HOME];
     document.title = meta.title;
@@ -97,6 +113,9 @@ const App: React.FC = () => {
                 {currentView === AppView.LIBRARY_SOLITARIO && <LibrarySolitario setView={setView} />}
                 {currentView === AppView.TALES && <FairyTales setView={setView} />}
                 {currentView === AppView.COLORING && <ColoringSection setView={setView} />}
+                {currentView === AppView.SCHOOL && <SchoolSection setView={setView} />}
+                {currentView === AppView.SCHOOL_FIRST_FLOOR && <SchoolFirstFloor setView={setView} />}
+                {currentView === AppView.SCHOOL_SECOND_FLOOR && <SchoolSecondFloor setView={setView} />}
                 {currentView === AppView.CHAT && <ChatWithBoo setView={setView} />}
                 {currentView === AppView.AI_MAGIC && <MagicEye />}
                 {currentView === AppView.SOUNDS && <SoundZone setView={setView} />}

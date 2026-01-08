@@ -1,4 +1,3 @@
-
 {
   "headers": [
     {
@@ -16,6 +15,9 @@
     }
   ],
   "rewrites": [
-    { "source": "/((?!api/|assets/|sw.js|manifest.json|robots.txt|sitemap.xml|.*\\.png|.*\\.jpg|.*\\.ico).*)", "destination": "/index.html" }
+    { 
+      "source": "/((?!api/|assets/|sw.js|manifest.json|robots.txt|sitemap.xml|.*\\.(png|PNG|jpg|JPG|jpeg|JPEG|ico|ICO|webp|WEBP|svg|SVG)).*)", 
+      "destination": "/index.html" 
+    }
   ]
 }
