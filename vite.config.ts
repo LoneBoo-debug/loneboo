@@ -8,17 +8,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
 
   return {
-    base: './', // CRITICAL FIX: Use relative paths for assets to work in any folder/preview
-    publicDir: 'public', // Explicitly define public directory
+    base: '/', // Consigliato per Vercel invece di './'
+    publicDir: 'public',
     plugins: [react()],
     define: {
       global: 'globalThis',
-      'process.env': {
-        API_KEY: env.API_KEY || '',
-        VITE_YOUTUBE_API_KEY: env.VITE_YOUTUBE_API_KEY || '',
-        VITE_YOUTUBE_CHANNEL_ID: env.VITE_YOUTUBE_CHANNEL_ID || '',
-        RESEND_API_KEY: env.RESEND_API_KEY || ''
-      }
+      // FIX: Definiamo le singole chiavi invece di sovrascrivere l'intero oggetto process.env
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
+      'process.env.VITE_YOUTUBE_API_KEY': JSON.stringify(env.VITE_YOUTUBE_API_KEY || ''),
+      'process.env.VITE_YOUTUBE_CHANNEL_ID': JSON.stringify(env.VITE_YOUTUBE_CHANNEL_ID || ''),
+      'process.env.RESEND_API_KEY': JSON.stringify(env.RESEND_API_KEY || '')
     },
     build: {
       outDir: 'dist',
