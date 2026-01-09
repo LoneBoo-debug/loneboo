@@ -13,6 +13,7 @@ const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-c
 const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-house.webp';
 const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const INIZIO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/inizioseddfeawq.webp';
 
 const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
@@ -134,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         {!isHome && (
                             <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
                                 <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
-                                    <img src={OFFICIAL_LOGO} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
+                                    <img src={INIZIO_BTN_IMG} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
                                 </div>
                                 <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase mt-1">INIZIO</span>
                             </div>
