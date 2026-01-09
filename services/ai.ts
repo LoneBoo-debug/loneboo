@@ -5,7 +5,6 @@ const TEXT_MODEL = 'gemini-3-flash-preview';
 const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
-// --- DEFINIZIONE UFFICIALE LONE BOO (BRAND IDENTITY) ---
 const LONE_BOO_IDENTITY = `
 Lone Boo è un personaggio immaginario per bambini, un fantasmino simpatico, buffo e rassicurante, protagonista di un ampio mondo digitale educativo e sicuro pensato per accompagnare i più piccoli nella crescita attraverso il gioco, la musica e la fantasia.
 Lone Boo non è un fantasma spaventoso, ma una creatura tenera e curiosa: ama esplorare, fare amicizia, cantare, raccontare storie e aiutare i bambini a scoprire il mondo con serenità e allegria.
@@ -52,34 +51,51 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 
 export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const systemPrompt = `
-        ${LONE_BOO_IDENTITY}
-        SEI MARAGNO. 🕷️ La guida saggia di Lone Boo World. Rispondi in max 2 frasi.
-        Se l'utente vuole andare in un posto, usa [ACTION:NAV:TAG].
-        Mappa: CASA ([ACTION:NAV:BOO_HOUSE]), PARCO ([ACTION:NAV:PLAY]), CINEMA ([ACTION:NAV:VIDEOS]), LIBRERIA ([ACTION:NAV:BOOKS_LIST]), ACCADEMIA ([ACTION:NAV:COLORING]).
-        Bambino: "${newMessage}"`;
+        const apiKey = process.env.API_KEY;
+        if (!apiKey) {
+            console.error("MARAGNO ERROR: Missing API Key in production bundle.");
+            return "Ops! Ho perso la bussola, riprova più tardi! 🕷️";
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        
+        // Usiamo systemInstruction nel config per separare il comportamento dal messaggio
+        const systemInstruction = `
+            ${LONE_BOO_IDENTITY}
+            SEI MARAGNO. 🕷️ La guida saggia di Lone Boo World. Rispondi in max 2 frasi.
+            Sii simpatico e usa le emoji.
+            Se l'utente vuole andare in un posto, usa [ACTION:NAV:TAG].
+            Mappa: CASA ([ACTION:NAV:BOO_HOUSE]), PARCO ([ACTION:NAV:PLAY]), CINEMA ([ACTION:NAV:VIDEOS]), LIBRERIA ([ACTION:NAV:BOOKS_LIST]), ACCADEMIA ([ACTION:NAV:COLORING]).
+        `;
+
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: systemPrompt
+            contents: newMessage,
+            config: {
+                systemInstruction: systemInstruction,
+                temperature: 0.7,
+                topP: 0.95,
+                topK: 40
+            }
         });
+
         return response.text || "Ops! Riprova tra poco! 🕷️";
-    } catch (error) { 
-        console.error("Gemini Error:", error);
-        return "Errore di connessione! 🕷️"; 
+    } catch (error: any) { 
+        console.error("Gemini API Connection Error:", error);
+        // Messaggio di fallback più descrittivo per debug (opzionale)
+        return "Errore di connessione con il mondo magico! Riprova tra poco! 🕷️"; 
     }
 };
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const systemPrompt = `
-        ${LONE_BOO_IDENTITY}
-        SEI LONE BOO. 👻 Il fantasmino amico dei bambini. Rispondi in max 2 frasi, sii dolce e affettuoso.
-        Messaggio: "${newMessage}"`;
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: systemPrompt
+            contents: newMessage,
+            config: {
+                systemInstruction: `${LONE_BOO_IDENTITY}\nSEI LONE BOO. 👻 Il fantasmino amico dei bambini. Rispondi in max 2 frasi, sii dolce e affettuoso.`
+            }
         });
         return response.text || "Booo? Eccomi! 👻";
     } catch (error) { return "Singhiozzo magico! Riprova! 👻"; }

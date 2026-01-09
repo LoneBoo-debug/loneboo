@@ -4,20 +4,23 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // @ts-ignore
-  const env = loadEnv(mode, '.', '')
+  // Carichiamo le variabili dal file .env (per sviluppo) 
+  // e le uniamo a process.env (per produzione/Vercel)
+  // FIX: Cast process to any to avoid TypeScript error for cwd() in environments where the global process type is restricted
+  const env = loadEnv(mode, (process as any).cwd(), '')
 
   return {
-    base: '/', // Consigliato per Vercel invece di './'
+    base: '/',
     publicDir: 'public',
     plugins: [react()],
     define: {
       global: 'globalThis',
-      // FIX: Definiamo le singole chiavi invece di sovrascrivere l'intero oggetto process.env
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
-      'process.env.VITE_YOUTUBE_API_KEY': JSON.stringify(env.VITE_YOUTUBE_API_KEY || ''),
-      'process.env.VITE_YOUTUBE_CHANNEL_ID': JSON.stringify(env.VITE_YOUTUBE_CHANNEL_ID || ''),
-      'process.env.RESEND_API_KEY': JSON.stringify(env.RESEND_API_KEY || '')
+      // FIX: Garantiamo che API_KEY sia letta prioritariamente dalle variabili di sistema (Vercel)
+      // o dal file .env se presenti.
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY || ''),
+      'process.env.VITE_YOUTUBE_API_KEY': JSON.stringify(env.VITE_YOUTUBE_API_KEY || process.env.VITE_YOUTUBE_API_KEY || ''),
+      'process.env.VITE_YOUTUBE_CHANNEL_ID': JSON.stringify(env.VITE_YOUTUBE_CHANNEL_ID || process.env.VITE_YOUTUBE_CHANNEL_ID || ''),
+      'process.env.RESEND_API_KEY': JSON.stringify(env.RESEND_API_KEY || process.env.RESEND_API_KEY || '')
     },
     build: {
       outDir: 'dist',
