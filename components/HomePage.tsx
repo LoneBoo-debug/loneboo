@@ -10,10 +10,10 @@ interface HomePageProps {
 }
 
 // Asset stringhe standard
-const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/agghomerico.webp';
+const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newsade+(1)+(1).webp';
 const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/funzhomico.webp';
+const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/igliglg1454.webp';
 
 // ZONES CONFIGURATION
 const ZONES_MOBILE = [
@@ -72,8 +72,8 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* INTERACTIVE LAYER - z-10 per stare sopra lo sfondo e mantenere i clic */}
             <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
                 
-                {/* Contest Button (Top Left) - Alzato leggermente */}
-                <div className="absolute top-[12%] left-[4%] md:top-[13%] md:left-[3.5%] w-[14%] md:w-[7.5%] z-20 flex flex-col gap-4 pointer-events-auto">
+                {/* Contest Button (Top Left) - Abbassato leggermente al 10% / 12% */}
+                <div className="absolute top-[10%] left-[4%] md:top-[12%] md:left-[3.5%] w-[24%] md:w-[13%] z-20 flex flex-col gap-4 pointer-events-auto">
                     <button 
                         onClick={() => setIsContestOpen(true)}
                         className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30"
@@ -86,8 +86,8 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                     </button>
                 </div>
 
-                {/* Guide Button - Alzato mantenendo la distanza relativa */}
-                <div className="absolute top-[18%] left-[4.5%] md:top-[20.5%] md:left-[4%] w-[13%] md:w-[7.5%] z-20 pointer-events-auto">
+                {/* Guide Button - Abbassato ulteriormente su mobile all'88% / 84% desktop */}
+                <div className="absolute top-[88%] left-[4.5%] md:top-[84%] md:left-[4%] w-[13%] md:w-[7.5%] z-20 pointer-events-auto">
                     <button 
                         onClick={() => setView(AppView.GUIDE)}
                         className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30"

@@ -44,8 +44,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     
     // Se siamo in Home usiamo il nuovo logo, altrimenti usiamo il tasto Città
     const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
-    // Se siamo in Home usiamo il nuovo titolo, altrimenti quello standard
-    const titleImage = isHome ? HOME_HEADER_TITLE : HEADER_TITLE_IMG;
+    // Utilizziamo HOME_HEADER_TITLE (headlogheadrilo.webp) per tutte le sezioni
+    const titleImage = HOME_HEADER_TITLE;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -127,8 +127,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    {/* Logo Intestazione Centrale / Sinistra */}
-                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-50">
+                    {/* Logo Intestazione Centrale / Sinistra - Alzato Z-index per stare sopra tutto */}
+                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110]">
                         <img 
                             src={titleImage} 
                             alt="Lone Boo" 
