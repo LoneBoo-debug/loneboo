@@ -13,6 +13,7 @@ interface HomePageProps {
 const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-concorso.webp';
 const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/workssHOWITERE.webp';
 
 // ZONES CONFIGURATION
 const ZONES_MOBILE = [
@@ -34,6 +35,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
         const pre1 = new Image(); pre1.src = HOME_BG_MOBILE;
         const pre2 = new Image(); pre2.src = HOME_BG_DESKTOP;
         const pre3 = new Image(); pre3.src = CONTEST_LOGO;
+        const pre4 = new Image(); pre4.src = HOW_IT_WORKS_IMG;
     }, []);
 
     const getClipPath = (points: { x: number; y: number }[]) => {
@@ -70,7 +72,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* INTERACTIVE LAYER */}
             <div className="absolute inset-0 z-10 w-full h-full">
                 
-                {/* Contest Button */}
+                {/* Contest Button (Top Left) */}
                 <div className="absolute top-[12.5%] left-[4%] md:top-[14%] md:left-[3%] w-[22%] md:w-[12%] z-20 flex flex-col gap-4">
                     <button 
                         onClick={() => setIsContestOpen(true)}
@@ -79,7 +81,21 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                         <img 
                             src={CONTEST_LOGO}
                             alt="Concorso"
-                            className="w-full h-auto drop-shadow-md animate-float pointer-events-auto"
+                            className="w-full h-auto drop-shadow-md animate-float pointer-events-none"
+                        />
+                    </button>
+                </div>
+
+                {/* Guide Button (Now below Contest Button, slightly smaller) */}
+                <div className="absolute top-[32%] left-[5%] md:top-[38%] md:left-[4%] w-[18%] md:w-[10%] z-20">
+                    <button 
+                        onClick={() => setView(AppView.GUIDE)}
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none pointer-events-auto"
+                    >
+                        <img 
+                            src={HOW_IT_WORKS_IMG}
+                            alt="Come Funziona"
+                            className="w-full h-auto drop-shadow-lg pointer-events-none"
                         />
                     </button>
                 </div>
