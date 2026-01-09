@@ -30,7 +30,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     const [isContestOpen, setIsContestOpen] = useState(false);
     const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
     
-    // Semplice pre-caricamento senza flag di sicurezza CORS restrittivi
+    // Pre-caricamento semplice
     useEffect(() => {
         const pre1 = new Image(); pre1.src = HOME_BG_MOBILE;
         const pre2 = new Image(); pre2.src = HOME_BG_DESKTOP;
@@ -56,46 +56,46 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
         <div className="fixed inset-0 top-0 z-0 overflow-hidden bg-[#8B5CF6] flex flex-col">
             
             {/* BACKGROUND LAYER */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 pointer-events-none">
                 <img 
                     src={HOME_BG_MOBILE} 
                     alt="" 
-                    className="block md:hidden w-full h-full object-fill pointer-events-auto select-none"
+                    className="block md:hidden w-full h-full object-fill opacity-100"
                 />
                 <img 
                     src={HOME_BG_DESKTOP} 
                     alt="" 
-                    className="hidden md:block w-full h-full object-fill pointer-events-auto select-none"
+                    className="hidden md:block w-full h-full object-fill opacity-100"
                 />
             </div>
 
             {/* INTERACTIVE LAYER */}
-            <div className="absolute inset-0 z-10 w-full h-full">
+            <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
                 
                 {/* Contest Button (Top Left) */}
-                <div className="absolute top-[12.5%] left-[4%] md:top-[14%] md:left-[3%] w-[22%] md:w-[12%] z-20 flex flex-col gap-4">
+                <div className="absolute top-[12.5%] left-[4%] md:top-[14%] md:left-[3%] w-[22%] md:w-[12%] z-20 flex flex-col gap-4 pointer-events-auto">
                     <button 
                         onClick={() => setIsContestOpen(true)}
-                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none pointer-events-auto"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
                     >
                         <img 
                             src={CONTEST_LOGO}
                             alt="Concorso"
-                            className="w-full h-auto drop-shadow-md animate-float pointer-events-none"
+                            className="w-full h-auto drop-shadow-md animate-float opacity-100"
                         />
                     </button>
                 </div>
 
                 {/* Guide Button (Now below Contest Button, slightly smaller) */}
-                <div className="absolute top-[32%] left-[5%] md:top-[38%] md:left-[4%] w-[18%] md:w-[10%] z-20">
+                <div className="absolute top-[32%] left-[5%] md:top-[38%] md:left-[4%] w-[18%] md:w-[10%] z-20 pointer-events-auto">
                     <button 
                         onClick={() => setView(AppView.GUIDE)}
-                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none pointer-events-auto"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
                     >
                         <img 
                             src={HOW_IT_WORKS_IMG}
                             alt="Come Funziona"
-                            className="w-full h-auto drop-shadow-lg pointer-events-none"
+                            className="w-full h-auto drop-shadow-lg opacity-100"
                         />
                     </button>
                 </div>

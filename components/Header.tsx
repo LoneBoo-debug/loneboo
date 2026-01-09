@@ -120,12 +120,12 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    {/* Logo Intestazione - Riattivati i pointer events per il salvataggio immagine */}
+                    {/* Logo Intestazione */}
                     <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2">
                         <img 
                             src={HEADER_TITLE_IMG} 
                             alt="Lone Boo" 
-                            className="h-[65%] md:h-[85%] w-auto object-contain transition-all drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] pointer-events-auto" 
+                            className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] pointer-events-auto opacity-100" 
                         />
                     </div>
 

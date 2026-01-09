@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'loneboo-static-v28'; 
-const IMAGE_CACHE_NAME = 'loneboo-images-v7';
+const CACHE_NAME = 'loneboo-static-v29'; 
+const IMAGE_CACHE_NAME = 'loneboo-images-v8';
 
 const urlsToCache = [
   '/',
@@ -34,12 +34,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Bypass solo per le API interne, NON per gli asset remoti
+  // Bypass per API
   if (requestUrl.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Strategia Network-First per file di sistema (JS, CSS, HTML)
+  // File di sistema: Network First
   if (event.request.mode === 'navigate' || requestUrl.pathname.match(/\.(js|css|json)$/)) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -47,21 +47,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategia Stale-While-Revalidate per IMMAGINI (Incluso AWS S3 e Postimg)
-  // Questo risolve i blocchi della TWA sulle immagini remote
-  if (
-    event.request.destination === 'image' || 
-    requestUrl.hostname.includes('amazonaws.com') || 
-    requestUrl.hostname.includes('postimg.cc') ||
-    requestUrl.hostname.includes('googleusercontent.com')
-  ) {
+  // Immagini: Stale-While-Revalidate (SENZA forzare CORS)
+  if (event.request.destination === 'image') {
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then((cache) => {
         return cache.match(event.request).then((cachedResponse) => {
-          const fetchPromise = fetch(event.request, { 
-            mode: 'cors', 
-            credentials: 'omit' 
-          }).then((networkResponse) => {
+          // Fetch standard senza intestazioni di sicurezza restrittive che rompono S3
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
               cache.put(event.request, networkResponse.clone());
             }
@@ -75,7 +67,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Default: Cache First
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
