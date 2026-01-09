@@ -10,10 +10,10 @@ interface HomePageProps {
 }
 
 // Asset stringhe standard
-const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-concorso.webp';
+const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/agghomerico.webp';
 const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/workssHOWITERE.webp';
+const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/funzhomico.webp';
 
 // ZONES CONFIGURATION
 const ZONES_MOBILE = [
@@ -53,9 +53,9 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     };
 
     return (
-        <div className="fixed inset-0 top-0 z-0 overflow-hidden bg-[#8B5CF6] flex flex-col">
+        <div className="fixed inset-0 top-0 left-0 w-full h-full overflow-hidden bg-[#8B5CF6] flex flex-col">
             
-            {/* BACKGROUND LAYER */}
+            {/* BACKGROUND LAYER - z-0 per stare sotto tutto il resto */}
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <img 
                     src={HOME_BG_MOBILE} 
@@ -69,38 +69,38 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                 />
             </div>
 
-            {/* INTERACTIVE LAYER */}
+            {/* INTERACTIVE LAYER - z-10 per stare sopra lo sfondo e mantenere i clic */}
             <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
                 
-                {/* Contest Button (Top Left) */}
-                <div className="absolute top-[12.5%] left-[4%] md:top-[14%] md:left-[3%] w-[22%] md:w-[12%] z-20 flex flex-col gap-4 pointer-events-auto">
+                {/* Contest Button (Top Left) - Alzato leggermente */}
+                <div className="absolute top-[12%] left-[4%] md:top-[13%] md:left-[3.5%] w-[14%] md:w-[7.5%] z-20 flex flex-col gap-4 pointer-events-auto">
                     <button 
                         onClick={() => setIsContestOpen(true)}
-                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30"
                     >
                         <img 
                             src={CONTEST_LOGO}
                             alt="Concorso"
-                            className="w-full h-auto drop-shadow-md animate-float opacity-100"
+                            className="w-full h-auto drop-shadow-md opacity-100 block"
                         />
                     </button>
                 </div>
 
-                {/* Guide Button (Now below Contest Button, slightly smaller) */}
-                <div className="absolute top-[32%] left-[5%] md:top-[38%] md:left-[4%] w-[18%] md:w-[10%] z-20 pointer-events-auto">
+                {/* Guide Button - Alzato mantenendo la distanza relativa */}
+                <div className="absolute top-[18%] left-[4.5%] md:top-[20.5%] md:left-[4%] w-[13%] md:w-[7.5%] z-20 pointer-events-auto">
                     <button 
                         onClick={() => setView(AppView.GUIDE)}
-                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30"
                     >
                         <img 
                             src={HOW_IT_WORKS_IMG}
                             alt="Come Funziona"
-                            className="w-full h-auto drop-shadow-lg opacity-100"
+                            className="w-full h-auto drop-shadow-lg opacity-100 block"
                         />
                     </button>
                 </div>
 
-                <div className="relative w-full h-full pointer-events-none">
+                <div className="relative w-full h-full pointer-events-none z-10">
                     {/* MOBILE ZONES */}
                     <div className="md:hidden absolute inset-0">
                         {ZONES_MOBILE.map((zone, index) => (
@@ -134,7 +134,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
                         <button onClick={() => setIsContestOpen(false)} className="absolute top-4 right-4 hover:scale-110 active:scale-95 outline-none">
                             <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 object-contain pointer-events-auto" />
                         </button>
-                        <img src={CONTEST_LOGO} className="w-40 h-auto mb-4 animate-float pointer-events-auto" alt="" />
+                        <img src={CONTEST_LOGO} className="w-40 h-auto mb-4 pointer-events-auto" alt="" />
                         <h2 className="text-3xl font-black text-boo-purple mb-4">Novità in Arrivo!</h2>
                         <p className="text-gray-700 font-bold mb-8">Stiamo preparando dei nuovi concorsi magici per vincere premi fantastici!</p>
                         <button onClick={handleOpenNewsletter} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
