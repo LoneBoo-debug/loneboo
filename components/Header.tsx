@@ -14,6 +14,7 @@ const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bt
 const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const INIZIO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/inizioseddfeawq.webp';
+const HOME_HEADER_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 
 const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
@@ -39,7 +40,9 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const isHome = currentView === AppView.HOME;
     const isCityMap = currentView === AppView.CITY_MAP;
     const isBooHouseMain = currentView === AppView.BOO_HOUSE;
-    const logoImage = isHome ? OFFICIAL_LOGO : CITY_BTN_IMAGE;
+    
+    // Se siamo in Home usiamo il nuovo logo, altrimenti usiamo il tasto Città
+    const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -121,7 +124,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    {/* Logo Intestazione */}
+                    {/* Logo Intestazione Centrale */}
                     <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2">
                         <img 
                             src={HEADER_TITLE_IMG} 
@@ -131,7 +134,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                     </div>
 
                     {/* Gruppo Icone Destra */}
-                    <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto">
+                    <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto">
                         {!isHome && (
                             <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
                                 <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
@@ -148,8 +151,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                 <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
                             </div>
                         )}
-                        <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`} onClick={isHome ? undefined : handleCityClick}>
-                            <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`}>
+                        <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`}>
+                            <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden z-50 ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`} onClick={isHome ? undefined : handleCityClick}>
                                 <img src={logoImage} alt="Logo" className="w-full h-full object-cover pointer-events-auto" />
                             </div>
                             {!isHome && <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>}
