@@ -4,21 +4,20 @@ import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBu
 import { AppView, AppNotification } from '../types';
 import { CHANNEL_LOGO, OFFICIAL_LOGO } from '../constants';
 import { fetchAppNotifications, markNotificationsAsRead, checkHasNewNotifications } from '../services/notificationService';
-import { LOCAL_ASSET_MAP, getAsset } from '../services/LocalAssets';
 import AccessibilityMenu from './AccessibilityMenu';
 import ParentalGate from './ParentalGate';
 import ParentalArea from './ParentalArea';
 
-// Images for main buttons - Normalizzate con getAsset per prevenire blocchi TWA
-const CITY_BTN_IMAGE = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-city.webp');
-const BOO_HOUSE_BTN_IMG = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-house.webp');
-const HEADER_TITLE_IMG = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp');
-const BTN_CLOSE_IMG = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp');
+// Immagini pure stringhe
+const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-city.webp';
+const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-house.webp';
+const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
-const ICON_NOTIF = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp');
-const ICON_INFO = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp');
-const ICON_MAGIC = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp');
-const ICON_PARENTS = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp');
+const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
+const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
+const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp';
+const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 
 interface HeaderProps {
     currentView: AppView;
@@ -82,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {/* Pulsante Plus (Menu) */}
+                    {/* Menu Plus */}
                     <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                         <div className="relative">
                             <button 
@@ -99,21 +98,21 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                 <div className="absolute top-[110%] left-0 bg-sky-200/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl p-2 flex flex-col gap-2 w-60 animate-in slide-in-from-top-2 fade-in z-40">
                                     <button onClick={handleOpenNotifications} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                         <div className="relative w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
-                                            <img src={ICON_NOTIF} crossOrigin="anonymous" alt="Notifiche" className="w-8 h-8 object-contain drop-shadow-sm" />
+                                            <img src={ICON_NOTIF} alt="Notifiche" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" />
                                             {hasNew && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white animate-pulse"></span>}
                                         </div>
                                         <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Notifiche</span>
                                     </button>
                                     <button onClick={handleOpenInfo} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
-                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_INFO} crossOrigin="anonymous" alt="Info" className="w-8 h-8 object-contain drop-shadow-sm" /></div>
+                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_INFO} alt="Info" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
                                         <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Info & Aiuto</span>
                                     </button>
                                     <button onClick={handleOpenAccessibility} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
-                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_MAGIC} crossOrigin="anonymous" alt="Magia" className="w-8 h-8 object-contain drop-shadow-sm" /></div>
+                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_MAGIC} alt="Magia" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
                                         <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Magia</span>
                                     </button>
                                     <button onClick={handleOpenParental} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
-                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_PARENTS} crossOrigin="anonymous" alt="Genitori" className="w-8 h-8 object-contain drop-shadow-sm" /></div>
+                                        <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_PARENTS} alt="Genitori" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
                                         <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Genitori</span>
                                     </button>
                                 </div>
@@ -121,14 +120,12 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    {/* Logo Intestazione */}
-                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-none py-2">
+                    {/* Logo Intestazione - Riattivati i pointer events per il salvataggio immagine */}
+                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2">
                         <img 
                             src={HEADER_TITLE_IMG} 
-                            crossOrigin="anonymous"
                             alt="Lone Boo" 
-                            className="h-[65%] md:h-[85%] w-auto object-contain transition-all" 
-                            style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9))' }} 
+                            className="h-[65%] md:h-[85%] w-auto object-contain transition-all drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] pointer-events-auto" 
                         />
                     </div>
 
@@ -137,7 +134,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         {!isHome && (
                             <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
                                 <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
-                                    <img src={OFFICIAL_LOGO} crossOrigin="anonymous" alt="Inizio" className="w-full h-full object-cover" />
+                                    <img src={OFFICIAL_LOGO} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
                                 </div>
                                 <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase mt-1">INIZIO</span>
                             </div>
@@ -145,14 +142,14 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         {!isHome && (
                             <div className={`flex flex-col items-center transition-transform ${isBooHouseMain ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooHouseMain ? undefined : () => setView(AppView.BOO_HOUSE)}>
                                 <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
-                                    <img src={BOO_HOUSE_BTN_IMG} crossOrigin="anonymous" alt="Casa" className="w-full h-full object-cover" />
+                                    <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
                                 </div>
                                 <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
                             </div>
                         )}
                         <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`} onClick={isHome ? undefined : handleCityClick}>
                             <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`}>
-                                <img src={logoImage} crossOrigin="anonymous" alt="Logo" className="w-full h-full object-cover" />
+                                <img src={logoImage} alt="Logo" className="w-full h-full object-cover pointer-events-auto" />
                             </div>
                             {!isHome && <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>}
                         </div>
@@ -164,8 +161,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                 <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-start justify-start p-4 pt-24" onClick={() => setShowNotificationsModal(false)}>
                     <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
                         <div className="bg-yellow-400 p-4 flex justify-between items-center border-b-4 border-yellow-500">
-                            <h3 className="font-black text-black text-xl uppercase flex items-center gap-2"><img src={ICON_NOTIF} crossOrigin="anonymous" alt="" className="w-12 h-12 object-contain" />Notifiche</h3>
-                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} crossOrigin="anonymous" alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain" /></button>
+                            <h3 className="font-black text-black text-xl uppercase flex items-center gap-2"><img src={ICON_NOTIF} alt="" className="w-12 h-12 object-contain" />Notifiche</h3>
+                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain pointer-events-auto" /></button>
                         </div>
                         <div className="max-h-[65vh] overflow-y-auto p-2 bg-yellow-50">
                             {notifications.length === 0 ? (

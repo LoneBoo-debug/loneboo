@@ -1,17 +1,16 @@
 
 import { Video, SocialLink, AppView } from './types';
-import { getAsset } from './services/LocalAssets';
 
 export const APP_VERSION = '1.8.6';
 
-// URLs Originali (Remoti) - Normalizzati tramite getAsset
-export const OFFICIAL_LOGO = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp');
-export const HOME_ICON = getAsset('https://i.postimg.cc/9M6v55V8/logsede.png');
-export const HOME_HERO_IMAGE = getAsset('https://i.postimg.cc/SKdgjcXW/ghhhhost.png');
-export const CITY_MAP_IMAGE = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-desktop.webp');
-export const CITY_MAP_IMAGE_MOBILE = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-mobile.webp');
-export const HOME_BG_MOBILE = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/home-mobile.webp');
-export const HOME_BG_DESKTOP = getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/home-desktop.webp');
+// URLs Originali (Remoti) - Stringhe pure senza filtri
+export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp';
+export const HOME_ICON = 'https://i.postimg.cc/9M6v55V8/logsede.png';
+export const HOME_HERO_IMAGE = 'https://i.postimg.cc/SKdgjcXW/ghhhhost.png';
+export const CITY_MAP_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-desktop.webp';
+export const CITY_MAP_IMAGE_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-mobile.webp';
+export const HOME_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/home-mobile.webp';
+export const HOME_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/home-desktop.webp';
 export const CHANNEL_LOGO = 'https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee';
 
 // CSVs
