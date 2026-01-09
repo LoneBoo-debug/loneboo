@@ -4,7 +4,7 @@ import { Video, SocialLink, AppView } from './types';
 export const APP_VERSION = '1.8.6';
 
 // URLs Originali (Remoti) - Stringhe pure senza filtri
-export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main.webp';
+export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 export const HOME_ICON = 'https://i.postimg.cc/9M6v55V8/logsede.png';
 export const HOME_HERO_IMAGE = 'https://i.postimg.cc/SKdgjcXW/ghhhhost.png';
 export const CITY_MAP_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-desktop.webp';
