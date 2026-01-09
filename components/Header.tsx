@@ -15,6 +15,7 @@ const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hea
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const INIZIO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/inizioseddfeawq.webp';
 const HOME_HEADER_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
+const HOME_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/headlogheadrilo.webp';
 
 const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
@@ -43,6 +44,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     
     // Se siamo in Home usiamo il nuovo logo, altrimenti usiamo il tasto Città
     const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
+    // Se siamo in Home usiamo il nuovo titolo, altrimenti quello standard
+    const titleImage = isHome ? HOME_HEADER_TITLE : HEADER_TITLE_IMG;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -124,10 +127,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     </div>
 
-                    {/* Logo Intestazione Centrale */}
-                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2">
+                    {/* Logo Intestazione Centrale / Sinistra */}
+                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-50">
                         <img 
-                            src={HEADER_TITLE_IMG} 
+                            src={titleImage} 
                             alt="Lone Boo" 
                             className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] pointer-events-auto opacity-100" 
                         />
