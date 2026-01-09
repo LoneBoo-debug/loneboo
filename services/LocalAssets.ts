@@ -1,10 +1,10 @@
 
 /**
- * Servizio Asset V14 - Produzione
- * Restituisce l'URL dell'asset garantendo la compatibilità con AWS S3.
+ * Servizio Asset V15 - Produzione Play Store
+ * Gestisce la risoluzione degli asset garantendo compatibilità con TWA e Service Worker.
  */
 export const LOCAL_ASSET_MAP: Record<string, string> = {
-  // Mappa svuotata per dare priorità assoluta ai link remoti originali
+  // Mappa gestita dinamicamente dal Service Worker
 };
 
 export const getAsset = (url: string): string => {
@@ -13,7 +13,6 @@ export const getAsset = (url: string): string => {
   // Se è già un percorso locale relativo, lo manteniamo
   if (url.startsWith('assets/') || url.startsWith('/assets/')) return url;
 
-  // RITORNO DIRETTO: 
-  // Non aggiungiamo ?v= o altri parametri che potrebbero causare 403 Forbidden su S3
-  return url;
+  // Garantiamo che l'URL sia pulito per evitare problemi di encoding in Android WebView
+  return url.trim().replace(/ /g, '%20');
 };

@@ -1,8 +1,5 @@
-
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { ChatMessage } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const TEXT_MODEL = 'gemini-3-flash-preview';
 const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
@@ -18,8 +15,8 @@ Contenuti principali: canzoni originali, favole della buonanotte, giochi educati
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `A high-quality 2D cartoon sticker for young children. Style: cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background. No scary elements.`;
-        // FIX: Updated to use simple prompt string as content for nano banana model
         const response = await ai.models.generateContent({
             model: IMAGE_MODEL,
             contents: prompt,
@@ -34,9 +31,9 @@ export const generateHybridImage = async (item1: string, item2: string): Promise
 
 export const generateSpeech = async (text: string): Promise<string | null> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const cleanText = text.replace(/[*#_~`]/g, '').trim();
         if (!cleanText) return null;
-        // FIX: TTS requires specific structure with Modality.AUDIO and voiceConfig
         const response = await ai.models.generateContent({
             model: TTS_MODEL,
             contents: [{ parts: [{ text: cleanText }] }],
@@ -55,28 +52,31 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 
 export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemPrompt = `
         ${LONE_BOO_IDENTITY}
         SEI MARAGNO. 🕷️ La guida saggia di Lone Boo World. Rispondi in max 2 frasi.
         Se l'utente vuole andare in un posto, usa [ACTION:NAV:TAG].
         Mappa: CASA ([ACTION:NAV:BOO_HOUSE]), PARCO ([ACTION:NAV:PLAY]), CINEMA ([ACTION:NAV:VIDEOS]), LIBRERIA ([ACTION:NAV:BOOKS_LIST]), ACCADEMIA ([ACTION:NAV:COLORING]).
         Bambino: "${newMessage}"`;
-        // FIX: Updated contents to simple string as per text-only task guidelines
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: systemPrompt
         });
         return response.text || "Ops! Riprova tra poco! 🕷️";
-    } catch (error) { return "Errore di connessione! 🕷️"; }
+    } catch (error) { 
+        console.error("Gemini Error:", error);
+        return "Errore di connessione! 🕷️"; 
+    }
 };
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemPrompt = `
         ${LONE_BOO_IDENTITY}
         SEI LONE BOO. 👻 Il fantasmino amico dei bambini. Rispondi in max 2 frasi, sii dolce e affettuoso.
         Messaggio: "${newMessage}"`;
-        // FIX: Updated contents to simple string as per text-only task guidelines
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: systemPrompt
@@ -87,8 +87,8 @@ export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage:
 
 export const generateMagicStory = async (imageBase64: string): Promise<string> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-        // FIX: Using correct contents object with parts for multimodal multimodal input
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
@@ -104,8 +104,8 @@ export const generateMagicStory = async (imageBase64: string): Promise<string> =
 
 export const generateDiceStory = async (descriptions: string[]): Promise<string> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `Sei Grufo il gufo. Inventa una favola brevissima (max 4 frasi) usando: ${descriptions.join(', ')}.`;
-        // FIX: Updated contents to simple string as per text-only task guidelines
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: prompt
@@ -116,9 +116,9 @@ export const generateDiceStory = async (descriptions: string[]): Promise<string>
 
 export const checkScavengerHuntMatch = async (imageBase64: string, challenge: string): Promise<string> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const prompt = `Sfida: "${challenge}". Rispondi: "SÌ|Commento" o "NO|Commento".`;
-        // FIX: Using correct contents object with parts for multimodal multimodal input
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
@@ -134,8 +134,8 @@ export const checkScavengerHuntMatch = async (imageBase64: string, challenge: st
 
 export const transformObjectMagically = async (imageBase64: string): Promise<any> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-        // FIX: Added responseSchema for robust JSON extraction and updated contents structure for multimodal input
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             config: { 
