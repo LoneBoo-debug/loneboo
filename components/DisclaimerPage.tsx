@@ -138,7 +138,7 @@ const DisclaimerPage: React.FC<DisclaimerPageProps> = ({ setView }) => {
                     </div>
                     <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Contatto Legale</span>
-                        <span className="text-xs font-bold text-blue-400 underline decoration-blue-400/30 break-all">privacy@loneboo.online</span>
+                        <a href="mailto:privacy@loneboo.online" className="text-xs font-bold text-blue-400 underline decoration-blue-400/30 break-all">privacy@loneboo.online</a>
                     </div>
                     <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Infrastruttura</span>

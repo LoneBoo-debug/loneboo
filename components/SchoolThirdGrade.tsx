@@ -53,8 +53,15 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         <img src={BTN_CLOSE_IMG} alt="Indietro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
                     </button>
 
-                    {/* SIDEBAR MATERIE (LIBRI SULLA LIBRERIA) */}
-                    <div className="absolute left-[17%] md:left-[21%] top-1/2 -translate-y-1/2 flex flex-col gap-1.5 md:gap-2.5 z-40 max-w-[55px] md:max-w-[100px]">
+                    {/* SIDEBAR MATERIE */}
+                    <div 
+                        className="absolute flex flex-col gap-1.5 md:gap-2.5 z-40 max-w-[55px] md:max-w-[100px]"
+                        style={{ 
+                            left: window.innerWidth < 768 ? '18.5%' : '21.5%',
+                            top: '48.5%',
+                            transform: 'translateY(-50%)'
+                        }}
+                    >
                         {subjects.map((s) => (
                             <button
                                 key={s.id}

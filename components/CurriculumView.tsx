@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson } from '../types';
-import { Book, ChevronLeft, Volume2, CheckCircle, XCircle, ArrowRight, Star } from 'lucide-react';
+import { Book, ChevronLeft, Volume2, CheckCircle, XCircle, ArrowRight, Star, ClipboardCheck, X, Pause } from 'lucide-react';
 
 const CUSTOM_ITALIAN_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pagaperitascho.webp';
 const CUSTOM_MATH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/matsfcsh887liber.webp';
@@ -10,6 +10,7 @@ const CUSTOM_GEOGRAPHY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/
 const CUSTOM_SCIENCE_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scebghim712.webp';
 const CUSTOM_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiudisade.webp';
 const CUSTOM_LISTEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoltalibrso.webp';
+const CUSTOM_VERIFY_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercschol4321.webp';
 
 interface CurriculumViewProps {
   data: GradeCurriculumData;
@@ -24,6 +25,9 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(null);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [isExerciseOpen, setIsExerciseOpen] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Verifichiamo se è un libro con layout speciale
   const isSpecialBook = selectedSubject === SchoolSubject.ITALIANO || 
@@ -53,14 +57,40 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   const subjectInfo = subjects.find(s => s.key === selectedSubject)!;
 
-  const playLessonAudio = (url: string) => {
+  const toggleLessonAudio = (url: string) => {
     if (!url) {
         alert("Audio non ancora disponibile per questa lezione.");
         return;
     }
-    const audio = new Audio(url);
-    audio.play().catch(e => console.error("Audio error", e));
+
+    if (audioRef.current && audioRef.current.src === url) {
+        if (isAudioPlaying) {
+            audioRef.current.pause();
+            setIsAudioPlaying(false);
+        } else {
+            audioRef.current.play().catch(e => console.error("Audio error", e));
+            setIsAudioPlaying(true);
+        }
+    } else {
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+        const audio = new Audio(url);
+        audio.onended = () => setIsAudioPlaying(false);
+        audio.play().catch(e => console.error("Audio error", e));
+        audioRef.current = audio;
+        setIsAudioPlaying(true);
+    }
   };
+
+  useEffect(() => {
+    return () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+    };
+  }, []);
 
   const handleQuizChoice = (idx: number) => {
     if (quizAnswer !== null) return;
@@ -71,6 +101,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             setQuizAnswer(null);
             setShowFeedback(false);
         }, 2000);
+    } else {
+        // Rimosso auto-chiusura modale: il bambino chiude con la X
     }
   };
 
@@ -80,12 +112,10 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
     return (
       <div className="fixed inset-0 z-[150] flex flex-col bg-white overflow-hidden animate-in slide-in-from-right">
-        {/* SFONDO PERSONALIZZATO PER MATERIE SPECIALI */}
         {isSpecialBook && (
             <img src={specialBg} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
         )}
 
-        {/* HEADER STANDARD (Nascosto se Speciale) */}
         {!isSpecialBook && (
             <div className={`${subjectInfo.color} p-4 md:p-6 flex items-center justify-between border-b-8 border-black/10 shrink-0 mt-[64px] md:mt-[96px] z-10`}>
                 <button onClick={onExit} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/30 transition-all">
@@ -98,7 +128,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             </div>
         )}
 
-        {/* TASTO CHIUDI PERSONALIZZATO PER MATERIE SPECIALI */}
         {isSpecialBook && (
             <button 
                 onClick={onExit} 
@@ -156,15 +185,13 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   // --- RENDERER: LEZIONE + QUIZ ---
   return (
       <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden animate-in zoom-in-95 duration-300">
-          {/* SFONDO PERSONALIZZATO */}
           {isSpecialBook && (
             <img src={specialBg} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
           )}
 
-          {/* HEADER STANDARD */}
           {!isSpecialBook && (
             <div className={`${subjectInfo.color} p-4 md:p-6 flex items-center justify-between border-b-8 border-black/10 shrink-0 mt-[64px] md:mt-[96px] z-10`}>
-                <button onClick={() => { setSelectedLesson(null); setQuizAnswer(null); setShowFeedback(false); }} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/30 transition-all">
+                <button onClick={() => { setSelectedLesson(null); setQuizAnswer(null); setShowFeedback(false); if (audioRef.current) { audioRef.current.pause(); setIsAudioPlaying(false); } }} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/30 transition-all">
                     <ChevronLeft size={32} strokeWidth={3} />
                 </button>
                 <div className="text-center">
@@ -174,84 +201,169 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                     </h2>
                 </div>
                 <button 
-                    onClick={() => playLessonAudio(selectedLesson.audioUrl)} 
+                    onClick={() => toggleLessonAudio(selectedLesson.audioUrl)} 
                     className="bg-yellow-400 p-3 rounded-full text-black hover:scale-110 active:scale-90 transition-all shadow-lg border-4 border-white"
                 >
-                    <Volume2 size={28} strokeWidth={2.5} />
+                    {isAudioPlaying ? <Pause size={28} strokeWidth={2.5} /> : <Volume2 size={28} strokeWidth={2.5} />}
                 </button>
             </div>
           )}
 
-          {/* TASTI CHIUDI E ASCOLTA PERSONALIZZATI */}
           {isSpecialBook && (
             <>
                 <button 
-                    onClick={() => { setSelectedLesson(null); setQuizAnswer(null); setShowFeedback(false); }}
+                    onClick={() => { setSelectedLesson(null); setQuizAnswer(null); setShowFeedback(false); if (audioRef.current) { audioRef.current.pause(); setIsAudioPlaying(false); } }}
                     className="fixed top-40 left-10 md:top-56 md:left-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                 >
                     <img src={CUSTOM_CLOSE_IMG} alt="Torna all'indice" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
                 </button>
                 <button 
-                    onClick={() => playLessonAudio(selectedLesson.audioUrl)} 
+                    onClick={() => toggleLessonAudio(selectedLesson.audioUrl)} 
                     className="fixed top-40 right-10 md:top-56 md:right-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                 >
-                    <img src={CUSTOM_LISTEN_IMG} alt="Ascolta" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
+                    <div className="relative">
+                        <img src={CUSTOM_LISTEN_IMG} alt="Ascolta" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
+                        {isAudioPlaying && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-black/20 rounded-full p-2">
+                                    <Pause size={24} className="text-white fill-white" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </button>
             </>
           )}
 
-          <div className={`flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar z-10 ${isSpecialBook ? 'pt-64 md:pt-72 bg-transparent' : 'bg-white'}`}>
-              <div className="max-w-3xl mx-auto flex flex-col gap-8 pb-32">
-                  {/* Testo Lezione */}
-                  <div className={`${isSpecialBook ? 'bg-white/40 backdrop-blur-sm border-white' : 'bg-white border-slate-100'} p-6 md:p-10 rounded-[3rem] border-4 shadow-xl relative overflow-hidden`}>
-                      {!isSpecialBook && <div className={`absolute top-0 left-0 w-3 h-full ${subjectInfo.color}`}></div>}
-                      <p className="text-slate-800 font-black text-lg md:text-3xl leading-relaxed whitespace-pre-wrap font-sans">
+          {/* Alzato il pt da 64/80 a 48/56 per salire di posizione */}
+          <div className={`flex-1 flex flex-col items-center z-10 overflow-hidden ${isSpecialBook ? 'pt-48 md:pt-56 bg-transparent' : 'bg-white pt-10'}`}>
+              <div className={`w-full max-w-4xl h-full flex flex-col items-center ${isSpecialBook ? 'px-14 md:px-32' : 'px-4'}`}>
+                  
+                  {/* Testo Lezione - Giustificato e Font ridotto per Special Books */}
+                  <div className={`w-full flex-1 flex flex-col items-center justify-center`}>
+                      {isSpecialBook && selectedLesson.id === 'it1_c1_l1' && (
+                          <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
+                              LE VOCALI
+                          </h2>
+                      )}
+                      {isSpecialBook && selectedLesson.id === 'it1_c2_l1' && (
+                          <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
+                              LE CONSONANTI
+                          </h2>
+                      )}
+                      {isSpecialBook && selectedLesson.id === 'it1_c3_l1' && (
+                          <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
+                              LE SILLABE
+                          </h2>
+                      )}
+                      <p className={`
+                        leading-relaxed whitespace-pre-wrap font-sans font-black
+                        ${isSpecialBook ? 'text-slate-800 text-base md:text-3xl text-justify' : 'text-center text-slate-700 text-lg md:text-2xl p-8 rounded-3xl bg-slate-50 border-2 border-slate-100 shadow-inner'}
+                      `}>
                           {selectedLesson.text}
                       </p>
                   </div>
 
-                  {/* Mini Quiz */}
-                  <div className={`${isSpecialBook ? 'bg-slate-800/80' : 'bg-slate-900'} p-6 md:p-10 rounded-[3rem] border-8 border-slate-700 shadow-2xl text-white`}>
-                      <div className="flex items-center gap-3 mb-6">
-                          <Star className="text-yellow-400 fill-yellow-400" size={28} />
-                          <h4 className="text-xl md:text-2xl font-black uppercase tracking-tighter">Mini Sfida! 🧠</h4>
+                  {/* Tasto Verifica (Solo per Special Books) - Alzato e spostato a sinistra, inclinato leggermente */}
+                  {isSpecialBook && (
+                      <div className="pb-24 md:pb-32 shrink-0 w-full flex justify-start -ml-4 md:-ml-24">
+                          <button 
+                            onClick={() => setIsExerciseOpen(true)}
+                            className="hover:scale-110 active:scale-95 transition-all outline-none rotate-[-3deg]"
+                          >
+                              <img src={CUSTOM_VERIFY_BTN} alt="Verifica" className="w-28 h-12 md:w-44 md:h-18 object-fill drop-shadow-xl rounded-xl" />
+                          </button>
                       </div>
-                      <p className="text-lg md:text-2xl font-bold mb-8 text-blue-200">{selectedLesson.quiz.question}</p>
-                      <div className="grid grid-cols-1 gap-4">
-                          {selectedLesson.quiz.options.map((opt, idx) => (
-                              <button 
-                                  key={idx}
-                                  onClick={() => handleQuizChoice(idx)}
-                                  className={`
-                                      p-5 rounded-2xl font-black text-lg md:text-xl border-4 transition-all text-left shadow-lg
-                                      ${quizAnswer === null ? 'bg-slate-800 border-slate-700 hover:border-blue-500 hover:bg-slate-700' : ''}
-                                      ${quizAnswer === idx && idx === selectedLesson.quiz.correctIndex ? 'bg-green-500 border-green-300 scale-105 shadow-green-500/50' : ''}
-                                      ${quizAnswer === idx && idx !== selectedLesson.quiz.correctIndex ? 'bg-red-500 border-red-300 animate-shake' : ''}
-                                  `}
-                              >
-                                  <span className="flex items-center gap-3">
-                                      <span className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center text-xs">{String.fromCharCode(65 + idx)}</span>
-                                      {opt}
-                                  </span>
-                              </button>
-                          ))}
-                      </div>
-                      {showFeedback && (
-                          <div className="mt-8 animate-in zoom-in">
-                              {quizAnswer === selectedLesson.quiz.correctIndex ? (
-                                  <div className="flex items-center gap-3 text-green-400 font-black text-xl md:text-2xl">
-                                      <CheckCircle size={40} /> <span>{selectedLesson.quiz.feedback}</span>
-                                  </div>
-                              ) : (
-                                  <div className="flex items-center gap-3 text-red-400 font-black text-xl md:text-2xl">
-                                      <XCircle size={40} /> <span>Ops! Riprova, ce la puoi fare! 💪</span>
-                                  </div>
-                              )}
+                  )}
+
+                  {/* Quiz Inline (Solo se NON Special) */}
+                  {!isSpecialBook && (
+                      <div className="w-full bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl text-white mb-20 mt-10">
+                          <div className="flex items-center gap-3 mb-6">
+                              <Star className="text-yellow-400 fill-yellow-400" size={24} />
+                              <h4 className="text-xl font-black uppercase tracking-tight">Mini Sfida!</h4>
                           </div>
-                      )}
-                  </div>
+                          <p className="text-lg font-bold mb-8 text-blue-200">{selectedLesson.quiz.question}</p>
+                          <div className="grid grid-cols-1 gap-4">
+                              {selectedLesson.quiz.options.map((opt, idx) => (
+                                  <button 
+                                      key={idx}
+                                      onClick={() => handleQuizChoice(idx)}
+                                      className={`
+                                          p-5 rounded-2xl font-black text-lg border-4 transition-all text-left
+                                          ${quizAnswer === null ? 'bg-slate-800 border-slate-700 hover:border-blue-500' : ''}
+                                          ${quizAnswer === idx && idx === selectedLesson.quiz.correctIndex ? 'bg-green-500 border-green-300 text-white' : ''}
+                                          ${quizAnswer === idx && idx !== selectedLesson.quiz.correctIndex ? 'bg-red-500 border-red-300 text-white animate-shake' : ''}
+                                      `}
+                                  >
+                                      {opt}
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+                  )}
               </div>
           </div>
+
+          {/* MODALE ESERCIZIO (Per Special Books) - Reso più compatto max-w-md */}
+          {isExerciseOpen && isSpecialBook && (
+              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                  <div className="bg-white w-full max-w-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 relative flex flex-col">
+                      <button 
+                        onClick={() => { setIsExerciseOpen(false); setQuizAnswer(null); setShowFeedback(false); }}
+                        className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"
+                      >
+                          <X size={24} strokeWidth={4} />
+                      </button>
+
+                      {/* Header con l'immagine del tasto Verifica */}
+                      <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
+                          <img src={CUSTOM_VERIFY_BTN} alt="Esercizio" className="h-10 md:h-16 w-auto object-contain" />
+                      </div>
+
+                      <div className="p-4 md:p-6 overflow-y-auto no-scrollbar flex-1 flex flex-col gap-3">
+                          {/* Domanda a capo automatico */}
+                          <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">
+                              {selectedLesson.quiz.question}
+                          </p>
+                          
+                          <div className="grid grid-cols-1 gap-2.5 mt-1">
+                              {selectedLesson.quiz.options.map((opt, idx) => (
+                                  <button 
+                                      key={idx}
+                                      onClick={() => handleQuizChoice(idx)}
+                                      className={`
+                                          p-2.5 rounded-[1.5rem] font-black text-lg md:text-xl border-4 transition-all text-left shadow-lg flex items-center gap-4
+                                          ${quizAnswer === null ? 'bg-slate-50 border-slate-200 text-blue-600 hover:border-blue-500 hover:bg-white' : ''}
+                                          ${quizAnswer === idx && idx === selectedLesson.quiz.correctIndex ? 'bg-green-500 border-green-700 text-white scale-102' : ''}
+                                          ${quizAnswer === idx && idx !== selectedLesson.quiz.correctIndex ? 'bg-red-500 border-red-700 text-white animate-shake' : (quizAnswer !== null ? 'opacity-50 border-slate-100 text-blue-600' : '')}
+                                      `}
+                                  >
+                                      <span className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-sm md:text-base shrink-0 ${quizAnswer === idx ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'}`}>
+                                          {String.fromCharCode(65 + idx)}
+                                      </span>
+                                      {opt}
+                                  </button>
+                              ))}
+                          </div>
+
+                          {showFeedback && (
+                              <div className="mt-2 p-3 rounded-[2rem] bg-blue-50 border-4 border-blue-200 animate-in zoom-in">
+                                  {quizAnswer === selectedLesson.quiz.correctIndex ? (
+                                      <div className="text-green-600 text-center">
+                                          <p className="font-black text-base md:text-lg uppercase tracking-tighter leading-tight">{selectedLesson.quiz.feedback}</p>
+                                      </div>
+                                  ) : (
+                                      <div className="text-red-600 text-center">
+                                          <p className="font-black text-base md:text-lg uppercase tracking-tighter">Ops! Riprova! 💪</p>
+                                      </div>
+                                  )}
+                              </div>
+                          )}
+                      </div>
+                  </div>
+              </div>
+          )}
       </div>
   );
 };

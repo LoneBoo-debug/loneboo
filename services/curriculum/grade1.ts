@@ -12,13 +12,13 @@ export const GRADE1_DATA: GradeCurriculumData = {
           {
             id: 'it1_c1_l1',
             title: 'Le amiche Vocali',
-            text: 'Le vocali sono cinque: A, E, I, O, U. Senza di loro le parole non possono cantare! \n\nA come Ape 🐝\nE come Elefante 🐘\nI come Isola 🏝️\nO come Orso 🐻\nU come Uccellino 🐦',
-            audioUrl: '',
+            text: 'Le vocali sono cinque amiche speciali:\nA, E, I, O, U.\nSono importanti perché senza di loro le parole non possono nascere.\nOgni vocale ha un suono diverso e vive dentro tantissime parole che usiamo ogni giorno.\nPer esempio, la A vive in casa, la E in elefante, la I in isola, la O in orso e la U in uva.\nQuando impariamo le vocali, iniziamo a leggere e scrivere le nostre prime parole.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T20_36_23_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Quali sono le vocali?',
-              options: ['A, B, C', 'A, E, I, O, U', '1, 2, 3'],
-              correctIndex: 1,
-              feedback: 'Bravissimo! Sono proprio loro! ✨'
+              question: 'Quali sono le 5 vocali amiche?',
+              options: ['A, E, I, O, U', 'A, B, C, D, E', '1, 2, 3, 4, 5'],
+              correctIndex: 0,
+              feedback: 'Bravissimo! Con queste 5 amiche puoi scrivere tantissime parole! ✨'
             }
           }
         ]
@@ -30,13 +30,13 @@ export const GRADE1_DATA: GradeCurriculumData = {
           {
             id: 'it1_c2_l1',
             title: 'Le lettere forti',
-            text: 'Le consonanti sono le lettere che hanno bisogno delle vocali per fare un suono dolce. \n\nB come Ballo 💃\nC come Cane 🐶\nD come Dado 🎲',
-            audioUrl: '',
+            text: 'Le consonanti sono tante e hanno bisogno delle vocali per parlare.\nDa sole fanno solo un piccolo rumore, ma insieme alle vocali diventano forti e chiare.\nLa M con la A diventa MA, la L con la U diventa LU.\nOgni parola è una squadra formata da consonanti e vocali che lavorano insieme.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T21_18_11_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Quale di queste è una consonante?',
-              options: ['A', 'E', 'B'],
-              correctIndex: 2,
-              feedback: 'Giusto! La B è una consonante! 🎈'
+              question: 'Di cosa hanno bisogno le consonanti per parlare?',
+              options: ['Delle vocali', 'Dei numeri', 'Di stare da sole'],
+              correctIndex: 0,
+              feedback: 'Giusto! Insieme alle vocali formano una squadra fortissima! 🎈'
             }
           }
         ]
@@ -48,13 +48,13 @@ export const GRADE1_DATA: GradeCurriculumData = {
           {
             id: 'it1_c3_l1',
             title: 'I mattoncini delle parole',
-            text: 'Quando una consonante incontra una vocale, nasce una sillaba! \n\nM + A = MA\nM + E = ME\n\nProviamo insieme: MA-RE!',
-            audioUrl: '',
+            text: 'Le sillabe sono piccoli pezzetti di parole.\nQuando diciamo una parola lentamente, possiamo sentire le sillabe una alla volta.\nLa parola PA-PA ha due sillabe, mentre CA-SA ne ha due diverse.\nDividere le parole in sillabe ci aiuta a leggere meglio e senza paura.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T21_27_01_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Cosa formano M + O?',
-              options: ['MO', 'MA', 'MU'],
+              question: 'In quante sillabe si divide la parola CA-SA?',
+              options: ['Due', 'Una', 'Quattro'],
               correctIndex: 0,
-              feedback: 'M-O... MO! Come una Mucca! 🐮'
+              feedback: 'Esatto! CA-SA sono due pezzetti di parola! 🏠'
             }
           }
         ]
