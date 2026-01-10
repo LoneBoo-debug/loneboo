@@ -27,6 +27,11 @@ const ColoringSection = lazy(() => import('./components/ColoringSection'));
 const SchoolSection = lazy(() => import('./components/SchoolSection'));
 const SchoolFirstFloor = lazy(() => import('./components/SchoolFirstFloor'));
 const SchoolSecondFloor = lazy(() => import('./components/SchoolSecondFloor'));
+const SchoolFirstGrade = lazy(() => import('./components/SchoolFirstGrade'));
+const SchoolSecondGrade = lazy(() => import('./components/SchoolSecondGrade'));
+const SchoolThirdGrade = lazy(() => import('./components/SchoolThirdGrade'));
+const SchoolFourthGrade = lazy(() => import('./components/SchoolFourthGrade'));
+const SchoolFifthGrade = lazy(() => import('./components/SchoolFifthGrade'));
 const CharactersPage = lazy(() => import('./components/CharactersPage'));
 const CityMap = lazy(() => import('./components/CityMap'));
 const RoomView = lazy(() => import('./components/RoomView')); 
@@ -139,6 +144,11 @@ const App: React.FC = () => {
                 {currentView === AppView.SCHOOL && <SchoolSection setView={setView} />}
                 {currentView === AppView.SCHOOL_FIRST_FLOOR && <SchoolFirstFloor setView={setView} />}
                 {currentView === AppView.SCHOOL_SECOND_FLOOR && <SchoolSecondFloor setView={setView} />}
+                {currentView === AppView.SCHOOL_FIRST_GRADE && <SchoolFirstGrade setView={setView} />}
+                {currentView === AppView.SCHOOL_SECOND_GRADE && <SchoolSecondGrade setView={setView} />}
+                {currentView === AppView.SCHOOL_THIRD_GRADE && <SchoolThirdGrade setView={setView} />}
+                {currentView === AppView.SCHOOL_FOURTH_GRADE && <SchoolFourthGrade setView={setView} />}
+                {currentView === AppView.SCHOOL_FIFTH_GRADE && <SchoolFifthGrade setView={setView} />}
                 {currentView === AppView.CHAT && <ChatWithBoo setView={setView} />}
                 {currentView === AppView.AI_MAGIC && <MagicEye />}
                 {currentView === AppView.SOUNDS && <SoundZone setView={setView} />}

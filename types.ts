@@ -1,3 +1,38 @@
+
+export enum SchoolSubject {
+  ITALIANO = 'ITALIANO',
+  MATEMATICA = 'MATEMATICA',
+  STORIA = 'STORIA',
+  GEOGRAFIA = 'GEOGRAFIA',
+  SCIENZE = 'SCIENZE'
+}
+
+export interface SchoolQuiz {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  feedback?: string;
+}
+
+export interface SchoolLesson {
+  id: string;
+  title: string;
+  text: string;
+  audioUrl: string; // URL del file MP3 fornito dall'utente
+  quiz: SchoolQuiz;
+}
+
+export interface SchoolChapter {
+  id: string;
+  title: string;
+  lessons: SchoolLesson[];
+}
+
+export interface GradeCurriculumData {
+  grade: number;
+  subjects: Record<SchoolSubject, SchoolChapter[]>;
+}
+
 export interface Video {
   id: string;
   title: string;
@@ -50,6 +85,13 @@ export enum AppView {
   SCHOOL = 'SCHOOL', // NEW: School Section
   SCHOOL_FIRST_FLOOR = 'SCHOOL_FIRST_FLOOR', // NEW: School First Floor
   SCHOOL_SECOND_FLOOR = 'SCHOOL_SECOND_FLOOR', // NEW: School Second Floor
+  
+  // VISTE CLASSI
+  SCHOOL_FIRST_GRADE = 'SCHOOL_FIRST_GRADE',
+  SCHOOL_SECOND_GRADE = 'SCHOOL_SECOND_GRADE',
+  SCHOOL_THIRD_GRADE = 'SCHOOL_THIRD_GRADE',
+  SCHOOL_FOURTH_GRADE = 'SCHOOL_FOURTH_GRADE',
+  SCHOOL_FIFTH_GRADE = 'SCHOOL_FIFTH_GRADE',
   
   // BOO HOUSE ROOMS
   BOO_GARDEN = 'BOO_GARDEN',
