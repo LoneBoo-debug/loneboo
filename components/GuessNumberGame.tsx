@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, RotateCcw, Trophy } from 'lucide-react';
 import { getProgress } from '../services/tokens';
@@ -192,7 +191,7 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
              )}
 
              {!isGameOver ? (
-                 <div className="flex flex-col items-center mt-56 md:mt-72 w-full animate-fade-in px-4 shrink-0">
+                 <div className="flex flex-col items-center mt-64 md:mt-80 w-full animate-fade-in px-4 shrink-0">
                      <div className="bg-white/20 backdrop-blur-[20px] py-2 px-6 md:py-3 md:px-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-row gap-6 items-center w-full max-w-[280px] md:max-w-[350px] justify-center">
                          <button 
                             onClick={handleGuess}

@@ -312,7 +312,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         {isLoaded && (
             <>
                 {/* DECORAZIONE TOP RIGHT RICHIESTA - MODIFICATA (SPOSTATA PIÙ A SINISTRA) */}
-                <div className="absolute top-20 md:top-28 right-12 md:right-20 z-30 pointer-events-none animate-in fade-in slide-in-from-right duration-700">
+                <div className="absolute top-14 md:top-20 right-12 md:right-20 z-30 pointer-events-none animate-in fade-in slide-in-from-right duration-700">
                     <img 
                         src={DECOR_IMAGE_TOP_RIGHT} 
                         alt="Decorazione Parco" 

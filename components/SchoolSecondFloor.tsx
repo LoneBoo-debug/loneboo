@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -79,16 +80,6 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
             {/* UI LAYER */}
             {isLoaded && (
                 <>
-                    {/* TASTO CHIUDI (TOP RIGHT ADATTIVO) */}
-                    <div className="absolute top-[12%] right-[5%] z-50">
-                        <button 
-                            onClick={() => setView(AppView.SCHOOL_FIRST_FLOOR)} 
-                            className="hover:scale-110 active:scale-95 transition-all outline-none w-[12vw] md:w-[6vw] max-w-[80px]"
-                        >
-                            <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-full h-auto drop-shadow-2xl" />
-                        </button>
-                    </div>
-
                     {/* FUMETTO FISSO IN BASSO A DESTRA (ABBASSATO AL 6%) */}
                     <div className="absolute bottom-[6%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
