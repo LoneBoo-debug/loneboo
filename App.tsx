@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
 import { AppView } from './types';
 import { OFFICIAL_LOGO } from './constants';
+import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 
 const InstallPWA = lazy(() => import('./components/InstallPWA')); 
 const BedtimeOverlay = lazy(() => import('./components/BedtimeOverlay'));
@@ -77,6 +79,27 @@ const App: React.FC = () => {
     } else if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
       setView(viewParam as AppView);
     }
+  }, []);
+
+  // --- WAKE LOCK MANAGEMENT ---
+  useEffect(() => {
+    // Richiedi il blocco all'avvio
+    requestWakeLock();
+
+    // Gestione visibilità: se l'utente torna sull'app dopo averla minimizzata, 
+    // il blocco va ri-acquisito.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      releaseWakeLock();
+    };
   }, []);
 
   useEffect(() => {

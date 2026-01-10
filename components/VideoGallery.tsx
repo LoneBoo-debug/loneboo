@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VIDEOS } from '../constants';
 import { Video, AppView } from '../types';
@@ -55,9 +56,18 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
     return () => { isMounted.current = false; };
   }, [initGallery]);
 
+  // Gestione rotazione immersiva: Solo quando un video è aperto
   useEffect(() => {
-    if (selectedVideo) document.body.classList.add('allow-landscape');
-    else document.body.classList.remove('allow-landscape');
+    if (selectedVideo) {
+        document.body.classList.add('allow-landscape');
+    } else {
+        document.body.classList.remove('allow-landscape');
+    }
+    
+    // Cleanup quando si esce dalla gallery o si smonta il componente
+    return () => {
+        document.body.classList.remove('allow-landscape');
+    };
   }, [selectedVideo]);
 
   useEffect(() => {

@@ -27,7 +27,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ onClose, onUnlock, onOpenNews
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-md p-4 pt-16 md:pt-24 animate-in fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in" onClick={onClose}>
             <div className="bg-white w-full max-w-md rounded-[40px] border-8 border-purple-600 p-5 md:p-6 relative shadow-[0_0_50px_rgba(147,51,234,0.5)] text-center" onClick={e => e.stopPropagation()}>
                 
                 <button onClick={onClose} className="absolute top-4 right-4 hover:scale-110 active:scale-95 transition-all outline-none z-10">

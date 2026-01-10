@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import SoundLayout from './SoundLayout';
 
@@ -20,18 +19,18 @@ const DJ_BASES: DjBase[] = [
 ];
 
 const DJ_EFFECTS = [
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/explo.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/campanello.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/papera+gommosa.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/tromba+stadio.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/elastico.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/blea.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/molla.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/boom+cartoon.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/ahia.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/campana.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/stromba.mp3',
-    'https://loneboo-images.s3.eu-south-1.amazonaws.com/rutto.mp3'
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/explo.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/demdisco.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/campanello.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/doorbelldicscodd.jpg' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/papera+gommosa.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rubberdiscobell.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tromba+stadio.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stadiumhornsudsic.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elastico.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rubberdisco55.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/blea.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tonguedicsco66.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/molla.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boingicsoc44.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boom+cartoon.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartoonexpldisco44.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ahia.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hurtdiscodj33.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/campana.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gojingdisco55.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stromba.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defetat+disco66.webp' },
+    { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rutto.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/burpdisco77.webp' }
 ];
 
 const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -77,7 +76,8 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     return (
         <SoundLayout onBack={onBack} backgroundImage={DJ_BG}>
-            <div className="absolute top-14 md:top-20 left-0 right-0 flex flex-col items-center p-4 z-40 gap-4 md:gap-6 overflow-y-auto max-h-[85vh] no-scrollbar">
+            {/* Alzato ulteriormente diminuendo i valori di top (da 10/14 a 6/10) */}
+            <div className="absolute top-6 md:top-10 left-0 right-0 flex flex-col items-center p-4 z-40 gap-4 md:gap-6 overflow-y-auto max-h-[85vh] no-scrollbar">
                 
                 {/* BOX DELLE BASI */}
                 <div className="bg-white/10 backdrop-blur-xl rounded-[2.5rem] border-2 border-white/20 p-4 md:p-6 shadow-2xl animate-in slide-in-from-top duration-500 w-full max-w-6xl shrink-0">
@@ -112,15 +112,19 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div className="bg-white/10 backdrop-blur-xl rounded-[2.5rem] border-2 border-white/20 p-4 md:p-6 shadow-2xl animate-in slide-in-from-top duration-700 w-full max-w-2xl shrink-0">
                     <h3 className="text-white font-black text-xs md:text-sm uppercase tracking-widest mb-4 opacity-70 text-center md:text-left">Effetti Sonori</h3>
                     <div className="grid grid-cols-4 gap-3 md:gap-6 items-center justify-items-center">
-                        {DJ_EFFECTS.map((src, idx) => (
+                        {DJ_EFFECTS.map((effect, idx) => (
                             <button
                                 key={idx}
-                                onClick={() => playEffect(src)}
-                                className="w-full aspect-square md:aspect-video flex items-center justify-center bg-yellow-400 border-b-4 border-yellow-600 rounded-xl md:rounded-2xl transition-all hover:scale-105 active:translate-y-1 active:border-b-0 shadow-lg group outline-none"
+                                onClick={() => playEffect(effect.src)}
+                                className="w-full aspect-[3/4] flex items-center justify-center bg-yellow-400 border-b-4 border-yellow-600 rounded-xl md:rounded-2xl transition-all hover:scale-105 active:translate-y-1 active:border-b-0 shadow-lg group outline-none overflow-hidden"
                             >
-                                <span className="font-luckiest text-2xl md:text-4xl text-black drop-shadow-sm group-hover:scale-110 transition-transform">
-                                    {idx + 1}
-                                </span>
+                                {effect.img ? (
+                                    <img src={effect.img} alt={`Effetto ${idx + 1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="font-luckiest text-2xl md:text-4xl text-black drop-shadow-sm group-hover:scale-110 transition-transform">
+                                        {idx + 1}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>

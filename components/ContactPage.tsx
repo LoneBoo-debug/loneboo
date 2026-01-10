@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Mail, MessageSquare, Handshake, Info, X, ExternalLink } from 'lucide-react';
 import { AppView } from '../types';
@@ -58,9 +59,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ setView }) => {
                     <h3 className="text-2xl font-black text-gray-800">Partnership</h3>
                 </div>
                 <p className="text-gray-600 font-bold mb-4 leading-relaxed text-sm">Sei un creatore o un'azienda e vuoi collaborare con il mondo di Lone Boo?</p>
-                <div className="bg-purple-50 text-purple-700 font-mono font-bold py-2 px-4 rounded-lg inline-flex items-center gap-2 border border-purple-200">
+                <a href="mailto:business@loneboo.online" className="bg-purple-50 text-purple-700 font-mono font-bold py-2 px-4 rounded-lg inline-flex items-center gap-2 border border-purple-200 hover:bg-purple-100 transition-colors">
                     <Mail size={16} /> business@loneboo.online
-                </div>
+                </a>
             </div>
 
             <div className="bg-white/50 backdrop-blur-md rounded-[30px] border-4 border-white p-6 shadow-xl md:col-span-2">

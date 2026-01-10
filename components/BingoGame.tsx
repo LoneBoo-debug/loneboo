@@ -99,7 +99,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
     if (audioCtx.current.state === 'suspended') audioCtx.current.resume();
   };
 
-  const playSfx = useCallback((type: 'PLIN' | 'YEAH' | 'FANFARE') => {
+  const playSfx = useCallback((type: 'PLIN' | 'YEAH' | 'FANFARE' | 'MARK') => {
     if (!sfxEnabled) return;
     initAudio();
     const ctx = audioCtx.current!;
@@ -115,6 +115,16 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
       osc.connect(gain).connect(ctx.destination);
       osc.start();
       osc.stop(now + 0.1);
+    } else if (type === 'MARK') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(now + 0.05);
     } else if (type === 'YEAH') {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -201,63 +211,94 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
   };
 
   const checkWins = useCallback((updatedPlayers: Player[]) => {
-    const newPrizes = [...prizeHistory];
-    let wonTokens = 0;
+    setPrizeHistory(prevPrizes => {
+        const newPrizes = [...prevPrizes];
+        let wonTokens = 0;
+        let claimedSomething = false;
 
-    PRIZES.forEach(prize => {
-      if (newPrizes.find(p => p.prizeId === prize.id)) return;
+        PRIZES.forEach(prize => {
+          if (newPrizes.find(p => p.prizeId === prize.id)) return;
 
-      const currentWinners = updatedPlayers.filter(player => {
-        if (prize.id === 'TOMBOLA') {
-          return player.marked.flat().filter(Boolean).length === 15;
-        } else {
-          return player.marked.some(row => row.filter(Boolean).length === prize.count);
-        }
-      });
+          const currentWinners = updatedPlayers.filter(player => {
+            if (prize.id === 'TOMBOLA') {
+              return player.marked.flat().filter(Boolean).length === 15;
+            } else {
+              return player.marked.some(row => row.filter(Boolean).length === prize.count);
+            }
+          });
 
-      if (currentWinners.length > 0) {
-        const luckyWinner = currentWinners.find(w => w.id === 'player') || 
-                            currentWinners[Math.floor(Math.random() * currentWinners.length)];
-        
-        newPrizes.push({ prizeId: prize.id, winnerName: luckyWinner.name });
-        
-        setIsPaused(true); // Mette in pausa l'estrazione per celebrare
+          if (currentWinners.length > 0) {
+            const luckyWinner = currentWinners.find(w => w.id === 'player') || 
+                                currentWinners[Math.floor(Math.random() * currentWinners.length)];
+            
+            newPrizes.push({ prizeId: prize.id, winnerName: luckyWinner.name });
+            claimedSomething = true;
 
-        if (luckyWinner.id === 'player') {
-          wonTokens += prize.tokens;
-          playSfx('FANFARE');
-          triggerVictoryExplosion();
-          setLastPlayerPrize(prize.label);
-          
-          if (prize.id === 'TOMBOLA') {
-              setTimeout(() => setIsGameOver(true), 4000);
-          } else {
-              setTimeout(() => {
-                setLastPlayerPrize(null);
-                setIsPaused(false);
-              }, 3000);
+            if (luckyWinner.id === 'player') {
+              wonTokens += prize.tokens;
+              playSfx('FANFARE');
+              triggerVictoryExplosion();
+              setLastPlayerPrize(prize.label);
+              
+              if (prize.id === 'TOMBOLA') {
+                  setTimeout(() => setIsGameOver(true), 4000);
+              } else {
+                  setIsPaused(true);
+                  setTimeout(() => {
+                    setLastPlayerPrize(null);
+                    setIsPaused(false);
+                  }, 3000);
+              }
+            } else {
+              playSfx('YEAH');
+              setWinningOpponentId(luckyWinner.id);
+              
+              if (prize.id === 'TOMBOLA') {
+                  setTimeout(() => setIsGameOver(true), 4000);
+              } else {
+                  setIsPaused(true);
+                  setTimeout(() => {
+                    setWinningOpponentId(null);
+                    setIsPaused(false);
+                  }, 3000);
+              }
+            }
           }
-        } else {
-          playSfx('YEAH');
-          setWinningOpponentId(luckyWinner.id);
-          
-          if (prize.id === 'TOMBOLA') {
-              setTimeout(() => setIsGameOver(true), 4000);
-          } else {
-              setTimeout(() => {
-                setWinningOpponentId(null);
-                setIsPaused(false);
-              }, 3000);
-          }
-        }
-      }
+        });
+
+        if (wonTokens > 0) onEarnTokens(wonTokens);
+        return newPrizes;
     });
+  }, [onEarnTokens, playSfx]);
 
-    if (wonTokens > 0) onEarnTokens(wonTokens);
-    if (newPrizes.length !== prizeHistory.length) {
-        setPrizeHistory(newPrizes);
-    }
-  }, [prizeHistory, onEarnTokens, playSfx]);
+  const handleMarkNumber = (rowIdx: number, colIdx: number) => {
+    if (!isPlaying || isGameOver || isPaused) return;
+    
+    setPlayers(currentPlayers => {
+        const player = currentPlayers.find(p => p.id === 'player');
+        if (!player) return currentPlayers;
+        
+        const num = player.card[rowIdx][colIdx];
+        if (num === 0 || player.marked[rowIdx][colIdx]) return currentPlayers;
+        
+        // Verifica se il numero è stato effettivamente estratto
+        if (extractedNumbers.includes(num)) {
+            playSfx('MARK');
+            const nextPlayers = currentPlayers.map(p => {
+                if (p.id === 'player') {
+                    const newMarked = p.marked.map((row, r) => 
+                        row.map((m, c) => (r === rowIdx && c === colIdx) ? true : m)
+                    );
+                    return { ...p, marked: newMarked };
+                }
+                return p;
+            });
+            checkWins(nextPlayers);
+            return nextPlayers;
+        }
+        return currentPlayers;
+    });
+  };
 
   const extract = useCallback(() => {
     if (isGameOver || isPaused) return;
@@ -274,11 +315,15 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
       const newExtracted = [...prev, next];
 
       setPlayers(currentPlayers => {
+        // Solo gli avversari segnano automaticamente
         const nextPlayers = currentPlayers.map(p => {
-          const newMarked = p.marked.map((row, r) => 
-            row.map((m, c) => m || p.card[r][c] === next)
-          );
-          return { ...p, marked: newMarked };
+          if (p.id !== 'player') {
+              const newMarked = p.marked.map((row, r) => 
+                row.map((m, c) => m || p.card[r][c] === next)
+              );
+              return { ...p, marked: newMarked };
+          }
+          return p;
         });
         checkWins(nextPlayers);
         return nextPlayers;
@@ -441,7 +486,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                  })}
               </div>
 
-              {/* PLAYER CARD */}
+              {/* PLAYER CARD - DIMENSIONI VERTICALI AUMENTATE */}
               {currentPlayer && (
                 <div className="w-full max-w-3xl bg-orange-50 p-2 md:p-8 rounded-[2.5rem] border-4 md:border-[12px] border-orange-600 shadow-2xl animate-in slide-in-from-bottom mt-10 md:mt-24 relative">
                   
@@ -459,18 +504,32 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
 
                   <div className="grid grid-cols-9 gap-1.5 md:gap-3 bg-orange-200 p-1.5 md:p-3 rounded-2xl shadow-inner">
                     {currentPlayer.card.map((row, r) => (
-                      row.map((num, c) => (
-                        <div key={`${r}-${c}`} className={`aspect-square rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${num === 0 ? 'bg-orange-300/30' : 'bg-white shadow-md border border-orange-300'}`}>
-                           {num !== 0 && (
-                             <span className="text-2xl md:text-5xl font-black text-blue-900 leading-none">{num}</span>
-                           )}
-                           {currentPlayer.marked[r][c] && (
-                             <div className="absolute inset-0 bg-red-600/10 flex items-center justify-center animate-in zoom-in duration-300 z-10">
-                                <span className="text-4xl md:text-8xl font-black text-red-600/70 select-none pointer-events-none">X</span>
-                             </div>
-                           )}
-                        </div>
-                      ))
+                      row.map((num, c) => {
+                        const isMarked = currentPlayer.marked[r][c];
+                        const canMark = num !== 0 && extractedNumbers.includes(num);
+
+                        return (
+                            <button 
+                                key={`${r}-${c}`} 
+                                onClick={() => handleMarkNumber(r, c)}
+                                disabled={num === 0 || isMarked || isPaused || isGameOver}
+                                className={`
+                                    aspect-[1/1.4] md:aspect-square rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 
+                                    ${num === 0 ? 'bg-orange-300/30 cursor-default' : 'bg-white shadow-md border border-orange-300 active:scale-90'}
+                                    ${canMark && !isMarked ? 'ring-4 ring-yellow-400 animate-pulse z-20 shadow-[0_0_15px_gold]' : ''}
+                                `}
+                            >
+                               {num !== 0 && (
+                                 <span className="text-2xl md:text-5xl font-black text-blue-900 leading-none">{num}</span>
+                               )}
+                               {isMarked && (
+                                 <div className="absolute inset-0 bg-red-600/10 flex items-center justify-center animate-in zoom-in duration-300 z-10">
+                                    <span className="text-4xl md:text-8xl font-black text-red-600/70 select-none pointer-events-none">X</span>
+                                 </div>
+                               )}
+                            </button>
+                        );
+                      })
                     ))}
                   </div>
                 </div>
@@ -498,7 +557,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
       {/* GAME OVER MODAL */}
       {isGameOver && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in zoom-in duration-300">
-          <div className="bg-white p-8 rounded-[40px] border-8 border-yellow-400 shadow-[0_0_50px_rgba(250,204,21,0.5)] text-center max-sm w-full relative">
+          <div className="bg-white p-8 rounded-[40px] border-8 border-orange-500 shadow-[0_0_50px_rgba(250,204,21,0.5)] text-center max-sm w-full relative">
              <img src={START_HEADER_IMG} alt="Vittoria" className="h-32 md:h-40 w-auto mx-auto mb-4" />
              <h2 className="text-3xl font-black text-gray-800 mb-2 uppercase font-luckiest">Gara Finita!</h2>
              

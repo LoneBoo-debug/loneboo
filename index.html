@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
   <head>
@@ -57,7 +58,7 @@
         height: 100dvh;
       }
 
-      /* ORIENTATION GUARD CSS - SOLO PER DISPOSITIVI MOBILE TOUCH */
+      /* ORIENTATION GUARD CSS - BLOCCANTE PER MOBILE TOUCH */
       #orientation-guard {
         display: none;
         position: fixed;
@@ -74,7 +75,7 @@
 
       /* 
          Attiva il blocco solo se l'orientamento è landscape 
-         E il dispositivo usa un puntatore "coarse" (touch mobile)
+         E il corpo NON ha la classe .allow-landscape (usata per il Piano o i Video a tutto schermo)
       */
       @media (orientation: landscape) and (pointer: coarse) {
         body:not(.allow-landscape) #orientation-guard {
@@ -82,6 +83,13 @@
         }
         body:not(.allow-landscape) #root {
           display: none;
+        }
+      }
+
+      /* IMMERSIVE MODE: Nasconde l'header globale quando la rotazione è autorizzata */
+      @media (orientation: landscape) {
+        body.allow-landscape header {
+          display: none !important;
         }
       }
 
@@ -104,6 +112,7 @@
 
       window.addEventListener('touchstart', function() {
         if (window.innerHeight < window.innerWidth) {
+          // Solo se siamo già in orizzontale cerchiamo di andare in fullscreen
           toggleFullScreen();
         }
       }, false);

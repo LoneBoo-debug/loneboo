@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { COLORING_DATABASE } from '../services/coloringDatabase';
 import { ColoringCategory, AppView } from '../types';
@@ -7,7 +8,8 @@ import { OFFICIAL_LOGO } from '../constants';
 const SCHOOL_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/academy-mobile.webp';
 const BTN_BACK_ACCADEMIA_IMG = 'https://i.postimg.cc/sDLjTmQX/TORNACCADEMIA-(1)-(1).png';
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
-const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gotoschoolarcoiu.webp';
+const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaia+scuola.png';
+const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; name: string; points: Point[]; };
@@ -145,6 +147,24 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 />
             ))}
         </div>
+
+        {/* --- TASTO TORNA IN CITTÀ (IN BASSO A SINISTRA) --- */}
+        {isLoaded && (
+            <div 
+                className="absolute bottom-[4%] left-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
+            >
+                <button 
+                    onClick={() => setView(AppView.CITY_MAP)}
+                    className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
+                >
+                    <img 
+                        src={BTN_BACK_CITY_IMG} 
+                        alt="Torna in Città" 
+                        className="w-full h-auto drop-shadow-2xl"
+                    />
+                </button>
+            </div>
+        )}
 
         {/* --- TASTO VAI A SCUOLA (IN BASSO A DESTRA) - GRANDE E ADATTIVO --- */}
         {isLoaded && (

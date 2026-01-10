@@ -18,7 +18,7 @@ const SoundLayout: React.FC<SoundLayoutProps> = ({ onBack, children, isAnimalMod
     const finalBg = backgroundImage || (isAnimalMode ? ANIMAL_ORCHESTRA_BG : null);
 
     return (
-        <div className={`fixed inset-0 animate-in fade-in z-0 ${!finalBg ? 'bg-gray-900/95 backdrop-blur-sm' : 'bg-black'}`}>
+        <div className={`fixed inset-0 animate-in fade-in z-0 landscape:z-[150] ${!finalBg ? 'bg-gray-900/95 backdrop-blur-sm' : 'bg-black'}`}>
             {finalBg && (
                 <img src={finalBg} className="absolute inset-0 w-full h-full object-cover z-0 opacity-80" alt="" />
             )}

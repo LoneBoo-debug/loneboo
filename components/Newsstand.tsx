@@ -454,7 +454,7 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
                 )}
 
                 {activeTab === 'PASSPORT' && (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-8 overflow-hidden relative">
+                    <div className="w-full h-full flex flex-col items-center justify-start p-4 gap-4 md:gap-6 overflow-hidden relative">
                         <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
                         
                         {/* ALERT STATUS OVERLAY */}
@@ -467,8 +467,15 @@ const Newsstand: React.FC<NewsstandProps> = ({ setView }) => {
 
                         <div className="flex-1 w-full flex items-center justify-center min-h-0 relative mt-2">
                             <div className="relative shadow-2xl rounded-xl border-4 border-white overflow-hidden flex justify-center items-center bg-white/20 max-h-full">
-                                <img src={currentCardBg} className="block w-auto h-auto max-w-full max-h-[50vh] md:max-h-[60vh] object-contain pointer-events-none" alt="Tessera" />
+                                <img src={currentCardBg} className="block w-auto h-auto max-w-full max-h-[45vh] md:max-h-[55vh] object-contain pointer-events-none" alt="Tessera" />
                             </div>
+                        </div>
+
+                        {/* TESTO INFORMATIVO SALVATAGGIO */}
+                        <div className="w-full max-w-[500px] bg-black/50 backdrop-blur-md p-3 md:p-4 rounded-2xl border-2 border-white/20 shadow-lg animate-in slide-in-from-bottom-2">
+                             <p className="text-white font-black text-[10px] md:text-xs text-center leading-relaxed uppercase tracking-tight">
+                                <span className="text-yellow-400">💡 CONSIGLIO:</span> GENERA LA TUA TESSERA PER SALVARE I DATI! SE CAMBI DISPOSITIVO O CANCELLI LA CRONOLOGIA, POTRAI RECUPERARE GETTONI E FIGURINE SCANSIONANDOLA.
+                             </p>
                         </div>
 
                         {/* Pulsanti alzati ulteriormente con pb-24 */}

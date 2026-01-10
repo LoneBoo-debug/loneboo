@@ -103,6 +103,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                         // Logica Dimensioni Desktop
                         let dWidth = 'md:w-64';
                         if (loc.id === AppView.SOUNDS) dWidth = 'md:w-40';
+                        else if (loc.id === AppView.SCHOOL) dWidth = 'md:w-40'; // Dimensione visibile per Desktop
                         else if ([AppView.VIDEOS, AppView.PLAY, AppView.AI_MAGIC].includes(loc.id)) dWidth = 'md:w-48';
                         else if (loc.id === AppView.SOCIALS) dWidth = 'md:w-48'; 
                         else if (loc.id === AppView.BOOKS) dWidth = 'md:w-56';
@@ -113,6 +114,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                         // Logica Dimensioni Mobile
                         let mWidth = 'w-32';
                         if (loc.id === AppView.SOUNDS) mWidth = 'w-20';
+                        else if (loc.id === AppView.SCHOOL) mWidth = 'w-24'; // Dimensione visibile per Mobile
                         else if (loc.id === AppView.VIDEOS) mWidth = 'w-24';
                         else if ([AppView.PLAY, AppView.AI_MAGIC, AppView.COLORING].includes(loc.id)) mWidth = 'w-[100px]';
                         else if (loc.id === AppView.SOCIALS) mWidth = 'w-24'; 
@@ -136,7 +138,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                                     <img 
                                         src={loc.bubbleImg} 
                                         alt={loc.label} 
-                                        className={`${mWidth} ${dWidth} h-auto drop-shadow-xl animate-cloud-breath flex-shrink-0 max-w-none transition-opacity duration-500 ${showBubbles ? 'opacity-100' : 'opacity-0'}`} 
+                                        className={`${mWidth} ${dWidth} h-auto drop-shadow-xl animate-cloud-breath flex-shrink-0 transition-opacity duration-500 ${showBubbles ? 'opacity-100' : 'opacity-0'} ${loc.id !== AppView.SCHOOL ? 'max-w-none' : ''}`} 
                                         style={{ animationDelay: bubbleDelays[idx] }}
                                         onError={handleImageError}
                                     />

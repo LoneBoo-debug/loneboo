@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RotateCcw, LogOut } from 'lucide-react';
+import { RotateCcw, LogOut, Music, Music2 } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
@@ -16,6 +17,7 @@ const WHACK_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/acchiasfbgv
 const DEFEAT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/time-out.webp';
 const VICTORY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-hug.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/suspense-in-the-wood-360052.mp3';
 
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -38,18 +40,46 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+
   const timerRef = useRef<any>(null);
   const ghostStayTimer = useRef<any>(null);
   const nextGhostTimer = useRef<any>(null);
   const isPlayingRef = useRef(false);
   const difficultyRef = useRef<Difficulty | null>(null);
+  const bgMusic = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+
+      // Initialize Background Music
+      bgMusic.current = new Audio(BG_MUSIC_URL);
+      bgMusic.current.loop = true;
+      bgMusic.current.volume = 0.4;
+
+      return () => {
+          if (bgMusic.current) {
+              bgMusic.current.pause();
+              bgMusic.current = null;
+          }
+      };
   }, []);
+
+  // Handle Music Playback based on game state
+  useEffect(() => {
+      if (bgMusic.current) {
+          if (musicEnabled && isPlaying && !gameResult) {
+              bgMusic.current.play().catch(() => {
+                  console.log("Interaction required for music playback");
+              });
+          } else {
+              bgMusic.current.pause();
+          }
+      }
+  }, [musicEnabled, isPlaying, gameResult]);
 
   useEffect(() => { isPlayingRef.current = isPlaying; difficultyRef.current = difficulty; }, [isPlaying, difficulty]);
   useEffect(() => { if (showUnlockModal) { const p = getProgress(); setUserTokens(p.tokens); } }, [showUnlockModal]);
@@ -161,7 +191,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
-      {/* CONTENSingle player - HUD SUPERIORE */}
+      {/* CONTROLLI HUD LATERALE */}
       <div className="fixed top-[110px] md:top-[160px] left-4 z-[200] flex flex-col items-start gap-2 pointer-events-auto">
           {difficulty && (
               <button 
@@ -172,6 +202,17 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
                   <img src={BTN_BACK_MENU_IMG} alt="Cambia Livello" className="h-16 md:h-22 w-auto" />
               </button>
           )}
+      </div>
+
+      {/* TASTO MUSICA (ALTO A DESTRA, SOTTO IL CONTATORE GLOBALE) */}
+      <div className="absolute top-[130px] md:top-[170px] right-4 z-[300] flex flex-col items-end gap-3 pointer-events-none">
+          <button 
+              onClick={() => setMusicEnabled(!musicEnabled)}
+              className="bg-black/40 backdrop-blur-md p-2.5 rounded-full border-2 border-white/50 text-white shadow-xl pointer-events-auto hover:scale-110 active:scale-95 transition-all"
+              title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+          >
+              {musicEnabled ? <Music2 size={20} /> : <Music size={20} className="opacity-50" />}
+          </button>
       </div>
 
       {/* AREA DI GIOCO */}

@@ -3,7 +3,7 @@ import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 
 const SCHOOL_SPLASH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashscreeschoolarco.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
 
 interface SchoolSectionProps {
     setView: (view: AppView) => void;
@@ -79,13 +79,19 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
             {/* UI LAYER */}
             {isLoaded && (
                 <>
-                    {/* TASTO CHIUDI (TOP RIGHT ADATTIVO) */}
-                    <div className="absolute top-[12%] right-[5%] z-50">
+                    {/* TASTO TORNA IN CITTÀ (IN BASSO A SINISTRA) */}
+                    <div 
+                        className="absolute bottom-[4%] left-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
+                    >
                         <button 
-                            onClick={() => setView(AppView.COLORING)} 
-                            className="hover:scale-110 active:scale-95 transition-all outline-none w-[12vw] md:w-[6vw] max-w-[80px]"
+                            onClick={() => setView(AppView.CITY_MAP)}
+                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
                         >
-                            <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-full h-auto drop-shadow-2xl" />
+                            <img 
+                                src={BTN_BACK_CITY_IMG} 
+                                alt="Torna in Città" 
+                                className="w-full h-auto drop-shadow-2xl"
+                            />
                         </button>
                     </div>
 

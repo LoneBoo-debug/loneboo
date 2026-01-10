@@ -1,14 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
-import { RefreshCw, Trophy, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { RefreshCw, Trophy, ArrowRight, Music, Music2 } from 'lucide-react';
 import { getProgress } from '../services/tokens';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const RPS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rps-morra-bg.webp';
-const BTN_NEXT_ROUND_IMG = 'https://i.postimg.cc/XYkkds7t/proxround-(1)-(1).png';
+const BTN_NEXT_ROUND_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/proxround453422.webp';
+const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
 
 const PLAYER_SCORE_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gfghgf-(1).webp';
 const MONSTER_SCORE_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monstffderd.webp';
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/funny-suspenseful-cartoon-style-music-336055.mp3';
 
 // STYLE FOR NEON GREEN OUTLINE (FOLLOWS PNG BORDER)
 const IMG_GLOW = 'drop-shadow(0 0 3px #39FF14) drop-shadow(0 0 6px #39FF14)';
@@ -42,13 +44,43 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   const [computerChoice, setComputerChoice] = useState<string | null>(null);
   const [turnResult, setTurnResult] = useState<string | null>(null);
   const [userTokens, setUserTokens] = useState(0);
+  
+  // Music States
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [firstMoveMade, setFirstMoveMade] = useState(false);
+  const bgMusic = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
+
+      // Setup background music
+      bgMusic.current = new Audio(BG_MUSIC_URL);
+      bgMusic.current.loop = true;
+      bgMusic.current.volume = 0.4;
+
+      return () => {
+          if (bgMusic.current) {
+              bgMusic.current.pause();
+              bgMusic.current = null;
+          }
+      };
   }, []);
 
+  // Music playback effect - Adjusted to continue during ROUND_OVER
+  useEffect(() => {
+      if (bgMusic.current) {
+          if (musicEnabled && firstMoveMade && (gameState === 'PLAYING' || gameState === 'ROUND_OVER')) {
+              bgMusic.current.play().catch(e => console.log("Audio play blocked", e));
+          } else {
+              bgMusic.current.pause();
+          }
+      }
+  }, [musicEnabled, firstMoveMade, gameState]);
+
   const handleChoice = (choiceName: string) => {
+    if (!firstMoveMade) setFirstMoveMade(true);
+    
     const randomChoice = choices[Math.floor(Math.random() * choices.length)];
     setIsShaking(true);
 
@@ -125,6 +157,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
       setTurnResult(null);
       setRewardGiven(false);
       setGameState('PLAYING');
+      setFirstMoveMade(false);
   };
 
   useEffect(() => {
@@ -164,7 +197,9 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                   </>
               ) : (
                   <>
-                    <div className="text-6xl mb-4">👹</div>
+                    <div className="mb-4">
+                        <img src={MONSTER_SCORE_ICON} alt="Mostro" className="h-40 md:h-56 w-auto object-contain drop-shadow-xl" />
+                    </div>
                     <h2 className="text-3xl font-black text-orange-500 text-center mb-1">OH NO!</h2>
                     <p className="text-white text-lg font-bold mb-6">Il Mostro Sasso ha vinto.</p>
                   </>
@@ -181,12 +216,12 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                   </div>
               </div>
 
-              <div className="flex flex-col gap-2 w-full max-w-xs items-center">
-                  <button onClick={resetGame} className="w-full bg-boo-green text-white font-black text-lg px-6 py-2 rounded-full border-4 border-black shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2">
-                      <RefreshCw size={20} /> RIVINCITA
+              <div className="flex flex-row gap-3 w-full max-w-sm justify-center items-center">
+                  <button onClick={resetGame} className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none">
+                      <img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" />
                   </button>
-                  <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform mt-2">
-                      <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto" />
+                  <button onClick={onBack} className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none">
+                      <img src={EXIT_BTN_IMG} alt="Esci" className="w-full h-auto drop-shadow-xl" />
                   </button>
               </div>
           </div>
@@ -197,7 +232,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
       const playerWonRound = roundScore.player > roundScore.computer;
       return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">
-              <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[40px] border-4 border-white/40 shadow-2xl max-sm w-full mx-4 text-center transform animate-in zoom-in duration-300 relative flex flex-col items-center gap-4">
+              <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[40px] border-4 border-white/40 shadow-2xl max-sm w-full mx-4 text-center transform translate-y-10 animate-in zoom-in duration-300 relative flex flex-col items-center gap-4">
                   
                   <h2 
                       className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-md font-cartoon"
@@ -438,6 +473,17 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     <p className="text-xs md:text-sm font-black text-center leading-tight">
                         Tocca la tua mossa <br/> <span className="text-base">e inizia a giocare!</span>
                     </p>
+                </div>
+
+                {/* TASTO MUSICA (BASSO A DESTRA) */}
+                <div className="flex flex-col items-center shrink-0">
+                    <button 
+                        onClick={() => setMusicEnabled(!musicEnabled)}
+                        className="bg-black/40 backdrop-blur-md p-3 rounded-full border-2 border-white/50 text-white shadow-xl pointer-events-auto hover:scale-110 active:scale-95 transition-all"
+                        title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                    >
+                        {musicEnabled ? <Music2 size={24} /> : <Music size={24} className="opacity-50" />}
+                    </button>
                 </div>
           </div>
 
