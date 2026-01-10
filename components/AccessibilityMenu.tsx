@@ -1,8 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { Wand2, X, Type, Eye, ZapOff, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 
 const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+
+// Nuovi Asset per le opzioni
+const IMG_FONT_LEGGIBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fontleggibileshort.webp';
+const IMG_SUPER_COLORI = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/supercoloribdgt.webp';
+const IMG_MODO_CALMO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/modcoclamne43.webp';
 
 interface AccessibilityMenuProps {
     isOpen: boolean;
@@ -83,9 +89,7 @@ const AccessibilityMenu: React.FC<AccessibilityMenuProps> = ({ isOpen, onClose }
                         onClick={toggleDyslexic}
                         className={`flex items-center gap-4 p-4 rounded-2xl border-4 transition-all active:scale-95 ${dyslexicFont ? 'bg-blue-100 border-blue-500 shadow-inner' : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm'}`}
                     >
-                        <div className={`p-2 rounded-full ${dyslexicFont ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                            <Type size={24} />
-                        </div>
+                        <img src={IMG_FONT_LEGGIBILE} alt="" className="w-12 h-12 object-contain shrink-0" />
                         <div className="text-left flex-1">
                             <span className="block font-black text-gray-800 text-lg">Font Leggibile</span>
                             <span className="text-xs text-gray-500 font-bold">Facilita la lettura (Dislessia)</span>
@@ -98,9 +102,7 @@ const AccessibilityMenu: React.FC<AccessibilityMenuProps> = ({ isOpen, onClose }
                         onClick={toggleContrast}
                         className={`flex items-center gap-4 p-4 rounded-2xl border-4 transition-all active:scale-95 ${highContrast ? 'bg-yellow-100 border-yellow-500 shadow-inner' : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm'}`}
                     >
-                        <div className={`p-2 rounded-full ${highContrast ? 'bg-yellow-500 text-black' : 'bg-gray-100 text-gray-400'}`}>
-                            <Eye size={24} />
-                        </div>
+                        <img src={IMG_SUPER_COLORI} alt="" className="w-12 h-12 object-contain shrink-0" />
                         <div className="text-left flex-1">
                             <span className="block font-black text-gray-800 text-lg">Super Colori</span>
                             <span className="text-xs text-gray-500 font-bold">Contrasto elevato</span>
@@ -113,9 +115,7 @@ const AccessibilityMenu: React.FC<AccessibilityMenuProps> = ({ isOpen, onClose }
                         onClick={toggleZen}
                         className={`flex items-center gap-4 p-4 rounded-2xl border-4 transition-all active:scale-95 ${zenMode ? 'bg-green-100 border-green-500 shadow-inner' : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm'}`}
                     >
-                        <div className={`p-2 rounded-full ${zenMode ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                            <ZapOff size={24} />
-                        </div>
+                        <img src={IMG_MODO_CALMO} alt="" className="w-12 h-12 object-contain shrink-0" />
                         <div className="text-left flex-1">
                             <span className="block font-black text-gray-800 text-lg">Modo Calmo</span>
                             <span className="text-xs text-gray-500 font-bold">Stop animazioni e distrazioni</span>

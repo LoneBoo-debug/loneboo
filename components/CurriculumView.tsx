@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson } from '../types';
-import { Book, ChevronLeft, Volume2, CheckCircle, XCircle, ArrowRight, Star, ClipboardCheck, X, Pause } from 'lucide-react';
+import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
+import { Book, ChevronLeft, Volume2, CheckCircle, XCircle, ArrowRight, Star, ClipboardCheck, X, Pause, ImageIcon, PlayCircle } from 'lucide-react';
 
 const CUSTOM_ITALIAN_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pagaperitascho.webp';
 const CUSTOM_MATH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/matsfcsh887liber.webp';
@@ -11,21 +11,29 @@ const CUSTOM_SCIENCE_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sc
 const CUSTOM_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiudisade.webp';
 const CUSTOM_LISTEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoltalibrso.webp';
 const CUSTOM_VERIFY_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercschol4321.webp';
+const CUSTOM_VISUAL_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/visuallibrsches432.webp';
+const CUSTOM_VIDEO_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tyfgre.webp';
+const CUSTOM_GAME_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochrees22541.webp';
+
+const VOCALI_VIDEO_URL = 'https://www.youtube.com/embed/W12CrAsUK-w?autoplay=1&rel=0&modestbranding=1';
 
 interface CurriculumViewProps {
   data: GradeCurriculumData;
   initialSubject: SchoolSubject;
   onExit: () => void;
   bgUrl: string;
+  setView?: (view: AppView) => void;
 }
 
-const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl }) => {
+const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView }) => {
   const [selectedSubject, setSelectedSubject] = useState<SchoolSubject>(initialSubject);
   const [selectedChapter, setSelectedChapter] = useState<SchoolChapter | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(null);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
+  const [isVisualExerciseOpen, setIsVisualExerciseOpen] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -101,8 +109,13 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             setQuizAnswer(null);
             setShowFeedback(false);
         }, 2000);
-    } else {
-        // Rimosso auto-chiusura modale: il bambino chiude con la X
+    }
+  };
+
+  const handleJumpToGame = (gameId: string) => {
+    if (setView) {
+        sessionStorage.setItem('target_game', gameId);
+        setView(AppView.PLAY);
     }
   };
 
@@ -131,7 +144,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         {isSpecialBook && (
             <button 
                 onClick={onExit} 
-                className="fixed top-40 left-10 md:top-56 md:left-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                className="fixed top-48 left-10 md:top-64 md:left-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
             >
                 <img src={CUSTOM_CLOSE_IMG} alt="Chiudi" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
             </button>
@@ -152,7 +165,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                         ) : (
                             <>
                                 <h3 className="font-black text-xl md:text-3xl text-slate-800 mb-4 flex items-center gap-2 uppercase tracking-tight">
-                                    <Book className={subjectInfo.color.replace('bg-', 'text-')} /> 
+                                    < Book className={subjectInfo.color.replace('bg-', 'text-')} /> 
                                     {ch.title}
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -172,7 +185,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                     </div>
                 )) : (
                     <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                        <Book size={64} className="mb-4" />
+                        < Book size={64} className="mb-4" />
                         <span className="font-black text-3xl uppercase">Lezioni in arrivo...</span>
                     </div>
                 )}
@@ -213,13 +226,13 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             <>
                 <button 
                     onClick={() => { setSelectedLesson(null); setQuizAnswer(null); setShowFeedback(false); if (audioRef.current) { audioRef.current.pause(); setIsAudioPlaying(false); } }}
-                    className="fixed top-40 left-10 md:top-56 md:left-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                    className="fixed top-48 left-10 md:top-64 md:left-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                 >
                     <img src={CUSTOM_CLOSE_IMG} alt="Torna all'indice" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
                 </button>
                 <button 
                     onClick={() => toggleLessonAudio(selectedLesson.audioUrl)} 
-                    className="fixed top-40 right-10 md:top-56 md:right-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                    className="fixed top-48 right-10 md:top-64 md:right-16 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                 >
                     <div className="relative">
                         <img src={CUSTOM_LISTEN_IMG} alt="Ascolta" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
@@ -235,25 +248,14 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             </>
           )}
 
-          {/* Alzato il pt da 64/80 a 48/56 per salire di posizione */}
-          <div className={`flex-1 flex flex-col items-center z-10 overflow-hidden ${isSpecialBook ? 'pt-48 md:pt-56 bg-transparent' : 'bg-white pt-10'}`}>
+          <div className={`flex-1 flex flex-col items-center z-10 overflow-hidden ${isSpecialBook ? 'pt-52 md:pt-64 bg-transparent' : 'bg-white pt-10'}`}>
               <div className={`w-full max-w-4xl h-full flex flex-col items-center ${isSpecialBook ? 'px-14 md:px-32' : 'px-4'}`}>
                   
-                  {/* Testo Lezione - Giustificato e Font ridotto per Special Books */}
+                  {/* Testo Lezione */}
                   <div className={`w-full flex-1 flex flex-col items-center justify-center`}>
-                      {isSpecialBook && selectedLesson.id === 'it1_c1_l1' && (
+                      {isSpecialBook && (
                           <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
-                              LE VOCALI
-                          </h2>
-                      )}
-                      {isSpecialBook && selectedLesson.id === 'it1_c2_l1' && (
-                          <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
-                              LE CONSONANTI
-                          </h2>
-                      )}
-                      {isSpecialBook && selectedLesson.id === 'it1_c3_l1' && (
-                          <h2 className="font-luckiest text-blue-600 text-3xl md:text-6xl mb-4 md:mb-8 uppercase tracking-tighter drop-shadow-sm text-center">
-                              LE SILLABE
+                              {selectedLesson.title}
                           </h2>
                       )}
                       <p className={`
@@ -264,15 +266,42 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       </p>
                   </div>
 
-                  {/* Tasto Verifica (Solo per Special Books) - Alzato e spostato a sinistra, inclinato leggermente */}
+                  {/* Tasti Esercizio Affiancati (Solo per Special Books) */}
                   {isSpecialBook && (
-                      <div className="pb-24 md:pb-32 shrink-0 w-full flex justify-start -ml-4 md:-ml-24">
+                      <div className="pb-32 md:pb-44 shrink-0 w-full flex justify-start items-center gap-4 -ml-4 md:-ml-24">
                           <button 
                             onClick={() => setIsExerciseOpen(true)}
                             className="hover:scale-110 active:scale-95 transition-all outline-none rotate-[-3deg]"
                           >
                               <img src={CUSTOM_VERIFY_BTN} alt="Verifica" className="w-28 h-12 md:w-44 md:h-18 object-fill drop-shadow-xl rounded-xl" />
                           </button>
+                          
+                          <button 
+                            onClick={() => setIsVisualExerciseOpen(true)}
+                            className="hover:scale-110 active:scale-95 transition-all outline-none"
+                          >
+                              <img src={CUSTOM_VISUAL_BTN} alt="Esercizio Visuale" className="w-28 h-12 md:w-44 md:h-18 object-fill drop-shadow-xl rounded-xl" />
+                          </button>
+
+                          {/* TASTO VIDEO SPECIFICO PER LE VOCALI */}
+                          {selectedLesson.id === 'it1_c1_l1' && (
+                            <button 
+                                onClick={() => setIsVideoOpen(true)}
+                                className="hover:scale-110 active:scale-95 transition-all outline-none"
+                            >
+                                <img src={CUSTOM_VIDEO_BTN} alt="Video Vocali" className="w-28 h-12 md:w-44 md:h-18 object-fill drop-shadow-xl rounded-xl" />
+                            </button>
+                          )}
+
+                          {/* TASTO GIOCO SPECIFICO PER LE PAROLE */}
+                          {selectedLesson.id === 'it1_c4_l1' && (
+                            <button 
+                                onClick={() => handleJumpToGame('WORDGUESS')}
+                                className="hover:scale-110 active:scale-95 transition-all outline-none"
+                            >
+                                <img src={CUSTOM_GAME_BTN} alt="Gara di Parole" className="w-28 h-12 md:w-44 md:h-18 object-fill drop-shadow-xl rounded-xl" />
+                            </button>
+                          )}
                       </div>
                   )}
 
@@ -305,7 +334,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           </div>
 
-          {/* MODALE ESERCIZIO (Per Special Books) - Reso più compatto max-w-md */}
+          {/* MODALE ESERCIZIO STANDARD */}
           {isExerciseOpen && isSpecialBook && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
                   <div className="bg-white w-full max-w-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 relative flex flex-col">
@@ -315,18 +344,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       >
                           <X size={24} strokeWidth={4} />
                       </button>
-
-                      {/* Header con l'immagine del tasto Verifica */}
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
                           <img src={CUSTOM_VERIFY_BTN} alt="Esercizio" className="h-10 md:h-16 w-auto object-contain" />
                       </div>
-
                       <div className="p-4 md:p-6 overflow-y-auto no-scrollbar flex-1 flex flex-col gap-3">
-                          {/* Domanda a capo automatico */}
-                          <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">
-                              {selectedLesson.quiz.question}
-                          </p>
-                          
+                          <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">{selectedLesson.quiz.question}</p>
                           <div className="grid grid-cols-1 gap-2.5 mt-1">
                               {selectedLesson.quiz.options.map((opt, idx) => (
                                   <button 
@@ -335,31 +357,74 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                       className={`
                                           p-2.5 rounded-[1.5rem] font-black text-lg md:text-xl border-4 transition-all text-left shadow-lg flex items-center gap-4
                                           ${quizAnswer === null ? 'bg-slate-50 border-slate-200 text-blue-600 hover:border-blue-500 hover:bg-white' : ''}
-                                          ${quizAnswer === idx && idx === selectedLesson.quiz.correctIndex ? 'bg-green-500 border-green-700 text-white scale-102' : ''}
+                                          ${quizAnswer === idx && idx === selectedLesson.quiz.correctIndex ? 'bg-green-500 border-green-700 text-white' : ''}
                                           ${quizAnswer === idx && idx !== selectedLesson.quiz.correctIndex ? 'bg-red-500 border-red-700 text-white animate-shake' : (quizAnswer !== null ? 'opacity-50 border-slate-100 text-blue-600' : '')}
                                       `}
                                   >
-                                      <span className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-sm md:text-base shrink-0 ${quizAnswer === idx ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'}`}>
-                                          {String.fromCharCode(65 + idx)}
-                                      </span>
+                                      <span className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-sm md:text-base shrink-0 ${quizAnswer === idx ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'}`}>{String.fromCharCode(65 + idx)}</span>
                                       {opt}
                                   </button>
                               ))}
                           </div>
-
                           {showFeedback && (
                               <div className="mt-2 p-3 rounded-[2rem] bg-blue-50 border-4 border-blue-200 animate-in zoom-in">
                                   {quizAnswer === selectedLesson.quiz.correctIndex ? (
-                                      <div className="text-green-600 text-center">
-                                          <p className="font-black text-base md:text-lg uppercase tracking-tighter leading-tight">{selectedLesson.quiz.feedback}</p>
-                                      </div>
+                                      <div className="text-green-600 text-center"><p className="font-black text-base md:text-lg uppercase tracking-tighter leading-tight">{selectedLesson.quiz.feedback}</p></div>
                                   ) : (
-                                      <div className="text-red-600 text-center">
-                                          <p className="font-black text-base md:text-lg uppercase tracking-tighter">Ops! Riprova! 💪</p>
-                                      </div>
+                                      <div className="text-red-600 text-center"><p className="font-black text-base md:text-lg uppercase tracking-tighter">Ops! Riprova! 💪</p></div>
                                   )}
                               </div>
                           )}
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* MODALE ESERCIZIO VISUALE (PLACEHOLDER) */}
+          {isVisualExerciseOpen && isSpecialBook && (
+              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                  <div className="bg-white w-full max-w-lg rounded-[3rem] border-8 border-purple-500 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 relative flex flex-col min-h-[400px]">
+                      <button 
+                        onClick={() => setIsVisualExerciseOpen(false)}
+                        className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"
+                      >
+                          <X size={24} strokeWidth={4} />
+                      </button>
+                      <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
+                          <img src={CUSTOM_VISUAL_BTN} alt="Esercizio Visuale" className="h-10 md:h-16 w-auto object-contain" />
+                      </div>
+                      <div className="p-8 flex-1 flex flex-col items-center justify-center text-center gap-6">
+                          <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center">
+                              <ImageIcon size={48} className="text-purple-500" />
+                          </div>
+                          <h3 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight">Sfida Visuale in Arrivo!</h3>
+                          <p className="text-lg font-bold text-slate-500 leading-tight">
+                              Qui troverai esercizi basati su immagini magiche di Lone Boo. <br/>
+                              <span className="text-purple-600">Torna a trovarci presto!</span> 👻
+                          </p>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* MODALE VIDEO YOUTUBE (LE VOCALI) */}
+          {isVideoOpen && isSpecialBook && (
+              <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-0 md:p-4 animate-in fade-in" onClick={() => setIsVideoOpen(false)}>
+                  <div className="relative w-full max-w-5xl bg-white rounded-[30px] md:rounded-[40px] border-[6px] md:border-[8px] border-red-600 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 z-[210] hover:scale-110 transition-transform">
+                          <X className="bg-white/30 rounded-full p-1" size={40} />
+                      </button>
+                      <div className="flex-1 w-full aspect-video bg-black">
+                          <iframe 
+                            src={VOCALI_VIDEO_URL} 
+                            className="w-full h-full border-0" 
+                            allowFullScreen 
+                            allow="autoplay; fullscreen" 
+                          />
+                      </div>
+                      <div className="p-4 text-center bg-white shrink-0 border-t border-gray-100 flex items-center justify-center gap-3">
+                          <PlayCircle className="text-red-600" />
+                          <h3 className="text-gray-800 text-lg md:text-xl font-black uppercase truncate px-2">Impariamo le Vocali con Lone Boo!</h3>
                       </div>
                   </div>
               </div>

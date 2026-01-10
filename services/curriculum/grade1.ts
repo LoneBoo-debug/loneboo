@@ -61,36 +61,36 @@ export const GRADE1_DATA: GradeCurriculumData = {
       },
       {
         id: 'it1_c4',
-        title: 'Parole semplici',
+        title: 'Le Parole',
         lessons: [
           {
             id: 'it1_c4_l1',
-            title: 'Leggiamo insieme',
-            text: 'Uniamo le sillabe per formare parole intere. \n\nCA + SA = CASA 🏠\nME + LA = MELA 🍎\nSO + LE = SOLE ☀️',
-            audioUrl: '',
+            title: 'Le Parole',
+            text: 'Le parole servono per dire cosa vediamo, cosa pensiamo e cosa proviamo.\nOgni parola ha un significato e racconta qualcosa.\nCon le parole possiamo salutare, chiedere aiuto, giocare e raccontare storie bellissime.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T22_27_11_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Quale parola è formata da SO + LE?',
-              options: ['Sale', 'Sole', 'Sola'],
+              question: 'A cosa servono le parole?',
+              options: ['Solo per cantare', 'Per dire cosa vediamo e proviamo', 'Per fare i disegni'],
               correctIndex: 1,
-              feedback: 'Splendido come il Sole! ☀️'
+              feedback: 'Esatto! Le parole ci aiutano a condividere tutto ciò che abbiamo nel cuore! ✨'
             }
           }
         ]
       },
       {
         id: 'it1_c5',
-        title: 'Frasi minime',
+        title: 'Le frasi',
         lessons: [
           {
             id: 'it1_c5_l1',
-            title: 'Chi fa cosa?',
-            text: 'Una frase minima è formata da qualcuno che fa un\'azione. \n\nIl cane corre. 🐕\nIl bimbo mangia. 👦\nLone Boo balla. 👻',
-            audioUrl: '',
+            title: 'Le frasi',
+            text: 'Una frase è una piccola idea completa.\nInizia con una lettera grande e finisce con un punto.\nCon una frase possiamo dire qualcosa che ha senso, come Il gatto dorme.\nLe frasi ci aiutano a raccontare quello che succede.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T22_31_46_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Quale di queste è una frase minima?',
-              options: ['Il gatto dorme', 'La mela rossa', 'Un cane'],
-              correctIndex: 0,
-              feedback: 'Esatto! Il gatto fa l\'azione di dormire. 💤'
+              question: 'Con cosa finisce sempre una frase?',
+              options: ['Con un numero', 'Con un punto', 'Con una virgola'],
+              correctIndex: 1,
+              feedback: 'Bravissimo! Il punto chiude la tua idea magica! ✍️'
             }
           }
         ]
@@ -101,9 +101,9 @@ export const GRADE1_DATA: GradeCurriculumData = {
         lessons: [
           {
             id: 'it1_c6_l1',
-            title: 'I piccoli aiutanti',
-            text: 'Gli articoli stanno davanti ai nomi e ci dicono se sono maschi o femmine, uno o tanti! \n\nIL nonno, LA nonna.\nI fiori, LE stelle.',
-            audioUrl: '',
+            title: 'Gli Articoli',
+            text: 'Gli articoli sono piccole parole che stanno davanti ai nomi.\nServono per dire meglio di cosa stiamo parlando.\nQuando diciamo il gatto oppure una mela, stiamo usando un articolo.\nGli articoli aiutano le parole a farsi capire e rendono le frasi più complete.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T22_38_42_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
               question: 'Quale articolo metti davanti a "MELA"?',
               options: ['Il', 'La', 'Lo'],
@@ -115,18 +115,18 @@ export const GRADE1_DATA: GradeCurriculumData = {
       },
       {
         id: 'it1_c7',
-        title: 'Nomi comuni',
+        title: 'I nomi',
         lessons: [
           {
             id: 'it1_c7_l1',
-            title: 'Tutto ha un nome',
-            text: 'I nomi comuni servono per chiamare tutte le cose, le persone e gli animali del mondo senza usare il loro nome proprio. \n\nbambino, gatto, tavolo, scuola, matita.',
-            audioUrl: '',
+            title: 'I nomi',
+            text: 'I nomi sono parole che servono per dare un nome alle cose.\nCon i nomi possiamo dire come si chiama una persona, un animale o un oggetto.\nOgni cosa intorno a noi ha un nome.\nI nomi ci aiutano a parlare e a raccontare ciò che vediamo.',
+            audioUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElevenLabs_2026-01-10T22_42_15_Sami+-+Italian+female+_pvc_sp82_s40_sb49_se85_b_m2.mp3',
             quiz: {
-              question: 'Quale di questi è un nome comune di animale?',
-              options: ['Maestra', 'Leone', 'Palla'],
-              correctIndex: 1,
-              feedback: 'Ruggi come un vero leone! 🦁'
+              question: 'A cosa servono i nomi?',
+              options: ['Per dare un nome alle cose', 'Per fare i salti', 'Solo per dormire'],
+              correctIndex: 0,
+              feedback: 'Bravissimo! Tutto nel mondo ha un nome speciale! 🏷️'
             }
           }
         ]
@@ -230,7 +230,7 @@ export const GRADE1_DATA: GradeCurriculumData = {
           {
             id: 'mat1_c6_l1',
             title: 'Piccole sfide',
-            text: 'Un problema è una storia con una domanda. \n\nEsempio: Lone Boo ha 3 palloncini. Ne vola via 1. Quanti ne restano? \n\nRisposta: 3 - 1 = 2!',
+            text: 'Un problema è una story con una domanda. \n\nEsempio: Lone Boo ha 3 palloncini. Ne vola via 1. Quanti ne restano? \n\nRisposta: 3 - 1 = 2!',
             audioUrl: '',
             quiz: {
               question: 'Se hai 2 caramelle e la mamma te ne regala altre 2, quante ne hai in tutto?',

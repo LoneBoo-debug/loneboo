@@ -53,11 +53,11 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         <img src={BTN_CLOSE_IMG} alt="Indietro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
                     </button>
 
-                    {/* SIDEBAR MATERIE - Posizionamento calibrato con style per precisione assoluta */}
+                    {/* SIDEBAR MATERIE - Dimensioni aumentate e posizione ricalibrata */}
                     <div 
-                        className="absolute flex flex-col gap-1.5 md:gap-2.5 z-40 max-w-[55px] md:max-w-[100px]"
+                        className="absolute flex flex-col gap-2 md:gap-3.5 z-40 max-w-[72px] md:max-w-[130px]"
                         style={{ 
-                            left: window.innerWidth < 768 ? '18.5%' : '21.5%',
+                            left: window.innerWidth < 768 ? '17.5%' : '20.5%',
                             top: '48.5%',
                             transform: 'translateY(-50%)'
                         }}
@@ -90,6 +90,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}
+                    setView={setView}
                 />
             )}
         </div>

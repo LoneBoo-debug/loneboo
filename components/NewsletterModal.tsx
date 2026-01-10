@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Send, Check, AlertCircle, Loader2, Mail, User } from 'lucide-react';
 
@@ -7,7 +8,7 @@ interface NewsletterModalProps {
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzt_QIilBK5UQ-jmXsD_gjl0kfKgUSsGBJWXlzavOEvzAtGsjcq5PdM-cnOoyWFJheMIw/exec';
 const BTN_SUBSCRIBE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riceviaggiorna.webp';
-const SUCCESS_TITLE_IMG = 'https://i.postimg.cc/MKQv3sVp/evviva-(1).png';
+const SUCCESS_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/evvivanabbne433.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const SUBMISSION_COOLDOWN = 1000 * 60 * 5; // 5 minuti di attesa tra un invio e l'altro
 
@@ -79,7 +80,7 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
             <div 
-                className="bg-white relative w-full max-w-md p-6 md:p-10 rounded-[40px] border-8 border-boo-purple shadow-[8px_8px_0px_0px_black] animate-in zoom-in-95 duration-300 flex flex-col"
+                className="bg-white relative w-full max-w-[340px] p-5 md:p-7 rounded-[40px] border-8 border-boo-purple shadow-[8px_8px_0px_0px_black] animate-in zoom-in-95 duration-300 flex flex-col items-center"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Close Button Image - Only visible if not success */}
@@ -93,21 +94,21 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                 )}
 
                 {status === 'SUCCESS' ? (
-                    <div className="text-center py-4 animate-in zoom-in flex flex-col items-center">
-                        <div className="mb-6">
+                    <div className="text-center py-2 animate-in zoom-in flex flex-col items-center">
+                        <div className="mb-4">
                             <img 
                                 src={SUCCESS_TITLE_IMG} 
                                 alt="Evviva!" 
-                                className="w-full max-w-[280px] mx-auto h-auto drop-shadow-xl animate-float"
+                                className="w-full max-w-[240px] mx-auto h-auto drop-shadow-xl"
                             />
                         </div>
-                        <p className="text-gray-600 font-bold text-lg leading-relaxed mb-6">
+                        <p className="text-gray-600 font-bold text-base leading-relaxed mb-6">
                             Ora sei un amico ufficiale di Lone Boo!<br/>
                             Riceverai presto le nostre novità magiche.
                         </p>
                         <button 
                             onClick={onClose}
-                            className="w-full max-w-[100px] hover:scale-105 active:scale-95 transition-all outline-none"
+                            className="w-full max-w-[90px] hover:scale-105 active:scale-95 transition-all outline-none"
                         >
                             <img 
                                 src={BTN_CLOSE_IMG} 
@@ -118,7 +119,7 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                     </div>
                 ) : (
                     <>
-                        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5 pt-4">
+                        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 w-full pt-2">
                             {/* Honeypot Field - Invisibile agli umani */}
                             <div className="absolute opacity-0 -z-10 pointer-events-none" aria-hidden="true">
                                 <input 
@@ -132,60 +133,60 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                             </div>
 
                             <div className="relative">
-                                <label className="block text-gray-700 font-black text-xs uppercase mb-1 ml-2">Nome</label>
+                                <label className="block text-gray-700 font-black text-[10px] uppercase mb-1 ml-2">Nome</label>
                                 <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     <input 
                                         type="text" 
                                         value={name}
                                         onChange={e => setName(e.target.value)}
                                         placeholder="Il tuo nome..."
                                         required
-                                        className="w-full bg-gray-50 border-4 border-gray-200 rounded-2xl p-3.5 pl-12 font-bold text-gray-800 focus:border-boo-purple outline-none transition-colors"
+                                        className="w-full bg-gray-50 border-4 border-gray-200 rounded-2xl p-3 pl-10 font-bold text-gray-800 focus:border-boo-purple outline-none transition-colors text-sm"
                                     />
                                 </div>
                             </div>
 
                             <div className="relative">
-                                <label className="block text-gray-700 font-black text-xs uppercase mb-1 ml-2">Email</label>
+                                <label className="block text-gray-700 font-black text-[10px] uppercase mb-1 ml-2">Email</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     <input 
                                         type="email" 
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
                                         placeholder="La tua email..."
                                         required
-                                        className="w-full bg-gray-50 border-4 border-gray-200 rounded-2xl p-3.5 pl-12 font-bold text-gray-800 focus:border-boo-purple outline-none transition-colors"
+                                        className="w-full bg-gray-50 border-4 border-gray-200 rounded-2xl p-3 pl-10 font-bold text-gray-800 focus:border-boo-purple outline-none transition-colors text-sm"
                                     />
                                 </div>
                             </div>
 
                             {/* Custom 3D Toggle for Privacy */}
-                            <div className="flex items-center gap-4 mt-2 mb-2 p-3 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                            <div className="flex items-center gap-3 mt-1 mb-1 p-3 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                                 <button
                                     type="button"
                                     onClick={() => setPrivacy(!privacy)}
                                     className={`
-                                        w-14 h-14 shrink-0 rounded-2xl border-4 border-black transition-all flex items-center justify-center
-                                        shadow-[4px_4px_0px_0px_black] active:shadow-none active:translate-y-1 active:translate-x-1
+                                        w-12 h-12 shrink-0 rounded-xl border-4 border-black transition-all flex items-center justify-center
+                                        shadow-[3px_3px_0px_0px_black] active:shadow-none active:translate-y-1 active:translate-x-1
                                         ${privacy ? 'bg-green-500' : 'bg-red-500'}
                                     `}
                                 >
                                     {privacy ? (
-                                        <Check className="text-white" strokeWidth={5} size={28} />
+                                        <Check className="text-white" strokeWidth={5} size={24} />
                                     ) : (
-                                        <X className="text-white" strokeWidth={5} size={28} />
+                                        <X className="text-white" strokeWidth={5} size={24} />
                                     )}
                                 </button>
-                                <label className="text-[10px] md:text-xs text-gray-500 font-bold leading-tight cursor-pointer select-none" onClick={() => setPrivacy(!privacy)}>
-                                    Accetto di ricevere la newsletter di Lone Boo. I dati verranno usati solo per inviarti novità e non verranno ceduti a terzi.
+                                <label className="text-[9px] text-gray-500 font-bold leading-tight cursor-pointer select-none" onClick={() => setPrivacy(!privacy)}>
+                                    Accetto di ricevere la newsletter di Lone Boo. I dati non verranno ceduti a terzi.
                                 </label>
                             </div>
 
                             {status === 'ERROR' && (
-                                <div className="bg-red-50 text-red-600 p-3 rounded-xl border-2 border-red-200 flex items-center gap-2 text-xs font-bold animate-shake">
-                                    <AlertCircle size={16} />
+                                <div className="bg-red-50 text-red-600 p-2 rounded-xl border-2 border-red-200 flex items-center gap-2 text-[10px] font-bold animate-shake">
+                                    <AlertCircle size={14} />
                                     {errorMsg}
                                 </div>
                             )}
@@ -195,14 +196,14 @@ const NewsletterModal: React.FC<NewsletterModalProps> = ({ onClose }) => {
                                 type="submit"
                                 disabled={status === 'SENDING' || !name || !email || !privacy}
                                 className={`
-                                    relative mt-2 w-full transition-all group
+                                    relative mt-1 w-full transition-all group
                                     ${status === 'SENDING' ? 'opacity-70 pointer-events-none' : 'hover:scale-105 active:scale-95'}
                                     disabled:opacity-50 disabled:scale-100 disabled:grayscale
                                 `}
                             >
                                 {status === 'SENDING' && (
                                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                                        <Loader2 className="animate-spin text-boo-purple" size={40} strokeWidth={3} />
+                                        <Loader2 className="animate-spin text-boo-purple" size={32} strokeWidth={3} />
                                     </div>
                                 )}
                                 <img 

@@ -1,3 +1,4 @@
+
 import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { Loader2, ArrowLeft, Store, ShoppingBag, Check, Sparkles } from 'lucide-react';
 import RobotHint from './RobotHint';
@@ -137,6 +138,16 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
       setTimeout(() => setIsLoaded(true), 1500);
 
       window.scrollTo(0, 0);
+
+      // Check for target game (deeplink from other sections)
+      const targetGame = sessionStorage.getItem('target_game');
+      if (targetGame) {
+          sessionStorage.removeItem('target_game');
+          if (Object.keys(GameType).includes(targetGame)) {
+              setActiveGame(targetGame as GameType);
+              hasInteractedRef.current = true;
+          }
+      }
 
       const timer = setTimeout(() => {
           if (!hasInteractedRef.current) setShowHint(true);

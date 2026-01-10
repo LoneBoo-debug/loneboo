@@ -9,8 +9,8 @@ import ParentalGate from './ParentalGate';
 import ParentalArea from './ParentalArea';
 
 // Immagini pure stringhe
-const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-city.webp';
-const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-house.webp';
+const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/citydh+sg4453+(1).webp';
+const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/homrefgdsa+(1).webp';
 const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const INIZIO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/inizioseddfeawq.webp';
