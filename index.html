@@ -58,6 +58,39 @@
         height: 100dvh;
       }
 
+      /* --- ACCESSIBILITY OVERRIDES --- */
+      
+      /* 1. Font Leggibile (OpenDyslexic) */
+      body.a11y-font-dyslexic * {
+        font-family: 'OpenDyslexic', sans-serif !important;
+        letter-spacing: 0.05em !important;
+      }
+
+      /* 2. Super Colori (High Contrast) - Solo filtri colore, niente bordi extra */
+      body.a11y-high-contrast {
+        filter: contrast(140%) saturate(140%) brightness(105%) !important;
+      }
+      /* Applichiamo il bordo solo agli input di testo veri e propri, non ai pulsanti/immagini */
+      body.a11y-high-contrast input[type="text"],
+      body.a11y-high-contrast input[type="password"],
+      body.a11y-high-contrast textarea {
+        border: 3px solid black !important;
+        background-color: white !important;
+        color: black !important;
+      }
+
+      /* 3. Modo Calmo (Zero Animations) */
+      body.a11y-zen-mode * {
+        animation: none !important;
+        transition: none !important;
+      }
+      body.a11y-zen-mode .animate-pulse,
+      body.a11y-zen-mode .animate-bounce,
+      body.a11y-zen-mode .animate-spin-slow,
+      body.a11y-zen-mode .animate-cloud-breath {
+        animation: none !important;
+      }
+
       /* ORIENTATION GUARD CSS - BLOCCANTE PER MOBILE TOUCH */
       #orientation-guard {
         display: none;
@@ -73,10 +106,6 @@
         background-repeat: no-repeat;
       }
 
-      /* 
-         Attiva il blocco solo se l'orientamento è landscape 
-         E il corpo NON ha la classe .allow-landscape (usata per il Piano o i Video a tutto schermo)
-      */
       @media (orientation: landscape) and (pointer: coarse) {
         body:not(.allow-landscape) #orientation-guard {
           display: flex;
@@ -86,14 +115,12 @@
         }
       }
 
-      /* IMMERSIVE MODE: Nasconde l'header globale quando la rotazione è autorizzata */
       @media (orientation: landscape) {
         body.allow-landscape header {
           display: none !important;
         }
       }
 
-      /* HIDE SCROLLBARS */
       ::-webkit-scrollbar { display: none; }
     </style>
     
@@ -112,7 +139,6 @@
 
       window.addEventListener('touchstart', function() {
         if (window.innerHeight < window.innerWidth) {
-          // Solo se siamo già in orizzontale cerchiamo di andare in fullscreen
           toggleFullScreen();
         }
       }, false);
@@ -138,9 +164,7 @@
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
-    <!-- ORIENTATION GUARD OVERLAY -->
     <div id="orientation-guard" onclick="toggleFullScreen()"></div>
-
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
