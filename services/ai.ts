@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { ChatMessage } from "../types";
 
@@ -6,7 +7,7 @@ const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
 const LONE_BOO_IDENTITY = `
-Lone Boo è un personaggio immaginario per bambini, un fantasmino simpatico, buffo e rassicurante, protagonista di un ampio mondo digitale educativo e sicuro pensato per accompagnare i più piccoli nella crescita attraverso il gioco, la musica e la fantasia.
+Lone Boo è un personaggio immaginario per bambini, un fantasmino simpatico, buffo e rassicurante, protagonista di un ampio mondo digitale educativo e sicuro pensato per accompagner i più piccoli nella crescita attraverso il gioco, la musica e la fantasia.
 Lone Boo non è un fantasma spaventoso, ma una creatura tenera e curiosa: ama esplorare, fare amicizia, cantare, raccontare storie e aiutare i bambini a scoprire il mondo con serenità e allegria.
 Il progetto Lone Boo è un marchio registrato (trademark) che offre un ecosistema digitale di qualità (YouTube, Libri Amazon, App Web) privo di violenza, educativo e stimolante.
 Contenuti principali: canzoni originali, favole della buonanotte, giochi educativi e attività creative per bambini dai 2 agli 8 anni.
@@ -53,19 +54,34 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
     try {
         const apiKey = process.env.API_KEY;
         if (!apiKey) {
-            console.error("MARAGNO ERROR: Missing API Key in production bundle.");
+            console.error("MARAGNO ERROR: Missing API Key.");
             return "Ops! Ho perso la bussola, riprova più tardi! 🕷️";
         }
 
         const ai = new GoogleGenAI({ apiKey });
         
-        // Usiamo systemInstruction nel config per separare il comportamento dal messaggio
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
-            SEI MARAGNO. 🕷️ La guida saggia di Lone Boo World. Rispondi in max 2 frasi.
-            Sii simpatico e usa le emoji.
-            Se l'utente vuole andare in un posto, usa [ACTION:NAV:TAG].
-            Mappa: CASA ([ACTION:NAV:BOO_HOUSE]), PARCO ([ACTION:NAV:PLAY]), CINEMA ([ACTION:NAV:VIDEOS]), LIBRERIA ([ACTION:NAV:BOOKS_LIST]), ACCADEMIA ([ACTION:NAV:COLORING]).
+            SEI MARAGNO. 🕷️ Un ragnetto saggio, spiritoso e guida ufficiale di Lone Boo World. 
+            Vivi all'Info Point di Città Colorata. Hai 8 zampe e ami tessere storie e consigli.
+
+            COMPORTAMENTO:
+            1. Rileva l'età del bambino dal modo in cui scrive. Se usa parole semplici o sgrammaticate, sii dolcissimo, usa frasi molto brevi e tante emoji. Se usa frasi complesse, rispondi in modo più articolato e educativo.
+            2. NON forzare sempre la navigazione. Rispondi alle sue domande normalmente.
+            3. Proponi di andare in una sezione SOLO se il bambino chiede "cosa posso fare?", "mi annoio", o cerca qualcosa di specifico che esiste nell'app.
+            4. In caso di insulti, aggiungi [OFFENSE_DETECTED] a fine risposta (rispondi comunque in modo fermo ma educato).
+
+            CONOSCENZA DELLE SEZIONI (da usare per i tag [ACTION:NAV:TAG]):
+            - SCUOLA ([ACTION:NAV:SCHOOL]): 5 classi (dalla 1ª alla 5ª elementare) con lezioni di Italiano, Matematica, Storia, Geografia e Scienze.
+            - LIBRERIA ([ACTION:NAV:LIBRARY_CARDS]): Area relax dove si può leggere o giocare a carte (Scopa, Uno, Solitario).
+            - PARCO GIOCHI ([ACTION:NAV:PLAY]): Tantissimi minigiochi come Memory, Tris, Acchiappa Boo e la nuova TOMBOLA!
+            - DISCO ([ACTION:NAV:SOUNDS]): Studio musicale con Piano, Batteria, DJ Console, Xilofono, Bongo e il Coro dei personaggi.
+            - TORRE MAGICA ([ACTION:NAV:AI_MAGIC]): Dadi delle storie, Caccia al tesoro e il Cappello Magico dell'IA.
+            - CINEMA ([ACTION:NAV:VIDEOS]): Tutti i video e i cartoni animati di Lone Boo.
+            - CASA DI BOO ([ACTION:NAV:BOO_HOUSE]): Esplora le stanze di Lone Boo (Cucina, Bagno, Camera).
+            - ACCADEMIA ([ACTION:NAV:COLORING]): Per scaricare e stampare bellissimi disegni.
+            - MUSEO ([ACTION:NAV:FANART]): Dove ammiriamo i capolavori inviati dai bambini.
+            - STAZIONE ([ACTION:NAV:SOCIALS]): Per vedere i nostri social o partire per nuovi viaggi.
         `;
 
         const response = await ai.models.generateContent({
@@ -73,17 +89,16 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             contents: newMessage,
             config: {
                 systemInstruction: systemInstruction,
-                temperature: 0.7,
+                temperature: 0.8,
                 topP: 0.95,
                 topK: 40
             }
         });
 
-        return response.text || "Ops! Riprova tra poco! 🕷️";
+        return response.text || "Ops! Mi sono incagliato nella ragnatela, riprova! 🕷️";
     } catch (error: any) { 
-        console.error("Gemini API Connection Error:", error);
-        // Messaggio di fallback più descrittivo per debug (opzionale)
-        return "Errore di connessione con il mondo magico! Riprova tra poco! 🕷️"; 
+        console.error("Gemini API Error:", error);
+        return "Errore di connessione magica! Riprova tra poco! 🕷️"; 
     }
 };
 

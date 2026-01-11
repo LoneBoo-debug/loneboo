@@ -7,7 +7,7 @@ import { OFFICIAL_LOGO } from '../constants';
 
 const INFO_POINT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/info-point.webp';
 const MARAGNO_FULL_BODY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/maragno-full.webp';
-const MARAGNO_OFFENDED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/maragno-offended.webp';
+const MARAGNO_OFFENDED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/offended.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bkcitmaraginfpo.webp';
 const BTN_CHAT_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/askmaragncart.webp';
 const MARLO_TAXI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlo-taxi.webp';
@@ -58,9 +58,9 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         img.onload = () => setIsLoaded(true);
         setTimeout(() => setIsLoaded(true), 2000);
 
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitRequestAnimationFrame;
         if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
             recognitionRef.current.continuous = false;
             recognitionRef.current.lang = 'it-IT';
             recognitionRef.current.interimResults = false;
@@ -124,6 +124,10 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 const newCount = insultCount + 1;
                 setInsultCount(newCount);
                 localStorage.setItem('maragno_insults', String(newCount));
+                
+                if (newCount === 4) {
+                    cleanResponse = "Attenzione! Questo è l'ultimo avviso. Se continui così interromperò il servizio e entrerò in modalità offeso per 5 minuti! 🕷️⚠️";
+                }
                 
                 if (newCount >= INSULT_LIMIT) {
                     const banTime = Date.now() + BAN_DURATION_MS;
@@ -191,16 +195,27 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 </div>
             )}
 
-            {/* MODALE MARAGNO OFFESO */}
+            {/* MODALE MARAGNO OFFESO - CENTRATO E CON IMMAGINE INTERA */}
             {timeLeft > 0 && (
-                <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-500">
-                    <div className="bg-white rounded-[40px] border-8 border-red-600 p-5 w-full max-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] flex flex-col items-center animate-in zoom-in duration-300 relative">
-                        <button onClick={() => setView(AppView.CITY_MAP)} className="absolute -top-4 -right-4 bg-red-600 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all"><X size={24} strokeWidth={4} /></button>
-                        <img src={MARAGNO_OFFENDED} alt="Maragno Offeso" className="w-40 md:w-48 h-auto mb-4 drop-shadow-xl" />
-                        <h2 className="text-2xl md:text-3xl font-black text-red-600 mb-2 uppercase">Sono offeso!</h2>
+                <div className="fixed inset-0 z-[400] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-500">
+                    <div className="bg-white rounded-[40px] border-8 border-red-600 p-6 w-full max-w-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] flex flex-col items-center animate-in zoom-in duration-300 relative m-auto">
+                        <button onClick={() => setView(AppView.CITY_MAP)} className="absolute -top-4 -right-4 bg-red-600 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all shadow-lg z-50">
+                            <X size={24} strokeWidth={4} />
+                        </button>
+                        
+                        <div className="w-full h-40 md:h-56 mb-4 overflow-hidden rounded-2xl border-4 border-slate-100 shadow-inner bg-slate-50 flex items-center justify-center">
+                            <img 
+                                src={MARAGNO_OFFENDED} 
+                                alt="Maragno Offeso" 
+                                className="w-full h-full object-contain" 
+                            />
+                        </div>
+                        
+                        <h2 className="text-2xl md:text-3xl font-black text-red-600 mb-2 uppercase leading-none">Sono offeso!</h2>
                         <p className="text-gray-700 font-bold text-base md:text-lg leading-snug mb-6 px-2">Queste parole non mi piacciono. Ci rivediamo tra 5 minuti quando ti sarai calmato... 🕷️💨</p>
-                        <div className="bg-red-50 px-5 py-2.5 rounded-full border-4 border-red-600 flex items-center gap-3 text-red-600 font-black text-xl shadow-inner">
-                            <Clock size={24} />
+                        
+                        <div className="bg-red-50 px-6 py-3 rounded-full border-4 border-red-600 flex items-center gap-3 text-red-600 font-black text-2xl shadow-inner">
+                            <Clock size={28} />
                             <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
                         </div>
                     </div>
@@ -229,7 +244,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                         </div>
                         <div className="flex-1 overflow-hidden relative z-30">
                             <h3 className="text-white font-black text-lg md:text-2xl uppercase leading-none truncate">Maragno</h3>
-                            <span className="text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest animate-pulse">{isThinking ? 'Tesse una risposta... 🕸️' : 'In linea 🕷️'}</span>
+                            <span className="text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest">{isThinking ? 'Tesse una risposta... 🕸️' : 'In linea 🕷️'}</span>
                         </div>
                         <div className="flex gap-2 relative z-30">
                              <button onClick={() => { const next = !audioEnabled; setAudioEnabled(next); if (!next) window.speechSynthesis.cancel(); else speakText(history[history.length - 1].text); }} className={`p-2 rounded-full ${audioEnabled ? 'bg-white/20 text-white' : 'bg-red-400 text-white'}`}>
