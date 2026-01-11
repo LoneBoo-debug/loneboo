@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 
 const SCHOOL_SPLASH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashscreeschoolarco.webp';
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
+const BTN_GYM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/polkiuj88+(1)+(1).webp';
 
 interface SchoolSectionProps {
     setView: (view: AppView) => void;
@@ -95,8 +97,24 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                         </button>
                     </div>
 
-                    {/* FUMETTO FISSO IN BASSO A DESTRA */}
-                    <div className="absolute bottom-[15%] right-[5%] z-20 pointer-events-none">
+                    {/* TASTO VAI IN PALESTRA (IN BASSO A DESTRA) */}
+                    <div 
+                        className="absolute bottom-[4%] right-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
+                    >
+                        <button 
+                            onClick={() => setView(AppView.SCHOOL_GYM)}
+                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
+                        >
+                            <img 
+                                src={BTN_GYM_IMG} 
+                                alt="Vai in Palestra" 
+                                className="w-full h-auto drop-shadow-2xl"
+                            />
+                        </button>
+                    </div>
+
+                    {/* FUMETTO FISSO IN BASSO A DESTRA (Alzato per fare spazio al tasto) */}
+                    <div className="absolute bottom-[18%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
                             <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter">Entra a Scuola!</span>
                         </div>

@@ -27,6 +27,11 @@ const ColoringSection = lazy(() => import('./components/ColoringSection'));
 const SchoolSection = lazy(() => import('./components/SchoolSection'));
 const SchoolFirstFloor = lazy(() => import('./components/SchoolFirstFloor'));
 const SchoolSecondFloor = lazy(() => import('./components/SchoolSecondFloor'));
+const SchoolGym = lazy(() => import('./components/SchoolGym'));
+const SchoolGymBasket = lazy(() => import('./components/SchoolGymBasket'));
+const SchoolGymSoccer = lazy(() => import('./components/SchoolGymSoccer'));
+const SchoolGymTennis = lazy(() => import('./components/SchoolGymTennis'));
+const SchoolGymGymnastics = lazy(() => import('./components/SchoolGymGymnastics'));
 const SchoolFirstGrade = lazy(() => import('./components/SchoolFirstGrade'));
 const SchoolSecondGrade = lazy(() => import('./components/SchoolSecondGrade'));
 const SchoolThirdGrade = lazy(() => import('./components/SchoolThirdGrade'));
@@ -144,6 +149,11 @@ const App: React.FC = () => {
                 {currentView === AppView.SCHOOL && <SchoolSection setView={setView} />}
                 {currentView === AppView.SCHOOL_FIRST_FLOOR && <SchoolFirstFloor setView={setView} />}
                 {currentView === AppView.SCHOOL_SECOND_FLOOR && <SchoolSecondFloor setView={setView} />}
+                {currentView === AppView.SCHOOL_GYM && <SchoolGym setView={setView} />}
+                {currentView === AppView.SCHOOL_GYM_BASKET && <SchoolGymBasket setView={setView} />}
+                {currentView === AppView.SCHOOL_GYM_SOCCER && <SchoolGymSoccer setView={setView} />}
+                {currentView === AppView.SCHOOL_GYM_TENNIS && <SchoolGymTennis setView={setView} />}
+                {currentView === AppView.SCHOOL_GYM_GYMNASTICS && <SchoolGymGymnastics setView={setView} />}
                 {currentView === AppView.SCHOOL_FIRST_GRADE && <SchoolFirstGrade setView={setView} />}
                 {currentView === AppView.SCHOOL_SECOND_GRADE && <SchoolSecondGrade setView={setView} />}
                 {currentView === AppView.SCHOOL_THIRD_GRADE && <SchoolThirdGrade setView={setView} />}

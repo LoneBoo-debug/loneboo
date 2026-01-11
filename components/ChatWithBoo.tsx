@@ -58,7 +58,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         img.onload = () => setIsLoaded(true);
         setTimeout(() => setIsLoaded(true), 2000);
 
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitRequestAnimationFrame;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
             recognitionRef.current = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
             recognitionRef.current.continuous = false;
@@ -111,7 +111,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         setPendingNav(null); 
 
         try {
-            const responseText = await getMaragnoChatResponse(history, inputText);
+            const responseText = await getMaragnoChatResponse(history, userMsg.text);
             const navMatch = responseText.match(/\[ACTION:NAV:(\w+)\]/);
             const isOffense = responseText.includes('[OFFENSE_DETECTED]');
 
@@ -125,6 +125,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 setInsultCount(newCount);
                 localStorage.setItem('maragno_insults', String(newCount));
                 
+                // --- LOGICA BAN PROGRESSIVA ---
                 if (newCount === 4) {
                     cleanResponse = "Attenzione! Questo è l'ultimo avviso. Se continui così interromperò il servizio e entrerò in modalità offeso per 5 minuti! 🕷️⚠️";
                 }
@@ -195,7 +196,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 </div>
             )}
 
-            {/* MODALE MARAGNO OFFESO - CENTRATO E CON IMMAGINE INTERA */}
+            {/* MODALE MARAGNO OFFESO - VISIBILE SE BAN ATTIVO */}
             {timeLeft > 0 && (
                 <div className="fixed inset-0 z-[400] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-500">
                     <div className="bg-white rounded-[40px] border-8 border-red-600 p-6 w-full max-w-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] flex flex-col items-center animate-in zoom-in duration-300 relative m-auto">

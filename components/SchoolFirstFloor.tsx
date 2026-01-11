@@ -5,6 +5,7 @@ import { OFFICIAL_LOGO } from '../constants';
 
 const SCHOOL_FF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuola+rpimopiano.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const BTN_OUT_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gjvjvkjv+(1)+(1).webp';
 
 interface SchoolFirstFloorProps {
     setView: (view: AppView) => void;
@@ -79,13 +80,21 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
 
             {isLoaded && (
                 <>
-                    <div className="absolute top-[12%] right-[5%] z-50">
-                        <button onClick={() => setView(AppView.SCHOOL)} className="hover:scale-110 active:scale-95 transition-all w-[12vw] md:w-[6vw] max-w-[80px]"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-full h-auto drop-shadow-2xl" /></button>
+                    {/* TASTO ESCI DALLA SCUOLA IN BASSO A SINISTRA */}
+                    <div className="absolute bottom-[4%] left-[4%] z-50">
+                        <button 
+                            onClick={() => setView(AppView.SCHOOL)} 
+                            className="hover:scale-110 active:scale-95 transition-all w-[28vw] md:w-[15vw] max-w-[240px] outline-none"
+                        >
+                            <img src={BTN_OUT_SCHOOL_IMG} alt="Esci dalla scuola" className="w-full h-auto drop-shadow-2xl" />
+                        </button>
                     </div>
+
+                    {/* FUMETTO SUGGERIMENTO */}
                     <div className="absolute bottom-[6%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
                             <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase text-center block leading-tight">
-                                Scegli l'aula di 1ª, 2ª o 3ª <br className="md:hidden" /> o sali le scale!
+                                Scegli un'aula <br className="md:hidden" /> o sali le scale!
                             </span>
                         </div>
                     </div>

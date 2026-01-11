@@ -55,6 +55,16 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Listener per attivazione globale del Parental Gate dai popup dei giochi bloccati
+    useEffect(() => {
+        const handleGlobalTrigger = () => {
+            setIsMenuOpen(false);
+            setShowParentalGate(true);
+        };
+        window.addEventListener('triggerParentalGate', handleGlobalTrigger);
+        return () => window.removeEventListener('triggerParentalGate', handleGlobalTrigger);
+    }, []);
+
     useEffect(() => {
         const loadNotifs = async () => {
             const data = await fetchAppNotifications();
