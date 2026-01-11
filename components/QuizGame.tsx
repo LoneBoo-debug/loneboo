@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SOCIALS } from '../constants';
 import { RotateCcw, CircleCheck, CircleX, ArrowLeft } from 'lucide-react';
@@ -162,7 +163,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
       const percentage = (score / totalQs) * 100;
       if (percentage === 100) return { image: VICTORY_IMG, title: "INCREDIBILE!", message: "Hai risposto correttamente a TUTTE le domande! Sei un vero fenomeno!", color: "text-purple-600", showYt: false };
       else if (percentage >= 80) return { image: VICTORY_IMG, title: "SEI UN GENIO!", message: "Wow! Hai risposto benissimo a quasi tutte le domande!", color: "text-green-500", showYt: false };
-      else if (percentage >= 50) return { emoji: "😎", title: "BRAVISSIMO!", message: "Hai fatto un buon punteggio!", color: "text-yellow-500", showYt: true };
+      else if (percentage >= 50) return { image: VICTORY_IMG, title: "BRAVISSIMO!", message: "Hai fatto un buon punteggio!", color: "text-yellow-500", showYt: true };
       else return { image: DEFEAT_IMG, title: "PUOI FARE DI PIÙ!", message: "Non ti preoccupare, sbagliando si impara!", color: "text-red-500", showYt: true };
   };
 
@@ -242,11 +243,8 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
                                     </div>
                                 )}
 
-                                {result.image ? (
-                                    <img src={result.image} alt="" className="h-44 md:h-64 mx-auto mb-2 md:mb-4 object-contain" />
-                                ) : (
-                                    <div className="text-8xl md:text-9xl mb-2 md:mb-4 animate-bounce">{result.emoji}</div>
-                                )}
+                                <img src={result.image} alt="" className="h-44 md:h-64 mx-auto mb-2 md:mb-4 object-contain" />
+                                
                                 <h2 className={`text-2xl md:text-3xl font-black mb-2 drop-shadow-sm ${result.color}`}>{result.title}</h2>
                                 <p className="text-base md:text-lg font-bold text-gray-700 mb-6 leading-relaxed">{result.message}</p>
                                 <div className="bg-gray-100 px-6 py-2 rounded-full border-4 border-gray-200 mb-6 inline-flex items-center gap-2">

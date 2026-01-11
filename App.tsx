@@ -150,7 +150,7 @@ const App: React.FC = () => {
                 {currentView === AppView.SCHOOL_FOURTH_GRADE && <SchoolFourthGrade setView={setView} />}
                 {currentView === AppView.SCHOOL_FIFTH_GRADE && <SchoolFifthGrade setView={setView} />}
                 {currentView === AppView.CHAT && <ChatWithBoo setView={setView} />}
-                {currentView === AppView.AI_MAGIC && <MagicEye />}
+                {currentView === AppView.AI_MAGIC && <MagicEye setView={setView} />}
                 {currentView === AppView.SOUNDS && <SoundZone setView={setView} />}
                 {currentView === AppView.COMMUNITY && <CommunityFeed setView={setView} />}
                 {currentView === AppView.FANART && <FanArtGallery setView={setView} />}

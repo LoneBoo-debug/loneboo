@@ -46,16 +46,16 @@ interface CharConfig {
 }
 
 const INITIAL_CONFIGS: Record<string, CharConfig> = {
-    'boo': { "w": 74, "h": 100, "pb": 76 },
-    'pumpkin': { "w": 90, "h": 86, "pb": 66 },
-    'batbeat': { "w": 99, "h": 100, "pb": 73 },
-    'maragno': { "w": 78, "h": 73, "pb": 80 },
-    'andrea': { "w": 110, "h": 97, "pb": 67 },
-    'gaia': { "w": 120, "h": 120, "pb": 67 },
-    'raffa': { "w": 135, "h": 148, "pb": 68 },
-    'grufo': { "w": 103, "h": 93, "pb": 68 },
-    'marlo': { "w": 110, "h": 88, "pb": 71 },
-    'flora': { "w": 105, "h": 110, "pb": 73 }
+    'boo': { "w": 74, "h": 100, "pb": 106 },
+    'pumpkin': { "w": 90, "h": 86, "pb": 96 },
+    'batbeat': { "w": 99, "h": 100, "pb": 103 },
+    'maragno': { "w": 78, "h": 73, "pb": 110 },
+    'andrea': { "w": 110, "h": 97, "pb": 97 },
+    'gaia': { "w": 120, "h": 120, "pb": 97 },
+    'raffa': { "w": 135, "h": 148, "pb": 98 },
+    'grufo': { "w": 103, "h": 93, "pb": 98 },
+    'marlo': { "w": 110, "h": 88, "pb": 101 },
+    'flora': { "w": 105, "h": 110, "pb": 103 }
 };
 
 const ChoirVoiceChanger: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -212,7 +212,7 @@ const ChoirVoiceChanger: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 
                 {/* --- AREA PALCO (FLESSIBILE) --- */}
                 <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
-                    <div className="absolute bottom-10 w-[70%] h-40 bg-gradient-to-t from-purple-900/50 to-transparent rounded-[100%] blur-3xl opacity-40"></div>
+                    <div className="absolute bottom-16 w-[70%] h-40 bg-gradient-to-t from-purple-900/50 to-transparent rounded-[100%] blur-3xl opacity-40"></div>
                     
                     <div className={`flex items-end justify-center gap-0 h-full w-full max-w-2xl px-4 z-10 pb-28 transition-transform duration-500 ${onStage.length === 3 ? '-translate-x-8 md:-translate-x-16' : ''}`}>
                         {onStage.map((id, index) => {

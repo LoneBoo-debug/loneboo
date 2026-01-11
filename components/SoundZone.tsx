@@ -10,6 +10,8 @@ const DjConsole = lazy(() => import('./sound/DjConsole'));
 const DrumKit = lazy(() => import('./sound/DrumKit'));
 const AnimalOrchestra = lazy(() => import('./sound/AnimalOrchestra'));
 const ChoirVoiceChanger = lazy(() => import('./sound/ChoirVoiceChanger'));
+const XylophoneInstrument = lazy(() => import('./sound/XylophoneInstrument'));
+const BongoInstrument = lazy(() => import('./sound/BongoInstrument'));
 const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument'));
 
 const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
@@ -100,9 +102,9 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
               {activeMode === SoundMode.DRUMS && <DrumKit onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.ANIMALS && <AnimalOrchestra onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.CHOIR && <ChoirVoiceChanger onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.XYLOPHONE && <XylophoneInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.BONGO && <BongoInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.GUITAR && <PlaceholderInstrument title="Chitarra" onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.XYLOPHONE && <PlaceholderInstrument title="Xilofono" onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.BONGO && <PlaceholderInstrument title="Bongo" onBack={() => setActiveMode(SoundMode.NONE)} />}
           </Suspense>
       );
   }
@@ -122,9 +124,9 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                 <div className="absolute top-20 md:top-28 left-4 z-50">
                     <button 
                         onClick={() => setView(AppView.CITY_MAP)}
-                        className="hover:scale-105 active:scale-95 transition-transform outline-none drop-shadow-xl"
+                        className="hover:scale-105 active:scale-95 transition-all outline-none drop-shadow-xl"
                     >
-                        <img src={BTN_EXIT_DISCO} alt="Esci" className="h-16 md:h-24 w-auto" />
+                        <img src={BTN_EXIT_DISCO} alt="Esci" className="h-20 md:h-32 w-auto" />
                     </button>
                 </div>
             )}

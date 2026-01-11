@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
+import { AppView } from '../types';
 import StoryDice from './StoryDice';
 import MagicHunt from './MagicHunt';
 import GhostPassport from './GhostPassport';
@@ -9,6 +11,8 @@ import RobotHint from './RobotHint';
 const TOWER_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-mobile.webp';
 const TOWER_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-desktop.webp';
 const BTN_BACK_TOWER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-tower.webp';
+const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/waeedwed+(2)+(1)+(1).webp';
+
 const BG_PASSPORT_GHOST = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfghtpasswde.webp';
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
 const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflancdadersdd.webp';
@@ -31,7 +35,11 @@ const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "hat", "points": [ { "x": 61.35, "y": 57.83 }, { "x": 61.55, "y": 71.33 }, { "x": 68.87, "y": 73.36 }, { "x": 67.66, "y": 57.83 } ] }
 ];
 
-const MagicEye: React.FC = () => {
+interface MagicEyeProps {
+    setView: (view: AppView) => void;
+}
+
+const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -96,6 +104,18 @@ const MagicEye: React.FC = () => {
             <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
                 <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
+            </div>
+        )}
+
+        {/* TASTO ESCI PER LA CITTÀ - Posizionato al limite superiore */}
+        {isLoaded && !activeGame && (
+            <div className="absolute top-1 md:top-2 left-0 md:left-1 z-50 animate-in slide-in-from-left duration-500">
+                <button 
+                    onClick={() => setView(AppView.CITY_MAP)}
+                    className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-2xl"
+                >
+                    <img src={BTN_BACK_CITY} alt="Torna in Città" className="h-64 md:h-[600px] w-auto drop-shadow-xl" />
+                </button>
             </div>
         )}
         
