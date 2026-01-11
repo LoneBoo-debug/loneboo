@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
 
     const isHome = currentView === AppView.HOME;
     const isCityMap = currentView === AppView.CITY_MAP;
-    const isBooHouseMain = currentView === AppView.BOO_HOUSE;
+    const isBooGarden = currentView === AppView.BOO_GARDEN;
     
     // Se siamo in Home usiamo il nuovo logo, altrimenti usiamo il tasto Città
     const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
@@ -147,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                             </div>
                         )}
                         {!isHome && (
-                            <div className={`flex flex-col items-center transition-transform ${isBooHouseMain ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooHouseMain ? undefined : () => setView(AppView.BOO_HOUSE)}>
+                            <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
                                 <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
                                     <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
                                 </div>
@@ -166,7 +166,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
 
             {showNotificationsModal && (
                 <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-start justify-start p-4 pt-24" onClick={() => setShowNotificationsModal(false)}>
-                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
                         <div className="bg-yellow-400 p-4 flex justify-between items-center border-b-4 border-yellow-500">
                             <h3 className="font-black text-black text-xl uppercase flex items-center gap-2"><img src={ICON_NOTIF} alt="" className="w-12 h-12 object-contain" />Notifiche</h3>
                             <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain pointer-events-auto" /></button>

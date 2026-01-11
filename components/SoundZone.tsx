@@ -12,6 +12,7 @@ const AnimalOrchestra = lazy(() => import('./sound/AnimalOrchestra'));
 const ChoirVoiceChanger = lazy(() => import('./sound/ChoirVoiceChanger'));
 const XylophoneInstrument = lazy(() => import('./sound/XylophoneInstrument'));
 const BongoInstrument = lazy(() => import('./sound/BongoInstrument'));
+const GuitarInstrument = lazy(() => import('./sound/GuitarInstrument'));
 const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument'));
 
 const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
@@ -104,7 +105,7 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
               {activeMode === SoundMode.CHOIR && <ChoirVoiceChanger onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.XYLOPHONE && <XylophoneInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.BONGO && <BongoInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.GUITAR && <PlaceholderInstrument title="Chitarra" onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.GUITAR && <GuitarInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
           </Suspense>
       );
   }

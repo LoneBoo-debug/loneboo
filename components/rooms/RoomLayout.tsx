@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AppView } from '../../types';
@@ -8,7 +9,7 @@ import { preloadImages } from '../../services/imagePreloader';
 // --- ASSET FISSI LAYOUT ---
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const ROOM_DECOR_IMG = 'https://i.postimg.cc/Y9wfF76h/arreddder.png';
-const RETURN_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-return-house.webp';
+const RETURN_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wsqqa33.webp';
 
 // TASTI NAVIGAZIONE SPECIFICI (AGGIORNATI CON AWS S3)
 const NAV_KITCHEN_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-living-sx.webp';
@@ -94,6 +95,8 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
         return null;
     };
 
+    const isGarden = roomType === AppView.BOO_GARDEN;
+
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-black overflow-hidden flex flex-col animate-in fade-in touch-none overscroll-none select-none" onClick={() => setShowHint(false)}>
             
@@ -112,12 +115,27 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
                 {children}
             </div>
 
-            {/* NAVIGATION - Abbassati appena sotto l'area interattiva dell'header (top-20 mobile, top-32 desktop) */}
+            {/* NAVIGATION */}
             {navigation && (
                 <>
                     {navigation.left && (
-                        <button onClick={() => setView(navigation.left!.view)} className="absolute top-20 md:top-32 left-2 md:left-4 z-30 hover:scale-105 active:scale-95 transition-transform">
-                            <img src={getNavImg('left') || ''} alt={navigation.left.label} className="h-28 md:h-40 w-auto drop-shadow-md" />
+                        <button 
+                            onClick={() => setView(navigation.left!.view)} 
+                            className={`z-30 hover:scale-105 active:scale-95 transition-transform ${
+                                isGarden 
+                                ? "absolute top-[70%] left-[26%] -translate-x-1/2 -translate-y-1/2" 
+                                : "absolute top-20 md:top-32 left-2 md:left-4"
+                            }`}
+                        >
+                            <img 
+                                src={getNavImg('left') || ''} 
+                                alt={navigation.left.label} 
+                                className={`${
+                                    isGarden 
+                                    ? "h-48 md:h-72 drop-shadow-2xl" 
+                                    : "h-28 md:h-40 drop-shadow-md"
+                                } w-auto`} 
+                            />
                         </button>
                     )}
                     {navigation.right && (

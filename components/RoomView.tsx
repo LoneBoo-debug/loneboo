@@ -3,14 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import RobotHint from './RobotHint';
-import { X, Trash2, Apple, Utensils, Clock, Sparkles, Smile, RefreshCw, Trophy, Camera, Droplets, Shirt } from 'lucide-react';
-import { addTokens } from '../services/tokens';
 
-// =================================================================================================
-// 🏠 MAPPA DELLA CASA (DEFAULT EXPORT)
-// =================================================================================================
-const HOUSE_MAP_MOBILE = 'https://i.postimg.cc/9F308yt9/houseplanss-(1).png';
-const HOUSE_MAP_DESKTOP = 'https://i.postimg.cc/7YLR63CN/hpuse169.jpg';
+// --- NUOVO ASSET MAPPA CASA (CORRETTO) ---
+const HOUSE_MAP_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgdfre554de32.webp';
+
+type Point = { x: number; y: number };
 
 const ZONES_MOBILE = [
   { "id": AppView.BOO_GARDEN, "points": [ { "x": 6.13, "y": 78.43 }, { "x": 6.13, "y": 88.48 }, { "x": 32.78, "y": 88.12 }, { "x": 32.52, "y": 77.35 } ] },
@@ -33,20 +30,24 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
     const [showHint, setShowHint] = useState(false);
 
     useEffect(() => {
-        const imgM = new Image(); imgM.src = HOUSE_MAP_MOBILE;
-        const imgD = new Image(); imgD.src = HOUSE_MAP_DESKTOP;
-        imgM.onload = () => setIsLoaded(true);
-        setTimeout(() => setIsLoaded(true), 2000);
-        const timer = setTimeout(() => setShowHint(true), 2500);
-        return () => clearTimeout(timer);
+        const img = new Image();
+        img.src = HOUSE_MAP_IMAGE;
+        img.onload = () => setIsLoaded(true);
+        // Fallback per garantire che lo spinner sparisca se il caricamento fallisce
+        const timer = setTimeout(() => setIsLoaded(true), 3500);
+        const hintTimer = setTimeout(() => setShowHint(true), 3000);
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(hintTimer);
+        };
     }, []);
 
-    const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    const getClipPath = (points: Point[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
-        <div className="relative w-full h-screen bg-indigo-900 overflow-hidden pt-[64px] md:pt-[96px]">
+        <div className="fixed inset-0 z-0 bg-black overflow-hidden select-none touch-none animate-in fade-in duration-700">
              {!isLoaded && (
-                <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-indigo-900/95 backdrop-blur-md">
+                <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-indigo-900">
                     <img 
                         src={OFFICIAL_LOGO} 
                         alt="Caricamento..." 
@@ -56,18 +57,45 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                         }} 
                     />
                     <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">
-                        Sto Caricando...
+                        Entro in casa...
                     </span>
                 </div>
             )}
-            <RobotHint show={showHint} message="Tocca una stanza per entrare!" variant="GHOST" />
-            <div className="block md:hidden w-full h-full relative">
-                <img src={HOUSE_MAP_MOBILE} alt="" className="w-full h-full object-fill" />
-                {ZONES_MOBILE.map(z => <div key={z.id} onClick={() => setView(z.id)} className="absolute inset-0 cursor-pointer" style={{ clipPath: getClipPath(z.points) }}></div>)}
-            </div>
-            <div className="hidden md:block w-full h-full relative">
-                <img src={HOUSE_MAP_DESKTOP} alt="" className="w-full h-full object-fill" />
-                {ZONES_DESKTOP.map(z => <div key={z.id} onClick={() => setView(z.id)} className="absolute inset-0 cursor-pointer hover:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>)}
+
+            <RobotHint show={showHint && isLoaded} message="Tocca una stanza per entrare!" variant="GHOST" />
+
+            {/* BACKGROUND IMAGE - FULL SCREEN */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+                <img 
+                    src={HOUSE_MAP_IMAGE} 
+                    alt="Casa di Boo" 
+                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    draggable={false}
+                />
+
+                {/* CLICKABLE ZONES (DESKTOP) */}
+                <div className="hidden md:block absolute inset-0 z-10">
+                    {ZONES_DESKTOP.map(z => (
+                        <div 
+                            key={z.id} 
+                            onClick={() => setView(z.id)} 
+                            className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
+                            style={{ clipPath: getClipPath(z.points) }}
+                        ></div>
+                    ))}
+                </div>
+
+                {/* CLICKABLE ZONES (MOBILE) */}
+                <div className="block md:hidden absolute inset-0 z-10">
+                    {ZONES_MOBILE.map(z => (
+                        <div 
+                            key={z.id} 
+                            onClick={() => setView(z.id)} 
+                            className="absolute inset-0 cursor-pointer active:bg-white/10" 
+                            style={{ clipPath: getClipPath(z.points) }}
+                        ></div>
+                    ))}
+                </div>
             </div>
         </div>
     );

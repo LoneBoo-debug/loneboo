@@ -10,20 +10,20 @@ interface HomePageProps {
 }
 
 // Asset stringhe standard
-const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newsade+(1)+(1).webp';
+const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newnovit6675+(1).webp';
 const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/igliglg1454.webp';
 
-// ZONES CONFIGURATION
+// ZONES CONFIGURATION - Updated to point to BOO_GARDEN
 const ZONES_MOBILE = [
   { id: AppView.CITY_MAP, points: [{ x: 13.06, y: 64.82 }, { x: 13.33, y: 83.39 }, { x: 41.31, y: 82.56 }, { x: 40.25, y: 64.49 }] },
-  { id: AppView.BOO_HOUSE, points: [{ x: 60.5, y: 64.16 }, { x: 60.5, y: 82.39 }, { x: 89.82, y: 83.39 }, { x: 90.09, y: 64.66 }] }
+  { id: AppView.BOO_GARDEN, points: [{ x: 60.5, y: 64.16 }, { x: 60.5, y: 82.39 }, { x: 89.82, y: 83.39 }, { x: 90.09, y: 64.66 }] }
 ];
 
 const ZONES_DESKTOP = [
   { id: AppView.CITY_MAP, points: [{ x: 37.25, y: 64.26 }, { x: 37.14, y: 84.29 }, { x: 47.06, y: 84.29 }, { x: 47.06, y: 64.48 }] },
-  { id: AppView.BOO_HOUSE, points: [{ x: 53.8, y: 64.7 }, { x: 53.6, y: 82.75 }, { x: 64.02, y: 84.29 }, { x: 63.92, y: 64.48 }] }
+  { id: AppView.BOO_GARDEN, points: [{ x: 53.8, y: 64.7 }, { x: 53.6, y: 82.75 }, { x: 64.02, y: 84.29 }, { x: 63.92, y: 64.48 }] }
 ];
 
 const HomePage: React.FC<HomePageProps> = ({ setView }) => {
@@ -72,11 +72,11 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             {/* INTERACTIVE LAYER - z-10 per stare sopra lo sfondo e mantenere i clic */}
             <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
                 
-                {/* Contest Button (Top Left) - Abbassato leggermente al 10% / 12% */}
-                <div className="absolute top-[10%] left-[4%] md:top-[12%] md:left-[3.5%] w-[24%] md:w-[13%] z-20 flex flex-col gap-4 pointer-events-auto">
+                {/* Contest Button (Top Left) - Aumentato w da 24/13% a 28/16% e aggiunta rotazione */}
+                <div className="absolute top-[10%] left-[4%] md:top-[12%] md:left-[3.5%] w-[28%] md:w-[16%] z-20 flex flex-col gap-4 pointer-events-auto">
                     <button 
                         onClick={() => setIsContestOpen(true)}
-                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30"
+                        className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30 transform rotate-[-4deg]"
                     >
                         <img 
                             src={CONTEST_LOGO}
