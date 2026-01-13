@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
@@ -171,9 +170,11 @@ const BedroomRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
         } else if (id === 'baule') {
             setActivePage({ id: 'baule', label: 'Baule dei Segreti' });
         } else if (id === 'sveglia') {
-            setActivePage({ id: 'sveglia', label: 'Sveglia Birichina' });
+            // Updated: Ora porta al gioco StopwatchGame
+            setView(AppView.STOPWATCH_GAME);
         } else if (id === 'libri') {
-            setView(AppView.BOOKS_LIST);
+            // Modificato: ora porta al Bosco Fiabe
+            setView(AppView.TALES);
         } else if (id === 'sveglia_boo') {
             setView(AppView.SVEGLIA_BOO);
         }
@@ -195,7 +196,7 @@ const BedroomRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
 
     // Zone cliccabili ufficiali della camera
     const ZONES_MOBILE = [
-      { "id": "libri", "label": "I Miei Libri", "points": [ { "x": 73.56, "y": 72.55 }, { "x": 85.29, "y": 72.21 }, { "x": 80.76, "y": 81.57 }, { "x": 73.03, "y": 78.85 } ] },
+      { "id": "libri", "label": "Bosco Fiabe", "points": [ { "x": 73.56, "y": 72.55 }, { "x": 85.29, "y": 72.21 }, { "x": 80.76, "y": 81.57 }, { "x": 73.03, "y": 78.85 } ] },
       { "id": "sveglia", "label": "Sveglia Birichina", "points": [ { "x": 86.35, "y": 78.68 }, { "x": 98.88, "y": 79.53 }, { "x": 99.15, "y": 86.51 }, { "x": 85.02, "y": 84.81 } ] },
       { "id": "baule", "label": "Baule dei Segreti", "points": [ { "x": 24.25, "y": 65.91 }, { "x": 55.7, "y": 70.5 }, { "x": 56.77, "y": 84.81 }, { "x": 21.32, "y": 81.4 } ] },
       { "id": "telescopio", "label": "Mappa Stellare", "points": [ { "x": 37.85, "y": 40.7 }, { "x": 58.64, "y": 47.51 }, { "x": 50.91, "y": 59.78 }, { "x": 41.04, "y": 58.41 } ] },
@@ -203,7 +204,7 @@ const BedroomRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     ];
 
     const ZONES_DESKTOP = [
-      { "id": "libri", "label": "I Miei Libri", "points": [ { "x": 59.74, "y": 78.31 }, { "x": 59.54, "y": 87.53 }, { "x": 61.85, "y": 90.46 }, { "x": 65.66, "y": 80.33 } ] },
+      { "id": "libri", "label": "Bosco Fiabe", "points": [ { "x": 59.74, "y": 78.31 }, { "x": 59.54, "y": 87.53 }, { "x": 61.85, "y": 90.46 }, { "x": 65.66, "y": 80.33 } ] },
       { "id": "sveglia", "label": "Sveglia Birichina", "points": [ { "x": 64.86, "y": 86.63 }, { "x": 64.55, "y": 94.28 }, { "x": 71.37, "y": 97.43 }, { "x": 71.77, "y": 87.98 } ] },
       { "id": "baule", "label": "Baule dei Segreti", "points": [ { "x": 45.31, "y": 68.86 }, { "x": 39.29, "y": 87.31 }, { "x": 46.81, "y": 99.23 }, { "x": 53.83, "y": 87.53 } ] },
       { "id": "telescopio", "label": "Mappa Stellare", "points": [ { "x": 46.41, "y": 39.15 }, { "x": 47.71, "y": 63.68 }, { "x": 52.23, "y": 63.91 }, { "x": 54.63, "y": 45.9 } ] },

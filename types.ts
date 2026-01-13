@@ -1,4 +1,3 @@
-
 export enum SchoolSubject {
   ITALIANO = 'ITALIANO',
   MATEMATICA = 'MATEMATICA',
@@ -127,6 +126,7 @@ export enum AppView {
   
   // NEW PAGE
   SVEGLIA_BOO = 'SVEGLIA_BOO',
+  STOPWATCH_GAME = 'STOPWATCH_GAME', // NEW: Game logic requested
   TRAIN_JOURNEY = 'TRAIN_JOURNEY',
   
   // NEW LIBRARY PAGES

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
@@ -42,6 +41,7 @@ const CityMap = lazy(() => import('./components/CityMap'));
 const RoomView = lazy(() => import('./components/RoomView')); 
 const InfoMenu = lazy(() => import('./components/InfoMenu'));
 const SvegliaBoo = lazy(() => import('./components/SvegliaBoo'));
+const StopwatchGame = lazy(() => import('./components/StopwatchGame'));
 const FAQPage = lazy(() => import('./components/FAQPage'));
 const GuidePage = lazy(() => import('./components/GuidePage'));
 const ContactPage = lazy(() => import('./components/ContactPage'));
@@ -174,6 +174,7 @@ const App: React.FC = () => {
                 {currentView === AppView.INFO_MENU && <InfoMenu setView={setView} />}
                 {currentView === AppView.NEWSSTAND && <Newsstand setView={setView} />}
                 {currentView === AppView.SVEGLIA_BOO && <SvegliaBoo setView={setView} />}
+                {currentView === AppView.STOPWATCH_GAME && <StopwatchGame setView={setView} />}
                 {currentView === AppView.BOO_KITCHEN && <KitchenRoom setView={setView} />}
                 {currentView === AppView.BOO_LIVING_ROOM && <LivingRoom setView={setView} />}
                 {currentView === AppView.BOO_BEDROOM && <BedroomRoom setView={setView} />}

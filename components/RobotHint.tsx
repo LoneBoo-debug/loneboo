@@ -32,49 +32,55 @@ const RobotHint: React.FC<RobotHintProps> = ({
         switch(variant) {
             case 'GHOST': 
                 return {
+                    bg: 'bg-white',
                     text: 'text-purple-600',
                     border: 'border-black',
-                    shadow: 'shadow-[6px_6px_0px_0px_rgba(0,0,0,0.4)]',
+                    shadow: 'shadow-[6px_6px_0_0_rgba(0,0,0,0.4)]',
                     textStroke: '1px black',
                     textShadow: '2px 2px 0px black'
                 };
             case 'GREEN': 
                 return {
+                    bg: 'bg-white',
                     text: 'text-green-600',
                     border: 'border-green-600',
-                    shadow: 'shadow-[6px_6px_0px_0px_rgba(22,101,52,0.4)]',
+                    shadow: 'shadow-[6px_6px_0_0_rgba(22,101,52,0.4)]',
                     textStroke: '1px #166534',
                     textShadow: '2px 2px 0px #166534'
                 };
             case 'PURPLE':
                 return {
+                    bg: 'bg-white',
                     text: 'text-[#9333ea]', // Viola acceso
                     border: 'border-[#9333ea]',
-                    shadow: 'shadow-[6px_6px_0px_0px_rgba(147,51,234,0.4)]',
+                    shadow: 'shadow-[6px_6px_0_0_rgba(147,51,234,0.4)]',
                     textStroke: '1px #581c87',
                     textShadow: '2px 2px 0px #581c87'
                 };
             case 'YELLOW':
                 return {
+                    bg: 'bg-white/10 backdrop-blur-sm', // Ancora più trasparente
                     text: 'text-yellow-500',
                     border: 'border-yellow-400',
-                    shadow: 'shadow-[0_0_20px_rgba(250,204,21,0.6)]',
+                    shadow: 'shadow-[0_0_20px_rgba(250,204,21,0.4)]',
                     textStroke: '1px #854d0e',
-                    textShadow: '2px 2px 0px rgba(250,204,21,0.4)'
+                    textShadow: '2px 2px 0px rgba(250,204,21,0.3)'
                 };
             case 'BROWN':
                 return {
+                    bg: 'bg-white',
                     text: 'text-[#78350f]', // Amber-900
                     border: 'border-[#78350f]',
-                    shadow: 'shadow-[6px_6px_0px_0px_rgba(120,53,15,0.4)]',
+                    shadow: 'shadow-[6px_6px_0_0_rgba(120,53,15,0.4)]',
                     textStroke: '1px #451a03',
                     textShadow: '2px 2px 0px #451a03'
                 };
             default: // ROBOT / Default
                 return {
+                    bg: 'bg-white',
                     text: 'text-blue-500',
                     border: 'border-black',
-                    shadow: 'shadow-[6px_6px_0px_0px_rgba(0,0,0,0.4)]',
+                    shadow: 'shadow-[6px_6px_0_0_rgba(0,0,0,0.4)]',
                     textStroke: '1px black',
                     textShadow: '2px 2px 0px black'
                 };
@@ -82,6 +88,21 @@ const RobotHint: React.FC<RobotHintProps> = ({
     };
 
     const styles = getStyles();
+
+    // Funzione per formattare il testo: rimpicciolisce quello tra parentesi
+    const formatMessage = (msg: string) => {
+        const parts = msg.split(/(\(.*?\))/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('(') && part.endsWith(')')) {
+                return (
+                    <span key={i} className="block text-[10px] md:text-sm mt-1 font-sans font-black opacity-90 lowercase first-letter:uppercase">
+                        {part}
+                    </span>
+                );
+            }
+            return <React.Fragment key={i}>{part}</React.Fragment>;
+        });
+    };
 
     return (
         <div 
@@ -94,19 +115,19 @@ const RobotHint: React.FC<RobotHintProps> = ({
             }}
         >
             <div className="relative">
-                {/* Text Bubble Container */}
+                {/* Text Bubble Container - Riconfigurato per essere più stretto */}
                 <div 
-                    className={`bg-white px-6 py-4 rounded-[2rem] border-4 transition-all duration-300 transform -rotate-2 flex items-center justify-center max-w-[240px] ${styles.border} ${styles.shadow}`}
+                    className={`${styles.bg} px-4 py-4 rounded-[2rem] border-4 transition-all duration-300 transform -rotate-2 flex items-center justify-center max-w-[210px] ${styles.border} ${styles.shadow}`}
                 >
                     <span 
-                        className={`font-luckiest text-2xl md:text-3xl lg:text-4xl drop-shadow-sm select-none uppercase whitespace-pre-line text-center ${styles.text}`}
+                        className={`font-luckiest text-xl md:text-2xl lg:text-3xl drop-shadow-sm select-none uppercase whitespace-pre-line text-center ${styles.text}`}
                         style={{ 
                             WebkitTextStroke: styles.textStroke,
                             textShadow: styles.textShadow,
-                            lineHeight: '1.1'
+                            lineHeight: '1.05'
                         }}
                     >
-                        {message}
+                        {formatMessage(message)}
                     </span>
                 </div>
             </div>
