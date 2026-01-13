@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView, ChatMessage } from '../types';
 import { Loader2, Send, Volume2, VolumeX, ArrowLeft, Clock, Mic, MicOff, X } from 'lucide-react';
@@ -60,17 +59,20 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
 
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
-            recognitionRef.current = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.lang = 'it-IT';
-            recognitionRef.current.interimResults = false;
-            recognitionRef.current.onresult = (event: any) => {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'it-IT';
+            recognition.interimResults = false;
+            
+            recognition.onstart = () => setIsListening(true);
+            recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
                 setInputText(prev => (prev ? prev + ' ' + transcript : transcript));
-                setIsListening(false);
             };
-            recognitionRef.current.onerror = () => setIsListening(false);
-            recognitionRef.current.onend = () => setIsListening(false);
+            recognition.onerror = () => setIsListening(false);
+            recognition.onend = () => setIsListening(false);
+            
+            recognitionRef.current = recognition;
         }
     }, []);
 
@@ -125,7 +127,6 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 setInsultCount(newCount);
                 localStorage.setItem('maragno_insults', String(newCount));
                 
-                // --- LOGICA BAN PROGRESSIVA ---
                 if (newCount === 4) {
                     cleanResponse = "Attenzione! Questo è l'ultimo avviso. Se continui così interromperò il servizio e entrerò in modalità offeso per 5 minuti! 🕷️⚠️";
                 }
@@ -157,8 +158,15 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
 
     const toggleListening = () => {
         if (!recognitionRef.current) return;
-        if (isListening) recognitionRef.current.stop();
-        else { setIsListening(true); recognitionRef.current.start(); }
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            try {
+                recognitionRef.current.start();
+            } catch (e) {
+                console.error("Errore avvio microfono:", e);
+            }
+        }
     };
 
     const toggleChat = () => {
@@ -196,7 +204,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 </div>
             )}
 
-            {/* MODALE MARAGNO OFFESO - VISIBILE SE BAN ATTIVO */}
+            {/* MODALE MARAGNO OFFESO */}
             {timeLeft > 0 && (
                 <div className="fixed inset-0 z-[400] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-500">
                     <div className="bg-white rounded-[40px] border-8 border-red-600 p-6 w-full max-w-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] flex flex-col items-center animate-in zoom-in duration-300 relative m-auto">

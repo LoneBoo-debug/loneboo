@@ -1,16 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView, SchoolSubject } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import CurriculumView from './CurriculumView';
 import { GRADE5_DATA } from '../services/curriculum/grade5';
+import TeacherChat from './TeacherChat';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quintalembg.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const BTN_ASK_TEACHER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/choeiteahxe32+(1)+(1)4re.webp';
 
 const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(null);
+    const [showTeacherChat, setShowTeacherChat] = useState(false);
 
     useEffect(() => {
         const img = new Image();
@@ -53,6 +55,14 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         <img src={BTN_CLOSE_IMG} alt="Indietro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
                     </button>
 
+                    {/* PULSANTE CHIEDI ALLA MAESTRA */}
+                    <button 
+                        onClick={() => setShowTeacherChat(true)}
+                        className="absolute top-[22%] right-[18%] md:top-[26%] md:right-[22%] z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                    >
+                        <img src={BTN_ASK_TEACHER_IMG} alt="Chiedi alla Maestra" className="w-40 md:w-64 h-auto drop-shadow-2xl" />
+                    </button>
+
                     {/* SIDEBAR MATERIE - Dimensioni aumentate e posizione ricalibrata */}
                     <div 
                         className="absolute flex flex-col gap-2 md:gap-3.5 z-40 max-w-[72px] md:max-w-[130px]"
@@ -91,6 +101,10 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}
                 />
+            )}
+
+            {showTeacherChat && (
+                <TeacherChat onClose={() => setShowTeacherChat(false)} />
             )}
         </div>
     );

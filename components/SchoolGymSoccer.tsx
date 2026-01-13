@@ -17,6 +17,7 @@ const BTN_RIGHT_IMG_SOCCER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com
 const ANDREA_UI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glhgkuf+(1)adrea.webp';
 const ANDREA_SUCCESS_DRIB_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/andredribbkiok89.webp';
 const ANDREA_WIN_GOAL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exultadnre44+(1).webp';
+const ROMUALDO_WIN_MODAL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defeatdresa332+(1).webp';
 
 // --- ASSET ROMUALDO ---
 const ROMUALDO_GOALIE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/portiererond+(1).webp';
@@ -153,7 +154,7 @@ const SchoolGymSoccer: React.FC<{ setView: (view: AppView) => void }> = ({ setVi
         setTimeout(() => {
             if (pos === aiChoice) {
                 setMessage('INTERCETTATA!');
-                // Il punteggio non cambia durante il dribbling
+                // Niente punteggio durante il dribbling
                 setTimeout(resetRound, 2000);
             } else {
                 setMessage('DRIBBLING RIUSCITO!');
@@ -193,13 +194,13 @@ const SchoolGymSoccer: React.FC<{ setView: (view: AppView) => void }> = ({ setVi
         setTimeout(() => {
             if (pos === aiChoice) {
                 setMessage('PARATA!');
-                // Romualdo prende un punto se para un tiro
+                // Punto per Romualdo se para un tiro in porta
                 setScore(s => ({ ...s, opponent: s.opponent + 1 }));
                 setTimeout(resetRound, 2000);
             } else {
                 setMessage('Goal!!');
                 playGoalSound();
-                // Andrea prende un punto se segna
+                // Punto per Andrea se segna un goal
                 setScore(s => ({ ...s, player: s.player + 1 }));
                 setTimeout(resetRound, 3000);
             }
@@ -361,8 +362,8 @@ const SchoolGymSoccer: React.FC<{ setView: (view: AppView) => void }> = ({ setVi
                 {message && (
                     <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] animate-in zoom-in duration-300`}>
                         {message === 'Goal!!' || message === 'PARATA!' ? (
-                            <div className="flex flex-col items-center gap-4 md:gap-6 -translate-x-24 md:-translate-x-48">
-                                <h2 className={`text-7xl md:text-[10rem] lucky-font text-stroke uppercase text-center whitespace-nowrap ${message === 'Goal!!' ? 'text-yellow-400' : 'text-red-500'}`}>
+                            <div className="flex flex-col items-center gap-4 md:gap-6 -translate-x-20 md:-translate-x-40">
+                                <h2 className={`lucky-font text-stroke uppercase text-center whitespace-nowrap ${message === 'Goal!!' ? 'text-7xl md:text-[10rem] text-yellow-400' : 'text-5xl md:text-8xl text-red-500'}`}>
                                     {message}
                                 </h2>
                             </div>
@@ -575,6 +576,13 @@ const SchoolGymSoccer: React.FC<{ setView: (view: AppView) => void }> = ({ setVi
             {(phase === 'WON' || phase === 'LOST') && !isCalibrating && (
                 <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 animate-in zoom-in duration-300">
                     <div className="bg-white rounded-[40px] border-8 border-yellow-400 p-6 md:p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center relative pointer-events-auto">
+                        <div className="mb-4">
+                            <img 
+                                src={phase === 'WON' ? ANDREA_WIN_GOAL_IMG : ROMUALDO_WIN_MODAL_IMG} 
+                                alt="Risultato" 
+                                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-xl" 
+                            />
+                        </div>
                         <h2 className={`text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-4 lucky-font text-stroke ${phase === 'WON' ? 'text-blue-500' : 'text-red-500'}`}>
                             {phase === 'WON' ? 'CAMPIONE!' : 'PECCATO!'}
                         </h2>

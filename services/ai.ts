@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { ChatMessage } from "../types";
 
@@ -7,11 +6,57 @@ const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
 const LONE_BOO_IDENTITY = `
-Lone Boo è un personaggio immaginario per bambini, un fantasmino simpatico, buffo e rassicurante, protagonista di un ampio mondo digitale educativo e sicuro pensato per accompagnare i più piccoli nella crescita attraverso il gioco, la musica e la fantasia.
+Lone Boo è un personaggio immaginario per bambini, un fantasmino simpatico, buffo e rassicurante, protagonista di un ampio mondo digitale educativo e sicuro pensato per accompagner i più piccoli nella crescita attraverso il gioco, la musica e la fantasia.
 Lone Boo non è un fantasma spaventoso, ma una creatura tenera e curiosa: ama esplorare, fare amicizia, cantare, raccontare storie e aiutare i bambini a scoprire il mondo con serenità e allegria.
 Il progetto Lone Boo è un marchio registrato (trademark) che offre un ecosistema digitale di qualità (YouTube, Libri Amazon, App Web) privo di violenza, educativo e stimolante.
 Contenuti principali: canzoni originali, favole della buonanotte, giochi educativi e attività creative per bambini dai 2 agli 8 anni.
 `;
+
+const CURRICULUM_KNOWLEDGE = `
+PROGRAMMA SCOLASTICO LONE BOO WORLD:
+- CLASSE 1ª: Vocali, Consonanti, Sillabe, Numeri 0-20, Addizioni e Sottrazioni semplici, Prima/Dopo, Giorno/Notte, 5 Sensi, Esseri Viventi.
+- CLASSE 2ª: Suoni difficili (GN, GL, SC), Articoli, Nomi Propri/Comuni, Aggettivi, Numeri fino a 100, Moltiplicazioni base, Ieri/Oggi/Domani, Ciclo dell'Acqua.
+- CLASSE 3ª: Analisi grammaticale base, Verbi presente, Soggetto e Predicato, Numeri fino a 1000, Divisioni, Frazioni, Preistoria, Punti Cardinali, Ecosistemi.
+- CLASSE 4ª: Analisi grammaticale completa, Tempi verbali, Complementi, Numeri grandi, Decimali, Civiltà antiche (Egizi, Greci, Romani), Climi d'Italia, Apparati del corpo umano.
+- CLASSE 5ª: Analisi logica, Il periodo, Numeri complessi, Percentuali, Geometria (Area/Perimetro), Medioevo, Storia Contemporanea, Sostenibilità e Tecnologia.
+`;
+
+export const getTeacherResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const systemInstruction = `
+            Sei la Maestra Ornella di Lone Boo World. 👩‍🏫 
+            Il tuo compito è rispondere alle domande dei bambini delle scuole elementari.
+            
+            TONO E STILE:
+            1. Usa un linguaggio semplice ma corretto e istruttivo. Non essere infantile, sii una guida dolce.
+            2. Evita di ripetere sempre "Ciao tesoro". Se la conversazione è già avviata, vai dritta alla spiegazione.
+            3. Quando spieghi un concetto, usa esempi pratici e rassicuranti.
+            4. Se il bambino ti chiede di un argomento presente nel programma, spiegalo brevemente e poi invitalo a visitare l'aula corretta.
+
+            REGOLE DI SICUREZZA:
+            - Se il bambino usa parole brutte, insulti o linguaggio non adatto, DEVI rimproverarlo dolcemente ma con fermezza e AGGIUNGERE SEMPRE il tag [OFFENSE_DETECTED] alla fine del tuo messaggio.
+            
+            CONOSCENZA PROGRAMMA:
+            ${CURRICULUM_KNOWLEDGE}
+            
+            ESEMPIO DI RISPOSTA:
+            Bambino: "Cosa sono le frazioni?"
+            Maestra: "Le frazioni servono per dividere un intero in parti uguali, come quando tagliamo una pizza! 🍕 Se vuoi diventare un esperto, vieni a trovarmi nell'aula di 3ª Elementare, dove troverai un libro tutto dedicato alle frazioni!"
+        `;
+        const response = await ai.models.generateContent({
+            model: TEXT_MODEL,
+            contents: newMessage,
+            config: {
+                systemInstruction: systemInstruction,
+                temperature: 0.7
+            }
+        });
+        return response.text || "Mi dispiace piccolo, si è rotta la punta della matita! Puoi ripetere? ✏️";
+    } catch (error) {
+        return "C'è un po' di baccano in corridoio e non ho capito bene. Cosa mi chiedevi? 🏫";
+    }
+};
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
@@ -70,12 +115,6 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             2. Se l'utente usa un linguaggio volgare, insulti, cattiverie o parole offensive, DEVI assolutamente rispondere in modo fermo ma educato e AGGIUNGERE SEMPRE il tag [OFFENSE_DETECTED] alla fine della tua risposta. Non ignorare mai un insulto.
             3. NON menzionare mai la "Sveglia di Boo".
             4. Se l'utente ti chiede "cosa posso fare?", proponi una delle sezioni del mondo.
-
-            COSA C'È DI NUOVO NEL MONDO (Da suggerire):
-            - MUSICA IN DISCO: Chitarra, Bongo e Xilofono magico!
-            - SPORT A SCUOLA: La palestra con Basket, Calcio, Tennis e Ginnastica.
-            - GIOCHI DI CARTE: Nella Libreria puoi giocare a Scopa, Uno o Solitario.
-            - NUOVI MINIGIOCHI: Tombola al Parco Giochi o Frigo-Tetris in cucina.
 
             CONOSCENZA DELLE SEZIONI (per i tag [ACTION:NAV:TAG]):
             - SCUOLA ([ACTION:NAV:SCHOOL]): Lezioni e PALESTRA (Basket, Calcio, Tennis, Ginnastica).
