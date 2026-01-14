@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Lock, Check } from 'lucide-react';
 
@@ -58,7 +59,7 @@ const ParentalGate: React.FC<ParentalGateProps> = ({ onClose, onSuccess }) => {
                         type="tel" 
                         value={answer}
                         onChange={(e) => setAnswer(e.target.value)}
-                        className={`w-full text-center text-3xl font-black p-4 rounded-xl border-4 outline-none transition-all ${error ? 'border-red-500 bg-red-50 animate-shake' : 'border-slate-300 focus:border-blue-500'}`}
+                        className={`w-full text-center text-3xl font-black p-4 rounded-xl border-4 outline-none transition-all text-slate-900 ${error ? 'border-red-500 bg-red-50 animate-shake' : 'border-slate-300 focus:border-blue-500'}`}
                         placeholder="Risultato..."
                         autoFocus
                     />

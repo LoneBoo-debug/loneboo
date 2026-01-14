@@ -5,9 +5,20 @@ import CurriculumView from './CurriculumView';
 import { GRADE3_DATA } from '../services/curriculum/grade3';
 import TeacherChat from './TeacherChat';
 
-const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/terzaelembg.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const BTN_ASK_TEACHER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/choeiteahxe32+(1)+(1)4re.webp';
+const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/terxeseleme55nwenew56.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
+const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
+
+interface Point { x: number; y: number; }
+
+const SAVED_HOTSPOTS: Record<string, Point[]> = {
+  "ITALIANO": [{"x": 2.67, "y": 11.09}, {"x": 2.67, "y": 26.98}, {"x": 26.39, "y": 27.43}, {"x": 26.39, "y": 11.09}],
+  "MATEMATICA": [{"x": 2.4, "y": 29.83}, {"x": 2.13, "y": 45.26}, {"x": 26.39, "y": 45.41}, {"x": 26.92, "y": 29.68}],
+  "STORIA": [{"x": 2.67, "y": 47.51}, {"x": 2.67, "y": 63.55}, {"x": 26.92, "y": 63.4}, {"x": 26.39, "y": 47.81}],
+  "GEOGRAFIA": [{"x": 2.67, "y": 65.8}, {"x": 1.87, "y": 81.24}, {"x": 26.65, "y": 81.83}, {"x": 26.92, "y": 65.8}],
+  "SCIENZE": [{"x": 1.87, "y": 83.33}, {"x": 2.13, "y": 98.92}, {"x": 27.45, "y": 99.37}, {"x": 27.45, "y": 83.78}],
+  "TEACHER_CHAT": [{"x": 71.7, "y": 32.22}, {"x": 71.96, "y": 42.12}, {"x": 95.42, "y": 42.57}, {"x": 95.42, "y": 32.37}]
+};
 
 const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
@@ -21,13 +32,21 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         window.scrollTo(0, 0);
     }, []);
 
-    const subjects = [
-        { id: SchoolSubject.ITALIANO, label: 'Italiano', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/italianobuc.webp' },
-        { id: SchoolSubject.MATEMATICA, label: 'Matematica', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/matebusc.webp' },
-        { id: SchoolSubject.STORIA, label: 'Storia', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stobuscs.webp' },
-        { id: SchoolSubject.GEOGRAFIA, label: 'Geografia', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/geobusc.webp' },
-        { id: SchoolSubject.SCIENZE, label: 'Scienze', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scisbuc.webp' },
-    ];
+    const getClipPath = (pts: Point[]) => {
+        if (!pts || pts.length < 3) return 'none';
+        return `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    };
+
+    const handleZoneInteraction = (key: string) => {
+        if (key === 'TEACHER_CHAT') {
+            setShowTeacherChat(true);
+        } else {
+            const subject = key as SchoolSubject;
+            if (Object.values(SchoolSubject).includes(subject)) {
+                setActiveSubject(subject);
+            }
+        }
+    };
 
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-orange-900 overflow-hidden touch-none overscroll-none select-none">
@@ -44,53 +63,51 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                     alt="3ª Elementare" 
                     className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />
+
+                {isLoaded && !activeSubject && (Object.entries(SAVED_HOTSPOTS) as [string, Point[]][]).map(([key, pts]) => (
+                    pts.length >= 3 && (
+                        <div 
+                            key={key}
+                            onClick={() => handleZoneInteraction(key)}
+                            className="absolute inset-0 z-20 cursor-pointer active:bg-white/10"
+                            style={{ clipPath: getClipPath(pts) }}
+                        />
+                    )
+                ))}
             </div>
 
             {isLoaded && !activeSubject && (
                 <>
+                    {/* LAVAGNA SCRITTA */}
+                    <img 
+                        src={HINT_IMG} 
+                        alt="Tocca i libri o chiedi alla maestra" 
+                        className="absolute z-50 drop-shadow-xl animate-in slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
+                        style={{ 
+                            right: '11%', 
+                            bottom: '26%', 
+                            width: '33vw', 
+                            maxWidth: '550px' 
+                        }}
+                    />
+
+                    {/* TASTO ESCI */}
                     <button 
                         onClick={() => setView(AppView.SCHOOL_FIRST_FLOOR)}
-                        className="absolute top-20 left-4 md:top-28 md:left-8 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_CLOSE_IMG} alt="Indietro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
-                    </button>
-
-                    {/* PULSANTE CHIEDI ALLA MAESTRA */}
-                    <button 
-                        onClick={() => setShowTeacherChat(true)}
-                        className="absolute top-[22%] right-[18%] md:top-[26%] md:right-[22%] z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_ASK_TEACHER_IMG} alt="Chiedi alla Maestra" className="w-40 md:w-64 h-auto drop-shadow-2xl" />
-                    </button>
-
-                    {/* SIDEBAR MATERIE - Dimensioni aumentate e posizione ricalibrata */}
-                    <div 
-                        className="absolute flex flex-col gap-2 md:gap-3.5 z-40 max-w-[72px] md:max-w-[130px]"
+                        className="absolute z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         style={{ 
-                            left: window.innerWidth < 768 ? '17.5%' : '20.5%',
-                            top: '48.5%',
-                            transform: 'translateY(-50%)'
+                            right: '30%', 
+                            bottom: '1.7%', 
+                            width: '31.5vw', 
+                            maxWidth: '500px' 
                         }}
                     >
-                        {subjects.map((s) => (
-                            <button
-                                key={s.id}
-                                onClick={() => setActiveSubject(s.id)}
-                                className="w-full hover:scale-110 active:scale-95 transition-transform outline-none drop-shadow-xl"
-                                title={`Apri ${s.label}`}
-                            >
-                                <img src={s.img} alt={s.label} className="w-full h-auto" />
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 flex justify-center pointer-events-none z-20 w-full px-4">
-                        <div className="bg-white/90 backdrop-blur-md border-4 border-blue-500 px-6 py-3 rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-4">
-                            <span className="font-luckiest text-blue-900 text-xl md:text-4xl uppercase tracking-tighter text-center block">
-                                Scegli un libro per studiare! 📖
-                            </span>
-                        </div>
-                    </div>
+                        <img 
+                            src={BTN_CLOSE_IMG} 
+                            alt="Esci" 
+                            className="w-full h-auto drop-shadow-2xl object-contain" 
+                        />
+                    </button>
                 </>
             )}
 
@@ -100,6 +117,7 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}
+                    setView={setView}
                 />
             )}
 

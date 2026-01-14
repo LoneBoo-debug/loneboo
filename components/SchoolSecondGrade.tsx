@@ -5,9 +5,50 @@ import CurriculumView from './CurriculumView';
 import { GRADE2_DATA } from '../services/curriculum/grade2';
 import TeacherChat from './TeacherChat';
 
-const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/secondaelebg.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const BTN_ASK_TEACHER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/choeiteahxe32+(1)+(1)4re.webp';
+const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/secondlement44new33or.webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
+const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
+
+type Point = { x: number; y: number };
+
+const INITIAL_ZONES: Record<string, Point[]> = {
+  "ITALIANO": [
+    { "x": 2.67, "y": 10.64 },
+    { "x": 2.67, "y": 26.83 },
+    { "x": 26.39, "y": 27.13 },
+    { "x": 26.39, "y": 10.34 }
+  ],
+  "MATEMATICA": [
+    { "x": 2.67, "y": 29.08 },
+    { "x": 2.4, "y": 44.81 },
+    { "x": 26.92, "y": 44.96 },
+    { "x": 26.65, "y": 29.23 }
+  ],
+  "STORIA": [
+    { "x": 2.4, "y": 47.06 },
+    { "x": 2.67, "y": 62.2 },
+    { "x": 26.65, "y": 62.65 },
+    { "x": 26.65, "y": 47.06 }
+  ],
+  "GEOGRAFIA": [
+    { "x": 2.67, "y": 64.75 },
+    { "x": 2.67, "y": 79.89 },
+    { "x": 26.39, "y": 80.34 },
+    { "x": 26.65, "y": 64.9 }
+  ],
+  "SCIENZE": [
+    { "x": 2.93, "y": 82.58 },
+    { "x": 2.67, "y": 98.02 },
+    { "x": 26.39, "y": 98.32 },
+    { "x": 26.65, "y": 82.58 }
+  ],
+  "TEACHER_CHAT": [
+    { "x": 71.7, "y": 32.22 },
+    { "x": 72.76, "y": 42.87 },
+    { "x": 93.55, "y": 43.47 },
+    { "x": 93.55, "y": 32.22 }
+  ]
+};
 
 const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
@@ -21,13 +62,19 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
         window.scrollTo(0, 0);
     }, []);
 
-    const subjects = [
-        { id: SchoolSubject.ITALIANO, label: 'Italiano', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/italianobuc.webp' },
-        { id: SchoolSubject.MATEMATICA, label: 'Matematica', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/matebusc.webp' },
-        { id: SchoolSubject.STORIA, label: 'Storia', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stobuscs.webp' },
-        { id: SchoolSubject.GEOGRAFIA, label: 'Geografia', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/geobusc.webp' },
-        { id: SchoolSubject.SCIENZE, label: 'Scienze', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scisbuc.webp' },
-    ];
+    const getClipPath = (points: Point[]) => {
+        if (points.length < 3) return 'none';
+        return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    };
+
+    const handleZoneClick = (zoneId: string) => {
+        if (zoneId === 'TEACHER_CHAT') {
+            setShowTeacherChat(true);
+        } else {
+            const subject = SchoolSubject[zoneId as keyof typeof SchoolSubject];
+            if (subject) setActiveSubject(subject);
+        }
+    };
 
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-green-900 overflow-hidden touch-none overscroll-none select-none">
@@ -44,53 +91,49 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                     alt="2ª Elementare" 
                     className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />
+
+                {isLoaded && !activeSubject && Object.entries(INITIAL_ZONES).map(([id, pts]) => (
+                    <div 
+                        key={id}
+                        onClick={() => handleZoneClick(id)}
+                        className="absolute inset-0 cursor-pointer active:bg-white/10 z-20"
+                        style={{ clipPath: getClipPath(pts) }}
+                    />
+                ))}
             </div>
 
             {isLoaded && !activeSubject && (
                 <>
+                    {/* LAVAGNA SCRITTA */}
+                    <img 
+                        src={HINT_IMG} 
+                        alt="Tocca i libri o chiedi alla maestra" 
+                        className="absolute z-50 drop-shadow-xl animate-in slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
+                        style={{ 
+                            right: '11%', 
+                            bottom: '26%', 
+                            width: '33vw', 
+                            maxWidth: '550px' 
+                        }}
+                    />
+
+                    {/* TASTO ESCI */}
                     <button 
                         onClick={() => setView(AppView.SCHOOL_FIRST_FLOOR)}
-                        className="absolute top-20 left-4 md:top-28 md:left-8 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_CLOSE_IMG} alt="Indietro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl" />
-                    </button>
-
-                    {/* PULSANTE CHIEDI ALLA MAESTRA */}
-                    <button 
-                        onClick={() => setShowTeacherChat(true)}
-                        className="absolute top-[22%] right-[18%] md:top-[26%] md:right-[22%] z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_ASK_TEACHER_IMG} alt="Chiedi alla Maestra" className="w-40 md:w-64 h-auto drop-shadow-2xl" />
-                    </button>
-
-                    {/* SIDEBAR MATERIE - Dimensioni aumentate e posizione ricalibrata */}
-                    <div 
-                        className="absolute flex flex-col gap-2 md:gap-3.5 z-40 max-w-[72px] md:max-w-[130px]"
+                        className="absolute z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         style={{ 
-                            left: window.innerWidth < 768 ? '17.5%' : '20.5%',
-                            top: '48.5%',
-                            transform: 'translateY(-50%)'
+                            right: '30%', 
+                            bottom: '1.7%', 
+                            width: '31.5vw', 
+                            maxWidth: '500px' 
                         }}
                     >
-                        {subjects.map((s) => (
-                            <button
-                                key={s.id}
-                                onClick={() => setActiveSubject(s.id)}
-                                className="w-full hover:scale-110 active:scale-95 transition-transform outline-none drop-shadow-xl"
-                                title={`Apri ${s.label}`}
-                            >
-                                <img src={s.img} alt={s.label} className="w-full h-auto" />
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 flex justify-center pointer-events-none z-20 w-full px-4">
-                        <div className="bg-white/90 backdrop-blur-md border-4 border-blue-500 px-6 py-3 rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-4">
-                            <span className="font-luckiest text-blue-900 text-xl md:text-4xl uppercase tracking-tighter text-center block">
-                                Scegli un libro per studiare! 📖
-                            </span>
-                        </div>
-                    </div>
+                        <img 
+                            src={BTN_CLOSE_IMG} 
+                            alt="Esci" 
+                            className="w-full h-auto drop-shadow-2xl object-contain" 
+                        />
+                    </button>
                 </>
             )}
 
@@ -100,6 +143,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}
+                    setView={setView}
                 />
             )}
 
