@@ -145,8 +145,8 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
 
         <div className="flex-1 flex flex-col justify-end min-h-0 relative z-30 pb-4">
           
-          {/* ZUCCOTTO - AUMENTATE DIMENSIONI E RIPOSIZIONATO */}
-          <div className="absolute right-[-20px] bottom-[5%] w-48 md:w-[28rem] z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
+          {/* ZUCCOTTO - DIMENSIONI ULTERIORMENTE AUMENTATE E POSIZIONATO DIETRO LA RICERCA */}
+          <div className="absolute right-[-20px] bottom-[5%] w-48 md:w-[32rem] z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
              <div className="relative">
                 <img src={ZUCCOTTO_POPCORN} alt="" className="w-full h-auto drop-shadow-2xl brightness-110" />
              </div>

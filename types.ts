@@ -1,3 +1,4 @@
+
 export enum SchoolSubject {
   ITALIANO = 'ITALIANO',
   MATEMATICA = 'MATEMATICA',
@@ -18,7 +19,8 @@ export interface SchoolLesson {
   title: string;
   text: string;
   audioUrl: string; // URL del file MP3 fornito dall'utente
-  quiz: SchoolQuiz;
+  quizzes: SchoolQuiz[]; // Lista di quiz caricati dal foglio
+  isPremium?: boolean; // NEW: Se vero, richiede abbonamento
 }
 
 export interface SchoolChapter {
@@ -134,7 +136,10 @@ export enum AppView {
   LIBRARY_CARDS = 'LIBRARY_CARDS',
   LIBRARY_SCOPA = 'LIBRARY_SCOPA',
   LIBRARY_UNO = 'LIBRARY_UNO',
-  LIBRARY_SOLITARIO = 'LIBRARY_SOLITARIO'
+  LIBRARY_SOLITARIO = 'LIBRARY_SOLITARIO',
+
+  // PREMIUM INFO
+  PREMIUM_INFO = 'PREMIUM_INFO'
 }
 
 export interface ChatMessage {

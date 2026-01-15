@@ -14,12 +14,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Le categorie delle parole',
             text: 'Fare l\'analisi grammaticale significa dire tutto quello che sappiamo su ogni parola di una frase. \n\nEsempio: "Il gatto corre"\nIL: articolo determinativo, maschile, singolare.\nGATTO: nome comune di animale, maschile, singolare.\nCORRE: voce del verbo secondo, 3ª pers. singolare.',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Cosa indica "mangiamo" nell\'analisi grammaticale?',
               options: ['Nome proprio', 'Voce del verbo mangiare', 'Aggettivo'],
               correctIndex: 1,
               feedback: 'Esatto! È un\'azione, quindi un verbo! 🍕'
-            }
+            }]
           }
         ]
       },
@@ -32,12 +33,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Passato, Presente e Futuro',
             text: 'I verbi cambiano forma per dirci QUANDO succede qualcosa. \n\nPASSATO: ieri ho giocato. 🕒\nPRESENTE: ora gioco. 🌟\nFUTURO: domani giocherò. 🚀',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: '"Io canterò" a che tempo appartiene?',
               options: ['Passato', 'Presente', 'Futuro'],
               correctIndex: 2,
               feedback: 'Giusto! È un\'azione che deve ancora accadere. 🎶'
-            }
+            }]
           }
         ]
       },
@@ -50,12 +52,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Espandiamo la frase',
             text: 'I complementi servono per dare più informazioni. \n\nCOMPL. OGGETTO: risponde a "Chi? Che cosa?" (Mangio LA MELA).\nCOMPL. DI LUOGO: risponde a "Dove?" (Gioco IN GIARDINO).\nCOMPL. DI TEMPO: risponde a "Quando?" (Vado a scuola ALLE OTTO).',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'In "Il gatto beve il latte", che complemento è "il latte"?',
               options: ['Di luogo', 'Oggetto', 'Di tempo'],
               correctIndex: 1,
               feedback: 'Bravissimo! Risponde alla domanda "che cosa?". 🥛'
-            }
+            }]
           }
         ]
       },
@@ -68,12 +71,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Raccontare storie',
             text: 'Un testo narrativo racconta dei fatti. Ha sempre: \n1. INIZIO: chi sono i personaggi e dove sono.\n2. SVOLGIMENTO: cosa succede, i problemi da risolvere.\n3. CONCLUSIONE: come finisce la storia.',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'In quale parte della storia troviamo la soluzione ai problemi?',
               options: ['Inizio', 'Svolgimento', 'Conclusione'],
               correctIndex: 2,
               feedback: 'Perfetto! È il gran finale! 🎬'
-            }
+            }]
           }
         ]
       },
@@ -86,12 +90,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Saper sintetizzare',
             text: 'Riassumere significa riscrivere una storia più corta, tenendo solo le cose più importanti. \n\nBisogna togliere le descrizioni troppo lunghe e usare parole semplici per far capire il succo del racconto. 🍊',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Cosa bisogna togliere nel riassunto?',
               options: ['I personaggi principali', 'I fatti più importanti', 'I dettagli non necessari'],
               correctIndex: 2,
               feedback: 'Esatto! Dobbiamo essere brevi ma chiari. ✍️'
-            }
+            }]
           }
         ]
       }
@@ -99,19 +104,20 @@ export const GRADE4_DATA: GradeCurriculumData = {
     [SchoolSubject.MATEMATICA]: [
       {
         id: 'mat4_c1',
-        title: 'Numeri Grandi',
+        title: 'Numbers Grandi',
         lessons: [
           {
             id: 'mat4_c1_l1',
             title: 'Oltre il Mille',
             text: 'In quarta impariamo i numeri fino a 999.999! \n\nUsiamo le classi: \n- Classe delle UNITA semplici (u, da, h)\n- Classe delle MIGLIAIA (uk, dak, hk).\n\nEsempio: 125.400 si legge centoventicinquemilaquattrocento.',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Cosa rappresenta "dak" nei numeri grandi?',
               options: ['Decine di migliaia', 'Decine semplici', 'Dadi magici'],
               correctIndex: 0,
               feedback: 'Giusto! Dak sta per Decine di Migliaia. 🔢'
-            }
+            }]
           }
         ]
       },
@@ -124,12 +130,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Calcoli difficili',
             text: 'Impariamo a fare le moltiplicazioni a due cifre (es: 25 x 14) e le divisioni più lunghe con il resto. \n\nRicorda di mettere bene in colonna e di non dimenticare mai i riporti! ➕✖️',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'In una divisione, come si chiama il numero che "avanza"?',
               options: ['Prodotto', 'Resto', 'Somma'],
               correctIndex: 1,
               feedback: 'Bravissimo! È il resto. ➗'
-            }
+            }]
           }
         ]
       },
@@ -142,12 +149,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Frazioni complementari',
             text: 'Due frazioni sono complementari se messe insieme formano l\'intero (1). \n\nEsempio: Se mangi 3/4 di torta, ne resta 1/4. \n3/4 + 1/4 = 4/4 = 1 torta intera! 🎂',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Qual è la frazione complementare di 2/5?',
               options: ['3/5', '1/5', '5/5'],
               correctIndex: 0,
               feedback: 'Esatto! 2 + 3 fa 5! 🍰'
-            }
+            }]
           }
         ]
       },
@@ -160,12 +168,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Numeri con la virgola',
             text: 'I numeri decimali servono per indicare parti più piccole dell\'unità. \n\nLa VIRGOLA separa la parte intera da quella decimale.\n0,1 = un decimo\n0,01 = un centesimo\n0,001 = un millesimo',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Quale numero è più grande?',
               options: ['0,5', '0,05', '0,005'],
               correctIndex: 0,
               feedback: 'Ottimo! 0,5 è mezzo, quindi il più grande! 🪙'
-            }
+            }]
           }
         ]
       },
@@ -178,12 +187,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Problemi a due tappe',
             text: 'A volte per trovare la risposta serve fare più di un calcolo! \n\nEsempio: Compri 2 libri da 10€ e paghi con 50€. Quanto ricevi di resto? \n1. Calcola il totale (2x10=20)\n2. Calcola il resto (50-20=30)',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Se hai 10€ e compri 3 figurine da 2€ l\'una, quanto ti resta?',
               options: ['8€', '4€', '6€'],
               correctIndex: 1,
               feedback: 'Giusto! 3x2=6, e 10-6=4. 🃏'
-            }
+            }]
           }
         ]
       }
@@ -198,12 +208,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Sumeri, Babilonesi e Assiri',
             text: 'In Mesopotamia, tra i fiumi Tigri ed Eufrate, nacquero le prime grandi civiltà. I Sumeri inventarono la scrittura cuneiforme e la ruota! 🎡📝',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Quale popolo inventò la scrittura cuneiforme?',
               options: ['Romani', 'Sumeri', 'Greci'],
               correctIndex: 1,
               feedback: 'Ottimo! Erano dei veri geni del passato. ✨'
-            }
+            }]
           }
         ]
       },
@@ -216,12 +227,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Il Dono del Nilo',
             text: 'L\'antico Egitto fiorì lungo le rive del fiume Nilo. Costruirono piramidi giganti per i loro re, i Faraoni, e usavano i geroglifici per scrivere. 🏺🐫',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Come si chiamavano i re dell\'Antico Egitto?',
               options: ['Imperatori', 'Faraoni', 'Presidenti'],
               correctIndex: 1,
               feedback: 'Bravissimo! I Faraoni erano considerati come dei. 👑'
-            }
+            }]
           }
         ]
       },
@@ -234,12 +246,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Le Poleis e i Miti',
             text: 'La Grecia era divisa in città-stato chiamate Poleis (come Atene e Sparta). Inventarono la democrazia, le Olimpiadi e amavano raccontare storie di dei ed eroi! 🏛️⚡',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'In quale città greca nacque la democrazia?',
               options: ['Atene', 'Sparta', 'Roma'],
               correctIndex: 0,
               feedback: 'Esatto! Atene è la culla della libertà. 🏛️'
-            }
+            }]
           }
         ]
       },
@@ -252,12 +265,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Dalle Origini all\'Impero',
             text: 'Roma iniziò come un piccolo villaggio sul Tevere e divenne padrona di tutto il Mediterraneo. Costruirono strade, acquedotti e anfiteatri come il Colosseo! 🛡️🏟️',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Quale famoso anfiteatro si trova a Roma?',
               options: ['Partenone', 'Colosseo', 'Piramide'],
               correctIndex: 1,
               feedback: 'Proprio così! È il simbolo di Roma antica. 🏟️'
-            }
+            }]
           }
         ]
       }
@@ -272,12 +286,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Nord, Centro, Sud e Isole',
             text: 'L\'Italia è divisa in 20 regioni! Ogni regione ha le sue bellezze, le sue città e i suoi piatti tipici. Dalle Alpi innevate alla Sicilia soleggiata! 🗺️🍕',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Quante sono le regioni italiane?',
               options: ['10', '20', '50'],
               correctIndex: 1,
               feedback: 'Esatto! 20 regioni che formano il nostro stivale. 🇮🇹'
-            }
+            }]
           }
         ]
       },
@@ -290,12 +305,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Il tempo che fa',
             text: 'In Italia ci sono climi diversi: alpino (freddo), padano (umido), appenninico e mediterraneo (mite). Le montagne e il mare cambiano la temperatura! ❄️☀️',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Che tipo di clima c\'è solitamente vicino al mare in Italia?',
               options: ['Alpino', 'Mediterraneo', 'Desertico'],
               correctIndex: 1,
               feedback: 'Giusto! È un clima mite e piacevole. 🏖️'
-            }
+            }]
           }
         ]
       },
@@ -308,12 +324,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'I tre settori',
             text: 'L\'uomo lavora in tre settori: \n1. PRIMARIO: agricoltura e pesca 🌾\n2. SECONDARIO: industrie e fabbriche 🏭\n3. TERZIARIO: servizi e turismo 🏨',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'A quale settore appartiene il lavoro del contadino?',
               options: ['Primario', 'Secondario', 'Terziario'],
               correctIndex: 0,
               feedback: 'Bravissimo! Tutto ciò che viene dalla natura è settore primario. 🚜'
-            }
+            }]
           }
         ]
       }
@@ -328,12 +345,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'La nostra fabbrica interna',
             text: 'Il nostro corpo ha sistemi che lavorano insieme: \n- DIGERENTE: trasforma il cibo. 🍎\n- RESPIRATORIO: ci dà ossigeno. 🫁\n- CIRCOLATORIO: trasporta il sangue. ❤️',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Quale apparato ci serve per respirare?',
               options: ['Digerente', 'Respiratorio', 'Scheletrico'],
               correctIndex: 1,
               feedback: 'Ottimo! I polmoni sono i protagonisti. 🫁'
-            }
+            }]
           }
         ]
       },
@@ -346,12 +364,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'Molecole in movimento',
             text: 'Tutto ciò che ci circonda è materia. Può cambiare stato:\n- FUSIONE: da solido a liquido (ghiaccio che si scioglie).\n- EVAPORAZIONE: da liquido a gas (acqua che bolle). 💧💨',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Come si chiama il passaggio da solido a liquido?',
               options: ['Fusione', 'Solidificazione', 'Condensazione'],
               correctIndex: 0,
               feedback: 'Esatto! Il calore fa "fondere" la materia. 🔥'
-            }
+            }]
           }
         ]
       },
@@ -364,12 +383,13 @@ export const GRADE4_DATA: GradeCurriculumData = {
             title: 'La forza di gravità',
             text: 'Le forze muovono gli oggetti. La gravità è la forza invisibile della Terra che ci tiene attaccati al suolo e fa cadere le mele dagli alberi! 🌍🍎',
             audioUrl: '',
-            quiz: {
+            // FIX: Changed quiz to quizzes array
+            quizzes: [{
               question: 'Perché gli oggetti cadono verso il basso?',
               options: ['Per la forza di gravità', 'Per il vento', 'Perché sono pesanti'],
               correctIndex: 0,
               feedback: 'Splendido! Senza gravità voleremmo via! 🚀'
-            }
+            }]
           }
         ]
       }

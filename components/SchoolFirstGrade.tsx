@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { AppView, SchoolSubject } from '../types';
+import { AppView, SchoolSubject, GradeCurriculumData } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import CurriculumView from './CurriculumView';
 import { GRADE1_DATA } from '../services/curriculum/grade1';
+import { fetchGradeCurriculum } from '../services/curriculumService';
 import TeacherChat from './TeacherChat';
+import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/primafirstelem44newr44.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
@@ -52,13 +55,27 @@ const CLICKABLE_ZONES: Record<string, Point[]> = {
 
 const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const [dynamicData, setDynamicData] = useState<GradeCurriculumData>(GRADE1_DATA);
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(null);
     const [showTeacherChat, setShowTeacherChat] = useState(false);
 
     useEffect(() => {
-        const img = new Image();
-        img.src = BG_URL;
-        img.onload = () => setIsLoaded(true);
+        const init = async () => {
+            setIsFetching(true);
+            const img = new Image();
+            img.src = BG_URL;
+            img.onload = () => setIsLoaded(true);
+
+            // Caricamento dati da Google Sheets
+            const remoteData = await fetchGradeCurriculum(1);
+            if (remoteData) {
+                setDynamicData(remoteData);
+            }
+            
+            setIsFetching(false);
+        };
+        init();
         window.scrollTo(0, 0);
     }, []);
 
@@ -80,10 +97,13 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
 
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-blue-900 overflow-hidden touch-none overscroll-none select-none">
-            {!isLoaded && (
+            {(!isLoaded || isFetching) && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-blue-900/95 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
-                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Entro in 1ª Elementare...</span>
+                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase flex items-center gap-2">
+                        {isFetching ? <Loader2 className="animate-spin" /> : null}
+                        Preparo i libri della 1ª...
+                    </span>
                 </div>
             )}
 
@@ -142,7 +162,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
 
             {activeSubject && (
                 <CurriculumView 
-                    data={GRADE1_DATA} 
+                    data={dynamicData} 
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}

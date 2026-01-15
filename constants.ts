@@ -1,7 +1,7 @@
 
 import { Video, SocialLink, AppView } from './types';
 
-export const APP_VERSION = '1.8.6';
+export const APP_VERSION = '1.8.7';
 
 // URLs Originali (Remoti) - Stringhe pure senza filtri
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
@@ -18,6 +18,7 @@ export const FAN_ART_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1
 export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQztpA2nvwkfSoJ4CArYQC-FlfRcvn6ngfstnyZEEGNsjkuGS0aOpheX3jsUBE95boEo_dLe8dfQXGT/pub?gid=0&single=true&output=csv'; 
 export const NOTIFICATIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTuB_-wFGsDVWxL6Kk-K87B_URCHgEIB2ax1FCyXsUDuhhjHyWRQGE3e4nM-D6frI5cg2zpyn_CR_3b/pub?gid=0&single=true&output=csv'; 
 export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOn4nPnIbqs4jzAVQbpPYCXll7iX3lxLWIA5he7lqeEMXfxDRa2rJ62vyYZ0_8IYzpnTpJHo-nSUXy/pub?gid=0&single=true&output=csv'; 
+export const SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDck5eVCJQL553cZunTTmwNpO6wjgm89vpGOhYb6tGoQ2_gR6uRbRGw4lAWWSOQA8Pe_Xl5bftx2Dh/pub?gid=0&single=true&output=csv';
 
 // Config YouTube
 export const YOUTUBE_CONFIG = {
