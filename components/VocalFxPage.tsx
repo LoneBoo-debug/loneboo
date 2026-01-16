@@ -6,8 +6,9 @@ import { Loader2 } from 'lucide-react';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const BG_VOCAL_FX = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfvocalfx44fx33.webp';
 const BTN_REC_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/recfdredfd3434sx.webp';
+const BTN_STOP_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stoprecdr34ew2+(1).webp';
 
-type VoiceEffect = 'NORMAL' | 'ALIEN' | 'BABY' | 'OLD' | 'DUFFY' | 'ECHO' | 'REVERSE' | 'AMPLIFY';
+type VoiceEffect = 'GHOST' | 'ALIEN' | 'BABY' | 'OLD' | 'DUFFY' | 'ECHO' | 'REVERSE' | 'AMPLIFY';
 
 const EFFECT_LIST: { id: VoiceEffect; label: string; img: string }[] = [
     { id: 'REVERSE', label: 'Inverso', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rev33sw21qaz+(1).webp' },
@@ -17,7 +18,7 @@ const EFFECT_LIST: { id: VoiceEffect; label: string; img: string }[] = [
     { id: 'AMPLIFY', label: 'Amplifica', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ampliok9990+(1).webp' },
     { id: 'DUFFY', label: 'Papera', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/duffy6t5r.webp' },
     { id: 'ECHO', label: 'Eco', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/eco8u7y6t+(1).webp' },
-    { id: 'NORMAL', label: 'Normale', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/yggv6655gv.webp' }
+    { id: 'GHOST', label: 'Fantasma', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ghost65fr3ws1.webp' }
 ];
 
 const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
@@ -29,7 +30,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     const audioCtxRef = useRef<AudioContext | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
-    const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
+    const sourceNodeRef = useRef<AudioBufferSourceNode | null>(0);
     
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -100,6 +101,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     };
 
     const startRecording = async () => {
+        if (isRecording) return;
         try {
             const ctx = getCtx();
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -162,7 +164,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     const playWithEffect = (effect: VoiceEffect) => {
         if (!recordedBuffer) return;
         const ctx = getCtx();
-        if (sourceNodeRef.current) { try { sourceNodeRef.current.stop(); } catch(e) {} }
+        if (sourceNodeRef.current) { try { (sourceNodeRef.current as any).stop(); } catch(e) {} }
 
         const source = ctx.createBufferSource();
         let finalBuffer = recordedBuffer;
@@ -172,8 +174,8 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
             for (let channel = 0; channel < recordedBuffer.numberOfChannels; channel++) {
                 const data = recordedBuffer.getChannelData(channel);
                 const reversedData = clone.getChannelData(channel);
-                for (let i = 0; i < data.length; i++) {
-                    reversedData[i] = data[data.length - 1 - i];
+                for (let i = 0, j = data.length - 1; i < data.length; i++, j--) {
+                    reversedData[i] = data[j];
                 }
             }
             finalBuffer = clone;
@@ -181,32 +183,65 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
 
         source.buffer = finalBuffer;
         
-        if (effect === 'BABY') source.playbackRate.value = 1.6;
-        if (effect === 'OLD') source.playbackRate.value = 0.75;
-        if (effect === 'DUFFY') source.playbackRate.value = 2.1;
-        if (effect === 'ALIEN') source.playbackRate.value = 1.4;
-
+        // Setup nodi extra
         const mainGain = ctx.createGain();
         mainGain.gain.value = effect === 'AMPLIFY' ? 3.0 : 1.2; 
         
-        if (effect === 'ECHO') {
-            const delay = ctx.createDelay();
-            delay.delayTime.value = 0.25;
-            const feedback = ctx.createGain();
-            feedback.gain.value = 0.4;
-            source.connect(delay);
-            delay.connect(feedback);
-            feedback.connect(delay);
-            delay.connect(mainGain);
+        // Applicazione parametri effetti
+        switch(effect) {
+            case 'BABY':
+                source.playbackRate.value = 1.6;
+                break;
+            case 'OLD':
+                source.playbackRate.value = 0.75;
+                break;
+            case 'DUFFY':
+                source.playbackRate.value = 2.1;
+                break;
+            case 'ALIEN':
+                source.playbackRate.value = 1.35;
+                // Effetto metallico/modulato
+                const biquad = ctx.createBiquadFilter();
+                biquad.type = 'peaking';
+                biquad.frequency.value = 1500;
+                biquad.Q.value = 10;
+                biquad.gain.value = 15;
+                source.connect(biquad);
+                biquad.connect(mainGain);
+                break;
+            case 'GHOST':
+                source.playbackRate.value = 0.85;
+                const ghostDelay = ctx.createDelay();
+                ghostDelay.delayTime.value = 0.35;
+                const ghostFeedback = ctx.createGain();
+                ghostFeedback.gain.value = 0.45;
+                source.connect(ghostDelay);
+                ghostDelay.connect(ghostFeedback);
+                ghostFeedback.connect(ghostDelay);
+                ghostDelay.connect(mainGain);
+                break;
+            case 'ECHO':
+                const delay = ctx.createDelay();
+                delay.delayTime.value = 0.25;
+                const feedback = ctx.createGain();
+                feedback.gain.value = 0.4;
+                source.connect(delay);
+                delay.connect(feedback);
+                feedback.connect(delay);
+                delay.connect(mainGain);
+                break;
         }
 
-        source.connect(mainGain);
+        if (effect !== 'ALIEN' && effect !== 'GHOST' && effect !== 'ECHO') {
+            source.connect(mainGain);
+        }
+
         mainGain.connect(ctx.destination);
         
         source.onended = () => setIsPlaying(false);
         setIsPlaying(true);
         source.start(0);
-        sourceNodeRef.current = source;
+        (sourceNodeRef.current as any) = source;
     };
 
     useEffect(() => {
@@ -246,7 +281,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
 
             <div className="flex-1 flex flex-col items-center justify-start md:justify-center p-2 gap-4 md:gap-8 relative z-10 overflow-y-auto no-scrollbar pb-10">
                 
-                <div className="relative w-full max-w-4xl aspect-[16/8] bg-slate-900 rounded-[2.5rem] border-[6px] md:border-[12px] border-slate-700 shadow-[0_0_50px_rgba(0,0,0,1),inset_0_0_20px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col items-center justify-center p-4">
+                <div className="relative w-full max-w-4xl aspect-[16/8] bg-black/40 backdrop-blur-sm rounded-[2.5rem] border-[6px] md:border-[12px] border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5),inset_0_0_20px_rgba(255,255,255,0.05)] overflow-hidden flex flex-col items-center justify-center p-4">
                     
                     <div className="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-20 w-full">
                         <div className="flex items-center gap-2">
@@ -276,19 +311,22 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
                     <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 via-transparent to-white/5"></div>
                 </div>
 
-                <div className="relative shrink-0 flex flex-col items-center">
+                <div className="relative shrink-0 flex flex-row items-center gap-6 md:gap-12">
                     <button 
-                        onClick={isRecording ? stopRecording : startRecording}
-                        className="relative z-10 w-40 h-40 md:w-72 md:h-72 transition-all duration-300 active:scale-95 outline-none"
+                        onClick={startRecording}
+                        disabled={isRecording}
+                        className={`relative z-10 w-32 h-32 md:w-64 md:h-64 transition-all duration-300 active:scale-95 outline-none ${isRecording ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105'}`}
                     >
                         <img src={BTN_REC_IMG} alt="Registra" className="w-full h-full object-contain drop-shadow-2xl" />
                     </button>
-                    
-                    {!recordedBuffer && !isRecording && !isProcessing && (
-                        <p className="text-white/40 font-bold text-[9px] md:text-xs uppercase mt-4 animate-pulse">
-                            🎤 Clicca per iniziare a parlare
-                        </p>
-                    )}
+
+                    <button 
+                        onClick={stopRecording}
+                        disabled={!isRecording}
+                        className={`relative z-10 w-32 h-32 md:w-64 md:h-64 transition-all duration-300 active:scale-95 outline-none ${!isRecording ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105'}`}
+                    >
+                        <img src={BTN_STOP_IMG} alt="Stop" className="w-full h-full object-contain drop-shadow-2xl" />
+                    </button>
                 </div>
 
                 {isProcessing && (
