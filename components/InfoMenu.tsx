@@ -5,12 +5,12 @@ import { APP_VERSION } from '../constants';
 
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const ICON_ABOUT = 'https://i.postimg.cc/63yjTby9/chisiamo-(1).png';
-const ICON_GUIDE = 'https://i.postimg.cc/CMJ5wvb6/comefunziona-(1).png';
-const ICON_CONTACT = 'https://i.postimg.cc/c4Np5ZvM/contattti-(1).png';
-const ICON_FAQ = 'https://i.postimg.cc/hvFt5wmp/faqw-(1).png';
-const ICON_PRIVACY = 'https://i.postimg.cc/7hLmjsyy/prvcuccu-(1).png';
-const ICON_TECH = 'https://i.postimg.cc/nLH7dsJW/terdfe-(1).png';
+const ICON_ABOUT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chisiamdhe44fr44rf.webp';
+const ICON_GUIDE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/igliglg1454.webp';
+const ICON_CONTACT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/contattir775hxd3ws.webp';
+const ICON_FAQ = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/domanfaqsw33w2.webp';
+const ICON_PRIVACY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/prvoce7xbd3dwj.webp';
+const ICON_TECH = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tencifje5433i3kxow.webp';
 
 interface InfoMenuProps {
     setView: (view: AppView) => void;
@@ -22,7 +22,7 @@ const InfoMenu: React.FC<InfoMenuProps> = ({ setView }) => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
       
@@ -42,8 +42,8 @@ const InfoMenu: React.FC<InfoMenuProps> = ({ setView }) => {
           />
       </button>
 
-      {/* CONTENUTO - Alzato riducendo pt */}
-      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-8 pt-24 md:pt-32 animate-fade-in pb-24">
+      {/* CONTENUTO - Scrollabile grazie al genitore fixed overflow-y-auto */}
+      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-8 pt-24 md:pt-32 pb-32">
         
         {/* Header - Stile Rosso/Bianco */}
         <div className="text-center mb-12">
@@ -138,7 +138,7 @@ const InfoMenu: React.FC<InfoMenuProps> = ({ setView }) => {
             </button>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 mt-8">
+        <div className="flex flex-col items-center justify-center gap-4 mt-8 pb-12">
             <div className="bg-slate-800 px-6 py-2 rounded-full border-2 border-slate-600 flex items-center gap-3 text-sm font-mono text-white shadow-xl">
                 <Tag size={16} className="text-yellow-400" />
                 <span className="font-black">VERSIONE {APP_VERSION}</span>

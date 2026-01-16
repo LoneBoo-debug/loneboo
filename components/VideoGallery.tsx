@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VIDEOS } from '../constants';
 import { Video, AppView } from '../types';
@@ -10,7 +9,7 @@ const YT_CHANNEL_URL = 'https://www.youtube.com/@ILoneBoo';
 const OFFICIAL_CHANNEL_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaicanasezcinemoff.webp';
 const RETURN_CITY_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torncitdcinesez.webp';
 const CINEMA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcinemaxxsad.webp';
-const ZUCCOTTO_POPCORN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccotto-thinking.webp';
+const ZUCCOTTO_POPCORN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccottocinemafhe443.webp';
 
 const MOCK_VIDEOS: Video[] = Array.from({ length: 12 }).map((_, i) => ({
     id: `mock-${i}`,
@@ -152,6 +151,21 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
              </div>
           </div>
 
+          {/* BARRA RICERCA - SPOSTATA SOPRA IL FILM STRIP */}
+          <div className="w-full max-w-7xl mx-auto flex items-start px-6 mb-4 relative z-40">
+              <div className="relative w-full max-w-[180px] md:max-w-[280px] group">
+                  <div className="absolute inset-0 bg-yellow-400/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400/70" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Cerca..." 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-2.5 rounded-[1.2rem] border-4 border-black font-black text-xs md:text-base text-yellow-400 focus:outline-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-black/40 backdrop-blur-md transition-all focus:scale-[1.02] placeholder:text-yellow-400/50" 
+                  />
+              </div>
+          </div>
+
           <div className="w-full max-w-7xl mx-auto mb-6">
             <div className="flex items-center gap-3 mb-4 px-4">
                 <Ticket className="text-yellow-400 animate-pulse" size={24} />
@@ -178,24 +192,13 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
             </div>
           </div>
 
-          <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-4 md:gap-6 relative z-30">
-              <div className="relative w-full max-w-xl group">
-                  <div className="absolute inset-0 bg-yellow-400/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-yellow-400/70" size={24} />
-                  <input 
-                    type="text" 
-                    placeholder="Cerca il tuo cartone preferito..." 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    className="w-full pl-14 pr-10 py-4 rounded-[2rem] border-4 border-black font-black text-lg text-yellow-400 focus:outline-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-black/40 backdrop-blur-md transition-all focus:scale-[1.02] placeholder:text-yellow-400/50" 
-                  />
-              </div>
-
-              <div className="flex justify-center gap-4 md:gap-12 w-full max-w-3xl">
-                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[110px] md:max-w-[130px]">
+          {/* AREA TASTI NAVIGAZIONE */}
+          <div className="w-full max-w-7xl mx-auto flex flex-col items-start gap-4 md:gap-6 relative z-30 px-6">
+              <div className="flex justify-start gap-4 md:gap-8 w-full">
+                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
                       <img src={RETURN_CITY_BTN_IMG} alt="Torna in Città" className="w-full h-auto drop-shadow-xl" />
                   </button>
-                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[110px] md:max-w-[130px]">
+                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
                       <img src={OFFICIAL_CHANNEL_BTN_IMG} alt="YouTube" className="w-full h-auto drop-shadow-xl" />
                   </button>
               </div>

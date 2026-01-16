@@ -68,7 +68,7 @@ const GEOGRAPHY_GRADE_HOTSPOTS = {
   "ASK_TEACHER": [{"x": 86.97, "y": 10.8}, {"x": 86.97, "y": 16.79}, {"x": 97.1, "y": 17.09}, {"x": 96.84, "y": 10.8}],
   "EXERCISES": [{"x": 4.54, "y": 88.91}, {"x": 4.27, "y": 93.56}, {"x": 25.34, "y": 93.71}, {"x": 24.81, "y": 88.76}],
   "VISUAL_ACTIVITY": [{"x": 28.54, "y": 88.76}, {"x": 28.81, "y": 93.41}, {"x": 48.82, "y": 93.86}, {"x": 48.82, "y": 88.91}],
-  "GAMES": [{"x": 52.29, "y": 89.06}, {"x": 52.29, "y": 93.41}, {"x": 73.36, "y": 93.56}, {"x": 73.09, "y": 88.76}],
+  "GAMES": [{"x": 52.29, "y": 89.06}, {"x": 52.29, "y": 93.41}, {"x": 73.36, "text-align": "center", "y": 93.56}, {"x": 73.09, "y": 88.76}],
   "YOUTUBE": [{"x": 76.56, "y": 88.91}, {"x": 76.56, "y": 93.71}, {"x": 96.84, "y": 93.86}, {"x": 96.84, "y": 89.06}]
 };
 
@@ -148,7 +148,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             }
         };
         // Piccolo ritardo per assicurarsi che il testo sia renderizzato
-        setTimeout(checkPages, 100);
+        setTimeout(checkPages, 50);
     }
   }, [selectedLesson]);
 
@@ -235,7 +235,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   if (!selectedLesson) {
     const chapters = data.subjects[selectedSubject] || [];
     return (
-      <div className="fixed inset-0 z-[150] flex flex-col bg-white overflow-hidden animate-in slide-in-from-right">
+      <div className="fixed inset-0 z-[150] flex flex-col bg-white overflow-hidden">
         <img src={getSpecialBg(false)} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
         <div 
             onClick={onExit}
@@ -276,7 +276,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const currentQuiz = selectedLesson.quizzes[currentQuizIdx];
 
   return (
-      <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden">
           <img src={getSpecialBg(true)} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
 
           {/* HOTSPOTS */}
@@ -297,11 +297,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {/* CONTENUTO LEZIONE O BLOCCO ABBONAMENTO */}
           <div className="flex-1 flex flex-col items-center z-10 pt-14 md:pt-18 px-4 overflow-hidden">
-              <div className="relative w-full max-w-4xl px-14 md:px-32 flex flex-col items-center h-full justify-center">
+              <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-center">
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
                       /* VISTA BLOCCO PREMIUM - CENTRATA */
-                      <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-500">
+                      <div className="flex-1 w-full flex flex-col items-center justify-center">
                           <div className="bg-white/95 backdrop-blur-md p-6 md:p-10 rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm">
                               {/* HEADER IMMAGINE FISSA - RIDOTTA */}
                               <div className="w-full mb-6 flex justify-center">
@@ -343,7 +343,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             className="w-full h-[58vh] md:h-[62vh] overflow-hidden scroll-smooth flex flex-col"
                         >
                             {/* TITOLO LEZIONE CENTRATO */}
-                            <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-4xl uppercase mb-4 md:mb-6 shrink-0 leading-tight">
+                            <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-4xl uppercase mt-2 md:mt-4 mb-4 md:mb-6 shrink-0 leading-tight">
                                 {selectedLesson.title}
                             </h3>
 
@@ -352,7 +352,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             </p>
                         </div>
 
-                        {/* CONTROLLI PAGINAZIONE (FRECCE SFOGLIABILI) - POSIZIONATE PIU' IN BASSO */}
+                        {/* CONTRELLI PAGINAZIONE (FRECCE SFOGLIABILI) - POSIZIONATE PIU' IN BASSO */}
                         {totalPages > 1 && (
                             <div className="flex items-center justify-between w-full mt-2 md:mt-4 px-2">
                                 <button 
@@ -383,7 +383,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {/* MODALE ESERCIZI (SEQUENZIALE) */}
           {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white w-full max-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden relative flex flex-col">
                       <button onClick={() => setIsExerciseOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"><X size={24} strokeWidth={4} /></button>
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0"><img src={CUSTOM_VERIFY_BTN} alt="Esercizio" className="h-10 md:h-16 w-auto object-contain" /></div>
@@ -398,7 +398,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                               ))}
                           </div>
                           {showFeedback && (
-                              <div className="mt-2 p-3 rounded-[2rem] bg-blue-50 border-4 border-blue-200 animate-in zoom-in text-center">
+                              <div className="mt-2 p-3 rounded-[2rem] bg-blue-50 border-4 border-blue-200 text-center">
                                   {quizAnswer === currentQuiz.correctIndex ? (
                                     <div className="flex flex-col items-center gap-3">
                                         <p className="text-green-600 font-black text-base md:text-lg uppercase tracking-tighter dream-glow leading-tight">{currentQuiz.feedback}</p>
@@ -416,7 +416,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {/* ALTRI MODALI (In Arrivo, Video, etc) */}
           {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 animate-in fade-in">
+              <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4">
                   <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-8 w-full max-sm text-center shadow-2xl relative">
                       <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all"><X size={20} strokeWidth={4} /></button>
                       <div className="w-32 h-32 md:w-40 md:h-40 bg-yellow-100 rounded-full flex items-center justify-center mb-6 border-4 border-dashed border-yellow-400 animate-pulse">

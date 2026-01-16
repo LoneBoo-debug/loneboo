@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { 
   HelpCircle, Users, Youtube, ShieldCheck, Calendar, 
@@ -19,7 +18,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ setView }) => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       
       {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
@@ -37,7 +36,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ setView }) => {
       </button>
 
       {/* CONTENUTO SCROLLABILE */}
-      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
+      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 pb-32">
         
         {/* Intestazione Principale Compatta */}
         <div className="text-center mb-10">

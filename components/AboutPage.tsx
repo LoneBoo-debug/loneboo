@@ -8,7 +8,7 @@ import {
 import { AppView } from '../types';
 
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
-const ICON_ABOUT = 'https://i.postimg.cc/63yjTby9/chisiamo-(1).png';
+const ICON_ABOUT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chisiamdhe44fr44rf.webp';
 
 const SOCIAL_LINKS = [
     { name: 'YouTube', url: 'https://www.youtube.com/@ILoneBoo', icon: Youtube, color: 'text-red-600' },
@@ -39,7 +39,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       
       {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
@@ -56,7 +56,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
       </button>
 
       {/* CONTENUTO SCROLLABILE */}
-      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
+      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 pb-32">
         
         {/* Intestazione Principale Compatta */}
         <div className="text-center mb-8">

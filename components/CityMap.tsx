@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppView } from '../types';
 import { CITY_MAP_IMAGE, CITY_MAP_IMAGE_MOBILE, MAP_LOCATIONS, OFFICIAL_LOGO } from '../constants';
@@ -45,7 +44,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
         imgNight.src = NIGHT_MAP_IMAGE;
         
         window.scrollTo(0, 0);
-        const timer = setTimeout(() => { if (!isLoaded) setIsLoaded(true); }, 2500);
+        const timer = setTimeout(() => { if (!isLoaded) setIsLoaded(true); }, 100); // Ridotto delay caricamento
         return () => clearTimeout(timer);
     }, []);
 
@@ -79,12 +78,12 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                             <img 
                                 src={CITY_MAP_IMAGE} 
                                 alt="" 
-                                className={`hidden md:block w-full h-full object-fill transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                className={`hidden md:block w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                             />
                             <img 
                                 src={CITY_MAP_IMAGE_MOBILE} 
                                 alt="" 
-                                className={`block md:hidden w-full h-full object-fill transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                className={`block md:hidden w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                             />
                         </>
                     )}
@@ -93,17 +92,17 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                         <img 
                             src={NIGHT_MAP_IMAGE} 
                             alt="" 
-                            className={`w-full h-full object-fill transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                         />
                     )}
                 </div>
 
-                <div className={`absolute inset-0 z-30 w-full h-full pointer-events-none transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+                <div className={`absolute inset-0 z-30 w-full h-full pointer-events-none ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
                     {MAP_LOCATIONS.map((loc, idx) => {
                         // Logica Dimensioni Desktop
                         let dWidth = 'md:w-64';
                         if (loc.id === AppView.SOUNDS) dWidth = 'md:w-40';
-                        else if (loc.id === AppView.SCHOOL) dWidth = 'md:w-40'; // Dimensione visibile per Desktop
+                        else if (loc.id === AppView.SCHOOL) dWidth = 'md:w-40'; 
                         else if ([AppView.VIDEOS, AppView.PLAY, AppView.AI_MAGIC].includes(loc.id)) dWidth = 'md:w-48';
                         else if (loc.id === AppView.SOCIALS) dWidth = 'md:w-48'; 
                         else if (loc.id === AppView.BOOKS) dWidth = 'md:w-56';
@@ -114,7 +113,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                         // Logica Dimensioni Mobile
                         let mWidth = 'w-32';
                         if (loc.id === AppView.SOUNDS) mWidth = 'w-20';
-                        else if (loc.id === AppView.SCHOOL) mWidth = 'w-24'; // Dimensione visibile per Mobile
+                        else if (loc.id === AppView.SCHOOL) mWidth = 'w-24'; 
                         else if (loc.id === AppView.VIDEOS) mWidth = 'w-24';
                         else if ([AppView.PLAY, AppView.AI_MAGIC, AppView.COLORING].includes(loc.id)) mWidth = 'w-[100px]';
                         else if (loc.id === AppView.SOCIALS) mWidth = 'w-24'; 
@@ -138,13 +137,13 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                                     <img 
                                         src={loc.bubbleImg} 
                                         alt={loc.label} 
-                                        className={`${mWidth} ${dWidth} h-auto drop-shadow-xl animate-cloud-breath flex-shrink-0 transition-opacity duration-500 ${showBubbles ? 'opacity-100' : 'opacity-0'} ${loc.id !== AppView.SCHOOL ? 'max-w-none' : ''}`} 
+                                        className={`${mWidth} ${dWidth} h-auto drop-shadow-xl animate-cloud-breath flex-shrink-0 ${showBubbles ? 'opacity-100' : 'opacity-0'} ${loc.id !== AppView.SCHOOL ? 'max-w-none' : ''}`} 
                                         style={{ animationDelay: bubbleDelays[idx] }}
                                         onError={handleImageError}
                                     />
                                 ) : (
                                     <div 
-                                        className={`px-3 py-1.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl border-2 md:border-4 border-black shadow-xl flex items-center justify-center whitespace-nowrap relative ${loc.color} ${loc.textDark ? 'text-black' : 'text-white'} animate-cloud-breath transition-opacity duration-500 ${showBubbles ? 'opacity-100' : 'opacity-0'}`}
+                                        className={`px-3 py-1.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl border-2 md:border-4 border-black shadow-xl flex items-center justify-center whitespace-nowrap relative ${loc.color} ${loc.textDark ? 'text-black' : 'text-white'} animate-cloud-breath ${showBubbles ? 'opacity-100' : 'opacity-0'}`}
                                         style={{ animationDelay: bubbleDelays[idx] }}
                                     >
                                         <span className="font-black text-[10px] md:text-xl uppercase tracking-wide drop-shadow-sm">{loc.label}</span>
@@ -156,7 +155,7 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                     })}
                 </div>
 
-                {/* PULSANTI DI CONTROLLO IN BASSO A SINISTRA (DISPOSTI IN COLONNA E ALZATI) */}
+                {/* PULSANTI DI CONTROLLO IN BASSO A SINISTRA */}
                 {isLoaded && (
                     <div className="absolute bottom-12 left-6 z-[60] flex flex-col items-center gap-4">
                         {/* TOGGLE BUBBLES */}

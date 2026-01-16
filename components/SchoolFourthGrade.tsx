@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AppView, SchoolSubject } from '../types';
+import { AppView, SchoolSubject, GradeCurriculumData } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import CurriculumView from './CurriculumView';
 import { GRADE4_DATA } from '../services/curriculum/grade4';
+import { fetchGradeCurriculum } from '../services/curriculumService';
 import TeacherChat from './TeacherChat';
+import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quartelemen55fjr4new.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
@@ -22,13 +24,33 @@ const SAVED_HOTSPOTS: Record<string, Point[]> = {
 
 const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const [dynamicData, setDynamicData] = useState<GradeCurriculumData>(GRADE4_DATA);
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(null);
     const [showTeacherChat, setShowTeacherChat] = useState(false);
 
     useEffect(() => {
-        const img = new Image();
-        img.src = BG_URL;
-        img.onload = () => setIsLoaded(true);
+        const init = async () => {
+            setIsFetching(true);
+            const img = new Image();
+            img.src = BG_URL;
+            img.onload = () => setIsLoaded(true);
+
+            const remoteData = await fetchGradeCurriculum(4);
+            if (remoteData) {
+                setDynamicData(prev => {
+                    const merged = { ...prev };
+                    (Object.keys(remoteData.subjects) as SchoolSubject[]).forEach(s => {
+                        if (remoteData.subjects[s] && remoteData.subjects[s].length > 0) {
+                            merged.subjects[s] = remoteData.subjects[s];
+                        }
+                    });
+                    return merged;
+                });
+            }
+            setIsFetching(false);
+        };
+        init();
         window.scrollTo(0, 0);
     }, []);
 
@@ -53,7 +75,10 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
             {!isLoaded && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
-                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Entro in 4ª Elementare...</span>
+                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase flex items-center gap-2">
+                        {isFetching ? <Loader2 className="animate-spin" /> : null}
+                        Preparo i libri della 4ª...
+                    </span>
                 </div>
             )}
 
@@ -61,7 +86,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                 <img 
                     src={BG_URL} 
                     alt="4ª Elementare" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />
 
                 {isLoaded && !activeSubject && (Object.entries(SAVED_HOTSPOTS) as [string, Point[]][]).map(([key, pts]) => (
@@ -69,7 +94,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                         <div 
                             key={key}
                             onClick={() => handleZoneInteraction(key)}
-                            className="absolute inset-0 z-20 cursor-pointer active:bg-white/10"
+                            className="absolute inset-0 cursor-pointer active:bg-white/10"
                             style={{ clipPath: getClipPath(pts) }}
                         />
                     )
@@ -82,7 +107,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                     <img 
                         src={HINT_IMG} 
                         alt="Tocca i libri o chiedi alla maestra" 
-                        className="absolute z-50 drop-shadow-xl animate-in slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
+                        className="absolute z-50 drop-shadow-xl slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
                         style={{ 
                             right: '11%', 
                             bottom: '26%', 
@@ -113,7 +138,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
             {activeSubject && (
                 <CurriculumView 
-                    data={GRADE4_DATA} 
+                    data={dynamicData} 
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}

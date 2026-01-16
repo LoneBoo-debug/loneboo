@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Lock, Check } from 'lucide-react';
 
@@ -16,10 +15,20 @@ const ParentalGate: React.FC<ParentalGateProps> = ({ onClose, onSuccess }) => {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        // Generate numbers between 6 and 9 for a bit more difficulty
-        const n1 = Math.floor(Math.random() * 4) + 6; 
-        const n2 = Math.floor(Math.random() * 4) + 6;
-        setProblem({ q: `${n1} x ${n2}`, a: n1 * n2 });
+        // Genera un'operazione più complessa: (n1 x n2) : 2
+        let n1 = Math.floor(Math.random() * 5) + 6; // 6-10
+        let n2 = Math.floor(Math.random() * 5) + 6; // 6-10
+        
+        // Assicuriamoci che il prodotto sia pari per avere una divisione intera esatta
+        if ((n1 * n2) % 2 !== 0) {
+            n1++;
+        }
+        
+        const result = (n1 * n2) / 2;
+        setProblem({ 
+            q: `(${n1} x ${n2}) : 2`, 
+            a: result 
+        });
     }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -52,14 +61,14 @@ const ParentalGate: React.FC<ParentalGateProps> = ({ onClose, onSuccess }) => {
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="text-center">
-                        <span className="text-4xl font-black text-slate-800 tracking-widest">{problem.q} = ?</span>
+                        <span className="text-3xl md:text-4xl font-black text-slate-800 tracking-widest">{problem.q} = ?</span>
                     </div>
 
                     <input 
                         type="tel" 
                         value={answer}
                         onChange={(e) => setAnswer(e.target.value)}
-                        className={`w-full text-center text-3xl font-black p-4 rounded-xl border-4 outline-none transition-all text-slate-900 ${error ? 'border-red-500 bg-red-50 animate-shake' : 'border-slate-300 focus:border-blue-500'}`}
+                        className={`w-full text-center text-3xl font-black p-4 rounded-xl border-4 outline-none transition-all text-black bg-white shadow-inner ${error ? 'border-red-500 bg-red-50 animate-shake' : 'border-slate-300 focus:border-blue-500'}`}
                         placeholder="Risultato..."
                         autoFocus
                     />

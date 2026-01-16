@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { AppView } from '../types';
@@ -35,11 +34,11 @@ const CharactersPage: React.FC<CharactersPageProps> = ({ setView }) => {
 
   return (
     <div 
-        className="min-h-screen bg-cover bg-center bg-fixed pb-24"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-fixed overflow-y-auto no-scrollbar"
         style={{ backgroundImage: `url(${INFO_BG})` }}
     >
       
-      {/* TASTO CHIUDI FISSO - Ingrandito leggermente */}
+      {/* TASTO CHIUDI FISSO - Utilizziamo fixed per lasciarlo sempre visibile durante lo scroll */}
       <button 
           onClick={() => setView(AppView.BOO_LIVING_ROOM)}
           className="fixed top-20 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
@@ -52,7 +51,7 @@ const CharactersPage: React.FC<CharactersPageProps> = ({ setView }) => {
           />
       </button>
 
-      <div className="max-w-6xl mx-auto p-3 md:p-8 pt-28 md:pt-32 animate-fade-in">
+      <div className="max-w-6xl mx-auto p-3 md:p-8 pt-28 md:pt-32 pb-32">
         
         {/* Header */}
         <div className="text-center mb-10 md:mb-16">

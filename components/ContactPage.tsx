@@ -1,10 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { Mail, MessageSquare, Handshake, Info, X, ExternalLink } from 'lucide-react';
 import { AppView } from '../types';
 
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const ICON_CONTACT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
+const ICON_CONTACT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/contattir775hxd3ws.webp';
 
 interface ContactPageProps {
     setView: (view: AppView) => void;
@@ -16,10 +15,15 @@ const ContactPage: React.FC<ContactPageProps> = ({ setView }) => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
+      
+      {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
+      
+      {/* STRATO EFFETTO SPECCHIO/VETRO */}
       <div className="fixed inset-0 bg-white/20 backdrop-blur-[45px] z-[1] pointer-events-none border-t-8 border-white/30"></div>
       
+      {/* TASTO CHIUDI FISSO */}
       <button 
           onClick={() => setView(AppView.INFO_MENU)}
           className="fixed top-20 right-4 z-[100] hover:scale-110 active:scale-95 transition-all outline-none"
@@ -27,7 +31,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ setView }) => {
           <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" />
       </button>
 
-      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-8 pt-24 md:pt-32 animate-fade-in pb-24">
+      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-8 pt-24 md:pt-32 pb-32">
         <div className="text-center mb-12">
             <h2 
                 className="text-4xl md:text-7xl font-cartoon text-[#ef4444] tracking-tight leading-none mb-3"

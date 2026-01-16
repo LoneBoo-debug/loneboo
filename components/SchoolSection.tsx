@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -28,7 +27,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
         const img = new Image();
         img.src = SCHOOL_SPLASH_BG;
         img.onload = () => setIsLoaded(true);
-        const timer = setTimeout(() => setIsLoaded(true), 2500);
+        const timer = setTimeout(() => setIsLoaded(true), 100);
         window.scrollTo(0, 0);
         return () => clearTimeout(timer);
     }, []);
@@ -64,7 +63,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                 <img 
                     src={SCHOOL_SPLASH_BG} 
                     alt="Scuola di Lone Boo" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                     draggable={false}
                 />
             </div>
@@ -113,7 +112,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                         </button>
                     </div>
 
-                    {/* FUMETTO FISSO IN BASSO A DESTRA (Alzato per fare spazio al tasto) */}
+                    {/* FUMETTO FISSO IN BASSO A DESTRA */}
                     <div className="absolute bottom-[18%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
                             <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter">Entra a Scuola!</span>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AppView, SchoolSubject } from '../types';
+import { AppView, SchoolSubject, GradeCurriculumData } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import CurriculumView from './CurriculumView';
 import { GRADE2_DATA } from '../services/curriculum/grade2';
+import { fetchGradeCurriculum } from '../services/curriculumService';
 import TeacherChat from './TeacherChat';
+import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/secondlement44new33or.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
@@ -52,13 +54,35 @@ const INITIAL_ZONES: Record<string, Point[]> = {
 
 const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const [dynamicData, setDynamicData] = useState<GradeCurriculumData>(GRADE2_DATA);
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(null);
     const [showTeacherChat, setShowTeacherChat] = useState(false);
 
     useEffect(() => {
-        const img = new Image();
-        img.src = BG_URL;
-        img.onload = () => setIsLoaded(true);
+        const init = async () => {
+            setIsFetching(true);
+            const img = new Image();
+            img.src = BG_URL;
+            img.onload = () => setIsLoaded(true);
+
+            // Caricamento dati da Google Sheets
+            const remoteData = await fetchGradeCurriculum(2);
+            if (remoteData) {
+                setDynamicData(prev => {
+                    const merged = { ...prev };
+                    (Object.keys(remoteData.subjects) as SchoolSubject[]).forEach(s => {
+                        if (remoteData.subjects[s] && remoteData.subjects[s].length > 0) {
+                            merged.subjects[s] = remoteData.subjects[s];
+                        }
+                    });
+                    return merged;
+                });
+            }
+            
+            setIsFetching(false);
+        };
+        init();
         window.scrollTo(0, 0);
     }, []);
 
@@ -78,10 +102,13 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-green-900 overflow-hidden touch-none overscroll-none select-none">
-            {!isLoaded && (
+            {(!isLoaded || isFetching) && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-900/95 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
-                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Entro in 2ª Elementare...</span>
+                    <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase flex items-center gap-2">
+                        {isFetching ? <Loader2 className="animate-spin" /> : null}
+                        Preparo i libri della 2ª...
+                    </span>
                 </div>
             )}
 
@@ -89,7 +116,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                 <img 
                     src={BG_URL} 
                     alt="2ª Elementare" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />
 
                 {isLoaded && !activeSubject && Object.entries(INITIAL_ZONES).map(([id, pts]) => (
@@ -108,7 +135,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                     <img 
                         src={HINT_IMG} 
                         alt="Tocca i libri o chiedi alla maestra" 
-                        className="absolute z-50 drop-shadow-xl animate-in slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
+                        className="absolute z-50 drop-shadow-xl slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
                         style={{ 
                             right: '11%', 
                             bottom: '26%', 
@@ -139,7 +166,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
             {activeSubject && (
                 <CurriculumView 
-                    data={GRADE2_DATA} 
+                    data={dynamicData} 
                     initialSubject={activeSubject}
                     onExit={() => setActiveSubject(null)} 
                     bgUrl={BG_URL}

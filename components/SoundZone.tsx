@@ -99,7 +99,7 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
               </div>
           }>
               {activeMode === SoundMode.PIANO && <PianoInstrument onBack={() => setActiveMode(SoundMode.NONE)} />}
-              {activeMode === SoundMode.DJ && <DjConsole onBack={() => setActiveMode(SoundMode.NONE)} />}
+              {activeMode === SoundMode.DJ && <DjConsole onBack={() => setActiveMode(SoundMode.NONE)} setView={setView} />}
               {activeMode === SoundMode.DRUMS && <DrumKit onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.ANIMALS && <AnimalOrchestra onBack={() => setActiveMode(SoundMode.NONE)} />}
               {activeMode === SoundMode.CHOIR && <ChoirVoiceChanger onBack={() => setActiveMode(SoundMode.NONE)} />}

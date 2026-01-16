@@ -139,7 +139,10 @@ export enum AppView {
   LIBRARY_SOLITARIO = 'LIBRARY_SOLITARIO',
 
   // PREMIUM INFO
-  PREMIUM_INFO = 'PREMIUM_INFO'
+  PREMIUM_INFO = 'PREMIUM_INFO',
+
+  // NUOVA VISTA VOCAL FX
+  VOCAL_FX = 'VOCAL_FX'
 }
 
 export interface ChatMessage {

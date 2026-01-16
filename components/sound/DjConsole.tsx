@@ -1,7 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import SoundLayout from './SoundLayout';
+import { AppView } from '../../types';
 
 const DJ_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/djconsobgdser.webp';
+const BTN_VOCAL_FX = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vocalfxbdbutt54.webp';
 
 interface DjBase {
     id: number;
@@ -12,7 +15,9 @@ interface DjBase {
 const DJ_BASES: DjBase[] = [
     { id: 1, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base1+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/high-end-hustle-fashion-luxury-disco-253184.mp3' },
     { id: 2, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base2+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-fever-retro-disco-energetic-and-nostalgic-70s-vibe-rain-459307.mp3' },
+    // Fix: Provided missing src property and correct image URL for base 3
     { id: 3, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base3+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-90-121343.mp3' },
+    // Fix: Provided missing src property and correct image URL for base 4
     { id: 4, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base4+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/italodisco-radio-jingle-our-soyuz-flies-cover-455775.mp3' },
     { id: 5, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base5+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dj-one-olistik-sound-project-patrizio-yoga-176595.mp3' },
     { id: 6, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base6+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oz-dance-olistik-sound-project-patrizio-yoga-116429.mp3' }
@@ -33,7 +38,7 @@ const DJ_EFFECTS = [
     { src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rutto.mp3', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/burpdisco77.webp' }
 ];
 
-const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const DjConsole: React.FC<{ onBack: () => void; setView?: (v: AppView) => void }> = ({ onBack, setView }) => {
     const [activeId, setActiveId] = useState<number | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -76,7 +81,17 @@ const DjConsole: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     return (
         <SoundLayout onBack={onBack} backgroundImage={DJ_BG}>
-            {/* Alzato ulteriormente diminuendo i valori di top (da 10/14 a 6/10) */}
+            
+            {/* TASTO VOCAL FX - IN ALTO A DESTRA */}
+            <div className="fixed top-20 md:top-28 right-4 z-50">
+                <button 
+                    onClick={() => setView && setView(AppView.VOCAL_FX)}
+                    className="hover:scale-110 active:scale-95 transition-all outline-none"
+                >
+                    <img src={BTN_VOCAL_FX} alt="Effetti Voce" className="h-20 md:h-32 w-auto drop-shadow-xl" />
+                </button>
+            </div>
+
             <div className="absolute top-6 md:top-10 left-0 right-0 flex flex-col items-center p-4 z-40 gap-4 md:gap-6 overflow-y-auto max-h-[85vh] no-scrollbar">
                 
                 {/* BOX DELLE BASI */}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -70,7 +69,15 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             // Caricamento dati da Google Sheets
             const remoteData = await fetchGradeCurriculum(1);
             if (remoteData) {
-                setDynamicData(remoteData);
+                setDynamicData(prev => {
+                    const merged = { ...prev };
+                    (Object.keys(remoteData.subjects) as SchoolSubject[]).forEach(s => {
+                        if (remoteData.subjects[s] && remoteData.subjects[s].length > 0) {
+                            merged.subjects[s] = remoteData.subjects[s];
+                        }
+                    });
+                    return merged;
+                });
             }
             
             setIsFetching(false);
@@ -111,7 +118,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                 <img 
                     src={BG_URL} 
                     alt="1ª Elementare" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                    className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />
 
                 {isLoaded && !activeSubject && Object.entries(CLICKABLE_ZONES).map(([id, pts]) => (
@@ -131,7 +138,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                     <img 
                         src={HINT_IMG} 
                         alt="Tocca i libri o chiedi alla maestra" 
-                        className="absolute z-50 drop-shadow-xl animate-in slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
+                        className="absolute z-50 drop-shadow-xl slide-in-from-right-4 duration-500 object-contain pointer-events-none" 
                         style={{ 
                             right: '11%', 
                             bottom: '26%', 

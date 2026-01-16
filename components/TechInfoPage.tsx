@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { 
   Globe, Code, BrainCircuit, Server, Gamepad2, 
@@ -8,7 +7,7 @@ import {
 import { AppView } from '../types';
 
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
-const ICON_TECH = 'https://i.postimg.cc/nLH7dsJW/terdfe-(1).png';
+const ICON_TECH = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tencifje5433i3kxow.webp';
 
 interface TechInfoPageProps {
     setView: (view: AppView) => void;
@@ -20,7 +19,7 @@ const TechInfoPage: React.FC<TechInfoPageProps> = ({ setView }) => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       
       {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
@@ -38,7 +37,7 @@ const TechInfoPage: React.FC<TechInfoPageProps> = ({ setView }) => {
       </button>
 
       {/* CONTENUTO SCROLLABILE */}
-      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
+      <div className="relative z-10 max-w-6xl mx-auto p-4 md:p-6 pt-32 md:pt-40 pb-32">
         
         {/* Intestazione Principale Compatta */}
         <div className="text-center mb-10">
@@ -53,7 +52,7 @@ const TechInfoPage: React.FC<TechInfoPageProps> = ({ setView }) => {
             </h2>
             <div className="inline-block bg-white/80 border-4 border-white px-6 py-1 rounded-full shadow-md mt-3">
                 <p className="text-xs md:text-sm font-black text-blue-600 uppercase tracking-tighter flex items-center gap-2">
-                    <Cpu size={16} /> Architettura & Ingegneria
+                    <img src={ICON_TECH} alt="" className="w-6 h-6 object-contain" /> Architettura & Ingegneria
                 </p>
             </div>
         </div>

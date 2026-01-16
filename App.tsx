@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
@@ -53,6 +54,7 @@ const LibraryUno = lazy(() => import('./components/LibraryUno'));
 const LibrarySolitario = lazy(() => import('./components/LibrarySolitario'));
 const TrainJourneyPlaceholder = lazy(() => import('./components/TrainJourneyPlaceholder'));
 const PremiumInfoPage = lazy(() => import('./components/PremiumInfoPage'));
+const VocalFxPage = lazy(() => import('./components/VocalFxPage'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -61,12 +63,13 @@ const BathroomRoom = lazy(() => import('./components/rooms/BathroomRoom'));
 const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
 const SEO_DATA: Record<string, { title: string, desc: string }> = {
-  [AppView.HOME]: { title: "Lone Boo World - Home", desc: "Benvenuti nel mondo magico di Lone Boo." },
-  [AppView.PLAY]: { title: "Giochi per Bambini - Lone Boo", desc: "Minigiochi divertenti e sicuri per allenare la mente." },
-  [AppView.COLORING]: { title: "Disegni da Colorare - Lone Boo", desc: "Scarica e stampa i disegni gratuiti di Lone Boo." },
-  [AppView.VIDEOS]: { title: "Cinema Lone Boo - Video e Cartoni", desc: "Guarda i video musicali e i cartoni animati di Lone Boo." },
-  [AppView.CHAT]: { title: "Info Point - Chatta con Lone Boo", desc: "Parla con l'assistente magico di Città Colorata." },
-  [AppView.TALES]: { title: "Favole della Buonanotte - Lone Boo", desc: "Ascolta le storie audio narrate da Fata Flora." },
+  [AppView.HOME]: { title: "Lone Boo World - Ecosistema Educativo 3-10 anni", desc: "Benvenuti nel mondo magico di Lone Boo, dove il gioco diventa apprendimento scolare e prescolare sicuro." },
+  [AppView.SCHOOL]: { title: "Scuola Elementare Arcobaleno - Programma 1ª-5ª Elementare", desc: "Esplora le aule della Scuola Arcobaleno: lezioni di Italiano, Matematica, Storia, Geografia e Scienze per l'intero ciclo primario." },
+  [AppView.PLAY]: { title: "Giochi Didattici per Bambini - Allena la Mente con Lone Boo", desc: "Minigiochi divertenti, sicuri e istruttivi per sviluppare logica, memoria e creatività." },
+  [AppView.COLORING]: { title: "Accademia d'Arte Lone Boo - Disegni da Colorare Educativi", desc: "Scarica e stampa i disegni gratuiti di Lone Boo per stimolare la manualità e la creatività." },
+  [AppView.VIDEOS]: { title: "Cinema Lone Boo - Cartoni Animati e Canzoni Educative", desc: "Guarda i video musicali e i cartoni animati originali progettati per l'intrattenimento educativo." },
+  [AppView.CHAT]: { title: "Info Point Maragno - L'Assistente Didattico di Lone Boo", desc: "Parla con la guida saggia di Città Colorata per consigli sul percorso scolastico e curiosità sul mondo." },
+  [AppView.TALES]: { title: "Favole della Buonanotte - Storytelling Educativo", desc: "Ascolta le storie audio narrate da Fata Flora per stimolare l'ascolto e l'immaginazione." },
 };
 
 const PageLoader = () => (
@@ -110,19 +113,13 @@ const App: React.FC = () => {
 
   // --- WAKE LOCK MANAGEMENT ---
   useEffect(() => {
-    // Richiedi il blocco all'avvio
     requestWakeLock();
-
-    // Gestione visibilità: se l'utente torna sull'app dopo averla minimizzata, 
-    // il blocco va ri-acquisito.
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         requestWakeLock();
       }
     };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       releaseWakeLock();
@@ -130,7 +127,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // SEO Update (Title & Meta)
+    // SEO Update
     const meta = SEO_DATA[currentView] || SEO_DATA[AppView.HOME];
     document.title = meta.title;
     const descEl = document.querySelector('meta[name="description"]');
@@ -152,7 +149,7 @@ const App: React.FC = () => {
   }, [currentView]);
 
   return (
-    <div className="min-h-screen font-sans flex flex-col relative overflow-x-hidden">
+    <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
         <Header currentView={currentView} setView={handleSetView} />
         
         <Suspense fallback={null}>
@@ -160,7 +157,7 @@ const App: React.FC = () => {
             <BedtimeOverlay />
         </Suspense>
 
-        <main className="flex-1 relative">
+        <main className="flex-1 relative w-full h-full">
             <Suspense fallback={<PageLoader />}>
                 {currentView === AppView.HOME && <HomePage setView={handleSetView} />}
                 {currentView === AppView.CITY_MAP && <CityMap setView={handleSetView} />}
@@ -214,12 +211,13 @@ const App: React.FC = () => {
                 {currentView === AppView.SOCIALS && <SocialHub setView={handleSetView} />}
                 {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={handleSetView} />}
                 {currentView === AppView.PREMIUM_INFO && <PremiumInfoPage setView={handleSetView} returnView={premiumReturnView} />}
+                {currentView === AppView.VOCAL_FX && <VocalFxPage setView={handleSetView} />}
             </Suspense>
         </main>
 
         {(currentView === AppView.HOME || currentView === AppView.ABOUT) && (
             <footer className="text-center p-8 text-white/60 font-bold bg-black/10 shrink-0">
-                <p className="text-sm">© 2025 Lone Boo World - Progetto Educativo Sicuro</p>
+                <p className="text-sm">© 2025 Lone Boo World - Progetto Educativo Sicuro 3-10 anni</p>
                 <button onClick={() => handleSetView(AppView.DISCLAIMER)} className="underline text-xs mt-2 block mx-auto">Privacy & Note Legali</button>
             </footer>
         )}

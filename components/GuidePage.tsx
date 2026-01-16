@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { 
   Map, Home, Gamepad2, BookOpen, Save, QrCode, 
@@ -22,7 +21,7 @@ const GuidePage: React.FC<GuidePageProps> = ({ setView }) => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       
       {/* SFONDO AZZURRO INTENSO E FISSO */}
       <div className="fixed inset-0 bg-[#bae6fd] z-0"></div>
@@ -40,7 +39,7 @@ const GuidePage: React.FC<GuidePageProps> = ({ setView }) => {
       </button>
 
       {/* CONTENUTO SCROLLABILE */}
-      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-6 pt-32 md:pt-40 animate-fade-in pb-24">
+      <div className="relative z-10 max-w-5xl mx-auto p-4 md:p-6 pt-32 md:pt-40 pb-32">
         
         {/* Intestazione Principale */}
         <div className="text-center mb-8">
@@ -208,17 +207,17 @@ const GuidePage: React.FC<GuidePageProps> = ({ setView }) => {
                         <p className="text-slate-700 font-bold text-sm mb-4">Crediamo che il divertimento debba essere per tutti! Nella sezione "Magia" (tasto "+") i bambini con esigenze speciali possono attivare funzioni dedicate:</p>
                     </div>
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div className="bg-blue-100/50 p-3 rounded-2xl border border-blue-200 text-center">
+                        <div className="bg-blue-100/50 p-3 rounded-2xl border-2 border-blue-200 text-center">
                             <Type className="mx-auto mb-2 text-blue-600" />
                             <span className="block font-black text-[10px] uppercase text-blue-800">Font Leggibile</span>
                             <p className="text-[9px] font-bold text-blue-900 leading-tight">Ottimizzato per la dislessia.</p>
                         </div>
-                        <div className="bg-yellow-100/50 p-3 rounded-2xl border border-yellow-200 text-center">
+                        <div className="bg-yellow-100/50 p-3 rounded-2xl border-2 border-yellow-200 text-center">
                             <Eye className="mx-auto mb-2 text-yellow-600" />
                             <span className="block font-black text-[10px] uppercase text-yellow-800">Super Colori</span>
                             <p className="text-[9px] font-bold text-yellow-900 leading-tight">Contrasto elevato per ipovisione.</p>
                         </div>
-                        <div className="bg-green-100/50 p-3 rounded-2xl border border-green-200 text-center">
+                        <div className="bg-green-100/50 p-3 rounded-2xl border-2 border-green-200 text-center">
                             <ZapOff className="mx-auto mb-2 text-green-600" />
                             <span className="block font-black text-[10px] uppercase text-green-800">Modo Calmo</span>
                             <p className="text-[9px] font-bold text-green-900 leading-tight">Stop alle animazioni per ridurre lo stress.</p>

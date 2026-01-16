@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
@@ -53,7 +52,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
     };
 
     return (
-        <div className="fixed inset-0 top-0 left-0 w-full h-full overflow-hidden bg-[#8B5CF6] flex flex-col">
+        <div className="fixed inset-0 top-0 left-0 w-full h-full overflow-hidden bg-[#8B5CF6] flex flex-col select-none">
             
             {/* BACKGROUND LAYER - z-0 per stare sotto tutto il resto */}
             <div className="absolute inset-0 z-0 pointer-events-none">
