@@ -4,18 +4,18 @@ import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, Play
 import TeacherChat from './TeacherChat';
 
 // --- SFONDI PER GLI INDICI (LISTA CAPITOLI) ---
-const GRADE1_ITALIAN_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/italiensfond4rtrtrt4dx32.webp';
-const GRADE1_MATH_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/matgre44zx1.webp';
-const GRADE1_HISTORY_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/storid77x66e3.webp';
-const GRADE1_GEOGRAPHY_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/geofr66xz89i.webp';
-const GRADE1_SCIENCE_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scie55gfrfxz10i.webp';
+const GRADE1_ITALIAN_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indexita44.webp';
+const GRADE1_MATH_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indexmate33.webp';
+const GRADE1_HISTORY_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indexstori554.webp';
+const GRADE1_GEOGRAPHY_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indexgeo443.webp';
+const GRADE1_SCIENCE_INDEX_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indexscince4432.webp';
 
 // --- SFONDI PER LE LEZIONI (CONTENUTO) ---
-const GRADE1_ITALIAN_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/italiensfond44dx32.webp';
-const GRADE1_MATH_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mafret56x88.webp';
-const GRADE1_HISTORY_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/storidfjg7djx90o.webp';
-const GRADE1_GEOGRAPHY_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/geofr66x8zs1.webp';
-const GRADE1_SCIENCE_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scierf55tg7zxs10.webp';
+const GRADE1_ITALIAN_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfitaa44fxcse3322.webp';
+const GRADE1_MATH_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbglessonmate55f331q+(2).webp';
+const GRADE1_HISTORY_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbglessonmate55f331q+(4).webp';
+const GRADE1_GEOGRAPHY_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbglessonmate55f331q+(6).webp';
+const GRADE1_SCIENCE_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbglessonmate55f331q+(8).webp';
 
 const CUSTOM_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiudisade.webp';
 const CUSTOM_VERIFY_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercschol4321.webp';
@@ -47,7 +47,7 @@ const MATH_GRADE_HOTSPOTS = {
   "LISTEN_AUDIO": [{"x": 74.16, "y": 10.65}, {"x": 73.89, "y": 17.09}, {"x": 83.77, "y": 17.39}, {"x": 83.77, "y": 10.8}],
   "ASK_TEACHER": [{"x": 87.23, "y": 10.65}, {"x": 87.23, "y": 17.39}, {"x": 97.37, "y": 17.39}, {"x": 96.57, "y": 10.94}],
   "EXERCISES": [{"x": 3.73, "y": 88.16}, {"x": 4, "y": 93.86}, {"x": 25.88, "y": 94.16}, {"x": 25.88, "y": 88.16}],
-  "VISUAL_ACTIVITY": [{"x": 29.34, "y": 88.01}, {"x": 29.08, "y": 94.01}, {"x": 50.15, "y": 94.16}, {"x": 49.89, "max-width": "100%", "y": 88.31}],
+  "VISUAL_ACTIVITY": [{"x": 29.34, "y": 88.01}, {"x": 29.08, "y": 94.01}, {"x": 50.15, "y": 94.16}, {"x": 49.89, "y": 88.31}],
   "GAMES": [{"x": 53.35, "y": 88.31}, {"x": 53.62, "y": 94.01}, {"x": 73.36, "y": 94.16}, {"x": 72.56, "y": 88.46}],
   "YOUTUBE": [{"x": 76.56, "y": 88.46}, {"x": 76.83, "y": 93.86}, {"x": 97.1, "y": 94.16}, {"x": 96.84, "y": 88.61}]
 };
@@ -68,7 +68,7 @@ const GEOGRAPHY_GRADE_HOTSPOTS = {
   "ASK_TEACHER": [{"x": 86.97, "y": 10.8}, {"x": 86.97, "y": 16.79}, {"x": 97.1, "y": 17.09}, {"x": 96.84, "y": 10.8}],
   "EXERCISES": [{"x": 4.54, "y": 88.91}, {"x": 4.27, "y": 93.56}, {"x": 25.34, "y": 93.71}, {"x": 24.81, "y": 88.76}],
   "VISUAL_ACTIVITY": [{"x": 28.54, "y": 88.76}, {"x": 28.81, "y": 93.41}, {"x": 48.82, "y": 93.86}, {"x": 48.82, "y": 88.91}],
-  "GAMES": [{"x": 52.29, "y": 89.06}, {"x": 52.29, "y": 93.41}, {"x": 73.36, "text-align": "center", "y": 93.56}, {"x": 73.09, "y": 88.76}],
+  "GAMES": [{"x": 52.29, "y": 89.06}, {"x": 52.29, "y": 93.41}, {"x": 73.36, "y": 93.56}, {"x": 73.09, "y": 88.76}],
   "YOUTUBE": [{"x": 76.56, "y": 88.91}, {"x": 76.56, "y": 93.71}, {"x": 96.84, "y": 93.86}, {"x": 96.84, "y": 89.06}]
 };
 
@@ -242,7 +242,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             className="absolute z-50 cursor-pointer"
             style={{ clipPath: getClipPath([{"x": 60.5, "y": 10.64}, {"x": 60.5, "y": 17.39}, {"x": 72.49, "y": 17.09}, {"x": 71.96, "y": 10.34}]), inset: 0 }}
         />
-        <div className="flex-1 flex flex-col items-center z-10 pt-40 md:pt-52">
+        <div className="flex-1 flex flex-col items-center z-10 pt-48 md:pt-60">
             <div className="w-full max-w-4xl space-y-1 px-12 md:px-24">
                 {chapters.map(ch => {
                     const isChapterPremium = ch.lessons[0]?.isPremium;
@@ -296,7 +296,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
           </div>
 
           {/* CONTENUTO LEZIONE O BLOCCO ABBONAMENTO */}
-          <div className="flex-1 flex flex-col items-center z-10 pt-14 md:pt-18 px-4 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center z-10 pt-20 md:pt-28 px-4 overflow-hidden">
               <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-center">
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
@@ -340,14 +340,14 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       <>
                         <div 
                             ref={textContainerRef}
-                            className="w-full h-[58vh] md:h-[62vh] overflow-hidden scroll-smooth flex flex-col"
+                            className="w-full h-[54vh] md:h-[56vh] overflow-hidden scroll-smooth flex flex-col pt-2 md:pt-4"
                         >
                             {/* TITOLO LEZIONE CENTRATO */}
                             <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-4xl uppercase mt-2 md:mt-4 mb-4 md:mb-6 shrink-0 leading-tight">
                                 {selectedLesson.title}
                             </h3>
 
-                            <p className="leading-relaxed whitespace-pre-wrap font-sans font-black text-slate-800 text-base md:text-3xl text-justify w-full">
+                            <p className="leading-relaxed whitespace-pre-wrap font-sans font-black text-slate-800 text-base md:text-3xl text-justify w-full mt-2 md:mt-4">
                                 {selectedLesson.text}
                             </p>
                         </div>
@@ -416,7 +416,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {/* ALTRI MODALI (In Arrivo, Video, etc) */}
           {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4">
+              <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-8 w-full max-sm text-center shadow-2xl relative">
                       <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all"><X size={20} strokeWidth={4} /></button>
                       <div className="w-32 h-32 md:w-40 md:h-40 bg-yellow-100 rounded-full flex items-center justify-center mb-6 border-4 border-dashed border-yellow-400 animate-pulse">
@@ -434,7 +434,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
           )}
 
           {isVideoOpen && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-0 md:p-4">
+              <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
                   <div className="relative w-full max-w-5xl bg-white rounded-[30px] md:rounded-[40px] border-[6px] md:border-[8px] border-red-600 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                       <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-[210]"><X size={24} /></button>
                       <div className="flex-1 w-full aspect-video bg-black"><iframe src={VOCALI_VIDEO_URL} className="w-full h-full border-0" allowFullScreen allow="autoplay; fullscreen" /></div>

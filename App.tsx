@@ -55,6 +55,13 @@ const LibrarySolitario = lazy(() => import('./components/LibrarySolitario'));
 const TrainJourneyPlaceholder = lazy(() => import('./components/TrainJourneyPlaceholder'));
 const PremiumInfoPage = lazy(() => import('./components/PremiumInfoPage'));
 const VocalFxPage = lazy(() => import('./components/VocalFxPage'));
+const EmotionalGarden = lazy(() => import('./components/EmotionalGarden'));
+
+// Nuovi Componenti Città Specifici
+const RainbowCity = lazy(() => import('./components/RainbowCity'));
+const GrayCity = lazy(() => import('./components/GrayCity'));
+const MountainCity = lazy(() => import('./components/MountainCity'));
+const LakeCity = lazy(() => import('./components/LakeCity'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -96,7 +103,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Gestione del cambio vista e memorizzazione dell'ultima aula visitata per il ritorno dal Premium
   const handleSetView = (view: AppView) => {
     const schoolGrades = [
         AppView.SCHOOL_FIRST_GRADE,
@@ -111,7 +117,6 @@ const App: React.FC = () => {
     setView(view);
   };
 
-  // --- WAKE LOCK MANAGEMENT ---
   useEffect(() => {
     requestWakeLock();
     const handleVisibilityChange = () => {
@@ -127,13 +132,11 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // SEO Update
     const meta = SEO_DATA[currentView] || SEO_DATA[AppView.HOME];
     document.title = meta.title;
     const descEl = document.querySelector('meta[name="description"]');
     if (descEl) descEl.setAttribute('content', meta.desc);
 
-    // DYNAMIC CANONICAL TAG UPDATE
     let canonicalLink = document.querySelector('link[rel="canonical"]');
     if (!canonicalLink) {
         canonicalLink = document.createElement('link');
@@ -141,7 +144,7 @@ const App: React.FC = () => {
         document.head.appendChild(canonicalLink);
     }
     
-    const baseUrl = 'https://loneboo.online/';
+    const baseUrl = 'https://www.loneboo.online/';
     const finalUrl = currentView === AppView.HOME ? baseUrl : `${baseUrl}?view=${currentView}`;
     canonicalLink.setAttribute('href', finalUrl);
 
@@ -212,6 +215,13 @@ const App: React.FC = () => {
                 {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={handleSetView} />}
                 {currentView === AppView.PREMIUM_INFO && <PremiumInfoPage setView={handleSetView} returnView={premiumReturnView} />}
                 {currentView === AppView.VOCAL_FX && <VocalFxPage setView={handleSetView} />}
+                {currentView === AppView.EMOTIONAL_GARDEN && <EmotionalGarden setView={handleSetView} />}
+                
+                {/* Nuove Città Specifiche */}
+                {currentView === AppView.RAINBOW_CITY && <RainbowCity setView={handleSetView} />}
+                {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
+                {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
+                {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
             </Suspense>
         </main>
 

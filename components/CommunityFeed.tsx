@@ -16,6 +16,9 @@ const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-cl
 const BOARD_BANNER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bannernoticeboohander.webp';
 const NOTIF_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 
+const BTN_GOTO_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wsqaw6547ffr5+(1).webp';
+const BTN_GOTO_GARDEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/csaboo887ughytr33+(1).webp';
+
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 
@@ -37,7 +40,6 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [bgLoaded, setBgLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const [isFullFeedOpen, setIsFullFeedOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
 
@@ -68,11 +70,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
       };
       loadData();
       
-      const hasDismissed = sessionStorage.getItem('piazza_hint_dismissed') === 'true';
-      if (!hasDismissed) {
-          const timer = setTimeout(() => setShowHint(true), 5000);
-          return () => clearTimeout(timer);
-      }
+      window.scrollTo(0, 0);
   }, []); 
 
   const handleExternalClick = (e: React.MouseEvent, url: string) => {
@@ -87,7 +85,6 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   };
 
   const handleBooClick = async () => {
-      setShowHint(false);
       setIsNotifModalOpen(true);
       await markNotificationsAsRead();
   };
@@ -186,7 +183,37 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
         )}
         {isNotifModalOpen && renderNotificationsModal()}
         {!bgLoaded && <div className="fixed inset-0 flex flex-col items-center justify-center bg-sky-100 z-[150]"><img src={OFFICIAL_LOGO} alt="" className="w-32 h-32 object-contain animate-spin-horizontal mb-4" /><span className="text-sky-600 font-black text-2xl animate-pulse uppercase">Arrivo in Piazza...</span></div>}
-        <RobotHint show={showHint && bgLoaded && !isFullFeedOpen && !isNotifModalOpen} message="Tocca gli oggetti o Boo per sapere le ultime..." />
+
+        {/* --- NUOVO SISTEMA DI NAVIGAZIONE E HINT FISSO --- */}
+        {bgLoaded && !isFullFeedOpen && !isNotifModalOpen && (
+            <div className="fixed bottom-6 left-0 right-0 z-[70] flex items-center justify-center gap-1 md:gap-5 px-8 md:px-12 pointer-events-none animate-in slide-in-from-bottom-4 duration-500">
+                <button 
+                    onClick={() => setView && setView(AppView.CITY_MAP)}
+                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
+                >
+                    <img src={BTN_GOTO_CITY_IMG} className="w-24 md:w-44 h-auto drop-shadow-lg" alt="Mappa" />
+                </button>
+                
+                <div className="pointer-events-auto shrink-0 flex items-center justify-center">
+                    <RobotHint 
+                        show={true} 
+                        message="Tocca gli oggetti o Boo per sapere le ultime..." 
+                        variant="ROBOT" 
+                        noRotate={true}
+                        isStatic={true}
+                        compact={true}
+                    />
+                </div>
+
+                <button 
+                    onClick={() => setView && setView(AppView.BOO_GARDEN)}
+                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
+                >
+                    <img src={BTN_GOTO_GARDEN_IMG} className="w-24 md:w-44 h-auto drop-shadow-lg" alt="Casa" />
+                </button>
+            </div>
+        )}
+
         <div className="relative w-full h-full overflow-hidden select-none">
             <div className="block md:hidden absolute inset-0">
                 <img src={PIAZZA_BG_MOBILE} alt="" className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />

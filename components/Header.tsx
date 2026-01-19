@@ -22,6 +22,10 @@ const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.
 const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp';
 const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 
+// Nuovi pulsanti per le città esterne
+const BTN_RETURN_TO_COLOR_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornanacittacoloras443ed3+(1).webp';
+const BTN_EXPLORE_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esploralacittar4e3eed+(1).webp';
+
 interface HeaderProps {
     currentView: AppView;
     setView: (view: AppView) => void;
@@ -41,6 +45,14 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const isHome = currentView === AppView.HOME;
     const isCityMap = currentView === AppView.CITY_MAP;
     const isBooGarden = currentView === AppView.BOO_GARDEN;
+
+    // Check if in external cities
+    const isExternalCity = [
+        AppView.RAINBOW_CITY, 
+        AppView.GRAY_CITY, 
+        AppView.MOUNTAIN_CITY, 
+        AppView.LAKE_CITY
+    ].includes(currentView);
     
     // Se siamo in Home usiamo il nuovo logo, altrimenti usiamo il tasto Città
     const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
@@ -88,6 +100,18 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const handleParentalSuccess = () => { setShowParentalGate(false); setShowParentalArea(true); };
     const handleOpenInfo = () => { setIsMenuOpen(false); setView(AppView.INFO_MENU); };
     const handleCityClick = () => setView(AppView.CITY_MAP);
+
+    const handleReturnToColorCity = () => {
+        // Segnala al viaggio in treno che stiamo tornando
+        sessionStorage.setItem('train_journey_return', 'true');
+        sessionStorage.setItem('train_journey_source_city', currentView);
+        setView(AppView.TRAIN_JOURNEY);
+    };
+
+    const handleExploreCity = () => {
+        // Invia un evento per aprire il modale di esplorazione nella città corrente
+        window.dispatchEvent(new CustomEvent('toggleCityExploration'));
+    };
 
     return (
         <>
@@ -148,28 +172,49 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
 
                     {/* Gruppo Icone Destra */}
                     <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto">
-                        {!isHome && (
-                            <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
-                                <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
-                                    <img src={INIZIO_BTN_IMG} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
+                        {isExternalCity ? (
+                            /* NUOVI PULSANTI PER LE CITTÀ ESTERNE UNIFORMATI */
+                            <>
+                                <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={handleExploreCity}>
+                                    <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-yellow-400">
+                                        <img src={BTN_EXPLORE_CITY} alt="Esplora" className="w-full h-full object-cover pointer-events-auto" />
+                                    </div>
+                                    <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-yellow-500 uppercase mt-1">ESPLORA</span>
                                 </div>
-                                <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase mt-1">INIZIO</span>
-                            </div>
-                        )}
-                        {!isHome && (
-                            <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
-                                <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
-                                    <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
+                                <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={handleReturnToColorCity}>
+                                    <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-red-500">
+                                        <img src={BTN_RETURN_TO_COLOR_CITY} alt="Ritorna" className="w-full h-full object-cover pointer-events-auto" />
+                                    </div>
+                                    <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-red-500 uppercase mt-1">RITORNA</span>
                                 </div>
-                                <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
-                            </div>
+                            </>
+                        ) : (
+                            /* PULSANTI STANDARD */
+                            <>
+                                {!isHome && (
+                                    <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
+                                        <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
+                                            <img src={INIZIO_BTN_IMG} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
+                                        </div>
+                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase mt-1">INIZIO</span>
+                                    </div>
+                                )}
+                                {!isHome && (
+                                    <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
+                                        <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
+                                            <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
+                                        </div>
+                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
+                                    </div>
+                                )}
+                                <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`}>
+                                    <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden z-50 ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`} onClick={isHome ? undefined : handleCityClick}>
+                                        <img src={logoImage} alt="Logo" className="w-full h-full object-cover pointer-events-auto" />
+                                    </div>
+                                    {!isHome && <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>}
+                                </div>
+                            </>
                         )}
-                        <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`}>
-                            <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden z-50 ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`} onClick={isHome ? undefined : handleCityClick}>
-                                <img src={logoImage} alt="Logo" className="w-full h-full object-cover pointer-events-auto" />
-                            </div>
-                            {!isHome && <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>}
-                        </div>
                     </div>
                 </div>
             </header>

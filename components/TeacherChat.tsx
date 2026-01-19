@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Mic, MicOff, Volume2, VolumeX, X, Loader2, ArrowLeft, Clock } from 'lucide-react';
 import { getTeacherResponse } from '../services/ai';
@@ -72,8 +73,14 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
 
     const speakText = (text: string) => {
         if (!audioEnabled || !window.speechSynthesis) return;
+        
+        // Rimuove le emoji prima della sintesi vocale usando un regex completo
+        let cleanText = text
+            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/gu, '')
+            .trim();
+
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'it-IT';
         utterance.rate = 0.9; 
         utterance.pitch = 1.1; 
@@ -132,7 +139,7 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
             {/* MODALE CASTIGO */}
             {timeLeft > 0 && (
                 <div className="fixed inset-0 z-[400] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-500">
-                    <div className="bg-white rounded-[40px] border-8 border-red-600 p-6 w-full max-w-sm text-center shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
+                    <div className="bg-white rounded-[40px] border-8 border-red-600 p-6 w-full max-sm text-center shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
                         <div className="w-full aspect-square mb-4 overflow-hidden rounded-2xl border-4 border-slate-100 shadow-inner bg-slate-50 flex items-center justify-center">
                             <img 
                                 src={PUNISHMENT_IMG} 

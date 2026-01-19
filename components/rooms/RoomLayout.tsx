@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AppView } from '../../types';
@@ -42,7 +41,7 @@ const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string };
     [AppView.BOO_BEDROOM]: { left: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" }, right: { view: AppView.BOO_KITCHEN, label: "CUCINA" } },
     [AppView.BOO_LIVING_ROOM]: { left: { view: AppView.BOO_KITCHEN, label: "CUCINA" }, right: { view: AppView.BOO_BATHROOM, label: "BAGNO" } },
     [AppView.BOO_BATHROOM]: { left: { view: AppView.BOO_GARDEN, label: "GIARDINO" }, right: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" } },
-    [AppView.BOO_GARDEN]: { left: { view: AppView.BOO_HOUSE, label: "MAPPA" } }
+    [AppView.BOO_GARDEN]: { right: { view: AppView.BOO_HOUSE, label: "ENTRA IN CASA" } }
 };
 
 interface RoomLayoutProps {
@@ -85,12 +84,12 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
             if (roomType === AppView.BOO_LIVING_ROOM) return NAV_LIVING_LEFT_IMG;
             if (roomType === AppView.BOO_BATHROOM) return NAV_BATHROOM_LEFT_IMG;
             if (roomType === AppView.BOO_BEDROOM) return NAV_BEDROOM_LEFT_IMG;
-            if (roomType === AppView.BOO_GARDEN) return RETURN_HOUSE_BTN_IMG;
         } else {
             if (roomType === AppView.BOO_KITCHEN) return NAV_KITCHEN_RIGHT_IMG;
             if (roomType === AppView.BOO_LIVING_ROOM) return NAV_LIVING_RIGHT_IMG;
             if (roomType === AppView.BOO_BATHROOM) return NAV_BATHROOM_RIGHT_IMG;
             if (roomType === AppView.BOO_BEDROOM) return NAV_BEDROOM_RIGHT_IMG;
+            if (roomType === AppView.BOO_GARDEN) return RETURN_HOUSE_BTN_IMG;
         }
         return null;
     };
@@ -121,26 +120,33 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
                     {navigation.left && (
                         <button 
                             onClick={() => setView(navigation.left!.view)} 
-                            className={`z-30 hover:scale-105 active:scale-95 transition-transform ${
-                                isGarden 
-                                ? "absolute top-[70%] left-[26%] -translate-x-1/2 -translate-y-1/2" 
-                                : "absolute top-20 md:top-32 left-2 md:left-4"
-                            }`}
+                            className={`z-30 hover:scale-105 active:scale-95 transition-transform absolute top-20 md:top-32 left-2 md:left-4`}
                         >
                             <img 
                                 src={getNavImg('left') || ''} 
                                 alt={navigation.left.label} 
-                                className={`${
-                                    isGarden 
-                                    ? "h-48 md:h-72 drop-shadow-2xl" 
-                                    : "h-28 md:h-40 drop-shadow-md"
-                                } w-auto`} 
+                                className={`h-28 md:h-40 drop-shadow-md w-auto`} 
                             />
                         </button>
                     )}
                     {navigation.right && (
-                        <button onClick={() => setView(navigation.right!.view)} className="absolute top-20 md:top-32 right-2 md:right-4 z-30 hover:scale-105 active:scale-95 transition-transform">
-                            <img src={getNavImg('right') || ''} alt={navigation.right.label} className="h-28 md:h-40 w-auto drop-shadow-md" />
+                        <button 
+                            onClick={() => setView(navigation.right!.view)} 
+                            className={`z-30 hover:scale-105 active:scale-95 transition-transform ${
+                                isGarden 
+                                ? "absolute top-[76%] right-[26%] translate-x-1/2 -translate-y-1/2" 
+                                : "absolute top-20 md:top-32 right-2 md:right-4"
+                            }`}
+                        >
+                            <img 
+                                src={getNavImg('right') || ''} 
+                                alt={navigation.right.label} 
+                                className={`${
+                                    isGarden 
+                                    ? "h-64 md:h-84 drop-shadow-2xl" 
+                                    : "h-28 md:h-40 drop-shadow-md"
+                                } w-auto`} 
+                            />
                         </button>
                     )}
                 </>

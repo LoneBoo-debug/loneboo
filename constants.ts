@@ -27,6 +27,7 @@ export const YOUTUBE_CONFIG = {
 
 export const MAP_LOCATIONS = [
     { id: AppView.AI_MAGIC, label: 'Torre Magica', emoji: '🔮', top: '32%', left: '47.81%', mobileTop: '22%', mobileLeft: '50%', color: 'bg-purple-600', border: 'border-purple-800', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoletorremagic.webp' },
+    { id: AppView.EMOTIONAL_GARDEN, label: 'Giardino Emozioni', emoji: '🌸', top: '54%', left: '44%', mobileTop: '44%', mobileLeft: '43%', color: 'bg-pink-400', border: 'border-pink-600', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emotionalgardenfx33.webp' },
     { id: AppView.TALES, label: 'Bosco Fiabe', emoji: '🌲', top: '50%', left: '77.19%', mobileTop: '44%', mobileLeft: '83%', color: 'bg-emerald-600', border: 'border-emerald-800', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolabosco.webp' },
     { id: AppView.PLAY, label: 'Parco Giochi', emoji: '🎡', top: '29%', left: '24%', mobileTop: '27%', mobileLeft: '25%', color: 'bg-green-500', border: 'border-green-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoleparco.webp' },
     { id: AppView.BOOKS, label: 'Biblioteca', emoji: '📚', top: '26%', left: '68.87%', mobileTop: '22%', mobileLeft: '81%', color: 'bg-blue-600', border: 'border-blue-800', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolabiblio.webp' },

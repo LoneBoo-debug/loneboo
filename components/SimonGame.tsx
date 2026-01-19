@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Trophy, LogOut, RotateCcw } from 'lucide-react';
 import { getProgress } from '../services/tokens';
@@ -81,7 +82,7 @@ const SimonGame: React.FC<SimonGameProps> = ({ onBack, onEarnTokens }) => {
     osc.type = 'sine';
     osc.frequency.value = freq;
     
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
     osc.start();
     gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3); 
     osc.stop(ctx.currentTime + 0.3);

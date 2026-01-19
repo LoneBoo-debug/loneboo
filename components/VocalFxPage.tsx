@@ -8,15 +8,15 @@ const BG_VOCAL_FX = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfvocalf
 const BTN_REC_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/recfdredfd3434sx.webp';
 const BTN_STOP_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stoprecdr34ew2+(1).webp';
 
-type VoiceEffect = 'GHOST' | 'ALIEN' | 'BABY' | 'OLD' | 'DUFFY' | 'ECHO' | 'REVERSE' | 'AMPLIFY';
+type VoiceEffect = 'GHOST' | 'ROBOT_PIXEL' | 'BABY' | 'UNDERWATER' | 'SPACE_RADIO' | 'ECHO' | 'REVERSE' | 'BEE';
 
 const EFFECT_LIST: { id: VoiceEffect; label: string; img: string }[] = [
     { id: 'REVERSE', label: 'Inverso', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rev33sw21qaz+(1).webp' },
-    { id: 'ALIEN', label: 'Alieno', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/jh554gff55.webp' },
+    { id: 'ROBOT_PIXEL', label: 'Robot Pixel', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/robot66fxvoc+(1).webp' },
     { id: 'BABY', label: 'Bimbo', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oioi8989kj.webp' },
-    { id: 'OLD', label: 'Nonno', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grad4e34.webp' },
-    { id: 'AMPLIFY', label: 'Amplifica', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ampliok9990+(1).webp' },
-    { id: 'DUFFY', label: 'Papera', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/duffy6t5r.webp' },
+    { id: 'UNDERWATER', label: 'Sott\'Acqua', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/underwater44fx33+(1).webp' },
+    { id: 'BEE', label: 'Ape Birichina', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/aperffx442wq+(1).webp' },
+    { id: 'SPACE_RADIO', label: 'Radio Spaziale', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/radio77fx22q.webp' },
     { id: 'ECHO', label: 'Eco', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/eco8u7y6t+(1).webp' },
     { id: 'GHOST', label: 'Fantasma', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ghost65fr3ws1.webp' }
 ];
@@ -30,7 +30,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     const audioCtxRef = useRef<AudioContext | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
-    const sourceNodeRef = useRef<AudioBufferSourceNode | null>(0);
+    const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
     
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -164,7 +164,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
     const playWithEffect = (effect: VoiceEffect) => {
         if (!recordedBuffer) return;
         const ctx = getCtx();
-        if (sourceNodeRef.current) { try { (sourceNodeRef.current as any).stop(); } catch(e) {} }
+        if (sourceNodeRef.current) { try { sourceNodeRef.current.stop(); } catch(e) {} }
 
         const source = ctx.createBufferSource();
         let finalBuffer = recordedBuffer;
@@ -183,31 +183,75 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
 
         source.buffer = finalBuffer;
         
-        // Setup nodi extra
         const mainGain = ctx.createGain();
-        mainGain.gain.value = effect === 'AMPLIFY' ? 3.0 : 1.2; 
+        mainGain.gain.value = 1.2; 
         
-        // Applicazione parametri effetti
         switch(effect) {
             case 'BABY':
                 source.playbackRate.value = 1.6;
                 break;
-            case 'OLD':
-                source.playbackRate.value = 0.75;
+            case 'ROBOT_PIXEL':
+                source.playbackRate.value = 1.0;
+                // Simula il bitcrushing con distorsione e filtri
+                const highpass = ctx.createBiquadFilter();
+                highpass.type = 'highpass';
+                highpass.frequency.value = 800;
+                const waveShaper = ctx.createWaveShaper();
+                const curve = new Float32Array(44100);
+                for (let i = 0; i < 44100; i++) {
+                    const x = (i * 2) / 44100 - 1;
+                    curve[i] = (Math.PI + 100) * x / (Math.PI + 100 * Math.abs(x));
+                }
+                waveShaper.curve = curve;
+                source.connect(highpass);
+                highpass.connect(waveShaper);
+                waveShaper.connect(mainGain);
                 break;
-            case 'DUFFY':
-                source.playbackRate.value = 2.1;
+            case 'UNDERWATER':
+                source.playbackRate.value = 0.95;
+                const lowpass = ctx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.value = 500;
+                const tremoloGain = ctx.createGain();
+                const oscillator = ctx.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 4;
+                const lfoGain = ctx.createGain();
+                lfoGain.gain.value = 0.5;
+                oscillator.connect(lfoGain);
+                lfoGain.connect(tremoloGain.gain);
+                oscillator.start();
+                source.connect(lowpass);
+                lowpass.connect(tremoloGain);
+                tremoloGain.connect(mainGain);
                 break;
-            case 'ALIEN':
-                source.playbackRate.value = 1.35;
-                // Effetto metallico/modulato
-                const biquad = ctx.createBiquadFilter();
-                biquad.type = 'peaking';
-                biquad.frequency.value = 1500;
-                biquad.Q.value = 10;
-                biquad.gain.value = 15;
-                source.connect(biquad);
-                biquad.connect(mainGain);
+            case 'BEE':
+                source.playbackRate.value = 1.95;
+                const vibrato = ctx.createOscillator();
+                const vibratoGain = ctx.createGain();
+                vibrato.frequency.value = 15;
+                vibratoGain.gain.value = 30;
+                vibrato.connect(vibratoGain);
+                vibratoGain.connect(source.detune);
+                vibrato.start();
+                source.connect(mainGain);
+                break;
+            case 'SPACE_RADIO':
+                source.playbackRate.value = 1.05;
+                const bandpass = ctx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.value = 1200;
+                bandpass.Q.value = 1.5;
+                const dist = ctx.createWaveShaper();
+                const dCurve = new Float32Array(44100);
+                for (let i = 0; i < 44100; i++) {
+                    const x = (i * 2) / 44100 - 1;
+                    dCurve[i] = (Math.PI + 15) * x / (Math.PI + 15 * Math.abs(x));
+                }
+                dist.curve = dCurve;
+                source.connect(bandpass);
+                bandpass.connect(dist);
+                dist.connect(mainGain);
                 break;
             case 'GHOST':
                 source.playbackRate.value = 0.85;
@@ -230,10 +274,8 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
                 feedback.connect(delay);
                 delay.connect(mainGain);
                 break;
-        }
-
-        if (effect !== 'ALIEN' && effect !== 'GHOST' && effect !== 'ECHO') {
-            source.connect(mainGain);
+            default:
+                source.connect(mainGain);
         }
 
         mainGain.connect(ctx.destination);
@@ -241,7 +283,7 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
         source.onended = () => setIsPlaying(false);
         setIsPlaying(true);
         source.start(0);
-        (sourceNodeRef.current as any) = source;
+        sourceNodeRef.current = source;
     };
 
     useEffect(() => {
@@ -341,9 +383,9 @@ const VocalFxPage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
                         <button
                             key={eff.id}
                             onClick={() => playWithEffect(eff.id)}
-                            className="aspect-square w-full transition-all hover:scale-110 active:scale-90 outline-none flex flex-col items-center justify-center p-1 group"
+                            className="aspect-square w-full transition-all hover:scale-110 active:scale-90 outline-none flex flex-col items-center justify-center p-0 group overflow-hidden rounded-2xl"
                         >
-                            <img src={eff.img} alt={eff.label} className="w-full h-full object-contain drop-shadow-xl" />
+                            <img src={eff.img} alt={eff.label} className="w-full h-full object-cover drop-shadow-xl" />
                         </button>
                     ))}
                 </div>

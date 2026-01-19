@@ -129,11 +129,11 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
             </div>
         )}
 
-        {/* MARAGNO EASTER EGG */}
+        {/* MARAGNO EASTER EGG - SPOSTATO LEGGERMENTE PIÙ A SINISTRA (da -8%/-5% a -12%/-10%) */}
         {showSpider && isLoaded && !isMenuOpen && !showPlayerModal && (
             <button 
                 onClick={() => setView(AppView.CHAT)}
-                className="fixed top-[-130px] md:top-[-260px] left-[-8%] md:left-[-5%] z-40 w-80 md:w-[560px] h-auto transition-transform hover:scale-105 active:scale-95 animate-maragno outline-none cursor-pointer"
+                className="fixed top-[-130px] md:top-[-260px] left-[-12%] md:left-[-10%] z-40 w-80 md:w-[560px] h-auto transition-transform hover:scale-105 active:scale-95 animate-maragno outline-none cursor-pointer"
             >
                 <img 
                     src={MARAGNO_EASTER_EGG} 

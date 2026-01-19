@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppView } from '../types';
 import { CITY_MAP_IMAGE, CITY_MAP_IMAGE_MOBILE, MAP_LOCATIONS, OFFICIAL_LOGO } from '../constants';
@@ -154,6 +155,21 @@ const CityMap: React.FC<CityMapProps> = ({ setView }) => {
                         );
                     })}
                 </div>
+
+                {/* TITOLO MAPPA IN BASSO A DESTRA */}
+                {isLoaded && (
+                    <div className="absolute bottom-8 right-8 z-[60] pointer-events-none animate-in fade-in slide-in-from-right duration-1000">
+                        <h2 
+                            className="font-luckiest text-yellow-400 text-3xl md:text-7xl uppercase tracking-tighter leading-none text-right"
+                            style={{ 
+                                WebkitTextStroke: '2px black',
+                                textShadow: '4px 4px 0px rgba(0,0,0,0.2)'
+                            }}
+                        >
+                            Città <br className="md:hidden" /> Colorata
+                        </h2>
+                    </div>
+                )}
 
                 {/* PULSANTI DI CONTROLLO IN BASSO A SINISTRA */}
                 {isLoaded && (

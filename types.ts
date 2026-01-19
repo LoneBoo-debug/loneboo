@@ -131,6 +131,12 @@ export enum AppView {
   STOPWATCH_GAME = 'STOPWATCH_GAME', // NEW: Game logic requested
   TRAIN_JOURNEY = 'TRAIN_JOURNEY',
   
+  // NUOVE CITTÀ
+  RAINBOW_CITY = 'RAINBOW_CITY',
+  GRAY_CITY = 'GRAY_CITY',
+  MOUNTAIN_CITY = 'MOUNTAIN_CITY',
+  LAKE_CITY = 'LAKE_CITY',
+
   // NEW LIBRARY PAGES
   LIBRARY_READ = 'LIBRARY_READ',
   LIBRARY_CARDS = 'LIBRARY_CARDS',
@@ -142,7 +148,10 @@ export enum AppView {
   PREMIUM_INFO = 'PREMIUM_INFO',
 
   // NUOVA VISTA VOCAL FX
-  VOCAL_FX = 'VOCAL_FX'
+  VOCAL_FX = 'VOCAL_FX',
+
+  // NUOVA VISTA GIARDINO DELLE EMOZIONI
+  EMOTIONAL_GARDEN = 'EMOTIONAL_GARDEN'
 }
 
 export interface ChatMessage {
@@ -261,7 +270,7 @@ export interface PlayerProgress {
     unlockedStickers: string[]; // List of sticker IDs (Global)
     hardModeUnlocked?: boolean; // Flag for Hard Mode Unlock
     duplicates?: number; // Count of duplicates
-    duplicateStickers?: string[]; // Array of duplicate sticker IDs
+    duplicateStickers?: string[]; // Array of duplicate stickers
     currentAlbum?: number; // 1 = Standard, 2 = Gold/Vol2
 }
 

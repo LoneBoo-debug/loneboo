@@ -17,12 +17,18 @@ interface RobotHintProps {
     message?: string;
     variant?: 'ROBOT' | 'GHOST' | 'GREEN' | 'PURPLE' | 'YELLOW' | 'BROWN';
     customConfig?: Partial<RobotConfig>; 
+    noRotate?: boolean;
+    isStatic?: boolean;
+    compact?: boolean;
 }
 
 const RobotHint: React.FC<RobotHintProps> = ({ 
     show, 
     message = "TOCCA GLI OGGETTI DELL'IMMAGINE",
-    variant = 'ROBOT'
+    variant = 'ROBOT',
+    noRotate = false,
+    isStatic = false,
+    compact = false
 }) => {
     
     if (!show) return null;
@@ -106,18 +112,18 @@ const RobotHint: React.FC<RobotHintProps> = ({
 
     return (
         <div 
-            className="absolute z-50 flex justify-end select-none pointer-events-none animate-in fade-in duration-500 ease-out"
-            style={{ 
+            className={`${isStatic ? 'relative' : 'absolute bottom-[30px] right-[20px]'} z-50 flex justify-end select-none pointer-events-none animate-in fade-in duration-500 ease-out`}
+            style={!isStatic ? { 
                 bottom: '30px', 
                 right: '20px',
                 maxWidth: '90%', 
                 width: 'auto'
-            }}
+            } : { maxWidth: '100%', width: 'auto' }}
         >
             <div className="relative">
-                {/* Text Bubble Container - Riconfigurato per essere più stretto */}
+                {/* Text Bubble Container - Riconfigurato per essere più stretto tramite prop compact */}
                 <div 
-                    className={`${styles.bg} px-4 py-4 rounded-[2rem] border-4 transition-all duration-300 transform -rotate-2 flex items-center justify-center max-w-[210px] ${styles.border} ${styles.shadow}`}
+                    className={`${styles.bg} ${compact ? 'px-3 py-2' : 'px-4 py-4'} rounded-[2rem] border-4 transition-all duration-300 flex items-center justify-center max-w-[210px] ${styles.border} ${styles.shadow} ${noRotate ? '' : '-rotate-2'}`}
                 >
                     <span 
                         className={`font-luckiest text-xl md:text-2xl lg:text-3xl drop-shadow-sm select-none uppercase whitespace-pre-line text-center ${styles.text}`}

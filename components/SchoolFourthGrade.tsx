@@ -8,7 +8,7 @@ import TeacherChat from './TeacherChat';
 import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quartelemen55fjr4new.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esciule4ert5531+(1).webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitaulde4fes2+(1).webp';
 const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
 
 interface Point { x: number; y: number; }
@@ -94,7 +94,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                         <div 
                             key={key}
                             onClick={() => handleZoneInteraction(key)}
-                            className="absolute inset-0 cursor-pointer active:bg-white/10"
+                            className="absolute inset-0 z-20 cursor-pointer active:bg-white/10"
                             style={{ clipPath: getClipPath(pts) }}
                         />
                     )

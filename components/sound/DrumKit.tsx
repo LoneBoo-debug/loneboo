@@ -1,10 +1,19 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import SoundLayout from './SoundLayout';
 import { DRUM_SOUNDS } from '../../constants';
 
 const DRUM_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbattera.webp';
 const DRUM_KIT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/drum-kit.webp';
+
+// Asset per i tasti con le basi rock associate
+const EXTRA_BUTTONS = [
+    { id: 1, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grt44.webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rock-thunder-rock-music-background-336548.mp3' },
+    { id: 2, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tf556t.webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/action-intro-rock-long-138444.mp3' },
+    { id: 3, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hg554kjh.webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rock-420049.mp3' },
+    { id: 4, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hc5h6ff.webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/intense-hard-rock-282532.mp3' },
+    { id: 5, img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gf6tf6.webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/crowd-cheer-406646.mp3' },
+];
 
 type Point = { x: number; y: number };
 
@@ -61,15 +70,58 @@ const FINAL_AREAS: Record<string, Point[]> = {
 
 const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const imgRef = useRef<HTMLImageElement>(null);
+    const baseAudioRef = useRef<HTMLAudioElement | null>(null);
+    const [activeBaseId, setActiveBaseId] = useState<number | null>(null);
 
     const playSound = (id: string) => {
         const sound = DRUM_SOUNDS.find(s => s.id === id);
         if (sound) {
             const a = new Audio(sound.src);
-            a.volume = 0.9;
+            a.volume = 0.8; // Volume dei colpi della batteria regolato a 0.8
             a.play().catch(() => {});
         }
     };
+
+    const handleExtraAction = (btn: typeof EXTRA_BUTTONS[0]) => {
+        if (!btn.src) return;
+
+        // Se è il tasto 5 (Applauso), lo riproduciamo come effetto istantaneo
+        if (btn.id === 5) {
+            const a = new Audio(btn.src);
+            a.volume = 0.5; // Volume applauso regolato a 0.5
+            a.play().catch(() => {});
+            return;
+        }
+
+        // Logica per basi musicali (1-4)
+        if (activeBaseId === btn.id) {
+            if (baseAudioRef.current) {
+                baseAudioRef.current.pause();
+                baseAudioRef.current = null;
+            }
+            setActiveBaseId(null);
+        } else {
+            if (baseAudioRef.current) {
+                baseAudioRef.current.pause();
+            }
+            const audio = new Audio(btn.src);
+            audio.loop = true;
+            // Volume basi musicali regolato a 0.4, tranne il tasto 4 che viene alzato a 0.7 per compensare il file originale
+            audio.volume = btn.id === 4 ? 0.7 : 0.4; 
+            audio.play().catch(() => {});
+            baseAudioRef.current = audio;
+            setActiveBaseId(btn.id);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (baseAudioRef.current) {
+                baseAudioRef.current.pause();
+                baseAudioRef.current = null;
+            }
+        };
+    }, []);
 
     const getPolygonPath = (points: Point[]) => {
         return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
@@ -77,19 +129,28 @@ const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     return (
         <SoundLayout onBack={onBack} backgroundImage={DRUM_BG}>
-            {/* 
-                CONTENITORE ASSOLUTO: 
-                Occupa tutto lo spazio disponibile sotto il titolo e si ancora al fondo.
-                pointer-events-none per non bloccare eventuali click allo sfondo, 
-                mentre il contenuto interno riabilita i pointer-events.
-            */}
+            
+            {/* TASTI EXTRA IN ALTO A DESTRA - Dimensioni aumentate e abbassati per allineamento */}
+            <div className="fixed top-24 md:top-32 right-4 z-50 flex items-center gap-1.5 md:gap-3">
+                {EXTRA_BUTTONS.map((btn) => (
+                    <button
+                        key={btn.id}
+                        onClick={() => handleExtraAction(btn)}
+                        className={`
+                            w-12 h-12 md:w-20 md:h-20 lg:w-24 lg:h-24 transition-all active:scale-95 outline-none
+                            ${activeBaseId === btn.id ? 'brightness-125 scale-110' : 'hover:scale-105'}
+                        `}
+                    >
+                        <img 
+                            src={btn.img} 
+                            alt={`Extra ${btn.id}`} 
+                            className={`w-full h-full object-contain drop-shadow-lg ${!btn.src && btn.id !== 5 ? 'opacity-40 grayscale' : ''}`} 
+                        />
+                    </button>
+                ))}
+            </div>
+
             <div className="absolute inset-0 flex items-end justify-center overflow-visible pointer-events-none">
-                
-                {/* 
-                   BOX BATTERIA:
-                   Posizionato in basso. Alzato di pochissimo rispetto a prima (ridotti translate-y).
-                   Essendo in un genitore con overflow-visible, non verrà tagliato.
-                */}
                 <div className="relative w-full max-w-5xl pointer-events-auto transform translate-y-2 md:translate-y-4">
                     <img 
                         ref={imgRef}

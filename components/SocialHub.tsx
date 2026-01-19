@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { getChannelStatistics } from '../services/api';
@@ -6,8 +7,8 @@ import { SOCIALS, SUPPORT_LINKS, OFFICIAL_LOGO } from '../constants';
 
 const TRAIN_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/station-mobile.webp';
 const TRAIN_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/station-desktop.webp';
-const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-station-back.webp';
-const BTN_PARTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-station-depart.webp';
+const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cityfrfwfed+(1).webp';
+const BTN_PARTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/paymentfwe5f5c5er+(1).webp';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
@@ -118,10 +119,10 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
             {setView && bgLoaded && (
                 <>
                     <button onClick={() => setView(AppView.CITY_MAP)} className="absolute bottom-0 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Torna in città">
-                        <img src={BTN_BACK_CITY_IMG} alt="Torna in città" className="w-40 md:w-72 h-auto drop-shadow-xl" />
+                        <img src={BTN_BACK_CITY_IMG} alt="Torna in città" className="w-32 md:w-60 h-auto drop-shadow-xl" />
                     </button>
                     <button onClick={() => setView(AppView.TRAIN_JOURNEY)} className="absolute bottom-0 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Inizia il viaggio">
-                        <img src={BTN_PARTI_IMG} alt="Parti" className="w-48 md:w-80 h-auto drop-shadow-xl" />
+                        <img src={BTN_PARTI_IMG} alt="Parti" className="w-40 md:w-64 h-auto drop-shadow-xl" />
                     </button>
                 </>
             )}

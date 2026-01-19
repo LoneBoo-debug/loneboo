@@ -23,8 +23,8 @@ const SoundLayout: React.FC<SoundLayoutProps> = ({ onBack, children, isAnimalMod
                 <img src={finalBg} className="absolute inset-0 w-full h-full object-cover z-0 opacity-80" alt="" />
             )}
             
-            {/* Pulsante Indietro - Nascosto in landscape per non interferire con la console immersiva */}
-            <div className="fixed top-20 md:top-28 left-4 z-50 landscape:hidden">
+            {/* Pulsante Indietro - Abbassato per allineamento con i tasti extra in batteria */}
+            <div className="fixed top-24 md:top-32 left-4 z-50 landscape:hidden">
                 <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-all outline-none drop-shadow-xl">
                     <img src={BTN_BACK_DISCO_IMG} alt="Indietro" className="h-20 md:h-32 w-auto" />
                 </button>

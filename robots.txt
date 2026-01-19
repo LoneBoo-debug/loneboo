@@ -1,3 +1,4 @@
+
 User-agent: *
 Allow: /
-Sitemap: https://loneboo.online/sitemap.xml
+Sitemap: https://www.loneboo.online/sitemap.xml

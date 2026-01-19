@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VIDEOS } from '../constants';
 import { Video, AppView } from '../types';
 import { getChannelPlaylists, getPlaylistVideos, searchChannelVideos, getFeaturedVideo } from '../services/api';
-import { Search, CirclePlay, Loader2, X, Ticket } from 'lucide-react';
+import { CirclePlay, Loader2, X, Ticket } from 'lucide-react';
 
 const CLOSE_BTN_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const YT_CHANNEL_URL = 'https://www.youtube.com/@ILoneBoo';
@@ -28,7 +28,6 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
   const [videos, setVideos] = useState<Video[]>(MOCK_VIDEOS);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(MOCK_VIDEOS[0]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   
   const [calib] = useState({ top: 9.3, left: 18.5, width: 62.4, height: 20.1 });
@@ -66,17 +65,6 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
         document.body.classList.remove('allow-landscape');
     };
   }, [selectedVideo]);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-        if (searchTerm.trim().length > 2) {
-            setLoading(true);
-            const results = await searchChannelVideos(searchTerm);
-            if (isMounted.current) { setVideos(results.length > 0 ? results.slice(0, 12) : MOCK_VIDEOS); setLoading(false); }
-        } else if (searchTerm.trim().length === 0 && isMounted.current && !loading) { initGallery(); }
-    }, 800);
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, initGallery]);
 
   const handleExternalClick = (e: React.MouseEvent, url: string) => {
       const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
@@ -142,28 +130,13 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col justify-end min-h-0 relative z-30 pb-4">
+        <div className="flex-1 flex flex-col justify-end min-h-0 relative z-30 pb-12 md:pb-20">
           
-          {/* ZUCCOTTO - DIMENSIONI ULTERIORMENTE AUMENTATE E POSIZIONATO DIETRO LA RICERCA */}
-          <div className="absolute right-[-20px] bottom-[5%] w-48 md:w-[32rem] z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
+          {/* ZUCCOTTO - ALZATO LEGGERMENTE */}
+          <div className="absolute right-[-20px] bottom-[14%] md:bottom-[18%] w-48 md:w-[32rem] z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
              <div className="relative">
                 <img src={ZUCCOTTO_POPCORN} alt="" className="w-full h-auto drop-shadow-2xl brightness-110" />
              </div>
-          </div>
-
-          {/* BARRA RICERCA - SPOSTATA SOPRA IL FILM STRIP */}
-          <div className="w-full max-w-7xl mx-auto flex items-start px-6 mb-4 relative z-40">
-              <div className="relative w-full max-w-[180px] md:max-w-[280px] group">
-                  <div className="absolute inset-0 bg-yellow-400/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400/70" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="Cerca..." 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    className="w-full pl-10 pr-4 py-2.5 rounded-[1.2rem] border-4 border-black font-black text-xs md:text-base text-yellow-400 focus:outline-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-black/40 backdrop-blur-md transition-all focus:scale-[1.02] placeholder:text-yellow-400/50" 
-                  />
-              </div>
           </div>
 
           <div className="w-full max-w-7xl mx-auto mb-6">

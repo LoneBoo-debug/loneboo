@@ -4,7 +4,6 @@ import SoundLayout from './SoundLayout';
 import { ANIMAL_SOUNDS } from '../../constants';
 import { Music } from 'lucide-react';
 
-const ANIMAL_ORCHESTRA_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orchestra-title.webp';
 const ANIMAL_ORCHESTRA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sforches.jpg';
 
 const ANIMAL_BASES = [
@@ -57,10 +56,11 @@ const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }, []);
     
     return (
-        <SoundLayout onBack={onBack} backgroundImage={ANIMAL_ORCHESTRA_BG} titleImage={ANIMAL_ORCHESTRA_TITLE_IMG}>
-            <div className="w-full max-w-4xl px-4 py-4 mx-auto flex flex-col gap-6 overflow-y-auto no-scrollbar max-h-[75vh]">
+        <SoundLayout onBack={onBack} backgroundImage={ANIMAL_ORCHESTRA_BG}>
+            {/* Contenitore principale senza scroll (overflow-hidden) e con layout flessibile */}
+            <div className="w-full h-full max-w-4xl px-4 pt-20 md:pt-32 pb-6 mx-auto flex flex-col gap-4 md:gap-8 overflow-hidden">
                 
-                {/* GRID ANIMALI */}
+                {/* GRID ANIMALI - Fissa */}
                 <div className="grid grid-cols-4 gap-3 md:gap-6 lg:gap-8">
                     {ANIMAL_SOUNDS.map((a) => (
                         <button 
@@ -83,8 +83,8 @@ const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     ))}
                 </div>
 
-                {/* SEPARATORE BASI */}
-                <div className="flex items-center gap-4 py-2 opacity-80">
+                {/* SEPARATORE BASI - Fisso */}
+                <div className="flex items-center gap-4 py-1 md:py-2 opacity-80 shrink-0">
                     <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-white/30 rounded-full"></div>
                     <div className="flex items-center gap-2 px-4 py-1 bg-black/40 rounded-full border border-white/20">
                         <Music size={16} className="text-yellow-400" />
@@ -93,8 +93,8 @@ const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="h-1 flex-1 bg-gradient-to-l from-transparent to-white/30 rounded-full"></div>
                 </div>
 
-                {/* GRID BASI MUSICALI */}
-                <div className="grid grid-cols-4 gap-3 md:gap-6 lg:gap-8 pb-10">
+                {/* GRID BASI MUSICALI - Fissa */}
+                <div className="grid grid-cols-4 gap-3 md:gap-6 lg:gap-8">
                     {ANIMAL_BASES.map((base) => {
                         const isActive = activeBaseId === base.id;
                         return (
