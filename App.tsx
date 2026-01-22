@@ -1,11 +1,12 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
 import { AppView } from './types';
 import { OFFICIAL_LOGO } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
+import ServicePage from './components/ServicePage';
 
+const TTSStudio = lazy(() => import('./components/TTSStudio'));
 const InstallPWA = lazy(() => import('./components/InstallPWA')); 
 const BedtimeOverlay = lazy(() => import('./components/BedtimeOverlay'));
 const IntroPage = lazy(() => import('./components/IntroPage'));
@@ -57,7 +58,6 @@ const PremiumInfoPage = lazy(() => import('./components/PremiumInfoPage'));
 const VocalFxPage = lazy(() => import('./components/VocalFxPage'));
 const EmotionalGarden = lazy(() => import('./components/EmotionalGarden'));
 
-// Nuovi Componenti Città Specifici
 const RainbowCity = lazy(() => import('./components/RainbowCity'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
 const MountainCity = lazy(() => import('./components/MountainCity'));
@@ -71,12 +71,6 @@ const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
 const SEO_DATA: Record<string, { title: string, desc: string }> = {
   [AppView.HOME]: { title: "Lone Boo World - Ecosistema Educativo 3-10 anni", desc: "Benvenuti nel mondo magico di Lone Boo, dove il gioco diventa apprendimento scolare e prescolare sicuro." },
-  [AppView.SCHOOL]: { title: "Scuola Elementare Arcobaleno - Programma 1ª-5ª Elementare", desc: "Esplora le aule della Scuola Arcobaleno: lezioni di Italiano, Matematica, Storia, Geografia e Scienze per l'intero ciclo primario." },
-  [AppView.PLAY]: { title: "Giochi Didattici per Bambini - Allena la Mente con Lone Boo", desc: "Minigiochi divertenti, sicuri e istruttivi per sviluppare logica, memoria e creatività." },
-  [AppView.COLORING]: { title: "Accademia d'Arte Lone Boo - Disegni da Colorare Educativi", desc: "Scarica e stampa i disegni gratuiti di Lone Boo per stimolare la manualità e la creatività." },
-  [AppView.VIDEOS]: { title: "Cinema Lone Boo - Cartoni Animati e Canzoni Educative", desc: "Guarda i video musicali e i cartoni animati originali progettati per l'intrattenimento educativo." },
-  [AppView.CHAT]: { title: "Info Point Maragno - L'Assistente Didattico di Lone Boo", desc: "Parla con la guida saggia di Città Colorata per consigli sul percorso scolastico e curiosità sul mondo." },
-  [AppView.TALES]: { title: "Favole della Buonanotte - Storytelling Educativo", desc: "Ascolta le storie audio narrate da Fata Flora per stimolare l'ascolto e l'immaginazione." },
 };
 
 const PageLoader = () => (
@@ -90,66 +84,25 @@ const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
 
-  // Deep Linking Logic
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
-    const pageParam = params.get('page');
-
-    if (viewParam === 'DISCLAIMER' || pageParam === 'privacy') {
-      setView(AppView.DISCLAIMER);
-    } else if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
+    if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
       setView(viewParam as AppView);
     }
   }, []);
 
   const handleSetView = (view: AppView) => {
-    const schoolGrades = [
-        AppView.SCHOOL_FIRST_GRADE,
-        AppView.SCHOOL_SECOND_GRADE,
-        AppView.SCHOOL_THIRD_GRADE,
-        AppView.SCHOOL_FOURTH_GRADE,
-        AppView.SCHOOL_FIFTH_GRADE
-    ];
-    if (schoolGrades.includes(view)) {
-        setPremiumReturnView(view);
-    }
     setView(view);
   };
 
   useEffect(() => {
     requestWakeLock();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Fix: Explicitly returning a void function to avoid TypeScript error with async releaseWakeLock returning a Promise.
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       releaseWakeLock();
     };
   }, []);
-
-  useEffect(() => {
-    const meta = SEO_DATA[currentView] || SEO_DATA[AppView.HOME];
-    document.title = meta.title;
-    const descEl = document.querySelector('meta[name="description"]');
-    if (descEl) descEl.setAttribute('content', meta.desc);
-
-    let canonicalLink = document.querySelector('link[rel="canonical"]');
-    if (!canonicalLink) {
-        canonicalLink = document.createElement('link');
-        canonicalLink.setAttribute('rel', 'canonical');
-        document.head.appendChild(canonicalLink);
-    }
-    
-    const baseUrl = 'https://www.loneboo.online/';
-    const finalUrl = currentView === AppView.HOME ? baseUrl : `${baseUrl}?view=${currentView}`;
-    canonicalLink.setAttribute('href', finalUrl);
-
-    window.scrollTo(0, 0);
-  }, [currentView]);
 
   return (
     <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
@@ -161,8 +114,11 @@ const App: React.FC = () => {
         </Suspense>
 
         <main className="flex-1 relative w-full h-full">
+            {currentView === AppView.SERVICE_PAGE && <ServicePage setView={handleSetView} />}
+
             <Suspense fallback={<PageLoader />}>
                 {currentView === AppView.HOME && <HomePage setView={handleSetView} />}
+                {currentView === AppView.TTS_STUDIO && <TTSStudio setView={handleSetView} />}
                 {currentView === AppView.CITY_MAP && <CityMap setView={handleSetView} />}
                 {currentView === AppView.BOO_HOUSE && <RoomView setView={handleSetView} />}
                 {currentView === AppView.INTRO && <IntroPage setView={handleSetView} />}
@@ -216,21 +172,12 @@ const App: React.FC = () => {
                 {currentView === AppView.PREMIUM_INFO && <PremiumInfoPage setView={handleSetView} returnView={premiumReturnView} />}
                 {currentView === AppView.VOCAL_FX && <VocalFxPage setView={handleSetView} />}
                 {currentView === AppView.EMOTIONAL_GARDEN && <EmotionalGarden setView={handleSetView} />}
-                
-                {/* Nuove Città Specifiche */}
                 {currentView === AppView.RAINBOW_CITY && <RainbowCity setView={handleSetView} />}
                 {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
                 {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
             </Suspense>
         </main>
-
-        {(currentView === AppView.HOME || currentView === AppView.ABOUT) && (
-            <footer className="text-center p-8 text-white/60 font-bold bg-black/10 shrink-0">
-                <p className="text-sm">© 2025 Lone Boo World - Progetto Educativo Sicuro 3-10 anni</p>
-                <button onClick={() => handleSetView(AppView.DISCLAIMER)} className="underline text-xs mt-2 block mx-auto">Privacy & Note Legali</button>
-            </footer>
-        )}
     </div>
   );
 };

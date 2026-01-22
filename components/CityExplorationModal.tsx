@@ -34,7 +34,7 @@ const CityExplorationModal: React.FC<CityExplorationModalProps> = ({ isOpen, onC
                         onClick={onClose}
                         className="hover:scale-110 active:scale-95 transition-all outline-none"
                     >
-                        <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp" alt="Chiudi" className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-md" />
+                        <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp" alt="Chiudi" className="w-14 h-14 md:w-22 md:h-22 object-contain drop-shadow-md" />
                     </button>
                 </div>
 

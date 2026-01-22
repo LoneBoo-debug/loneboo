@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView, ChatMessage } from '../types';
 import { Loader2, Send, Volume2, VolumeX, ArrowLeft, Clock, Mic, MicOff, X } from 'lucide-react';
@@ -128,7 +129,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 localStorage.setItem('maragno_insults', String(newCount));
                 
                 if (newCount === 4) {
-                    cleanResponse = "Attenzione! Questo è l'ultimo avviso. Se continui così interromperò il servizio e entrerò in modalità offeso per 5 minuti! 🕷️⚠️";
+                    cleanResponse = "Attenzione! Questo è l'ultimo avviso. Se continui così interromperò il servizio e entrerò in modalità offeso per 5 minuti! 维持⚠️";
                 }
                 
                 if (newCount >= INSULT_LIMIT) {
@@ -150,7 +151,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             }
 
         } catch (e) {
-            setHistory(prev => [...prev, { role: 'model', text: "Le mie zampe si sono incrociate! Riprova? 🕷️" }]);
+            setHistory(prev => [...prev, { role: 'model', text: "Le mie zampe si sono incrociate! Riprova? 维持" }]);
         } finally {
             setIsThinking(false);
         }
@@ -180,8 +181,27 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
 
     const handleTaxiClick = () => {
         if (pendingNav) {
+            // Lista delle città che richiedono il passaggio in stazione e il biglietto
+            const externalCities = [
+                AppView.RAINBOW_CITY, 
+                AppView.GRAY_CITY, 
+                AppView.MOUNTAIN_CITY, 
+                AppView.LAKE_CITY
+            ];
+
+            if (externalCities.includes(pendingNav)) {
+                // Impostiamo la destinazione nel sessionStorage affinché la biglietteria la riconosca
+                sessionStorage.setItem('train_target_city', pendingNav);
+                // Impostiamo l'origine come SOCIALS così se annullano il biglietto restano in stazione
+                sessionStorage.setItem('train_journey_origin', AppView.SOCIALS);
+                // Navighiamo alla Biglietteria/Viaggio (TRAIN_JOURNEY)
+                setView(AppView.TRAIN_JOURNEY);
+            } else {
+                // Per tutte le altre destinazioni interne a Città Colorata, navigazione diretta
+                setView(pendingNav);
+            }
+            
             setIsChatOpen(false);
-            setView(pendingNav);
             setPendingNav(null);
         }
     };
@@ -221,7 +241,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                         </div>
                         
                         <h2 className="text-2xl md:text-3xl font-black text-red-600 mb-2 uppercase leading-none">Sono offeso!</h2>
-                        <p className="text-gray-700 font-bold text-base md:text-lg leading-snug mb-6 px-2">Queste parole non mi piacciono. Ci rivediamo tra 5 minuti quando ti sarai calmato... 🕷️💨</p>
+                        <p className="text-gray-700 font-bold text-base md:text-lg leading-snug mb-6 px-2">Queste parole non mi piacciono. Ci rivediamo tra 5 minuti quando ti sarai calmato... 维持💨</p>
                         
                         <div className="bg-red-50 px-6 py-3 rounded-full border-4 border-red-600 flex items-center gap-3 text-red-600 font-black text-2xl shadow-inner">
                             <Clock size={28} />
@@ -253,7 +273,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                         </div>
                         <div className="flex-1 overflow-hidden relative z-30">
                             <h3 className="text-white font-black text-lg md:text-2xl uppercase leading-none truncate">Maragno</h3>
-                            <span className="text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest">{isThinking ? 'Tesse una risposta... 🕸️' : 'In linea 🕷️'}</span>
+                            <span className="text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest">{isThinking ? 'Tesse una risposta... 🕸️' : 'In linea 维持'}</span>
                         </div>
                         <div className="flex gap-2 relative z-30">
                              <button onClick={() => { const next = !audioEnabled; setAudioEnabled(next); if (!next) window.speechSynthesis.cancel(); else speakText(history[history.length - 1].text); }} className={`p-2 rounded-full ${audioEnabled ? 'bg-white/20 text-white' : 'bg-red-400 text-white'}`}>

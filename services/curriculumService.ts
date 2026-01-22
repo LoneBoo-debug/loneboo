@@ -87,13 +87,15 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
             const lessonText = parts[4];
             const audioUrl = parts[5] || "";
             
+            // Colonna G (indice 6) per il link del video
+            const videoUrl = (parts[6] && parts[6] !== "" && parts[6] !== "-") ? parts[6].trim() : undefined;
+            
             // Colonna H (indice 7) per il tipo di accesso
             const accessType = parts[7]?.toLowerCase() || 'gratis';
             const isPremium = accessType === 'abbonamento';
 
+            // --- QUIZ (COL I-T) ---
             const quizzes: SchoolQuiz[] = [];
-            
-            // Quiz 1 (I-L: 8-11) - Uso del separatore '|'
             if (parts[8]) {
                 quizzes.push({
                     question: parts[8],
@@ -102,8 +104,6 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
                     feedback: parts[11] || "Bravissimo! ✨"
                 });
             }
-
-            // Quiz 2 (M-P: 12-15) - Uso del separatore '|'
             if (parts[12]) {
                 quizzes.push({
                     question: parts[12],
@@ -112,8 +112,6 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
                     feedback: parts[15] || "Ottimo lavoro! 🎈"
                 });
             }
-
-            // Quiz 3 (Q-T: 16-19) - Uso del separatore '|'
             if (parts[16]) {
                 quizzes.push({
                     question: parts[16],
@@ -123,12 +121,37 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
                 });
             }
 
+            // --- ATTIVITÀ (COL U-AB) ---
+            const activities: SchoolQuiz[] = [];
+            // Attività 1 (U-V-W-X: 20-21-22-23)
+            if (parts[20] && parts[20] !== "-") {
+                activities.push({
+                    image: parts[20],
+                    question: parts[21] || "Guarda l'immagine e rispondi:",
+                    options: parts[22] ? parts[22].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[23]) || 0,
+                    feedback: "Corretto! Sei un ottimo osservatore! 🧐"
+                });
+            }
+            // Attività 2 (Y-Z-AA-AB: 24-25-26-27)
+            if (parts[24] && parts[24] !== "-") {
+                activities.push({
+                    image: parts[24],
+                    question: parts[25] || "E ora guarda questa:",
+                    options: parts[26] ? parts[26].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[27]) || 0,
+                    feedback: "Fantastico! Hai completato le attività! 🌟"
+                });
+            }
+
             const lesson: SchoolLesson = {
                 id: `dyn_${grade}_${Math.random().toString(36).substr(2, 5)}`,
                 title: lessonTitle,
                 text: lessonText,
                 audioUrl: audioUrl,
+                videoUrl: videoUrl,
                 quizzes: quizzes,
+                activities: activities,
                 isPremium: isPremium
             };
 

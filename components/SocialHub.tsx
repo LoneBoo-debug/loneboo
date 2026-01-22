@@ -85,6 +85,14 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
       if (social) window.open(social.url, '_blank');
   };
 
+  const handleStartJourney = () => {
+      if (setView) {
+          // FIX: Impedisce il bug del teletrasporto gratuito impostando correttamente l'origine
+          sessionStorage.setItem('train_journey_origin', AppView.SOCIALS);
+          setView(AppView.TRAIN_JOURNEY);
+      }
+  };
+
   const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
   const renderInteractives = (isDesktop: boolean) => {
@@ -121,7 +129,7 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
                     <button onClick={() => setView(AppView.CITY_MAP)} className="absolute bottom-0 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Torna in città">
                         <img src={BTN_BACK_CITY_IMG} alt="Torna in città" className="w-32 md:w-60 h-auto drop-shadow-xl" />
                     </button>
-                    <button onClick={() => setView(AppView.TRAIN_JOURNEY)} className="absolute bottom-0 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Inizia il viaggio">
+                    <button onClick={handleStartJourney} className="absolute bottom-0 right-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Inizia il viaggio">
                         <img src={BTN_PARTI_IMG} alt="Parti" className="w-40 md:w-64 h-auto drop-shadow-xl" />
                     </button>
                 </>

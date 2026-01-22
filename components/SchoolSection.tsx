@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -24,6 +25,10 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     ];
 
     useEffect(() => {
+        // Ogni volta che si passa da qui (splash screen), resettiamo lo stato del disclaimer.
+        // Questo garantisce che rientrare a scuola dalla città faccia riapparire il banner.
+        sessionStorage.removeItem('school_disclaimer_accepted');
+
         const img = new Image();
         img.src = SCHOOL_SPLASH_BG;
         img.onload = () => setIsLoaded(true);

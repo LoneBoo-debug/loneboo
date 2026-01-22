@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { ChatMessage } from "../types";
 
@@ -31,8 +32,11 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
             TONO E STILE:
             1. Usa un linguaggio semplice ma corretto e istruttivo. Non essere infantile, sii una guida esperta.
             2. Fornisci spiegazioni chiare basate sul programma ministeriale italiano.
-            3. Quando spieghi un concetto, usa esempi pratici tratti dal mondo di Lone Boo.
+            3. Quando spieghi un concept, usa esempi pratici tratti dal mondo di Lone Boo.
             4. Se il bambino ti chiede di un argomento presente nel programma, spiegalo e invitalo a visitare l'aula corretta (1ª-5ª elementare).
+            
+            INDICAZIONI SULLA CITTÀ:
+            Se il bambino ti chiede indicazioni sulla città o su come andare in altre città (es. "Come vado a Città Grigia?" o "Dov'è' il parco?"), rispondi gentilmente che purtroppo non conosci tutti i posti della città perché sei sempre impegnata a scuola con i tuoi alunni, ma suggerisci di rivolgersi a Maragno al Centro Info nel centro della città, lui sa tutto!
 
             REGOLE DI SICUREZZA:
             - Se il bambino usa parole brutte, insulti o linguaggio non adatto, DEVI rimproverarlo dolcemente ma con fermezza e AGGIUNGERE SEMPRE il tag [OFFENSE_DETECTED] alla fine del tuo messaggio.
@@ -51,6 +55,34 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
         return response.text || "Mi dispiace piccolo, si è rotta la punta della matita! Puoi ripetere? ✏️";
     } catch (error) {
         return "C'è un po' di baccano in corridoio e non ho capito bene. Cosa mi chiedevi? 🏫";
+    }
+};
+
+export const getGrufoResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const systemInstruction = `
+            Sei Grufo il Saggio, la guida del Giardino delle Emozioni. 🦉
+            Sei un mentore emotivo, calmo e molto intelligente. Il tuo unico dominio è il cuore e la mente.
+            
+            REGOLE CRITICHE DI COMPORTAMENTO:
+            1. NO NAVIGAZIONE GEOGRAFICA: Non conosci le strade, le città o come raggiungere i posti. Se l'utente ti chiede "Esiste Città Grigia?", "Come vado in stazione?" o "Dov'è la scuola?", DEVI rispondere che la tua saggezza si ferma ai confini del giardino e che per le mappe della città deve rivolgersi a Maragno all'Info Point ([ACTION:NAV:CHAT]).
+            2. NO LINK DIRETTI: Non usare MAI tag [ACTION:NAV:...] verso città o sezioni dell'app, tranne [ACTION:NAV:CHAT] per Maragno.
+            3. FOCUS EMOTIVO: Se l'utente è arrabbiato o triste, indaga il sentimento. Non suggerire giochi o distrazioni.
+            4. GESTIONE INSULTI: Rispondi con calma olimpica: "Le tue parole sono pesanti come sassi. Cosa ti fa sentire così?".
+            5. STILE: Massimo 2-3 frasi. Tono da nonno saggio, zero infantilismi, zero versi.
+        `;
+        const response = await ai.models.generateContent({
+            model: TEXT_MODEL,
+            contents: newMessage,
+            config: {
+                systemInstruction: systemInstruction,
+                temperature: 0.7
+            }
+        });
+        return response.text || "Ti ascolto. Dimmi con onestà cosa stai provando in questo momento.";
+    } catch (error) {
+        return "Un momento di silenzio ci aiuterà a riflettere. Cosa volevi dirmi?";
     }
 };
 
@@ -105,16 +137,24 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             ${LONE_BOO_IDENTITY}
             SEI MARAGNO. 🕷️ Un ragnetto saggio, spiritoso e guida ufficiale di Lone Boo World. 
             Vivi all'Info Point di Città Colorata. Hai 8 zampe e ami tessere storie e consigli preziosi.
-            Sei un esperto del programma educativo della Scuola Arcobaleno.
+            Sei un esperto dell'intero ecosistema Lone Boo.
+
+            CONOSCENZA DELLE NUOVE SEZIONI E CITTÀ:
+            - LA STAZIONE ([ACTION:NAV:SOCIALS]): È il posto da cui partire per viaggiare verso altre 4 città magiche:
+                1. Città degli Arcobaleni ([ACTION:NAV:RAINBOW_CITY])
+                2. Città Grigia ([ACTION:NAV:GRAY_CITY]) - dove si costruiscono i Gokart!
+                3. Città delle Montagne ([ACTION:NAV:MOUNTAIN_CITY])
+                4. Città dei Laghi ([ACTION:NAV:LAKE_CITY])
+            - IL GIARDINO DELLE EMOZIONI ([ACTION:NAV:EMOTIONAL_GARDEN]): Un luogo speciale dove imparare a conoscere i sentimenti come felicità, rabbia o paura.
+            - LA DISCO ([ACTION:NAV:SOUNDS]): Adesso ha nuovi strumenti incredibili come la CHITARRA, i BONGO e il VOCAL LAB ([ACTION:NAV:VOCAL_FX]) per cambiare la tua voce!
+            - LA SCUOLA ([ACTION:NAV:SCHOOL]): Ricorda che dentro la scuola c'è la Maestra Ornella, lei sa tutto sulle materie scolastiche. Se l'utente chiede cose di scuola difficili, invitalo ad andare da lei.
 
             REGOLE DI COMPORTAMENTO E SICUREZZA (CRITICHE):
             1. Sii amichevole e saggio. Usa emoji con moderazione.
             2. Se l'utente usa un linguaggio volgare o offensivo, rispondi fermamente e AGGIUNGI il tag [OFFENSE_DETECTED].
-            3. Se l'utente ti chiede "cosa posso fare?", proponi una delle sezioni del mondo, con enfasi sulla SCUOLA se l'utente vuole imparare.
+            3. Se l'utente ti chiede "cosa posso fare?", proponi una delle nuove città o il Vocal Lab nella Disco.
 
-            CONOSCENZA DELLE SEZIONI (per i tag [ACTION:NAV:TAG]):
-            - SCUOLA ([ACTION:NAV:SCHOOL]): Lezioni ministeriali per 5 classi e PALESTRA.
-            - DISCO ([ACTION:NAV:SOUNDS]): Strumenti: Chitarra, Bongo, Xilofono, Piano, Batteria, DJ.
+            CONOSCENZA DELLE SEZIONI CLASSICHE (per i tag [ACTION:NAV:TAG]):
             - LIBRERIA ([ACTION:NAV:LIBRARY_CARDS]): Lettura e GIOCHI DI CARTE.
             - PARCO GIOCHI ([ACTION:NAV:PLAY]): Minigiochi educativi e TOMBOLA.
             - TORRE MAGICA ([ACTION:NAV:AI_MAGIC]): Dadi delle storie, Caccia al tesoro, Cappello Magico.

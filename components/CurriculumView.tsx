@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
-import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info } from 'lucide-react';
+import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square } from 'lucide-react';
 import TeacherChat from './TeacherChat';
 
 // --- SFONDI PER GLI INDICI (LISTA CAPITOLI) ---
@@ -28,7 +28,11 @@ const PREMIUM_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/l
 const BTN_PREMIUM_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/returncloded44fx332.webp';
 const BTN_PREMIUM_INFO_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/infoblocked44fx33.webp';
 
-const VOCALI_VIDEO_URL = 'https://www.youtube.com/embed/W12CrAsUK-w?autoplay=1&rel=0&modestbranding=1';
+// --- ASSET MODALI CONTENUTI IN ARRIVO (SENZA TESTO) ---
+const IMG_VIDEO_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/videorijfh77arrivo09oi8.webp';
+const IMG_GAME_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocoinarrivof56tg7y.webp';
+const IMG_ACTIVITY_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/attivitiesinarrivo872xx.webp';
+const IMG_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercizioinarrivopop998u.webp';
 
 interface Point { x: number; y: number; }
 
@@ -55,7 +59,7 @@ const MATH_GRADE_HOTSPOTS = {
 const HISTORY_GRADE_HOTSPOTS = {
   "CLOSE_BOOK": [{"x": 62.42, "y": 11.54}, {"x": 62.69, "y": 17.39}, {"x": 71.49, "y": 17.84}, {"x": 71.23, "y": 11.54}],
   "LISTEN_AUDIO": [{"x": 73.89, "y": 11.39}, {"x": 74.7, "y": 17.84}, {"x": 84.03, "y": 17.84}, {"x": 83.77, "y": 11.24}],
-  "ASK_TEACHER": [{"x": 86.43, "y": 11.09}, {"x": 86.97, "y": 17.39}, {"x": 97.37, "y": 17.84}, {"x": 96.57, "y": 10.94}],
+  "ASK_TEACHER": [{"x": 86.43, "y": 11.09}, {"x": 86.97, "y": 17.39}, {"x": 97.37, "y": 17.39}, {"x": 96.57, "y": 10.94}],
   "EXERCISES": [{"x": 4.27, "y": 88.76}, {"x": 4.27, "y": 93.71}, {"x": 25.88, "y": 93.86}, {"x": 25.08, "y": 88.61}],
   "VISUAL_ACTIVITY": [{"x": 28.54, "y": 88.46}, {"x": 28.81, "y": 93.71}, {"x": 49.62, "y": 94.16}, {"x": 48.55, "y": 88.46}],
   "GAMES": [{"x": 52.29, "y": 88.61}, {"x": 52.82, "y": 93.86}, {"x": 73.63, "y": 94.01}, {"x": 73.09, "y": 88.91}],
@@ -97,7 +101,13 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
-  const [isVisualExerciseOpen, setIsVisualExerciseOpen] = useState(false);
+  
+  // Stati per le attività visive
+  const [isVisualActivityOpen, setIsVisualActivityOpen] = useState(false);
+  const [currentActivityIdx, setCurrentActivityIdx] = useState(0);
+  const [activityAnswer, setActivityAnswer] = useState<number | null>(null);
+  const [showActivityFeedback, setShowActivityFeedback] = useState(false);
+
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showTeacherChat, setShowTeacherChat] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
@@ -107,20 +117,23 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const textContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Stati per lo scorrimento dell'indice (lista capitoli)
+  const indexScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollDownIndex, setCanScrollDownIndex] = useState(false);
 
-  const [comingSoonModal, setComingSoonModal] = useState<{ active: boolean, type: 'GAME' | 'VIDEO' }>({ active: false, type: 'GAME' });
+  // Stati per il Mini Player Audio
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+
+  const [comingSoonModal, setComingSoonModal] = useState<{ active: boolean, type: 'GAME' | 'VIDEO' | 'ACTIVITY' | 'EXERCISE' }>({ active: false, type: 'GAME' });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Controllo stato abbonamento
     const premium = localStorage.getItem('is_premium_active') === 'true';
     setIsPremiumActive(premium);
   }, []);
-
-  const isMathSubject = selectedSubject === SchoolSubject.MATEMATICA;
-  const isHistorySubject = selectedSubject === SchoolSubject.STORIA;
-  const isGeographySubject = selectedSubject === SchoolSubject.GEOGRAFIA;
-  const isScienceSubject = selectedSubject === SchoolSubject.SCIENZE;
 
   const getSpecialBg = (isLessonView: boolean) => {
     switch (selectedSubject) {
@@ -133,51 +146,131 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     }
   };
 
+  const formatAudioTime = (seconds: number) => {
+    if (isNaN(seconds) || seconds === null) return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
   const getClipPath = (pts: Point[]) => `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
-  // Logica per calcolare le pagine quando la lezione cambia
   useEffect(() => {
-    if (selectedLesson && !selectedLesson.isPremium && textContainerRef.current) {
+    if (selectedLesson && !selectedLesson.isPremium) {
         const checkPages = () => {
             const container = textContainerRef.current;
             if (container) {
-                const total = Math.ceil(container.scrollHeight / container.clientHeight);
+                const tolerance = 25;
+                const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
                 setTotalPages(total > 0 ? total : 1);
                 setCurrentPage(1);
                 container.scrollTop = 0;
             }
         };
-        // Piccolo ritardo per assicurarsi che il testo sia renderizzato
-        setTimeout(checkPages, 50);
+
+        const timers = [
+            setTimeout(checkPages, 100),
+            setTimeout(checkPages, 500),
+            setTimeout(checkPages, 1000)
+        ];
+        
+        window.addEventListener('resize', checkPages);
+        return () => {
+            timers.forEach(clearTimeout);
+            window.removeEventListener('resize', checkPages);
+        };
     }
   }, [selectedLesson]);
 
-  const handleNextTextPage = () => {
-      if (textContainerRef.current && currentPage < totalPages) {
-          textContainerRef.current.scrollTop += textContainerRef.current.clientHeight;
-          setCurrentPage(prev => prev + 1);
-      }
+  const handleManualScroll = () => {
+    const container = textContainerRef.current;
+    if (container) {
+        const usableHeight = container.clientHeight || 1;
+        const isAtBottom = container.scrollHeight - container.scrollTop <= usableHeight + 10;
+        const page = isAtBottom ? totalPages : Math.floor(container.scrollTop / usableHeight) + 1;
+        
+        if (page !== currentPage && page <= totalPages && page > 0) {
+            setCurrentPage(page);
+        }
+    }
   };
 
-  const handlePrevTextPage = () => {
-      if (textContainerRef.current && currentPage > 1) {
-          textContainerRef.current.scrollTop -= textContainerRef.current.clientHeight;
-          setCurrentPage(prev => prev - 1);
-      }
+  const checkIndexScrollStatus = () => {
+    if (indexScrollRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = indexScrollRef.current;
+        setCanScrollDownIndex(scrollHeight > clientHeight + scrollTop + 20);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedLesson) {
+        setTimeout(checkIndexScrollStatus, 100);
+        window.addEventListener('resize', checkIndexScrollStatus);
+        return () => window.removeEventListener('resize', checkIndexScrollStatus);
+    }
+  }, [selectedLesson, selectedSubject]);
+
+  // --- LOGICA AUDIO SINCRONIZZATA ---
+  const handleAudioTimeUpdate = () => {
+    if (audioRef.current) {
+        setAudioCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleAudioLoadedMetadata = () => {
+    if (audioRef.current) {
+        setAudioDuration(audioRef.current.duration);
+    }
   };
 
   const toggleLessonAudio = (url: string) => {
     if (!url || selectedLesson?.isPremium) return;
+    
     if (audioRef.current && audioRef.current.src === url) {
-        if (isAudioPlaying) { audioRef.current.pause(); setIsAudioPlaying(false); }
-        else { audioRef.current.play(); setIsAudioPlaying(true); }
+        if (isAudioPlaying) { 
+            audioRef.current.pause(); 
+            setIsAudioPlaying(false); 
+        } else { 
+            audioRef.current.play(); 
+            setIsAudioPlaying(true); 
+            setShowAudioPlayer(true);
+        }
     } else {
-        if (audioRef.current) audioRef.current.pause();
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.removeEventListener('timeupdate', handleAudioTimeUpdate);
+            audioRef.current.removeEventListener('loadedmetadata', handleAudioLoadedMetadata);
+        }
+        
         const audio = new Audio(url);
-        audio.onended = () => setIsAudioPlaying(false);
+        audio.addEventListener('timeupdate', handleAudioTimeUpdate);
+        audio.addEventListener('loadedmetadata', handleAudioLoadedMetadata);
+        audio.onended = () => {
+            setIsAudioPlaying(false);
+            setShowAudioPlayer(false);
+        };
+        
         audio.play();
         audioRef.current = audio;
         setIsAudioPlaying(true);
+        setShowAudioPlayer(true);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsAudioPlaying(false);
+        setShowAudioPlayer(false);
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (audioRef.current) {
+        audioRef.current.currentTime = time;
+        setAudioCurrentTime(time);
     }
   };
 
@@ -201,14 +294,37 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     }
   };
 
+  // --- LOGICA ATTIVITÀ ---
+  const handleActivityChoice = (idx: number) => {
+    if (activityAnswer !== null) return;
+    setActivityAnswer(idx);
+    setShowActivityFeedback(true);
+    const activity = selectedLesson?.activities[currentActivityIdx];
+    if (idx !== activity?.correctIndex) {
+        setTimeout(() => { setActivityAnswer(null); setShowActivityFeedback(false); }, 2000);
+    }
+  };
+
+  const nextActivity = () => {
+    if (selectedLesson && currentActivityIdx < selectedLesson.activities.length - 1) {
+        setCurrentActivityIdx(prev => prev + 1);
+        setActivityAnswer(null);
+        setShowActivityFeedback(false);
+    } else {
+        setIsVisualActivityOpen(false);
+    }
+  };
+
   const handleOpenLesson = (lesson: SchoolLesson) => {
-    // Reset di tutti gli stati dei modali prima di aprire una nuova lezione
     setIsExerciseOpen(false);
-    setIsVisualExerciseOpen(false);
+    setIsVisualActivityOpen(false);
     setIsVideoOpen(false);
     setCurrentQuizIdx(0);
+    setCurrentActivityIdx(0);
     setQuizAnswer(null);
+    setActivityAnswer(null);
     setShowFeedback(false);
+    setShowActivityFeedback(false);
     setCurrentPage(1);
     setSelectedLesson(lesson);
   };
@@ -216,21 +332,29 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const handleCloseLesson = () => {
     setSelectedLesson(null);
     setCurrentQuizIdx(0);
+    setCurrentActivityIdx(0);
     setIsExerciseOpen(false);
-    setIsVisualExerciseOpen(false);
+    setIsVisualActivityOpen(false);
     setIsVideoOpen(false);
-    if (audioRef.current) audioRef.current.pause();
-    setIsAudioPlaying(false);
+    stopAudio();
   };
 
   const handleOpenPremiumInfo = () => {
       if (setView) setView(AppView.PREMIUM_INFO);
   };
 
-  const activeHotspots = isMathSubject ? MATH_GRADE_HOTSPOTS : 
-                        isHistorySubject ? HISTORY_GRADE_HOTSPOTS : 
-                        isGeographySubject ? GEOGRAPHY_GRADE_HOTSPOTS : 
-                        isScienceSubject ? SCIENCE_GRADE_HOTSPOTS : ITALIAN_1_HOTSPOTS;
+  const handleVideoClick = () => {
+      if (selectedLesson?.videoUrl && selectedLesson.videoUrl !== "") {
+          setIsVideoOpen(true);
+      } else {
+          setComingSoonModal({ active: true, type: 'VIDEO' });
+      }
+  };
+
+  const activeHotspots = selectedSubject === SchoolSubject.MATEMATICA ? MATH_GRADE_HOTSPOTS : 
+                        selectedSubject === SchoolSubject.STORIA ? HISTORY_GRADE_HOTSPOTS : 
+                        selectedSubject === SchoolSubject.GEOGRAFIA ? GEOGRAPHY_GRADE_HOTSPOTS : 
+                        selectedSubject === SchoolSubject.SCIENZE ? SCIENCE_GRADE_HOTSPOTS : ITALIAN_1_HOTSPOTS;
 
   if (!selectedLesson) {
     const chapters = data.subjects[selectedSubject] || [];
@@ -242,31 +366,45 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             className="absolute z-50 cursor-pointer"
             style={{ clipPath: getClipPath([{"x": 60.5, "y": 10.64}, {"x": 60.5, "y": 17.39}, {"x": 72.49, "y": 17.09}, {"x": 71.96, "y": 10.34}]), inset: 0 }}
         />
-        <div className="flex-1 flex flex-col items-center z-10 pt-48 md:pt-60">
-            <div className="w-full max-w-4xl space-y-1 px-12 md:px-24">
-                {chapters.map(ch => {
-                    const isChapterPremium = ch.lessons[0]?.isPremium;
-                    const isLocked = isChapterPremium && !isPremiumActive;
-                    const iconUrl = isLocked ? PREMIUM_LOCK_IMG : PREMIUM_FREE_IMG;
-                    
-                    return (
-                        <button 
-                            key={ch.id} 
-                            onClick={() => ch.lessons.length > 0 && handleOpenLesson(ch.lessons[0])} 
-                            className="w-full text-left font-luckiest text-blue-700 text-xl md:text-4xl uppercase tracking-wide hover:text-blue-500 transition-colors py-1 flex justify-between items-center group active:scale-98"
-                        >
-                            <div className="flex items-center gap-3 md:gap-4">
-                                <img 
-                                    src={iconUrl} 
-                                    alt={isLocked ? "Bloccato" : "Libero"} 
-                                    className="w-8 h-8 md:w-11 md:h-11 object-contain drop-shadow-md" 
-                                />
-                                <span className="leading-none">{ch.title}</span>
-                            </div>
-                            <ArrowRight size={28} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
-                        </button>
-                    );
-                })}
+        <div className="flex-1 flex flex-col items-center z-10 pt-48 md:pt-60 overflow-hidden">
+            <div className="w-full max-w-4xl px-12 md:px-24 flex flex-col items-center">
+                <div 
+                    ref={indexScrollRef}
+                    onScroll={checkIndexScrollStatus}
+                    className="w-full overflow-y-auto no-scrollbar max-h-[55vh] md:max-h-[62vh]"
+                >
+                    <div className="space-y-1">
+                        {chapters.map(ch => {
+                            const isChapterPremium = ch.lessons[0]?.isPremium;
+                            const isLocked = isChapterPremium && !isPremiumActive;
+                            const iconUrl = isLocked ? PREMIUM_LOCK_IMG : PREMIUM_FREE_IMG;
+                            
+                            return (
+                                <button 
+                                    key={ch.id} 
+                                    onClick={() => ch.lessons.length > 0 && handleOpenLesson(ch.lessons[0])} 
+                                    className="w-full text-left font-luckiest text-blue-700 text-lg md:text-3xl uppercase tracking-wide hover:text-blue-500 transition-colors py-1 flex justify-between items-center group active:scale-98"
+                                >
+                                    <div className="flex items-center gap-3 md:gap-4">
+                                        <img 
+                                            src={iconUrl} 
+                                            alt={isLocked ? "Bloccato" : "Libero"} 
+                                            className="w-8 h-8 md:w-11 md:h-11 object-contain drop-shadow-md" 
+                                        />
+                                        <span className="leading-none">{ch.title}</span>
+                                    </div>
+                                    <ArrowRight size={28} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className={`mt-3 transition-all duration-300 ${canScrollDownIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}>
+                    <div className="bg-blue-600/80 p-2 rounded-full border-4 border-white shadow-lg animate-bounce">
+                        <div className="text-white font-black text-xl">🔽</div>
+                    </div>
+                </div>
             </div>
         </div>
       </div>
@@ -274,6 +412,9 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   }
 
   const currentQuiz = selectedLesson.quizzes[currentQuizIdx];
+  const currentActivity = selectedLesson.activities[currentActivityIdx];
+  const videoId = selectedLesson.videoUrl ? (selectedLesson.videoUrl.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)?.[2]) : null;
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1` : "";
 
   return (
       <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden">
@@ -287,23 +428,58 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                 <>
                     <button onClick={() => toggleLessonAudio(selectedLesson.audioUrl)} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.LISTEN_AUDIO), inset: 0 }} />
                     <button onClick={() => setShowTeacherChat(true)} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.ASK_TEACHER), inset: 0 }} />
-                    <button onClick={() => selectedLesson.quizzes.length > 0 && setIsExerciseOpen(true)} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.EXERCISES), inset: 0 }} />
-                    <button onClick={() => setIsVisualExerciseOpen(true)} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.VISUAL_ACTIVITY), inset: 0 }} />
+                    <button onClick={() => selectedLesson.quizzes.length > 0 ? setIsExerciseOpen(true) : setComingSoonModal({ active: true, type: 'EXERCISE' })} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.EXERCISES), inset: 0 }} />
+                    <button onClick={() => selectedLesson.activities.length > 0 ? setIsVisualActivityOpen(true) : setComingSoonModal({ active: true, type: 'ACTIVITY' })} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.VISUAL_ACTIVITY), inset: 0 }} />
                     <button onClick={() => setComingSoonModal({ active: true, type: 'GAME' })} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.GAMES), inset: 0 }} />
-                    <button onClick={() => setIsVideoOpen(true)} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.YOUTUBE), inset: 0 }} />
+                    <button onClick={handleVideoClick} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.YOUTUBE), inset: 0 }} />
                 </>
               )}
           </div>
 
+          {/* MINI PLAYER AUDIO FLOATING */}
+          {showAudioPlayer && !selectedLesson.isPremium && (
+              <div className="absolute top-[18%] right-[5%] z-50 animate-in slide-in-from-top-4 duration-300">
+                  <div className="bg-yellow-400 border-4 border-black p-3 rounded-[2rem] shadow-2xl flex items-center gap-3 w-[260px] md:w-[320px]">
+                      <div className="flex gap-2">
+                        <button 
+                            onClick={() => toggleLessonAudio(selectedLesson.audioUrl)}
+                            className="bg-white p-2 rounded-full border-2 border-black active:scale-90 transition-transform"
+                        >
+                            {isAudioPlaying ? <Pause size={20} fill="black" /> : <Play size={20} fill="black" />}
+                        </button>
+                        <button 
+                            onClick={stopAudio}
+                            className="bg-red-500 p-2 rounded-full border-2 border-black active:scale-90 transition-transform"
+                        >
+                            <Square size={20} fill="white" />
+                        </button>
+                      </div>
+
+                      <div className="flex-1 flex flex-col gap-1">
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max={audioDuration || 100} 
+                            value={audioCurrentTime} 
+                            onChange={handleSeek}
+                            className="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                          />
+                          <div className="flex justify-between text-[10px] font-black text-black/60 uppercase">
+                              <span>{formatAudioTime(audioCurrentTime)}</span>
+                              <span>{formatAudioTime(audioDuration)}</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          )}
+
           {/* CONTENUTO LEZIONE O BLOCCO ABBONAMENTO */}
-          <div className="flex-1 flex flex-col items-center z-10 pt-20 md:pt-28 px-4 overflow-hidden">
-              <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-center">
+          <div className="flex-1 flex flex-col items-center z-10 pt-44 md:pt-56 px-6 overflow-hidden">
+              <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-start overflow-hidden">
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
-                      /* VISTA BLOCCO PREMIUM - CENTRATA */
                       <div className="flex-1 w-full flex flex-col items-center justify-center">
                           <div className="bg-white/95 backdrop-blur-md p-6 md:p-10 rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm">
-                              {/* HEADER IMMAGINE FISSA - RIDOTTA */}
                               <div className="w-full mb-6 flex justify-center">
                                   <img 
                                     src={PREMIUM_HEADER_IMG} 
@@ -318,70 +494,50 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                   <span className="text-xs text-slate-400 mt-2 block">Chiedi a mamma o papà!</span>
                               </p>
 
-                              {/* TASTI GRAFICI - RIDOTTI */}
                               <div className="flex gap-4 w-full justify-center">
-                                  <button 
-                                    onClick={handleCloseLesson}
-                                    className="hover:scale-110 active:scale-95 transition-all outline-none"
-                                  >
+                                  <button onClick={handleCloseLesson} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                       <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-24 md:w-32 h-auto drop-shadow-lg" />
                                   </button>
-                                  <button 
-                                    onClick={handleOpenPremiumInfo}
-                                    className="hover:scale-110 active:scale-95 transition-all outline-none"
-                                  >
+                                  <button onClick={handleOpenPremiumInfo} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                       <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-24 md:w-32 h-auto drop-shadow-lg" />
                                   </button>
                               </div>
                           </div>
                       </div>
                   ) : (
-                      /* VISTA LEZIONE NORMALE (O PREMIUM SBLOCCATA) */
                       <>
+                        <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase mb-4 md:mb-6 leading-tight shrink-0 drop-shadow-sm mt-4 md:mt-8">
+                            {selectedLesson.title}
+                        </h3>
+
                         <div 
                             ref={textContainerRef}
-                            className="w-full h-[54vh] md:h-[56vh] overflow-hidden scroll-smooth flex flex-col pt-2 md:pt-4"
+                            onScroll={handleManualScroll}
+                            className="w-full overflow-y-auto no-scrollbar pointer-events-auto block"
+                            style={{
+                                height: '310px', 
+                                scrollSnapType: 'y proximity'
+                            }}
                         >
-                            {/* TITOLO LEZIONE CENTRATO */}
-                            <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-4xl uppercase mt-2 md:mt-4 mb-4 md:mb-6 shrink-0 leading-tight">
-                                {selectedLesson.title}
-                            </h3>
-
-                            <p className="leading-relaxed whitespace-pre-wrap font-sans font-black text-slate-800 text-base md:text-3xl text-justify w-full mt-2 md:mt-4">
+                            <div className="font-sans font-black text-slate-800 text-base md:text-4xl w-full leading-relaxed whitespace-pre-wrap">
                                 {selectedLesson.text}
-                            </p>
+                            </div>
                         </div>
 
-                        {/* CONTRELLI PAGINAZIONE (FRECCE SFOGLIABILI) - POSIZIONATE PIU' IN BASSO */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-between w-full mt-2 md:mt-4 px-2">
-                                <button 
-                                    onClick={handlePrevTextPage}
-                                    disabled={currentPage === 1}
-                                    className={`p-2 rounded-full border-4 border-black transition-all ${currentPage === 1 ? 'bg-gray-300 opacity-20 grayscale' : 'bg-yellow-400 hover:scale-110 active:scale-95 shadow-md'}`}
-                                >
-                                    <ArrowLeft size={24} strokeWidth={4} className="text-black" />
-                                </button>
-
-                                <div className="bg-white/60 backdrop-blur-sm px-4 py-1 rounded-full border-2 border-slate-200">
-                                    <span className="font-black text-slate-500 text-xs md:text-lg uppercase">Pagina {currentPage} di {totalPages}</span>
-                                </div>
-
-                                <button 
-                                    onClick={handleNextTextPage}
-                                    disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-full border-4 border-black transition-all ${currentPage === totalPages ? 'bg-gray-300 opacity-20 grayscale' : 'bg-yellow-400 hover:scale-110 active:scale-95 shadow-md'}`}
-                                >
-                                    <ArrowRight size={24} strokeWidth={4} className="text-black" />
-                                </button>
+                        {/* CONTROLLO PAGINAZIONE - CENTRATO E OTTIMIZZATO NELLO SPAZIO */}
+                        <div className="flex items-center justify-center w-full mt-3 md:mt-5 px-2 shrink-0 mb-8 md:mb-12">
+                            <div className="bg-white/70 backdrop-blur-md px-6 md:px-8 py-2 md:py-3 rounded-full border-4 border-slate-200 shadow-sm transition-all">
+                                <span className="font-black text-slate-600 text-sm md:text-2xl uppercase tracking-tighter">
+                                    Pagina {currentPage} di {totalPages}
+                                </span>
                             </div>
-                        )}
+                        </div>
                       </>
                   )}
               </div>
           </div>
 
-          {/* MODALE ESERCIZI (SEQUENZIALE) */}
+          {/* MODALE ESERCIZI (TRADIZIONALI) */}
           {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white w-full max-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden relative flex flex-col">
@@ -414,21 +570,79 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* ALTRI MODALI (In Arrivo, Video, etc) */}
+          {/* MODALE ATTIVITÀ VISIVA (CON IMMAGINI) */}
+          {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && (
+              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <div className="bg-white w-full max-lg rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[85vh] md:h-auto">
+                      <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"><X size={24} strokeWidth={4} /></button>
+                      
+                      <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
+                          <img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-16 w-auto object-contain" />
+                      </div>
+
+                      <div className="p-4 md:p-6 overflow-y-auto no-scrollbar flex-1 flex flex-col gap-4">
+                          <div className="text-center">
+                              <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest">Attività {currentActivityIdx + 1} di {selectedLesson.activities.length}</span>
+                          </div>
+
+                          {/* IMMAGINE ATTIVITÀ (COL U / Y) */}
+                          <div className="w-full aspect-video bg-slate-100 rounded-3xl border-4 border-orange-200 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
+                               <img src={currentActivity.image} className="w-full h-full object-contain" alt="Immagine Attività" />
+                          </div>
+
+                          {/* DOMANDA SOTTO IMMAGINE (COL V / Z) */}
+                          <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">{currentActivity.question}</p>
+
+                          {/* OPZIONI (COL W / AA) */}
+                          <div className="grid grid-cols-1 gap-2.5">
+                              {currentActivity.options.map((opt, idx) => (
+                                  <button 
+                                    key={idx} 
+                                    onClick={() => handleActivityChoice(idx)} 
+                                    className={`p-3 rounded-[1.5rem] font-black text-lg md:text-xl border-4 transition-all text-left shadow-lg flex items-center gap-4 ${activityAnswer === null ? 'bg-slate-50 border-slate-200 text-orange-600 hover:border-orange-500 hover:bg-white' : ''} ${activityAnswer === idx && idx === currentActivity.correctIndex ? 'bg-green-500 border-green-700 text-white' : ''} ${activityAnswer === idx && idx !== currentActivity.correctIndex ? 'bg-red-500 border-red-300 text-white animate-shake' : (activityAnswer !== null ? 'opacity-50 border-slate-100 text-orange-600' : '')}`}
+                                  >
+                                      <span className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base shrink-0 ${activityAnswer === idx ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-600'}`}>{String.fromCharCode(65 + idx)}</span>
+                                      {opt}
+                                  </button>
+                              ))}
+                          </div>
+
+                          {/* FEEDBACK ATTIVITÀ */}
+                          {showActivityFeedback && (
+                              <div className="mt-2 p-3 rounded-[2rem] bg-orange-50 border-4 border-orange-200 text-center">
+                                  {activityAnswer === currentActivity.correctIndex ? (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <p className="text-green-600 font-black text-base md:text-lg uppercase tracking-tighter dream-glow leading-tight">{currentActivity.feedback}</p>
+                                        <button onClick={nextActivity} className="bg-green-500 text-white px-8 py-3 rounded-full font-black flex items-center gap-2 shadow-md hover:scale-105 transition-transform uppercase text-sm">
+                                            {currentActivityIdx < selectedLesson.activities.length - 1 ? 'Attività Successiva' : 'Fine Attività'} <ChevronRight size={18} />
+                                        </button>
+                                    </div>
+                                  ) : <p className="text-red-600 font-black text-base md:text-lg uppercase tracking-tighter">Ops! Riprova! 💪</p>}
+                              </div>
+                          )}
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* ALTRI MODALI (CONTENUTI IN ARRIVO) */}
           {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-                  <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-8 w-full max-sm text-center shadow-2xl relative">
-                      <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all"><X size={20} strokeWidth={4} /></button>
-                      <div className="w-32 h-32 md:w-40 md:h-40 bg-yellow-100 rounded-full flex items-center justify-center mb-6 border-4 border-dashed border-yellow-400 animate-pulse">
-                          {comingSoonModal.type === 'VIDEO' ? <PlayCircle size={64} className="text-yellow-600" /> : <Star size={64} className="text-yellow-600" />}
+                  <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-0 w-full max-w-[240px] md:max-w-[320px] max-h-[75vh] text-center shadow-2xl relative overflow-hidden animate-in zoom-in duration-300 flex items-center justify-center">
+                      <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-black hover:scale-110 active:scale-95 transition-all z-20 shadow-lg"><X size={18} strokeWidth={4} /></button>
+                      
+                      <div className="w-full h-full flex flex-col items-center justify-center">
+                          <img 
+                              src={
+                                  comingSoonModal.type === 'VIDEO' ? IMG_VIDEO_COMING_SOON : 
+                                  comingSoonModal.type === 'ACTIVITY' ? IMG_ACTIVITY_COMING_SOON :
+                                  comingSoonModal.type === 'EXERCISE' ? IMG_EXERCISE_COMING_SOON :
+                                  IMG_GAME_COMING_SOON
+                              } 
+                              alt="In arrivo" 
+                              className="w-full h-auto object-contain block" 
+                          />
                       </div>
-                      <h3 className="text-3xl font-black text-slate-800 uppercase tracking-tighter mb-2 leading-none">
-                          {comingSoonModal.type === 'VIDEO' ? 'VIDEO IN ARRIVO!' : 'GIOCO IN ARRIVO!'}
-                      </h3>
-                      <p className="text-lg font-bold text-slate-500 leading-tight mb-8">
-                          Lone Boo sta preparando <br/> {comingSoonModal.type === 'VIDEO' ? 'un video magico' : 'una sfida divertente'} <br/> per questa lezione! 👻
-                      </p>
-                      <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="w-full bg-blue-500 text-white font-black py-4 rounded-full border-b-8 border-blue-700 active:translate-y-1 active:border-b-0 transition-all text-xl uppercase shadow-lg">OK, ASPETTO!</button>
                   </div>
               </div>
           )}
@@ -437,7 +651,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
                   <div className="relative w-full max-w-5xl bg-white rounded-[30px] md:rounded-[40px] border-[6px] md:border-[8px] border-red-600 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                       <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-[210]"><X size={24} /></button>
-                      <div className="flex-1 w-full aspect-video bg-black"><iframe src={VOCALI_VIDEO_URL} className="w-full h-full border-0" allowFullScreen allow="autoplay; fullscreen" /></div>
+                      <div className="flex-1 w-full aspect-video bg-black"><iframe src={embedUrl} className="w-full h-full border-0" allowFullScreen allow="autoplay; fullscreen" /></div>
                       <div className="p-4 text-center bg-white shrink-0 border-t border-gray-100 flex items-center justify-center gap-3"><PlayCircle className="text-red-600" /><h3 className="text-gray-800 text-lg md:text-xl font-black uppercase truncate px-2">Impariamo con Lone Boo!</h3></div>
                   </div>
               </div>
@@ -445,7 +659,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {showTeacherChat && (!selectedLesson.isPremium || isPremiumActive) && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
       </div>
-  );
+    );
+  }
 };
 
 export default CurriculumView;
