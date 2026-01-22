@@ -450,7 +450,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
                         )}
 
                         {/* Area Pulsanti (centrata nel campo bianco quando è turno AI) */}
-                        <div className={`flex-1 w-full flex items-center justify-center transition-all bg-gray-50 border-t border-blue-100 ${turn === 'AI' ? 'opacity-100' : 'opacity-0' pointer-events-none'}`}>
+                        <div className={`flex-1 w-full flex items-center justify-center transition-all bg-gray-50 border-t border-blue-100 ${turn === 'AI' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                             {gameState === 'STUCK' ? (
                                 <div className="w-full flex items-center justify-center gap-2 md:gap-6 h-full px-2">
                                     <button 
