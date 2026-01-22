@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square } from 'lucide-react';
@@ -479,7 +480,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
                       <div className="flex-1 w-full flex flex-col items-center justify-center">
-                          <div className="bg-white/95 backdrop-blur-md p-6 md:p-10 rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm">
+                          <div className="bg-white/95 backdrop-blur-md p-6 md:p-10 rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-sm">
                               <div className="w-full mb-6 flex justify-center">
                                   <img 
                                     src={PREMIUM_HEADER_IMG} 
@@ -659,8 +660,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
           {showTeacherChat && (!selectedLesson.isPremium || isPremiumActive) && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
       </div>
-    );
-  }
+  );
 };
 
 export default CurriculumView;
