@@ -49,6 +49,11 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const [showParentalGate, setShowParentalGate] = useState(false);
     const [showParentalArea, setShowParentalArea] = useState(false);
     
+    // Logica segreta per Audio Studio Pro
+    const [logoClicks, setLogoClicks] = useState(0);
+    // FIX: Changed NodeJS.Timeout to ReturnType<typeof setTimeout> for browser compatibility
+    const logoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const menuRef = useRef<HTMLDivElement>(null);
     const stationMenuRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +62,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const isBooGarden = currentView === AppView.BOO_GARDEN;
     const isJourney = currentView === AppView.TRAIN_JOURNEY;
 
-    // Check if in external cities
     const isExternalCity = [
         AppView.RAINBOW_CITY, 
         AppView.GRAY_CITY, 
@@ -110,9 +114,26 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const handleOpenInfo = () => { setIsMenuOpen(false); setView(AppView.INFO_MENU); };
     const handleCityClick = () => setView(AppView.CITY_MAP);
 
+    const handleLogoClick = () => {
+        // La logica segreta funziona solo nella Home Page
+        if (currentView !== AppView.HOME) return;
+
+        if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
+        
+        const nextClicks = logoClicks + 1;
+        if (nextClicks >= 5) {
+            setLogoClicks(0);
+            setView(AppView.TTS_STUDIO);
+        } else {
+            setLogoClicks(nextClicks);
+            logoTimerRef.current = setTimeout(() => {
+                setLogoClicks(0);
+            }, 3000); // Reset se non clicca più entro 3 secondi
+        }
+    };
+
     const handleTravelTo = (target: AppView, isHomeReturn: boolean) => {
         setIsStationMenuOpen(false);
-        // Salviamo da dove stiamo partendo per poter tornare indietro se l'utente chiude il modale biglietto
         sessionStorage.setItem('train_journey_origin', currentView);
         if (isHomeReturn) {
             sessionStorage.setItem('train_journey_return', 'true');
@@ -136,7 +157,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {/* Menu Plus - Nascosto durante il viaggio E nelle città esterne */}
                     {!isJourney && !isExternalCity && (
                         <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
@@ -177,8 +197,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     )}
 
-                    {/* Logo Intestazione Centrale - Interazione rimossa */}
-                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-none py-2 z-[110]">
+                    {/* Logo Intestazione Centrale - Cliccabile se in Home per accesso segreto */}
+                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
                         <img 
                             src={titleImage} 
                             alt="Lone Boo" 
@@ -186,7 +206,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         />
                     </div>
 
-                    {/* Gruppo Icone Destra - Nascosto durante il viaggio */}
                     {!isJourney && (
                         <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
                             {isExternalCity ? (
@@ -203,7 +222,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                         </div>
                                         <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isStationMenuOpen ? 'text-yellow-500' : 'text-red-500'}`}>STAZIONE</span>
 
-                                        {/* MENU STAZIONE TENDINA - Glassmorphism con contorno rosso */}
                                         {isStationMenuOpen && (
                                             <div className="absolute top-[120%] right-0 bg-white/30 backdrop-blur-xl border-4 border-red-500 rounded-[2rem] shadow-2xl p-3 flex flex-col gap-2 w-64 animate-in slide-in-from-top-4 duration-300 overflow-hidden">
                                                 <div className="flex items-center gap-3 px-3 py-2 border-b border-red-500/20 mb-1">

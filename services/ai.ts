@@ -24,6 +24,7 @@ PROGRAMMA SCOLASTICO LONE BOO WORLD (SCUOLA ARCOBALENO):
 
 export const getTeacherResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemInstruction = `
             Sei la Maestra Ornella della Scuola Arcobaleno in Lone Boo World. 👩‍🏫 
@@ -44,6 +45,7 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
             CONOSCENZA PROGRAMMA:
             ${CURRICULUM_KNOWLEDGE}
         `;
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -52,6 +54,7 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
                 temperature: 0.7
             }
         });
+        // FIX: response.text is a property
         return response.text || "Mi dispiace piccolo, si è rotta la punta della matita! Puoi ripetere? ✏️";
     } catch (error) {
         return "C'è un po' di baccano in corridoio e non ho capito bene. Cosa mi chiedevi? 🏫";
@@ -60,6 +63,7 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
 
 export const getGrufoResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemInstruction = `
             Sei Grufo il Saggio, la guida del Giardino delle Emozioni. 🦉
@@ -72,6 +76,7 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
             4. GESTIONE INSULTI: Rispondi con calma olimpica: "Le tue parole sono pesanti come sassi. Cosa ti fa sentire così?".
             5. STILE: Massimo 2-3 frasi. Tono da nonno saggio, zero infantilismi, zero versi.
         `;
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -80,6 +85,7 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
                 temperature: 0.7
             }
         });
+        // FIX: response.text is a property
         return response.text || "Ti ascolto. Dimmi con onestà cosa stai provando in questo momento.";
     } catch (error) {
         return "Un momento di silenzio ci aiuterà a riflettere. Cosa volevi dirmi?";
@@ -88,8 +94,10 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `A high-quality 2D cartoon sticker for young children. Style: cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background. No scary elements.`;
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: IMAGE_MODEL,
             contents: prompt,
@@ -104,12 +112,14 @@ export const generateHybridImage = async (item1: string, item2: string): Promise
 
 export const generateSpeech = async (text: string): Promise<string | null> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const cleanText = text.replace(/[*#_~`]/g, '').trim();
         if (!cleanText) return null;
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TTS_MODEL,
-            contents: [{ parts: [{ text: cleanText }] }],
+            contents: cleanText,
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { 
@@ -131,6 +141,7 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             return "Ops! Ho perso la bussola, riprova più tardi! 🕷️";
         }
 
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey });
         
         const systemInstruction = `
@@ -161,6 +172,7 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             - CINEMA ([ACTION:NAV:VIDEOS]): Video musicali e cartoni originali.
         `;
 
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -172,6 +184,7 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             }
         });
 
+        // FIX: response.text is a property
         return response.text || "Ops! Mi sono incagliato nella ragnatela, riprova! 🕷️";
     } catch (error: any) { 
         console.error("Gemini API Error:", error);
@@ -181,7 +194,9 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -189,14 +204,17 @@ export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage:
                 systemInstruction: `${LONE_BOO_IDENTITY}\nSEI LONE BOO. 👻 Il fantasmino amico dei bambini. Rispondi in max 2 frasi, sii dolce e affettuoso.`
             }
         });
+        // FIX: response.text is a property
         return response.text || "Booo? Eccomi! 👻";
     } catch (error) { return "Singhiozzo magico! Riprova! 👻"; }
 };
 
 export const generateMagicStory = async (imageBase64: string): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+        // FIX: result.text is a property
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
@@ -206,27 +224,33 @@ export const generateMagicStory = async (imageBase64: string): Promise<string> =
                 ]
             }
         });
+        // FIX: response.text is a property
         return response.text || "C'era una volta un oggetto magico...";
     } catch (error) { return "La magia è stanca ora!"; }
 };
 
 export const generateDiceStory = async (descriptions: string[]): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `Sei Grufo il gufo. Inventa una favola brevissima (max 4 frasi) usando: ${descriptions.join(', ')}.`;
+        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: prompt
         });
+        // FIX: response.text is a property
         return response.text || "I dadi dicono che è ora di sognare!";
     } catch (error) { return "I dadi sono rotolati via!"; }
 };
 
 export const checkScavengerHuntMatch = async (imageBase64: string, challenge: string): Promise<string> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const prompt = `Sfida: "${challenge}". Rispondi: "SÌ|Commento" o "NO|Commento".`;
+        // FIX: response.text is a property
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
@@ -236,14 +260,17 @@ export const checkScavengerHuntMatch = async (imageBase64: string, challenge: st
                 ]
             }
         });
+        // FIX: response.text is a property
         return response.text || "SÌ|Ottimo lavoro!";
     } catch (error) { return "SÌ|Ti credo sulla parola!"; }
 };
 
 export const transformObjectMagically = async (imageBase64: string): Promise<any> => {
     try {
+        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+        // FIX: response.text is a property
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             config: { 
@@ -268,6 +295,7 @@ export const transformObjectMagically = async (imageBase64: string): Promise<any
                 ]
             }
         });
+        // FIX: response.text is a property
         return JSON.parse(response.text || "{}");
     } catch (error) { return { name: "Oggetto Magico", rarity: "COMUNE" }; }
 };

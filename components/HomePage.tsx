@@ -42,16 +42,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
             </div>
 
             <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
-                {/* TOOL DI SERVIZIO TEMPORANEO */}
-                <div className="absolute top-[10%] right-[4%] z-40 pointer-events-auto">
-                    <button 
-                        onClick={() => setView(AppView.TTS_STUDIO)}
-                        className="bg-slate-900/80 p-3 rounded-full border-2 border-white/20 text-yellow-400 hover:rotate-90 transition-transform active:scale-90"
-                    >
-                        <Settings size={28} />
-                    </button>
-                </div>
-
+                
                 <div className="absolute top-[10%] left-[4%] md:top-[12%] md:left-[3.5%] w-[28%] md:w-[16%] z-20 flex flex-col gap-4 pointer-events-auto">
                     <button onClick={() => setIsContestOpen(true)} className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30 transform rotate-[-4deg]">
                         <img src={CONTEST_LOGO} alt="Concorso" className="w-full h-auto drop-shadow-md opacity-100 block" />
@@ -80,7 +71,7 @@ const HomePage: React.FC<HomePageProps> = ({ setView }) => {
 
             {isContestOpen && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setIsContestOpen(false)}>
-                    <div className="bg-white relative w-full max-w-md p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl animate-in zoom-in flex flex-col items-center text-center" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white relative w-full max-md p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl animate-in zoom-in flex flex-col items-center text-center" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setIsContestOpen(false)} className="absolute top-4 right-4 hover:scale-110 active:scale-95 outline-none">
                             <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 object-contain pointer-events-auto" />
                         </button>

@@ -137,7 +137,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
         setIsThinking(true);
         setCurrentMessage(""); 
         try {
-            // FIX: Use current process.env.API_KEY and simple string content structure for text task
+            // FIX: Use named parameter for apiKey initialization
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const prompt = `Sei l'arbitro di 'Indovina Chi'. 
             Tratti disponibili: 
@@ -154,12 +154,13 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
             2. NON scegliere 'DONNA' se il bambino chiede della 'CODA' o delle 'TRECCE'.
             3. Rispondi SOLO con il nome del tratto corrispondente in maiuscolo (es: 'CODA') o 'UNKNOWN' se non capisci.`;
             
-            const result = await ai.models.generateContent({
+            // FIX: Pass direct string as contents for basic text generation
+            const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
                 contents: prompt
             });
-            // FIX: Access .text property directly
-            processPlayerMove(result.text?.trim() as Trait | 'UNKNOWN', question);
+            // FIX: result.text is a property, not a method
+            processPlayerMove(response.text?.trim() as Trait | 'UNKNOWN', question);
         } catch (e) {
             setIsThinking(false);
             showTemporaryResponse("UNKNOWN");
@@ -449,7 +450,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
                         )}
 
                         {/* Area Pulsanti (centrata nel campo bianco quando è turno AI) */}
-                        <div className={`flex-1 w-full flex items-center justify-center transition-all bg-gray-50 border-t border-blue-100 ${turn === 'AI' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                        <div className={`flex-1 w-full flex items-center justify-center transition-all bg-gray-50 border-t border-blue-100 ${turn === 'AI' ? 'opacity-100' : 'opacity-0' pointer-events-none'}`}>
                             {gameState === 'STUCK' ? (
                                 <div className="w-full flex items-center justify-center gap-2 md:gap-6 h-full px-2">
                                     <button 

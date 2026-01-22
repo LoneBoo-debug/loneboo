@@ -475,7 +475,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
           )}
 
           {/* CONTENUTO LEZIONE O BLOCCO ABBONAMENTO */}
-          <div className="flex-1 flex flex-col items-center z-10 pt-40 md:pt-52 px-6 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center z-10 pt-44 md:pt-56 px-6 overflow-hidden">
               <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-start overflow-hidden">
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
@@ -507,7 +507,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       </div>
                   ) : (
                       <>
-                        <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase mb-4 md:mb-6 leading-tight shrink-0 drop-shadow-sm mt-4 md:mt-8">
+                        <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase mb-4 md:mb-6 leading-tight shrink-0 drop-shadow-sm mt-8 md:mt-12">
                             {selectedLesson.title}
                         </h3>
 
