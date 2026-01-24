@@ -4,7 +4,6 @@ import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from './stickersDatabas
 
 const STORAGE_KEY = 'loneboo_player_progress';
 
-// --- DIZIONARIO 256 PAROLE ITALIANE (Byte Map) ---
 const ITALIAN_WORDS = [
     "ACQUA", "AEREO", "ALBERO", "ALICE", "AMICO", "AMORE", "ANGELO", "ANIMA", "ANNO", "APE", 
     "ARCO", "ARIA", "ARTE", "ASINO", "ATTO", "AUTO", "BACIO", "BAFFO", "BALLO", "BANANA", 
@@ -50,7 +49,6 @@ const ITALIAN_WORDS = [
 
 const SAFE_WORD_LIST = [...ITALIAN_WORDS, ...Array(256).fill('BOO')].slice(0, 256);
 
-// V2 Default - Used only for fallback in decoding, NOT for initial state
 const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
     charIndex: 0,
     bgIndex: 0
@@ -59,13 +57,15 @@ const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
 const INITIAL_PROGRESS: PlayerProgress = {
     playerName: '',
     avatar: 'BOY',
-    avatarConfig: undefined, // IMPORTANT: Start undefined so we know user hasn't created one
+    avatarConfig: undefined,
     tokens: 0,
     unlockedStickers: [],
     hardModeUnlocked: false,
     duplicates: 0,
     duplicateStickers: [],
-    currentAlbum: 1
+    currentAlbum: 1,
+    completedQuizzes: {},
+    completedActivities: {}
 };
 
 export const getProgress = (): PlayerProgress => {
@@ -89,6 +89,22 @@ export const saveProgress = (progress: PlayerProgress) => {
     } catch (e) { console.error("Error saving progress:", e); }
 };
 
+export const markQuizComplete = (lessonId: string, quizIdx: number) => {
+    const progress = getProgress();
+    if (!progress.completedQuizzes) progress.completedQuizzes = {};
+    if (!progress.completedQuizzes[lessonId]) progress.completedQuizzes[lessonId] = [false, false, false];
+    progress.completedQuizzes[lessonId][quizIdx] = true;
+    saveProgress(progress);
+};
+
+export const markActivityComplete = (lessonId: string, activityIdx: number) => {
+    const progress = getProgress();
+    if (!progress.completedActivities) progress.completedActivities = {};
+    if (!progress.completedActivities[lessonId]) progress.completedActivities[lessonId] = [false, false];
+    progress.completedActivities[lessonId][activityIdx] = true;
+    saveProgress(progress);
+};
+
 export const setPlayerName = (name: string, avatar: 'BOY' | 'GIRL') => {
     const progress = getProgress();
     progress.playerName = name.trim().toUpperCase();
@@ -96,7 +112,6 @@ export const setPlayerName = (name: string, avatar: 'BOY' | 'GIRL') => {
     saveProgress(progress);
 };
 
-// Explicitly define return type to fix inference errors in consumer components
 export const addTokens = (amount: number): number => {
     const progress = getProgress();
     progress.tokens = (progress.tokens || 0) + amount; 
@@ -188,17 +203,14 @@ const calculateChecksum = (bytes: number[]): number => {
     return (sum1 + sum2) % 256;
 };
 
-// --- ENCODE V2: SIMPLIFIED ---
 export const encodePassport = (data: PlayerProgress): string => {
     try {
         const bytes: number[] = [];
 
-        // TOKENS (2 Bytes)
         const tokens = Math.min(data.tokens, 65535);
         bytes.push((tokens >> 8) & 0xFF);
         bytes.push(tokens & 0xFF);
 
-        // STICKERS VOL 1 (4 Bytes)
         let stickerMask1 = 0;
         STICKERS_COLLECTION.forEach((s, idx) => { if (data.unlockedStickers.includes(s.id)) stickerMask1 |= (1 << idx); });
         if (data.avatar === 'GIRL') stickerMask1 |= (1 << 30);
@@ -208,26 +220,20 @@ export const encodePassport = (data: PlayerProgress): string => {
         bytes.push((stickerMask1 >>> 8) & 0xFF);
         bytes.push(stickerMask1 & 0xFF);
 
-        // STICKERS VOL 2 (4 Bytes) - Optional
         if (data.currentAlbum && data.currentAlbum >= 2) {
             let stickerMask2 = 0;
             STICKERS_COLLECTION_VOL2.forEach((s, idx) => { if (data.unlockedStickers.includes(s.id)) stickerMask2 |= (1 << idx); });
-            stickerMask2 |= (1 << 31); // Flag for Vol2 presence
+            stickerMask2 |= (1 << 31); 
             bytes.push((stickerMask2 >>> 24) & 0xFF);
             bytes.push((stickerMask2 >>> 16) & 0xFF);
             bytes.push((stickerMask2 >>> 8) & 0xFF);
             bytes.push(stickerMask2 & 0xFF);
         }
 
-        // AVATAR V2 (2 Bytes)
-        // Byte 1: Character Index (0-255)
-        // Byte 2: Background Index (0-255)
         const ac = data.avatarConfig || DEFAULT_AVATAR_CONFIG;
-        // Basic clamp to avoid errors if index is huge
         bytes.push(Math.min(ac.charIndex, 255));
         bytes.push(Math.min(ac.bgIndex, 255));
 
-        // CHECKSUM
         bytes.push(calculateChecksum(bytes));
 
         const words = bytes.map(b => SAFE_WORD_LIST[b]);
@@ -254,11 +260,9 @@ export const decodePassport = (phrase: string): PlayerProgress | null => {
         const bytes = payloadBytes;
         let cursor = 0;
 
-        // TOKENS
         const tokens = (bytes[cursor] << 8) | bytes[cursor + 1];
         cursor += 2;
 
-        // STICKERS 1
         let mask1 = ((bytes[cursor] << 24) | (bytes[cursor+1] << 16) | (bytes[cursor+2] << 8) | bytes[cursor+3]) >>> 0;
         cursor += 4;
         
@@ -273,11 +277,8 @@ export const decodePassport = (phrase: string): PlayerProgress | null => {
         if (cursor < bytes.length) {
             const remaining = bytes.length - cursor;
             
-            // CHECK VOL 2
             if (remaining >= 4) {
-                 // Check potential Vol2 mask
                  let potentialMask2 = ((bytes[cursor] << 24) | (bytes[cursor+1] << 16) | (bytes[cursor+2] << 8) | bytes[cursor+3]) >>> 0;
-                 // Vol2 mask must have bit 31 set
                  if ((potentialMask2 & (1 << 31)) !== 0) {
                      STICKERS_COLLECTION_VOL2.forEach((s, idx) => { if ((potentialMask2 & (1 << idx)) !== 0) unlockedStickers.push(s.id); });
                      currentAlbum = 2;
@@ -286,18 +287,12 @@ export const decodePassport = (phrase: string): PlayerProgress | null => {
             }
         }
 
-        // AVATAR DECODE V2 (Expect 2 Bytes remaining)
         let avatarConfig = DEFAULT_AVATAR_CONFIG;
         
-        // If we have at least 2 bytes left, assume it's the new format
         if (cursor + 2 <= bytes.length) {
              const charIdx = bytes[cursor];
              const bgIdx = bytes[cursor+1];
              avatarConfig = { charIndex: charIdx, bgIndex: bgIdx };
-        } else if (cursor + 5 <= bytes.length) {
-             // Legacy V1 Avatar (5 bytes) - Reset to default because it's incompatible
-             // or try to map it? Nah, reset is safer for now.
-             avatarConfig = DEFAULT_AVATAR_CONFIG;
         }
 
         return {

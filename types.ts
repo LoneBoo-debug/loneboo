@@ -99,6 +99,7 @@ export enum AppView {
   SCHOOL_THIRD_GRADE = 'SCHOOL_THIRD_GRADE',
   SCHOOL_FOURTH_GRADE = 'SCHOOL_FOURTH_GRADE',
   SCHOOL_FIFTH_GRADE = 'SCHOOL_FIFTH_GRADE',
+  SCHOOL_DIARY = 'SCHOOL_DIARY',
   BOO_GARDEN = 'BOO_GARDEN',
   BOO_BEDROOM = 'BOO_BEDROOM',
   BOO_LIVING_ROOM = 'BOO_LIVING_ROOM',
@@ -245,6 +246,9 @@ export interface PlayerProgress {
     duplicates?: number;
     duplicateStickers?: string[];
     currentAlbum?: number;
+    // Nuovi campi per il diario scolastico
+    completedQuizzes?: Record<string, boolean[]>; // lessonId -> [q0, q1, q2]
+    completedActivities?: Record<string, boolean[]>; // lessonId -> [a0, a1]
 }
 
 export interface SocialStats {

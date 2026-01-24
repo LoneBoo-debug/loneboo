@@ -54,7 +54,8 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
     if (!SCHOOL_DATA_CSV_URL) return null;
 
     try {
-        const response = await fetch(`${SCHOOL_DATA_CSV_URL}&t=${Date.now()}`);
+        const separator = SCHOOL_DATA_CSV_URL.includes('?') ? '&' : '?';
+        const response = await fetch(`${SCHOOL_DATA_CSV_URL}${separator}t=${Date.now()}`);
         if (!response.ok) return null;
 
         const text = await response.text();
@@ -87,14 +88,13 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
             const lessonText = parts[4];
             const audioUrl = parts[5] || "";
             
-            // Colonna G (indice 6) per il link del video
             const videoUrl = (parts[6] && parts[6] !== "" && parts[6] !== "-") ? parts[6].trim() : undefined;
-            
-            // Colonna H (indice 7) per il tipo di accesso
             const accessType = parts[7]?.toLowerCase() || 'gratis';
             const isPremium = accessType === 'abbonamento';
 
-            // --- QUIZ (COL I-T) ---
+            // Generazione ID deterministico basato sui dati della lezione per stabilità del progresso
+            const lessonId = `dyn_${grade}_${subjectKey}_${lessonTitle}`.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
             const quizzes: SchoolQuiz[] = [];
             if (parts[8]) {
                 quizzes.push({
@@ -121,9 +121,7 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
                 });
             }
 
-            // --- ATTIVITÀ (COL U-AB) ---
             const activities: SchoolQuiz[] = [];
-            // Attività 1 (U-V-W-X: 20-21-22-23)
             if (parts[20] && parts[20] !== "-") {
                 activities.push({
                     image: parts[20],
@@ -133,7 +131,6 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
                     feedback: "Corretto! Sei un ottimo osservatore! 🧐"
                 });
             }
-            // Attività 2 (Y-Z-AA-AB: 24-25-26-27)
             if (parts[24] && parts[24] !== "-") {
                 activities.push({
                     image: parts[24],
@@ -145,7 +142,7 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
             }
 
             const lesson: SchoolLesson = {
-                id: `dyn_${grade}_${Math.random().toString(36).substr(2, 5)}`,
+                id: lessonId,
                 title: lessonTitle,
                 text: lessonText,
                 audioUrl: audioUrl,
@@ -157,7 +154,7 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
 
             let chapter = curriculum.subjects[subjectKey].find(c => c.title === chapterTitle);
             if (!chapter) {
-                chapter = { id: `ch_${chapterTitle.replace(/\s+/g, '_')}`, title: chapterTitle, lessons: [] };
+                chapter = { id: `ch_${chapterTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`, title: chapterTitle, lessons: [] };
                 curriculum.subjects[subjectKey].push(chapter);
             }
             chapter.lessons.push(lesson);

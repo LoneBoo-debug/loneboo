@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -10,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quintaelem77new3swe.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitaulde4fes2+(1).webp';
 const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
+const BTN_DIARY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defewefwed+(1).webp';
 
 interface Point { x: number; y: number; }
 
@@ -34,7 +36,14 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             setIsFetching(true);
             const img = new Image();
             img.src = BG_URL;
-            img.onload = () => setIsLoaded(true);
+            img.onload = () => {
+                setIsLoaded(true);
+                const pendingSub = sessionStorage.getItem('pending_subject');
+                if (pendingSub && Object.values(SchoolSubject).includes(pendingSub as SchoolSubject)) {
+                    setActiveSubject(pendingSub as SchoolSubject);
+                    sessionStorage.removeItem('pending_subject');
+                }
+            };
 
             const remoteData = await fetchGradeCurriculum(5);
             if (remoteData) {
@@ -66,6 +75,11 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         } else if (key === 'TEACHER_CHAT') {
             setShowTeacherChat(true);
         }
+    };
+
+    const openDiary = () => {
+        sessionStorage.setItem('current_diary_grade', '5');
+        setView(AppView.SCHOOL_DIARY);
     };
 
     return (
@@ -129,6 +143,19 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                             src={BTN_CLOSE_IMG} 
                             alt="Esci" 
                             className="w-full h-auto drop-shadow-2xl object-contain" 
+                        />
+                    </button>
+
+                    {/* TASTO DIARIO */}
+                    <button 
+                        onClick={openDiary}
+                        className="absolute bottom-6 right-6 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                        title="Il mio diario"
+                    >
+                        <img 
+                            src={BTN_DIARY_IMG} 
+                            alt="Diario" 
+                            className="w-24 md:w-36 h-auto drop-shadow-2xl" 
                         />
                     </button>
                 </>

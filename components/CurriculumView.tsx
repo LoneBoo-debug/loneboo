@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square } from 'lucide-react';
+import { markQuizComplete, markActivityComplete } from '../services/tokens';
 import TeacherChat from './TeacherChat';
 
 // --- SFONDI PER GLI INDICI (LISTA CAPITOLI) ---
@@ -21,6 +22,7 @@ const GRADE1_SCIENCE_LESSON_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws
 const CUSTOM_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiudisade.webp';
 const CUSTOM_VERIFY_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercschol4321.webp';
 const CUSTOM_VISUAL_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/visuallibrsches432.webp';
+const IMG_SCROLL_INDEX = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freccigiuscroolindex44e32.webp';
 
 // --- ASSET MODALE PREMIUM E INDICI ---
 const PREMIUM_LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/libercloased44fx33.webp';
@@ -97,13 +99,28 @@ interface CurriculumViewProps {
 
 const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView }) => {
   const [selectedSubject, setSelectedSubject] = useState<SchoolSubject>(initialSubject);
-  const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(() => {
+    // Controllo se c'è una lezione in sospeso da aprire
+    const pendingId = sessionStorage.getItem('pending_lesson_id');
+    if (pendingId) {
+        // Cerchiamo la lezione nei dati della materia corrente
+        const chapters = data.subjects[initialSubject] || [];
+        for (const ch of chapters) {
+            const found = ch.lessons.find(l => l.id === pendingId);
+            if (found) {
+                sessionStorage.removeItem('pending_lesson_id');
+                return found;
+            }
+        }
+    }
+    return null;
+  });
+
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
   
-  // Stati per le attività visive
   const [isVisualActivityOpen, setIsVisualActivityOpen] = useState(false);
   const [currentActivityIdx, setCurrentActivityIdx] = useState(0);
   const [activityAnswer, setActivityAnswer] = useState<number | null>(null);
@@ -114,16 +131,13 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isPremiumActive, setIsPremiumActive] = useState(false);
   
-  // Stati per la paginazione del testo
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const textContainerRef = useRef<HTMLDivElement>(null);
   
-  // Stati per lo scorrimento dell'indice (lista capitoli)
   const indexScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollDownIndex, setCanScrollDownIndex] = useState(false);
 
-  // Stati per il Mini Player Audio
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
@@ -147,6 +161,45 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     }
   };
 
+  const isImageUrl = (text: string) => {
+    if (!text) return false;
+    const trimmed = text.trim();
+    return trimmed.startsWith('http') && (
+        trimmed.endsWith('.webp') || 
+        trimmed.endsWith('.jpg') || 
+        trimmed.endsWith('.jpeg') || 
+        trimmed.endsWith('.png') || 
+        trimmed.endsWith('.gif') ||
+        trimmed.includes('loneboo-images.s3') // Caso specifico per gli asset AWS
+    );
+  };
+
+  // Funzione per splittare il testo cercando gli URL delle immagini
+  const renderMixedContent = (text: string) => {
+      const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\S+)/gi;
+      const parts = text.split(imgRegex);
+      
+      return parts.map((part, index) => {
+          if (isImageUrl(part)) {
+              return (
+                <div key={index} className="w-full flex justify-center my-6">
+                    <img 
+                        src={part.trim()} 
+                        alt="Immagine Lezione" 
+                        className="max-w-[85%] md:max-w-[70%] h-auto rounded-2xl border-4 border-white shadow-md animate-in zoom-in duration-500" 
+                    />
+                </div>
+              );
+          }
+          if (part.trim() === '') return null;
+          return (
+            <div key={index} className="font-sans font-black text-slate-800 text-base md:text-4xl w-full leading-relaxed whitespace-pre-wrap">
+                {part}
+            </div>
+          );
+      });
+  };
+
   const formatAudioTime = (seconds: number) => {
     if (isNaN(seconds) || seconds === null) return "00:00";
     const mins = Math.floor(seconds / 60);
@@ -161,6 +214,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         const checkPages = () => {
             const container = textContainerRef.current;
             if (container) {
+                if (isImageUrl(selectedLesson.text)) {
+                    setTotalPages(1);
+                    setCurrentPage(1);
+                    return;
+                }
                 const tolerance = 25;
                 const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
                 setTotalPages(total > 0 ? total : 1);
@@ -211,7 +269,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     }
   }, [selectedLesson, selectedSubject]);
 
-  // --- LOGICA AUDIO SINCRONIZZATA ---
   const handleAudioTimeUpdate = () => {
     if (audioRef.current) {
         setAudioCurrentTime(audioRef.current.currentTime);
@@ -280,7 +337,10 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setQuizAnswer(idx);
     setShowFeedback(true);
     const quiz = selectedLesson?.quizzes[currentQuizIdx];
-    if (idx !== quiz?.correctIndex) {
+    if (idx === quiz?.correctIndex) {
+        // Registriamo il successo nel diario se è corretto
+        if (selectedLesson) markQuizComplete(selectedLesson.id, currentQuizIdx);
+    } else {
         setTimeout(() => { setQuizAnswer(null); setShowFeedback(false); }, 2000);
     }
   };
@@ -295,13 +355,15 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     }
   };
 
-  // --- LOGICA ATTIVITÀ ---
   const handleActivityChoice = (idx: number) => {
     if (activityAnswer !== null) return;
     setActivityAnswer(idx);
     setShowActivityFeedback(true);
     const activity = selectedLesson?.activities[currentActivityIdx];
-    if (idx !== activity?.correctIndex) {
+    if (idx === activity?.correctIndex) {
+        // Registriamo il successo nel diario se è corretto
+        if (selectedLesson) markActivityComplete(selectedLesson.id, currentActivityIdx);
+    } else {
         setTimeout(() => { setActivityAnswer(null); setShowActivityFeedback(false); }, 2000);
     }
   };
@@ -402,9 +464,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                 </div>
 
                 <div className={`mt-3 transition-all duration-300 ${canScrollDownIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}>
-                    <div className="bg-blue-600/80 p-2 rounded-full border-4 border-white shadow-lg animate-bounce">
-                        <div className="text-white font-black text-xl">🔽</div>
-                    </div>
+                    <img 
+                        src={IMG_SCROLL_INDEX} 
+                        alt="Scorri giù" 
+                        className="w-12 h-auto drop-shadow-lg animate-bounce" 
+                    />
                 </div>
             </div>
         </div>
@@ -421,7 +485,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
       <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden">
           <img src={getSpecialBg(true)} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
 
-          {/* HOTSPOTS */}
           <div className="absolute inset-0 z-40 pointer-events-none">
               <button onClick={handleCloseLesson} className="absolute pointer-events-auto outline-none" style={{ clipPath: getClipPath(activeHotspots.CLOSE_BOOK), inset: 0 }} />
               
@@ -437,7 +500,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               )}
           </div>
 
-          {/* MINI PLAYER AUDIO FLOATING */}
           {showAudioPlayer && !selectedLesson.isPremium && (
               <div className="absolute top-[18%] right-[5%] z-50 animate-in slide-in-from-top-4 duration-300">
                   <div className="bg-yellow-400 border-4 border-black p-3 rounded-[2rem] shadow-2xl flex items-center gap-3 w-[260px] md:w-[320px]">
@@ -474,7 +536,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* CONTENUTO LEZIONE O BLOCCO ABBONAMENTO */}
           <div className="flex-1 flex flex-col items-center z-10 pt-44 md:pt-56 px-6 overflow-hidden">
               <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-start overflow-hidden">
                   
@@ -520,12 +581,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                 scrollSnapType: 'y proximity'
                             }}
                         >
-                            <div className="font-sans font-black text-slate-800 text-base md:text-4xl w-full leading-relaxed whitespace-pre-wrap">
-                                {selectedLesson.text}
+                            <div className="flex flex-col gap-4">
+                                {renderMixedContent(selectedLesson.text)}
                             </div>
                         </div>
 
-                        {/* CONTROLLO PAGINAZIONE - CENTRATO E OTTIMIZZATO NELLO SPAZIO */}
                         <div className="flex items-center justify-center w-full mt-3 md:mt-5 px-2 shrink-0 mb-8 md:mb-12">
                             <div className="bg-white/70 backdrop-blur-md px-6 md:px-8 py-2 md:py-3 rounded-full border-4 border-slate-200 shadow-sm transition-all">
                                 <span className="font-black text-slate-600 text-sm md:text-2xl uppercase tracking-tighter">
@@ -538,7 +598,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           </div>
 
-          {/* MODALE ESERCIZI (TRADIZIONALI) */}
           {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white w-full max-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden relative flex flex-col">
@@ -571,7 +630,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* MODALE ATTIVITÀ VISIVA (CON IMMAGINI) */}
           {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white w-full max-lg rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[85vh] md:h-auto">
@@ -586,15 +644,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                               <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest">Attività {currentActivityIdx + 1} di {selectedLesson.activities.length}</span>
                           </div>
 
-                          {/* IMMAGINE ATTIVITÀ (COL U / Y) */}
                           <div className="w-full aspect-video bg-slate-100 rounded-3xl border-4 border-orange-200 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
                                <img src={currentActivity.image} className="w-full h-full object-contain" alt="Immagine Attività" />
                           </div>
 
-                          {/* DOMANDA SOTTO IMMAGINE (COL V / Z) */}
                           <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">{currentActivity.question}</p>
 
-                          {/* OPZIONI (COL W / AA) */}
                           <div className="grid grid-cols-1 gap-2.5">
                               {currentActivity.options.map((opt, idx) => (
                                   <button 
@@ -608,7 +663,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                               ))}
                           </div>
 
-                          {/* FEEDBACK ATTIVITÀ */}
                           {showActivityFeedback && (
                               <div className="mt-2 p-3 rounded-[2rem] bg-orange-50 border-4 border-orange-200 text-center">
                                   {activityAnswer === currentActivity.correctIndex ? (
@@ -626,9 +680,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* ALTRI MODALI (CONTENUTI IN ARRIVO) */}
           {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300 flex items-center justify-center">
                   <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-0 w-full max-w-[240px] md:max-w-[320px] max-h-[75vh] text-center shadow-2xl relative overflow-hidden animate-in zoom-in duration-300 flex items-center justify-center">
                       <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-black hover:scale-110 active:scale-95 transition-all z-20 shadow-lg"><X size={18} strokeWidth={4} /></button>
                       

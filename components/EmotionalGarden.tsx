@@ -33,55 +33,55 @@ const EMOTIONS_DATA: Record<EmotionCategory, SubEmotion[]> = {
             id: 'gioia', 
             label: 'Gioia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gioiaentr44.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gioiagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/2a91fb88-e921-477c-b821-54fa41f3dd73.mp3'
         },
         { 
             id: 'entusiasmo', 
             label: 'Entusiasmo', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/entusitre33s.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/entusiasmogrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/a7d81f87-9b8d-4b36-825f-2fca5efd864b.mp3'
         },
         { 
             id: 'orgoglio', 
             label: 'Orgoglio', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orgogli3ed44fee.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orgogliogrufoemotionel.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/2835eb80-5dc8-4157-8baa-02be43f10fb8.mp3'
         },
         { 
             id: 'soddisfazione', 
             label: 'Soddisfazione', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/soddisfazio44rre44.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/soddisfazionegrutioemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/80fe2fea-39fa-4d06-bf3c-9fa3215af04f.mp3'
         },
         { 
             id: 'felicita', 
             label: 'Felicità', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/felicire3ed.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/felicitagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/428a6c25-22fe-4c6b-b31c-025844a6717b.mp3'
         },
         { 
             id: 'gratitudine', 
             label: 'Gratitudine', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gratitud4e3w2.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gratitudinegrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5e0e2ed4-6d05-4667-b7eb-7c2af2fe8825.mp3'
         },
         { 
             id: 'amore', 
             label: 'Amore', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/amorefr55rfr44.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/amoegrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/302c04c3-8fc3-4136-9d97-60a8e79fbb16.mp3'
         },
         { 
             id: 'affetto', 
             label: 'Affetto', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/affettoijr7urhr7.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/affettogrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/7806f1e7-591f-4735-ba39-d343c0cfa81a.mp3'
         },
         { 
             id: 'empatia', 
             label: 'Empatia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/empatia44fre0oi888.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/empatiagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/02632d98-8577-4655-81d7-9d264c57256b.mp3'
         },
     ],
     TRISTE: [
@@ -89,19 +89,19 @@ const EMOTIONS_DATA: Record<EmotionCategory, SubEmotion[]> = {
             id: 'tristezza', 
             label: 'Tristezza', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tristezza3ed2sza.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tristezzafrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/64b243c6-56f3-4679-b570-4a5e2cdadf16.mp3'
         },
         { 
             id: 'delusione', 
             label: 'Delusione', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dekusione4de3ws2q.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/delusionegrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/c5d1f580-cf70-45ba-9815-eb92350dcd3c.mp3'
         },
         { 
             id: 'vergogna', 
             label: 'Vergogna', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vergogna33de4w3.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vergognagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/461fa534-89b3-4a58-88f8-75aaab3f98ac.mp3'
         },
     ],
     ARRABBIATO: [
@@ -109,37 +109,37 @@ const EMOTIONS_DATA: Record<EmotionCategory, SubEmotion[]> = {
             id: 'rabbia', 
             label: 'Rabbia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rabbia44edfgtt99.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rabbisagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/114a7a7d-4307-4b0a-9824-622adc813f9d.mp3'
         },
         { 
             id: 'frustrazione', 
             label: 'Frustrazione', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frustra33de5rferts4rr5.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frustrazionegrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/7c35e87e-85c2-4beb-9643-125dbd6c6d25.mp3'
         },
         { 
             id: 'gelosia', 
             label: 'Gelosia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gelosiadee4rfx.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gelosiagrufoemotionsal.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/77e10211-3362-4a1a-8a84-29d00db5ab07.mp3'
         },
         { 
             id: 'invidia', 
             label: 'Invidia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/invidia776yfbfgegxds.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/invidiagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/45607662-aa6e-4e31-b876-1906ad97afb8.mp3'
         },
         { 
             id: 'fastidio', 
             label: 'Fastidio', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/asidiie4edestidio.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fastidiogrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/f85058ed-bd4c-4998-8f6e-5e4db1fc5975.mp3'
         },
         { 
             id: 'disgusto', 
             label: 'Disgusto', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disgusto55rfex.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disgustogrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/e183985d-4c5a-43db-8fbb-be2db5a81494.mp3'
         },
     ],
     PREOCCUPATO: [
@@ -147,25 +147,25 @@ const EMOTIONS_DATA: Record<EmotionCategory, SubEmotion[]> = {
             id: 'paura', 
             label: 'Paura', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/paurafear44fx.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pauragrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/0bc0faae-6197-4f0b-a087-8ba41c738771.mp3'
         },
         { 
             id: 'ansia', 
             label: 'Ansia', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ansiagrf55e4.webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ansiagrufoemotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/f255db69-567c-4a29-ab2d-82f2dab6975f.mp3'
         },
         { 
             id: 'timidezza', 
             label: 'Timidezza', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/timidezzaxsxw233ws2.jpg',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/timidezzagrufoamotional.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/d7d031e7-3bab-4254-b8de-c993e0e72408.mp3'
         },
         { 
             id: 'preoccupazione', 
             label: 'Preoccupazione', 
             icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/peeoccu76tdsa+(1).webp',
-            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/preoccupazionegrufoemotonal.mp3'
+            audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/51aabaca-b89b-46b1-941e-0abc7cf7de46.mp3'
         },
     ]
 };
@@ -249,10 +249,12 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         setActiveSubEmotionLabel(emo.label);
         
         const bgMusic = new Audio(BG_MUSIC_URL);
-        bgMusic.volume = 0.3; 
+        // Alzato il volume della musica di sottofondo a 0.5
+        bgMusic.volume = 0.5; 
         bgMusicRef.current = bgMusic;
         bgMusic.play().catch(e => console.error("Audio background play blocked", e));
         
+        // Ritardo di 5 secondi per l'ingresso del narrato
         voiceTimeoutRef.current = window.setTimeout(async () => {
             try {
                 const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -264,12 +266,14 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 source.buffer = audioBuffer;
                 
                 const gainNode = ctx.createGain();
-                gainNode.gain.value = 2.5; 
+                // Volume al 100% (Gain 1.0) senza amplificazione ulteriore
+                gainNode.gain.value = 1.0; 
                 
                 source.connect(gainNode);
                 gainNode.connect(ctx.destination);
                 
                 source.onended = () => {
+                    // Coda di 5 secondi per la musica dopo il narrato
                     endMusicTimeoutRef.current = window.setTimeout(() => {
                         if (bgMusicRef.current) {
                             startFadeOut(bgMusicRef.current);
@@ -280,9 +284,9 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 source.start(0);
                 voiceAudioSourceRef.current = source;
             } catch (err) {
-                console.error("Errore amplificazione voce IA:", err);
+                console.error("Errore riproduzione voce narrata:", err);
             }
-        }, 4000);
+        }, 5000);
     };
 
     return (
