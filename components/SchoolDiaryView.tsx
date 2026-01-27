@@ -290,47 +290,47 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 </div>
             </div>
 
-            {/* MODALE VALUTAZIONE - Z-INDEX MASSIMO E POSIZIONAMENTO RIBASSATO */}
+            {/* MODALE VALUTAZIONE - Z-INDEX MASSIMO E LAYOUT ALLUNGATO */}
             {isEvalOpen && evaluationData && (
                 <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-start justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEvalOpen(false)}>
                     <div 
-                        className="bg-[#fdfcf0] w-full max-w-4xl rounded-[3rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative mt-24 md:mt-32"
+                        className="bg-[#fdfcf0] w-full max-w-4xl rounded-[4rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative mt-24 md:mt-32"
                         onClick={e => e.stopPropagation()}
                     >
-                        {/* Tasto Chiudi - Posizionato strategicamente per essere visibile e cliccabile */}
+                        {/* Tasto Chiudi */}
                         <button onClick={() => setIsEvalOpen(false)} className="absolute top-4 right-4 z-[3050] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-black hover:scale-110 transition-all shadow-lg active:scale-95">
                             <X size={24} strokeWidth={4} />
                         </button>
 
                         {/* Header Modale */}
-                        <div className="bg-blue-600 p-4 md:p-6 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
-                            <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl p-1 shadow-lg">
+                        <div className="bg-blue-600 p-4 md:p-8 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
+                            <div className="w-14 h-14 md:w-20 md:h-20 bg-white rounded-2xl p-1 shadow-lg">
                                 <img src={TEACHER_AVATAR} className="w-full h-full object-contain" alt="Maestra" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-white font-luckiest text-xl md:text-4xl uppercase leading-none tracking-tight">La mia Pagella</h3>
-                                <p className="text-blue-100 font-bold text-[8px] md:text-xs uppercase tracking-widest mt-0.5">I progressi della Scuola Arcobaleno</p>
+                                <h3 className="text-white font-luckiest text-xl md:text-5xl uppercase leading-none tracking-tight">La mia Pagella</h3>
+                                <p className="text-blue-100 font-bold text-[8px] md:text-sm uppercase tracking-widest mt-1">I progressi della Scuola Arcobaleno</p>
                             </div>
                         </div>
 
-                        {/* Corpo Modale - Layout Orizzontale per mostrare tutto subito */}
-                        <div className="p-3 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20 flex flex-col gap-3 md:gap-8">
+                        {/* Corpo Modale - Layout Orizzontale Allungato */}
+                        <div className="py-6 md:py-12 px-4 md:px-10 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20 flex flex-col gap-6 md:gap-12">
                             
                             {/* GRIGLIA MATERIE - COMPATTA */}
-                            <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5 md:gap-4">
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-6">
                                 {Object.values(SchoolSubject).map(subj => {
                                     const stats = evaluationData.stats[subj];
                                     const perc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
                                     
                                     return (
-                                        <div key={subj} className="bg-white/90 p-2 md:p-3 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col items-center gap-1 md:gap-2 text-center">
-                                            <img src={SUBJECT_ICONS[subj]} className="w-8 h-8 md:w-12 md:h-12 object-contain" alt="" />
+                                        <div key={subj} className="bg-white/90 p-2 md:p-4 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col items-center gap-1 md:gap-3 text-center">
+                                            <img src={SUBJECT_ICONS[subj]} className="w-10 h-10 md:w-16 md:h-16 object-contain" alt="" />
                                             <div className="w-full">
-                                                <span className="font-black text-[7px] md:text-[10px] uppercase text-slate-500 block mb-0.5 truncate">{subj}</span>
-                                                <div className="w-full h-1.5 md:h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                                <span className="font-black text-[7px] md:text-[11px] uppercase text-slate-500 block mb-1 truncate">{subj}</span>
+                                                <div className="w-full h-1.5 md:h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                                                     <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${perc}%` }}></div>
                                                 </div>
-                                                <span className="font-black text-blue-600 text-[8px] md:text-[10px] mt-0.5 block">{perc}%</span>
+                                                <span className="font-black text-blue-600 text-[8px] md:text-[12px] mt-1 block">{perc}%</span>
                                             </div>
                                         </div>
                                     );
@@ -338,41 +338,41 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                             </div>
 
                             {/* ZONA CENTRALE: COMMENTO + RECAP */}
-                            <div className="flex flex-col md:flex-row gap-3 md:gap-8 items-stretch">
+                            <div className="flex flex-col md:flex-row gap-4 md:gap-12 items-stretch min-h-[140px] md:min-h-[220px]">
                                 
-                                {/* COMMENTO MAESTRA */}
-                                <div className="flex-1 relative bg-white p-4 md:p-6 rounded-[2rem] border-4 border-yellow-400 shadow-xl flex items-center gap-3 md:gap-6">
-                                    <div className="absolute -top-3 left-6 bg-yellow-400 text-black px-3 py-0.5 rounded-full font-black text-[8px] md:text-[10px] uppercase shadow-md flex items-center gap-2">
-                                        <MessageCircle size={12} fill="currentColor" /> Messaggio per te
+                                {/* COMMENTO MAESTRA - Testo Aumentato */}
+                                <div className="flex-1 relative bg-white p-5 md:p-8 rounded-[2.5rem] border-4 border-yellow-400 shadow-xl flex items-center gap-4 md:gap-8">
+                                    <div className="absolute -top-3.5 left-8 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-[9px] md:text-[11px] uppercase shadow-md flex items-center gap-2">
+                                        <MessageCircle size={14} fill="currentColor" /> Messaggio per te
                                     </div>
                                     
-                                    <div className="w-14 h-14 md:w-24 md:h-24 shrink-0">
+                                    <div className="w-16 h-16 md:w-32 md:h-32 shrink-0">
                                         <img src={TEACHER_AVATAR} className="w-full h-full object-contain drop-shadow-md" alt="" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-slate-700 font-bold text-[10px] md:text-lg leading-snug italic">
+                                        <p className="text-slate-700 font-bold text-sm md:text-2xl leading-snug italic">
                                             "{evaluationData.comment}"
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* RECAP FINALE */}
-                                <div className="flex flex-row md:flex-col justify-center gap-2 md:gap-3 shrink-0">
-                                    <div className="flex-1 md:flex-none bg-blue-100 px-3 md:px-6 py-2 md:py-3 rounded-2xl border-2 border-blue-200 flex flex-col items-center shadow-sm">
-                                        <span className="text-[7px] md:text-[9px] font-black text-blue-400 uppercase tracking-widest">Svolte</span>
-                                        <span className="text-base md:text-3xl font-black text-blue-700 leading-none">{evaluationData.grandDone} / {evaluationData.grandTotal}</span>
+                                <div className="flex flex-row md:flex-col justify-center gap-3 md:gap-5 shrink-0">
+                                    <div className="flex-1 md:flex-none bg-blue-100 px-4 md:px-8 py-3 md:py-6 rounded-3xl border-2 border-blue-200 flex flex-col items-center shadow-sm justify-center">
+                                        <span className="text-[8px] md:text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Svolte</span>
+                                        <span className="text-xl md:text-4xl font-black text-blue-700 leading-none">{evaluationData.grandDone} / {evaluationData.grandTotal}</span>
                                     </div>
-                                    <div className="flex-1 md:flex-none bg-green-100 px-3 md:px-6 py-2 md:py-3 rounded-2xl border-2 border-green-200 flex flex-col items-center shadow-sm">
-                                        <span className="text-[7px] md:text-[9px] font-black text-green-400 uppercase tracking-widest">Media</span>
-                                        <span className="text-base md:text-3xl font-black text-green-700 leading-none">{Math.round(evaluationData.percentage)}%</span>
+                                    <div className="flex-1 md:flex-none bg-green-100 px-4 md:px-8 py-3 md:py-6 rounded-3xl border-2 border-green-200 flex flex-col items-center shadow-sm justify-center">
+                                        <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest mb-1">Media</span>
+                                        <span className="text-xl md:text-4xl font-black text-green-700 leading-none">{Math.round(evaluationData.percentage)}%</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Footer Modale */}
-                        <div className="bg-white p-2 border-t-4 border-slate-100 text-center opacity-40 shrink-0">
-                            <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest text-slate-400"> Registro Scolastico Ufficiale • Lone Boo World </span>
+                        <div className="bg-white p-3 md:p-6 border-t-4 border-slate-100 text-center opacity-40 shrink-0">
+                            <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.2em] text-slate-400"> Registro Scolastico Ufficiale • Lone Boo World </span>
                         </div>
                     </div>
                 </div>
