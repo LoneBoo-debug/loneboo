@@ -6,8 +6,8 @@ import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- AI VOICE CONFIGURATION ---
 const AI_VOICES = [
-    { id: 'Kore', name: 'Sami (Donna 30 anni) - AI ✨', gender: 'female', age: '30' },
-    { id: 'Charon', name: 'Nereo (Saggio Caldo) - AI ✨', gender: 'male', age: 'old' }
+    { id: 'Kore', name: 'Sami (Maestra Simpatica) - AI ✨', gender: 'female', age: '30' },
+    { id: 'Charon', name: 'Nereo (Nonno Saggio) - AI ✨', gender: 'male', age: 'old' }
 ];
 
 // --- AUDIO STREAMING UTILS ---
@@ -117,17 +117,20 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
-            // Inizializziamo il contesto audio
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
             }
             const ctx = audioContextRef.current;
             if (ctx.state === 'suspended') await ctx.resume();
 
-            // Usiamo generateContentStream per ricevere l'audio a pezzi
+            // ISTRUZIONI DI STILE RICALIBRATE PER STABILITÀ E SIMPATIA
+            const styleInstruction = selectedVoiceId === 'Kore' 
+                ? "Sei Sami, una simpatica maestra di 30 anni. Leggi questo testo per i tuoi piccoli alunni con una voce chiara, dolce e rassicurante. Mantieni un ritmo calmo e rigorosamente costante, scandendo bene ogni parola. Non accelerare, sii serena e amichevole:"
+                : "Sei Nereo, un saggio e calmo nonno. Leggi questo testo con una voce profonda, rassicurante e pacata. Mantieni un ritmo di lettura lento e costante dall'inizio alla fine, senza fretta:";
+
             const responseStream = await ai.models.generateContentStream({
                 model: "gemini-2.5-flash-preview-tts",
-                contents: [{ parts: [{ text: text }] }],
+                contents: [{ parts: [{ text: `${styleInstruction}\n\n${text}` }] }],
                 config: {
                     responseModalities: [Modality.AUDIO],
                     speechConfig: {
@@ -140,7 +143,7 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
 
             setIsGenerating(false);
             setIsSpeaking(true);
-            nextStartTimeRef.current = ctx.currentTime + 0.1; // Piccolo buffer iniziale
+            nextStartTimeRef.current = ctx.currentTime + 0.1;
 
             for await (const chunk of responseStream) {
                 const base64Audio = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
@@ -152,11 +155,9 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                     source.buffer = audioBuffer;
                     source.connect(ctx.destination);
                     
-                    // Sincronizzazione precisa: calcoliamo l'ora esatta in cui questo pezzo deve iniziare
                     const startTime = Math.max(nextStartTimeRef.current, ctx.currentTime);
                     source.start(startTime);
                     
-                    // Aggiorniamo il cursore temporale per il prossimo pezzo
                     nextStartTimeRef.current = startTime + audioBuffer.duration;
                     
                     activeSourcesRef.current.add(source);
@@ -170,7 +171,7 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
             }
         } catch (error) {
             console.error("AI Streaming TTS Error:", error);
-            alert("Errore nella generazione streaming. Il testo potrebbe essere troppo lungo o la connessione instabile.");
+            alert("Errore nella generazione. Riprova con un testo più breve.");
             setIsSpeaking(false);
         } finally {
             setIsGenerating(false);
@@ -178,7 +179,7 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
     };
 
     const downloadAudio = () => {
-        alert("Nota Tecnica: Per audio di lunga durata (4+ min), la registrazione diretta del sistema è la scelta migliore per preservare la fedeltà della voce AI. 🎤");
+        alert("Nota: Usa uno strumento di registrazione sistema per salvare l'audio in alta fedeltà. 🎤");
     };
 
     return (
@@ -192,11 +193,11 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                     </button>
                     <div>
                         <h2 className="text-white font-black text-xl md:text-3xl uppercase tracking-tighter leading-none">Audio Studio Pro</h2>
-                        <p className="text-blue-400 font-bold text-[10px] md:text-xs uppercase tracking-widest">Motore Streaming Alta Fedeltà</p>
+                        <p className="text-blue-400 font-bold text-[10px] md:text-xs uppercase tracking-widest">Voce Narrante per Bambini</p>
                     </div>
                 </div>
-                <div className="hidden md:flex items-center gap-2 bg-yellow-400 text-black font-black text-[10px] px-3 py-1 rounded-full border-2 border-black animate-pulse">
-                    <Sparkles size={14} /> LIVE STREAMING ACTIVE
+                <div className="hidden md:flex items-center gap-2 bg-green-500 text-white font-black text-[10px] px-3 py-1 rounded-full border-2 border-black animate-pulse">
+                    <Sparkles size={14} /> HI-FI STREAMING
                 </div>
             </div>
 
@@ -206,11 +207,11 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                     <textarea 
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-                        placeholder="Incolla qui la tua storia... Sami o Nereo la leggeranno senza mai accelerare!"
+                        placeholder="Incolla qui la tua storia... Sami leggerà con il tono di una simpatica maestra!"
                         className="w-full h-40 md:h-60 bg-slate-50 rounded-xl p-4 font-bold text-slate-800 text-lg md:text-2xl outline-none focus:ring-4 ring-blue-500/20 transition-all resize-none border-2 border-slate-200"
                     />
                     <div className="flex justify-between items-center mt-4">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">{text.length} caratteri | ~{Math.ceil(text.length / 1000)} min di lettura</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">{text.length} caratteri | Ritmo costante garantito</span>
                         <button onClick={() => setText('')} className="text-red-500 font-black text-xs uppercase flex items-center gap-1 hover:underline">
                             <Trash2 size={14} /> Pulisci
                         </button>
@@ -220,32 +221,32 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                 <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-slate-800 p-5 rounded-[2rem] border-4 border-black shadow-xl">
                         <div className="flex items-center gap-2 mb-4 text-blue-400 font-black text-xs uppercase">
-                            <Mic size={18} /> Voce Selezionata
+                            <Mic size={18} /> Selezione Narratore
                         </div>
                         <select 
                             value={selectedVoiceId}
                             onChange={(e) => setSelectedVoiceId(e.target.value)}
                             className="w-full bg-slate-950 text-white font-bold p-4 rounded-xl border-2 border-slate-700 outline-none focus:border-blue-500 text-sm md:text-base appearance-none cursor-pointer"
                         >
-                            <optgroup label="Voci Magiche (Streaming AI)">
+                            <optgroup label="Voci Ottimizzate (Streaming)">
                                 {AI_VOICES.map(v => (
                                     <option key={v.id} value={v.id}>{v.name}</option>
                                 ))}
                             </optgroup>
-                            <optgroup label="Sintesi Locale (Base)">
+                            <optgroup label="Sintesi di Sistema">
                                 {localVoices.map(v => (
                                     <option key={v.name} value={v.name}>{v.name}</option>
                                 ))}
                             </optgroup>
                         </select>
                         <p className="text-[9px] text-slate-500 font-bold mt-2 uppercase text-center">
-                            Il motore streaming garantisce velocità costante per 4+ minuti
+                            Sami e Nereo sono ideali per storie lunghe e didattiche
                         </p>
                     </div>
 
                     <div className={`bg-slate-800 p-5 rounded-[2rem] border-4 border-black shadow-xl transition-opacity ${AI_VOICES.some(v => v.id === selectedVoiceId) ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                         <div className="flex items-center gap-2 mb-4 text-yellow-400 font-black text-xs uppercase">
-                            <Sliders size={18} /> Effetti Locali
+                            <Sliders size={18} /> Modulatori Locali
                         </div>
                         <div className="space-y-4">
                             <div>
@@ -274,7 +275,7 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                             className={`flex-1 flex items-center justify-center gap-3 py-6 rounded-[2rem] font-black text-xl md:text-3xl border-b-8 border-black shadow-xl transition-all active:translate-y-1 active:border-b-0 hover:brightness-110 disabled:opacity-50 disabled:grayscale ${AI_VOICES.some(v => v.id === selectedVoiceId) ? 'bg-purple-600 text-white' : 'bg-blue-500 text-white'}`}
                         >
                             {isGenerating ? <Loader2 className="animate-spin" /> : <Play fill="currentColor" />} 
-                            {isGenerating ? 'CONNESSIONE...' : 'AVVIA NARRAZIONE'}
+                            {isGenerating ? 'GENERAZIONE...' : 'AVVIA LETTURA'}
                         </button>
                     ) : (
                         <button 
@@ -289,13 +290,13 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
                         onClick={downloadAudio}
                         className="bg-green-500 text-white px-10 py-6 rounded-[2rem] font-black text-xl md:text-2xl border-b-8 border-black shadow-xl hover:bg-green-400 active:translate-y-1 active:border-b-0 transition-all flex items-center justify-center gap-3"
                     >
-                        <Download size={28} strokeWidth={3} /> SCARICA
+                        <Download size={28} strokeWidth={3} /> SALVA
                     </button>
                 </div>
             </div>
 
             <div className="bg-slate-800 p-4 border-t-2 border-black flex justify-center items-center opacity-40">
-                <span className="text-white font-black text-[10px] tracking-[0.4em] uppercase">Gapless Streaming Engine for Gemini Voice</span>
+                <span className="text-white font-black text-[10px] tracking-[0.4em] uppercase">Constant Rate Streaming Engine</span>
             </div>
         </div>
     );

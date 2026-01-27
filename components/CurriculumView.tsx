@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
-import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square } from 'lucide-react';
+import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square, ZoomIn } from 'lucide-react';
 import { markQuizComplete, markActivityComplete } from '../services/tokens';
 import TeacherChat from './TeacherChat';
 
@@ -143,6 +143,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
   const [comingSoonModal, setComingSoonModal] = useState<{ active: boolean, type: 'GAME' | 'VIDEO' | 'ACTIVITY' | 'EXERCISE' }>({ active: false, type: 'GAME' });
+  const [zoomedLessonImage, setZoomedLessonImage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -181,13 +182,24 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
       
       return parts.map((part, index) => {
           if (isImageUrl(part)) {
+              const url = part.trim();
               return (
-                <div key={index} className="w-full flex justify-center my-6">
-                    <img 
-                        src={part.trim()} 
-                        alt="Immagine Lezione" 
-                        className="max-w-[85%] md:max-w-[70%] h-auto rounded-2xl border-4 border-white shadow-md animate-in zoom-in duration-500" 
-                    />
+                <div key={index} className="w-full flex justify-center my-4 group">
+                    <div className="relative inline-block max-w-[85%] md:max-w-[70%]">
+                        <img 
+                            src={url} 
+                            alt="Immagine Lezione" 
+                            className="w-full h-auto rounded-2xl border-4 border-white shadow-md animate-in zoom-in duration-500 cursor-zoom-in hover:scale-[1.01] transition-transform" 
+                            onClick={() => setZoomedLessonImage(url)}
+                        />
+                        {/* Lente d'ingrandimento in overlay sull'immagine */}
+                        <div 
+                            onClick={() => setZoomedLessonImage(url)}
+                            className="absolute bottom-3 right-3 bg-blue-600/80 text-white p-2 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-all md:opacity-0 md:group-hover:opacity-100"
+                        >
+                            <ZoomIn size={18} strokeWidth={3} />
+                        </div>
+                    </div>
                 </div>
               );
           }
@@ -434,7 +446,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                 <div 
                     ref={indexScrollRef}
                     onScroll={checkIndexScrollStatus}
-                    className="w-full overflow-y-auto no-scrollbar max-h-[55vh] md:max-h-[62vh]"
+                    className="w-full overflow-y-auto overflow-x-hidden no-scrollbar max-h-[55vh] md:max-h-[62vh]"
+                    style={{ touchAction: 'pan-y' }}
                 >
                     <div className="space-y-1">
                         {chapters.map(ch => {
@@ -575,10 +588,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                         <div 
                             ref={textContainerRef}
                             onScroll={handleManualScroll}
-                            className="w-full overflow-y-auto no-scrollbar pointer-events-auto block"
+                            className="w-full overflow-y-auto overflow-x-hidden no-scrollbar pointer-events-auto block"
                             style={{
                                 height: '48vh', 
-                                scrollSnapType: 'y proximity'
+                                scrollSnapType: 'y proximity',
+                                touchAction: 'pan-y'
                             }}
                         >
                             <div className="flex flex-col gap-4">
@@ -597,6 +611,28 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   )}
               </div>
           </div>
+
+          {/* ZOOM MODAL PER LE IMMAGINI DELLE LEZIONI */}
+          {zoomedLessonImage && (
+              <div className="fixed inset-0 z-[500] bg-black/95 flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300" onClick={() => setZoomedLessonImage(null)}>
+                  <div className="relative w-full max-w-5xl max-h-full flex items-center justify-center animate-in zoom-in-95 duration-300">
+                      <button 
+                          onClick={() => setZoomedLessonImage(null)}
+                          className="absolute -top-6 -right-6 md:-top-10 md:-right-10 bg-red-500 text-white p-3 rounded-full border-4 border-white shadow-2xl hover:scale-110 active:scale-95 transition-all z-[510]"
+                      >
+                          <X size={32} strokeWidth={4} />
+                      </button>
+                      <img 
+                          src={zoomedLessonImage} 
+                          alt="Zoom" 
+                          className="max-w-full max-h-[85vh] object-contain rounded-[2rem] border-8 border-white shadow-[0_0_50px_rgba(255,255,255,0.2)]"
+                      />
+                      <div className="absolute bottom-[-40px] left-0 right-0 text-center">
+                          <p className="text-white font-black uppercase tracking-widest text-xs md:text-base drop-shadow-md">Tocca per chiudere</p>
+                      </div>
+                  </div>
+              </div>
+          )}
 
           {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -631,50 +667,52 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
           )}
 
           {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-                  <div className="bg-white w-full max-lg rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[85vh] md:h-auto">
+              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
+                  <div className="bg-white w-full max-w-2xl rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto max-h-[800px]">
                       <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"><X size={24} strokeWidth={4} /></button>
                       
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
-                          <img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-16 w-auto object-contain" />
+                          <img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" />
                       </div>
 
-                      <div className="p-4 md:p-6 overflow-y-auto no-scrollbar flex-1 flex flex-col gap-4">
+                      <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden gap-3">
                           <div className="text-center">
-                              <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest">Attività {currentActivityIdx + 1} di {selectedLesson.activities.length}</span>
+                              <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">Attività {currentActivityIdx + 1} di {selectedLesson.activities.length}</span>
                           </div>
 
-                          <div className="w-full aspect-video bg-slate-100 rounded-3xl border-4 border-orange-200 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
+                          <div className="w-full aspect-video bg-slate-100 border-4 border-orange-200 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
                                <img src={currentActivity.image} className="w-full h-full object-contain" alt="Immagine Attività" />
                           </div>
 
-                          <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight text-center">{currentActivity.question}</p>
+                          <p className="text-lg md:text-xl font-black text-slate-800 leading-tight text-center px-2">{currentActivity.question}</p>
 
-                          <div className="grid grid-cols-1 gap-2.5">
+                          <div className="grid grid-cols-1 gap-1.5 flex-1">
                               {currentActivity.options.map((opt, idx) => (
                                   <button 
                                     key={idx} 
                                     onClick={() => handleActivityChoice(idx)} 
-                                    className={`p-3 rounded-[1.5rem] font-black text-lg md:text-xl border-4 transition-all text-left shadow-lg flex items-center gap-4 ${activityAnswer === null ? 'bg-slate-50 border-slate-200 text-orange-600 hover:border-orange-500 hover:bg-white' : ''} ${activityAnswer === idx && idx === currentActivity.correctIndex ? 'bg-green-500 border-green-700 text-white' : ''} ${activityAnswer === idx && idx !== currentActivity.correctIndex ? 'bg-red-500 border-red-300 text-white animate-shake' : (activityAnswer !== null ? 'opacity-50 border-slate-100 text-orange-600' : '')}`}
+                                    className={`py-2 px-3 rounded-xl font-black text-base md:text-lg border-2 md:border-4 transition-all text-left shadow-md flex items-center gap-3 ${activityAnswer === null ? 'bg-slate-50 border-slate-200 text-orange-600 hover:border-orange-500 hover:bg-white' : ''} ${activityAnswer === idx && idx === currentActivity.correctIndex ? 'bg-green-500 border-green-700 text-white' : ''} ${activityAnswer === idx && idx !== currentActivity.correctIndex ? 'bg-red-500 border-red-300 text-white animate-shake' : (activityAnswer !== null ? 'opacity-50 border-slate-100 text-orange-600' : '')}`}
                                   >
-                                      <span className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base shrink-0 ${activityAnswer === idx ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-600'}`}>{String.fromCharCode(65 + idx)}</span>
-                                      {opt}
+                                      <span className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm shrink-0 ${activityAnswer === idx ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-600'}`}>{String.fromCharCode(65 + idx)}</span>
+                                      <span className="truncate">{opt}</span>
                                   </button>
                               ))}
                           </div>
 
-                          {showActivityFeedback && (
-                              <div className="mt-2 p-3 rounded-[2rem] bg-orange-50 border-4 border-orange-200 text-center">
-                                  {activityAnswer === currentActivity.correctIndex ? (
-                                    <div className="flex flex-col items-center gap-3">
-                                        <p className="text-green-600 font-black text-base md:text-lg uppercase tracking-tighter dream-glow leading-tight">{currentActivity.feedback}</p>
-                                        <button onClick={nextActivity} className="bg-green-500 text-white px-8 py-3 rounded-full font-black flex items-center gap-2 shadow-md hover:scale-105 transition-transform uppercase text-sm">
-                                            {currentActivityIdx < selectedLesson.activities.length - 1 ? 'Attività Successiva' : 'Fine Attività'} <ChevronRight size={18} />
-                                        </button>
-                                    </div>
-                                  ) : <p className="text-red-600 font-black text-base md:text-lg uppercase tracking-tighter">Ops! Riprova! 💪</p>}
-                              </div>
-                          )}
+                          <div className="min-h-[60px] flex items-center justify-center">
+                              {showActivityFeedback && (
+                                  <div className="w-full p-2 rounded-2xl bg-orange-50 border-2 border-orange-200 text-center animate-in zoom-in">
+                                      {activityAnswer === currentActivity.correctIndex ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <p className="text-green-600 font-black text-base md:text-lg uppercase tracking-tighter dream-glow leading-tight">{currentActivity.feedback}</p>
+                                            <button onClick={nextActivity} className="bg-green-500 text-white px-6 py-2 rounded-full font-black flex items-center gap-2 shadow-md hover:scale-105 transition-transform uppercase text-[10px]">
+                                                {currentActivityIdx < selectedLesson.activities.length - 1 ? 'Attività Successiva' : 'Fine Attività'} <ChevronRight size={14} />
+                                            </button>
+                                        </div>
+                                      ) : <p className="text-red-600 font-black text-sm uppercase tracking-tighter">Ops! Riprova! 💪</p>}
+                                  </div>
+                              )}
+                          </div>
                       </div>
                   </div>
               </div>

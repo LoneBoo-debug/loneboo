@@ -11,7 +11,7 @@ import { GRADE4_DATA } from '../services/curriculum/grade4';
 import { GRADE5_DATA } from '../services/curriculum/grade5';
 import { GraduationCap, Loader2 } from 'lucide-react';
 
-const DIARY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfgirdinfeemoxion55f4300.webp';
+const DIARY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfdiarrde7659kj00u.webp';
 const BTN_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const BTN_GO_LESSON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp';
 
