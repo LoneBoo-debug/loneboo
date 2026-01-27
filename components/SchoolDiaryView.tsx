@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData, SchoolLesson } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import { getProgress } from '../services/tokens';
@@ -9,13 +9,15 @@ import { GRADE2_DATA } from '../services/curriculum/grade2';
 import { GRADE3_DATA } from '../services/curriculum/grade3';
 import { GRADE4_DATA } from '../services/curriculum/grade4';
 import { GRADE5_DATA } from '../services/curriculum/grade5';
-import { GraduationCap, Loader2 } from 'lucide-react';
+import { GraduationCap, Loader2, Star, Award, MessageCircle, CheckCircle2, TrendingUp, X } from 'lucide-react';
 
 const DIARY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfdiarrde7659kj00u.webp';
 const BTN_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const BTN_GO_LESSON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp';
+const BTN_EVALUATION_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/valytazion3edediary44.webp';
+const TEACHER_AVATAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dffdfdfdfds+(1)9870.webp';
 
-// Nuove icone di stato
+// Icone di stato
 const ICON_STATUS_TODO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quiznonfattimapresneu44+(1).webp';
 const ICON_STATUS_DONE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quizfatto54hhr7h3.webp';
 const ICON_STATUS_EMPTY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quizninskeinauns88sjwh7.webp';
@@ -39,6 +41,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
     const [activeSubject, setActiveSubject] = useState<SchoolSubject>(SchoolSubject.ITALIANO);
     const [progress, setProgress] = useState(getProgress());
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isEvalOpen, setIsEvalOpen] = useState(false);
 
     useEffect(() => {
         const currentGrade = parseInt(sessionStorage.getItem('current_diary_grade') || '1');
@@ -70,7 +73,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
 
         loadData();
 
-        // Listener per aggiornare il progresso in tempo reale quando vengono completati i quiz
         const handleProgressUpdate = () => {
             setProgress(getProgress());
         };
@@ -122,6 +124,53 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
         return isComplete ? ICON_STATUS_DONE : ICON_STATUS_TODO;
     };
 
+    // LOGICA PAGELLA
+    const evaluationData = useMemo(() => {
+        if (!curriculum) return null;
+        
+        const stats: Record<SchoolSubject, { total: number, done: number }> = {} as any;
+        let grandTotal = 0;
+        let grandDone = 0;
+
+        Object.values(SchoolSubject).forEach(subj => {
+            const lessons = curriculum.subjects[subj].flatMap(ch => ch.lessons);
+            let subjTotal = 0;
+            let subjDone = 0;
+
+            lessons.forEach(l => {
+                if (l.quizzes && l.quizzes.length > 0) {
+                    subjTotal++;
+                    if (isLessonQuizComplete(l)) subjDone++;
+                }
+                if (l.activities && l.activities.length > 0) {
+                    subjTotal++;
+                    if (isLessonActivityComplete(l)) subjDone++;
+                }
+            });
+
+            stats[subj] = { total: subjTotal, done: subjDone };
+            grandTotal += subjTotal;
+            grandDone += subjDone;
+        });
+
+        const percentage = grandTotal > 0 ? (grandDone / grandTotal) * 100 : 0;
+        
+        let comment = "";
+        if (percentage === 0) {
+            comment = "Ciao tesoro! Vedo che il tuo diario è ancora tutto da scrivere. Sono sicura che sei un bambino molto curioso! Proviamo a fare il primo esercizio? ✨";
+        } else if (percentage < 30) {
+            comment = "Ben fatto! Hai mosso i primi passi. Ricorda che ogni grande scrittore ha iniziato proprio come te. Continua così, diventerai bravissimo! Forza! 🍎";
+        } else if (percentage < 70) {
+            comment = "Splendido lavoro! Stai diventando un vero esperto. Mi piace moltissimo come ti impegni nelle attività. Continua a studiare con questa gioia! 🌟";
+        } else if (percentage < 100) {
+            comment = "Sei quasi al traguardo, che meraviglia! I tuoi risultati sono eccellenti e dimostrano che sei un alunno attento e volenteroso. Manca pochissimo! 🎈";
+        } else {
+            comment = "INCREDIBILE! Hai completato ogni singola sfida! Sei un vero campione e hai dimostrato un impegno straordinario. Bravissimo! 🏆✨";
+        }
+
+        return { stats, grandTotal, grandDone, percentage, comment };
+    }, [curriculum, progress]);
+
     return (
         <div className="fixed inset-0 z-0 bg-sky-100 flex flex-col pt-[64px] md:pt-[96px] overflow-hidden">
             <style>{`
@@ -144,9 +193,20 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                         <h2 className="text-xl md:text-3xl font-luckiest text-blue-900 uppercase leading-none tracking-tight">Diario {grade}ª</h2>
                     </div>
                 </div>
-                <button onClick={handleExit} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                    <img src={BTN_BACK_IMG} alt="Chiudi" className="w-14 h-14 md:w-20 h-auto drop-shadow-lg" />
-                </button>
+                
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => setIsEvalOpen(true)}
+                        className="hover:scale-110 active:scale-95 transition-all outline-none"
+                        title="Valutazione Maestra"
+                    >
+                        <img src={BTN_EVALUATION_IMG} alt="Valutazione" className="w-14 h-14 md:w-20 h-auto drop-shadow-lg" />
+                    </button>
+
+                    <button onClick={handleExit} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                        <img src={BTN_BACK_IMG} alt="Chiudi" className="w-14 h-14 md:w-20 h-auto drop-shadow-lg" />
+                    </button>
+                </div>
             </div>
 
             {/* TABS MATERIE */}
@@ -194,7 +254,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                     </span>
                                     
                                     <div className="flex items-center gap-4 md:gap-8 shrink-0">
-                                        {/* CAMPO QUIZ */}
                                         <div className="flex flex-col items-center">
                                             <span className="text-[6px] md:text-[8px] font-black text-slate-500 uppercase leading-none mb-1">Quiz</span>
                                             <img 
@@ -203,7 +262,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                                 className="w-5 h-5 md:w-8 md:h-8 object-contain drop-shadow-sm" 
                                             />
                                         </div>
-                                        {/* CAMPO ATTIVITÀ */}
                                         <div className="flex flex-col items-center">
                                             <span className="text-[6px] md:text-[8px] font-black text-slate-500 uppercase leading-none mb-1">Attività</span>
                                             <img 
@@ -213,7 +271,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                             />
                                         </div>
 
-                                        {/* TASTO VAI ALLA LEZIONE */}
                                         <button 
                                             onClick={() => handleLessonNavigate(activeSubject, lesson.id)}
                                             className="ml-2 hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
@@ -232,6 +289,94 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                     )}
                 </div>
             </div>
+
+            {/* MODALE VALUTAZIONE - Z-INDEX MASSIMO E POSIZIONAMENTO RIBASSATO */}
+            {isEvalOpen && evaluationData && (
+                <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-start justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEvalOpen(false)}>
+                    <div 
+                        className="bg-[#fdfcf0] w-full max-w-4xl rounded-[3rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative mt-24 md:mt-32"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Tasto Chiudi - Posizionato strategicamente per essere visibile e cliccabile */}
+                        <button onClick={() => setIsEvalOpen(false)} className="absolute top-4 right-4 z-[3050] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-black hover:scale-110 transition-all shadow-lg active:scale-95">
+                            <X size={24} strokeWidth={4} />
+                        </button>
+
+                        {/* Header Modale */}
+                        <div className="bg-blue-600 p-4 md:p-6 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl p-1 shadow-lg">
+                                <img src={TEACHER_AVATAR} className="w-full h-full object-contain" alt="Maestra" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-white font-luckiest text-xl md:text-4xl uppercase leading-none tracking-tight">La mia Pagella</h3>
+                                <p className="text-blue-100 font-bold text-[8px] md:text-xs uppercase tracking-widest mt-0.5">I progressi della Scuola Arcobaleno</p>
+                            </div>
+                        </div>
+
+                        {/* Corpo Modale - Layout Orizzontale per mostrare tutto subito */}
+                        <div className="p-3 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20 flex flex-col gap-3 md:gap-8">
+                            
+                            {/* GRIGLIA MATERIE - COMPATTA */}
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5 md:gap-4">
+                                {Object.values(SchoolSubject).map(subj => {
+                                    const stats = evaluationData.stats[subj];
+                                    const perc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+                                    
+                                    return (
+                                        <div key={subj} className="bg-white/90 p-2 md:p-3 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col items-center gap-1 md:gap-2 text-center">
+                                            <img src={SUBJECT_ICONS[subj]} className="w-8 h-8 md:w-12 md:h-12 object-contain" alt="" />
+                                            <div className="w-full">
+                                                <span className="font-black text-[7px] md:text-[10px] uppercase text-slate-500 block mb-0.5 truncate">{subj}</span>
+                                                <div className="w-full h-1.5 md:h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                                    <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${perc}%` }}></div>
+                                                </div>
+                                                <span className="font-black text-blue-600 text-[8px] md:text-[10px] mt-0.5 block">{perc}%</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* ZONA CENTRALE: COMMENTO + RECAP */}
+                            <div className="flex flex-col md:flex-row gap-3 md:gap-8 items-stretch">
+                                
+                                {/* COMMENTO MAESTRA */}
+                                <div className="flex-1 relative bg-white p-4 md:p-6 rounded-[2rem] border-4 border-yellow-400 shadow-xl flex items-center gap-3 md:gap-6">
+                                    <div className="absolute -top-3 left-6 bg-yellow-400 text-black px-3 py-0.5 rounded-full font-black text-[8px] md:text-[10px] uppercase shadow-md flex items-center gap-2">
+                                        <MessageCircle size={12} fill="currentColor" /> Messaggio per te
+                                    </div>
+                                    
+                                    <div className="w-14 h-14 md:w-24 md:h-24 shrink-0">
+                                        <img src={TEACHER_AVATAR} className="w-full h-full object-contain drop-shadow-md" alt="" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-slate-700 font-bold text-[10px] md:text-lg leading-snug italic">
+                                            "{evaluationData.comment}"
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* RECAP FINALE */}
+                                <div className="flex flex-row md:flex-col justify-center gap-2 md:gap-3 shrink-0">
+                                    <div className="flex-1 md:flex-none bg-blue-100 px-3 md:px-6 py-2 md:py-3 rounded-2xl border-2 border-blue-200 flex flex-col items-center shadow-sm">
+                                        <span className="text-[7px] md:text-[9px] font-black text-blue-400 uppercase tracking-widest">Svolte</span>
+                                        <span className="text-base md:text-3xl font-black text-blue-700 leading-none">{evaluationData.grandDone} / {evaluationData.grandTotal}</span>
+                                    </div>
+                                    <div className="flex-1 md:flex-none bg-green-100 px-3 md:px-6 py-2 md:py-3 rounded-2xl border-2 border-green-200 flex flex-col items-center shadow-sm">
+                                        <span className="text-[7px] md:text-[9px] font-black text-green-400 uppercase tracking-widest">Media</span>
+                                        <span className="text-base md:text-3xl font-black text-green-700 leading-none">{Math.round(evaluationData.percentage)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Modale */}
+                        <div className="bg-white p-2 border-t-4 border-slate-100 text-center opacity-40 shrink-0">
+                            <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest text-slate-400"> Registro Scolastico Ufficiale • Lone Boo World </span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Footer Decor */}
             <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-20 pointer-events-none z-0">

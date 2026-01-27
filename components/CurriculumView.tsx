@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square, ZoomIn } from 'lucide-react';
 import { markQuizComplete, markActivityComplete } from '../services/tokens';
@@ -100,10 +100,8 @@ interface CurriculumViewProps {
 const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView }) => {
   const [selectedSubject, setSelectedSubject] = useState<SchoolSubject>(initialSubject);
   const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(() => {
-    // Controllo se c'è una lezione in sospeso da aprire
     const pendingId = sessionStorage.getItem('pending_lesson_id');
     if (pendingId) {
-        // Cerchiamo la lezione nei dati della materia corrente
         const chapters = data.subjects[initialSubject] || [];
         for (const ch of chapters) {
             const found = ch.lessons.find(l => l.id === pendingId);
@@ -171,11 +169,28 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         trimmed.endsWith('.jpeg') || 
         trimmed.endsWith('.png') || 
         trimmed.endsWith('.gif') ||
-        trimmed.includes('loneboo-images.s3') // Caso specifico per gli asset AWS
+        trimmed.includes('loneboo-images.s3')
     );
   };
 
-  // Funzione per splittare il testo cercando gli URL delle immagini
+  // Funzione per il calcolo delle pagine (stabile come useCallback)
+  const checkPages = useCallback(() => {
+    const container = textContainerRef.current;
+    if (container && selectedLesson) {
+        if (isImageUrl(selectedLesson.text)) {
+            setTotalPages(1);
+            setCurrentPage(1);
+            return;
+        }
+        const tolerance = 25;
+        const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
+        setTotalPages(total > 0 ? total : 1);
+        // Resettiamo alla prima pagina solo se cambiamo lezione, altrimenti manteniamo la corrente
+        // se siamo già dentro la stessa lezione (es. durante caricamento immagini)
+        container.scrollTop = (currentPage - 1) * container.clientHeight;
+    }
+  }, [selectedLesson, currentPage]);
+
   const renderMixedContent = (text: string) => {
       const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\S+)/gi;
       const parts = text.split(imgRegex);
@@ -190,9 +205,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             src={url} 
                             alt="Immagine Lezione" 
                             className="w-full h-auto rounded-2xl border-4 border-white shadow-md animate-in zoom-in duration-500 cursor-zoom-in hover:scale-[1.01] transition-transform" 
+                            onLoad={() => {
+                                // Ricalcola le pagine quando l'immagine è caricata
+                                setTimeout(checkPages, 100);
+                            }}
                             onClick={() => setZoomedLessonImage(url)}
                         />
-                        {/* Lente d'ingrandimento in overlay sull'immagine */}
                         <div 
                             onClick={() => setZoomedLessonImage(url)}
                             className="absolute bottom-3 right-3 bg-blue-600/80 text-white p-2 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-all md:opacity-0 md:group-hover:opacity-100"
@@ -223,26 +241,10 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   useEffect(() => {
     if (selectedLesson && !selectedLesson.isPremium) {
-        const checkPages = () => {
-            const container = textContainerRef.current;
-            if (container) {
-                if (isImageUrl(selectedLesson.text)) {
-                    setTotalPages(1);
-                    setCurrentPage(1);
-                    return;
-                }
-                const tolerance = 25;
-                const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
-                setTotalPages(total > 0 ? total : 1);
-                setCurrentPage(1);
-                container.scrollTop = 0;
-            }
-        };
-
         const timers = [
             setTimeout(checkPages, 100),
             setTimeout(checkPages, 500),
-            setTimeout(checkPages, 1000)
+            setTimeout(checkPages, 1500)
         ];
         
         window.addEventListener('resize', checkPages);
@@ -251,7 +253,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             window.removeEventListener('resize', checkPages);
         };
     }
-  }, [selectedLesson]);
+  }, [selectedLesson, checkPages]);
 
   const handleManualScroll = () => {
     const container = textContainerRef.current;
@@ -350,7 +352,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setShowFeedback(true);
     const quiz = selectedLesson?.quizzes[currentQuizIdx];
     if (idx === quiz?.correctIndex) {
-        // Registriamo il successo nel diario se è corretto
         if (selectedLesson) markQuizComplete(selectedLesson.id, currentQuizIdx);
     } else {
         setTimeout(() => { setQuizAnswer(null); setShowFeedback(false); }, 2000);
@@ -373,7 +374,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setShowActivityFeedback(true);
     const activity = selectedLesson?.activities[currentActivityIdx];
     if (idx === activity?.correctIndex) {
-        // Registriamo il successo nel diario se è corretto
         if (selectedLesson) markActivityComplete(selectedLesson.id, currentActivityIdx);
     } else {
         setTimeout(() => { setActivityAnswer(null); setShowActivityFeedback(false); }, 2000);
@@ -441,12 +441,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             className="absolute z-50 cursor-pointer"
             style={{ clipPath: getClipPath([{"x": 60.5, "y": 10.64}, {"x": 60.5, "y": 17.39}, {"x": 72.49, "y": 17.09}, {"x": 71.96, "y": 10.34}]), inset: 0 }}
         />
-        <div className="flex-1 flex flex-col items-center z-10 pt-48 md:pt-60 overflow-hidden">
+        <div className="flex-1 flex flex-col items-center z-10 pt-52 md:pt-66 overflow-hidden">
             <div className="w-full max-w-4xl px-12 md:px-24 flex flex-col items-center">
                 <div 
                     ref={indexScrollRef}
                     onScroll={checkIndexScrollStatus}
-                    className="w-full overflow-y-auto overflow-x-hidden no-scrollbar max-h-[55vh] md:max-h-[62vh]"
+                    className="w-full overflow-y-auto overflow-x-hidden no-scrollbar max-h-[60vh] md:max-h-[68vh]"
                     style={{ touchAction: 'pan-y' }}
                 >
                     <div className="space-y-1">
@@ -495,7 +495,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1` : "";
 
   return (
-      <div className="fixed inset-0 z-[160] flex flex-col bg-white overflow-hidden">
+      <div className="fixed inset-0 z-100 flex flex-col bg-white overflow-hidden">
           <img src={getSpecialBg(true)} alt="" className="absolute inset-0 w-full h-full object-fill z-0" />
 
           <div className="absolute inset-0 z-40 pointer-events-none">
@@ -611,28 +611,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   )}
               </div>
           </div>
-
-          {/* ZOOM MODAL PER LE IMMAGINI DELLE LEZIONI */}
-          {zoomedLessonImage && (
-              <div className="fixed inset-0 z-[500] bg-black/95 flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300" onClick={() => setZoomedLessonImage(null)}>
-                  <div className="relative w-full max-w-5xl max-h-full flex items-center justify-center animate-in zoom-in-95 duration-300">
-                      <button 
-                          onClick={() => setZoomedLessonImage(null)}
-                          className="absolute -top-6 -right-6 md:-top-10 md:-right-10 bg-red-500 text-white p-3 rounded-full border-4 border-white shadow-2xl hover:scale-110 active:scale-95 transition-all z-[510]"
-                      >
-                          <X size={32} strokeWidth={4} />
-                      </button>
-                      <img 
-                          src={zoomedLessonImage} 
-                          alt="Zoom" 
-                          className="max-w-full max-h-[85vh] object-contain rounded-[2rem] border-8 border-white shadow-[0_0_50px_rgba(255,255,255,0.2)]"
-                      />
-                      <div className="absolute bottom-[-40px] left-0 right-0 text-center">
-                          <p className="text-white font-black uppercase tracking-widest text-xs md:text-base drop-shadow-md">Tocca per chiudere</p>
-                      </div>
-                  </div>
-              </div>
-          )}
 
           {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
