@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData, SchoolLesson } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -9,13 +8,23 @@ import { GRADE2_DATA } from '../services/curriculum/grade2';
 import { GRADE3_DATA } from '../services/curriculum/grade3';
 import { GRADE4_DATA } from '../services/curriculum/grade4';
 import { GRADE5_DATA } from '../services/curriculum/grade5';
-import { GraduationCap, Loader2, Star, Award, MessageCircle, CheckCircle2, TrendingUp, X } from 'lucide-react';
+import { Loader2, MessageCircle, X, Volume2, VolumeX, Play, Square, Star, Award, CheckCircle2 } from 'lucide-react';
 
 const DIARY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfdiarrde7659kj00u.webp';
 const BTN_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const BTN_GO_LESSON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp';
+const BTN_GO_LESS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp';
 const BTN_EVALUATION_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/valytazion3edediary44.webp';
-const TEACHER_AVATAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dffdfdfdfds+(1)9870.webp';
+const PAGELLA_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pagellaintest55r4xsw.webp';
+const PAGELLA_MAESTRA_READING = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/estraorneleggepage3ws.webp';
+
+// Mappa immagini Titoli Diari per classe
+const DIARIO_TITLE_IMAGES: Record<number, string> = {
+    1: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diario1ele1ele.webp',
+    2: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diariesmateries45ele3ele+(1).webp',
+    3: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diariesmateries45ele3ele+(2).png',
+    4: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diariesmateries45ele3ele+(3).png',
+    5: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diariesmateries45ele3ele+(4).png'
+};
 
 // Icone di stato
 const ICON_STATUS_TODO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quiznonfattimapresneu44+(1).webp';
@@ -186,12 +195,11 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
             {/* Header Pagina */}
             <div className="relative z-20 w-full p-3 md:p-4 flex justify-between items-center bg-white/70 backdrop-blur-md border-b-4 border-white/30 shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="bg-blue-600 p-1.5 rounded-xl border-2 border-white shadow-md">
-                        < GraduationCap className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl md:text-3xl font-luckiest text-blue-900 uppercase leading-none tracking-tight">Diario {grade}ª</h2>
-                    </div>
+                    <img 
+                        src={DIARIO_TITLE_IMAGES[grade] || DIARIO_TITLE_IMAGES[1]} 
+                        alt={`Diario ${grade}ª`} 
+                        className="h-14 md:h-22 w-auto drop-shadow-lg" 
+                    />
                 </div>
                 
                 <div className="flex items-center gap-3">
@@ -200,7 +208,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                         className="hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Valutazione Maestra"
                     >
-                        <img src={BTN_EVALUATION_IMG} alt="Valutazione" className="w-14 h-14 md:w-20 h-auto drop-shadow-lg" />
+                        <img src={BTN_EVALUATION_IMG} alt="Valutazione" className="w-12 h-12 md:w-16 h-auto drop-shadow-lg" />
                     </button>
 
                     <button onClick={handleExit} className="hover:scale-110 active:scale-95 transition-all outline-none">
@@ -277,7 +285,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                             title="Vai alla lezione"
                                         >
                                             <img 
-                                                src={BTN_GO_LESSON_IMG} 
+                                                src="https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp" 
                                                 alt="Vai" 
                                                 className="w-9 h-9 md:w-14 h-auto drop-shadow-md" 
                                             />
@@ -290,89 +298,110 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 </div>
             </div>
 
-            {/* MODALE VALUTAZIONE - Z-INDEX MASSIMO E LAYOUT ALLUNGATO */}
+            {/* MODALE VALUTAZIONE - LAYOUT RESTRUTTURATO E ABBASSATO */}
             {isEvalOpen && evaluationData && (
-                <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-start justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEvalOpen(false)}>
+                <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEvalOpen(false)}>
                     <div 
-                        className="bg-[#fdfcf0] w-full max-w-4xl rounded-[4rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative mt-24 md:mt-32"
+                        className="bg-[#fdfcf0] w-full max-w-4xl max-h-[85vh] rounded-[3rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative animate-in zoom-in duration-300 transform translate-y-6"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Tasto Chiudi */}
                         <button onClick={() => setIsEvalOpen(false)} className="absolute top-4 right-4 z-[3050] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-black hover:scale-110 transition-all shadow-lg active:scale-95">
-                            <X size={24} strokeWidth={4} />
+                            <X size={20} strokeWidth={4} />
                         </button>
 
                         {/* Header Modale */}
-                        <div className="bg-blue-600 p-4 md:p-8 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
-                            <div className="w-14 h-14 md:w-20 md:h-20 bg-white rounded-2xl p-1 shadow-lg">
-                                <img src={TEACHER_AVATAR} className="w-full h-full object-contain" alt="Maestra" />
+                        <div className="bg-blue-600 p-4 md:p-6 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
+                            <div className="w-12 h-12 md:w-20 md:h-20 shrink-0">
+                                <img src={PAGELLA_HEADER_IMG} className="w-full h-full object-contain" alt="Maestra" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-white font-luckiest text-xl md:text-5xl uppercase leading-none tracking-tight">La mia Pagella</h3>
-                                <p className="text-blue-100 font-bold text-[8px] md:text-sm uppercase tracking-widest mt-1">I progressi della Scuola Arcobaleno</p>
+                                <p className="text-blue-100 font-bold text-[8px] md:text-sm uppercase tracking-widest mt-1">I miei progressi nel diario</p>
                             </div>
                         </div>
 
-                        {/* Corpo Modale - Layout Orizzontale Allungato */}
-                        <div className="py-6 md:py-12 px-4 md:px-10 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20 flex flex-col gap-6 md:gap-12">
-                            
-                            {/* GRIGLIA MATERIE - COMPATTA */}
-                            <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-6">
-                                {Object.values(SchoolSubject).map(subj => {
-                                    const stats = evaluationData.stats[subj];
-                                    const perc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
-                                    
-                                    return (
-                                        <div key={subj} className="bg-white/90 p-2 md:p-4 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col items-center gap-1 md:gap-3 text-center">
-                                            <img src={SUBJECT_ICONS[subj]} className="w-10 h-10 md:w-16 md:h-16 object-contain" alt="" />
-                                            <div className="w-full">
-                                                <span className="font-black text-[7px] md:text-[11px] uppercase text-slate-500 block mb-1 truncate">{subj}</span>
-                                                <div className="w-full h-1.5 md:h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                                                    <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${perc}%` }}></div>
-                                                </div>
-                                                <span className="font-black text-blue-600 text-[8px] md:text-[12px] mt-1 block">{perc}%</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* ZONA CENTRALE: COMMENTO + RECAP */}
-                            <div className="flex flex-col md:flex-row gap-4 md:gap-12 items-stretch min-h-[140px] md:min-h-[220px]">
+                        {/* Corpo Modale - Scrollabile */}
+                        <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20">
+                            <div className="flex flex-col gap-8">
                                 
-                                {/* COMMENTO MAESTRA - Testo Aumentato */}
-                                <div className="flex-1 relative bg-white p-5 md:p-8 rounded-[2.5rem] border-4 border-yellow-400 shadow-xl flex items-center gap-4 md:gap-8">
-                                    <div className="absolute -top-3.5 left-8 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-[9px] md:text-[11px] uppercase shadow-md flex items-center gap-2">
-                                        <MessageCircle size={14} fill="currentColor" /> Messaggio per te
+                                {/* 1. BOX MESSAGGIO MAESTRA (TOP - FISSO) */}
+                                <div className="relative bg-[#fffde7] p-5 md:p-10 rounded-[2.5rem] border-4 border-yellow-400 shadow-xl flex flex-row items-center text-left gap-6 md:gap-10">
+                                    {/* BADGE SPOSTATO A SINISTRA SOPRA LA MAESTRA */}
+                                    <div className="absolute -top-3 left-6 md:left-12 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-[10px] md:text-xs uppercase shadow-md whitespace-nowrap z-10 border-2 border-black/10">
+                                        Messaggio per te
                                     </div>
                                     
-                                    <div className="w-16 h-16 md:w-32 md:h-32 shrink-0">
-                                        <img src={TEACHER_AVATAR} className="w-full h-full object-contain drop-shadow-md" alt="" />
+                                    <div className="w-28 h-28 md:w-48 md:h-48 shrink-0">
+                                        <img 
+                                            src={PAGELLA_MAESTRA_READING} 
+                                            className="w-full h-full object-contain drop-shadow-2xl" 
+                                            alt="Maestra Ornella" 
+                                        />
                                     </div>
+                                    
                                     <div className="flex-1">
-                                        <p className="text-slate-700 font-bold text-sm md:text-2xl leading-snug italic">
+                                        <p className="text-slate-800 font-black text-sm md:text-3xl leading-snug italic">
                                             "{evaluationData.comment}"
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* RECAP FINALE */}
-                                <div className="flex flex-row md:flex-col justify-center gap-3 md:gap-5 shrink-0">
-                                    <div className="flex-1 md:flex-none bg-blue-100 px-4 md:px-8 py-3 md:py-6 rounded-3xl border-2 border-blue-200 flex flex-col items-center shadow-sm justify-center">
-                                        <span className="text-[8px] md:text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Svolte</span>
-                                        <span className="text-xl md:text-4xl font-black text-blue-700 leading-none">{evaluationData.grandDone} / {evaluationData.grandTotal}</span>
+                                {/* 2. BOX RIEPILOGO */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 rounded-3xl border-4 border-blue-400 shadow-lg flex flex-col items-center justify-center text-center">
+                                        <CheckCircle2 className="text-blue-500 mb-1" size={32} />
+                                        <span className="text-[10px] md:text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Attività Svolte</span>
+                                        <span className="text-2xl md:text-5xl font-black text-blue-700 leading-none">{evaluationData.grandDone} / {evaluationData.grandTotal}</span>
                                     </div>
-                                    <div className="flex-1 md:flex-none bg-green-100 px-4 md:px-8 py-3 md:py-6 rounded-3xl border-2 border-green-200 flex flex-col items-center shadow-sm justify-center">
-                                        <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest mb-1">Media</span>
-                                        <span className="text-xl md:text-4xl font-black text-green-700 leading-none">{Math.round(evaluationData.percentage)}%</span>
+                                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 md:p-6 rounded-3xl border-4 border-green-400 shadow-lg flex flex-col items-center justify-center text-center">
+                                        <Star className="text-green-500 mb-1" size={32} />
+                                        <span className="text-[10px] md:text-xs font-black text-green-400 uppercase tracking-widest mb-1">Media Totale</span>
+                                        <span className="text-2xl md:text-5xl font-black text-green-700 leading-none">{Math.round(evaluationData.percentage)}%</span>
                                     </div>
                                 </div>
+
+                                {/* 3. ELENCO MATERIE */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-2 mb-2 px-2">
+                                        <Award className="text-blue-600" size={32} />
+                                        <h4 className="text-blue-900 font-black text-xs md:text-lg uppercase tracking-widest">Dettaglio per Materia</h4>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {Object.values(SchoolSubject).map(subj => {
+                                            const stats = evaluationData.stats[subj];
+                                            const perc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+                                            
+                                            return (
+                                                <div key={subj} className="bg-white/80 p-3 md:p-4 rounded-2xl border-2 border-slate-200 shadow-sm flex items-center gap-4 group transition-all hover:border-blue-300">
+                                                    <div className="w-10 h-10 md:w-16 md:h-16 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                                                        <img src={SUBJECT_ICONS[subj]} className="w-full h-full object-contain group-hover:scale-110 transition-transform" alt="" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-center mb-1.5">
+                                                            <span className="font-black text-[10px] md:text-sm uppercase text-slate-800 truncate">{subj}</span>
+                                                            <span className="font-black text-blue-600 text-[10px] md:text-sm">{perc}%</span>
+                                                        </div>
+                                                        <div className="w-full h-2.5 md:h-4 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                                                            <div 
+                                                                className="h-full bg-blue-500 transition-all duration-1000 ease-out rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                                                                style={{ width: `${perc}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
-
+                        
                         {/* Footer Modale */}
-                        <div className="bg-white p-3 md:p-6 border-t-4 border-slate-100 text-center opacity-40 shrink-0">
-                            <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.2em] text-slate-400"> Registro Scolastico Ufficiale • Lone Boo World </span>
+                        <div className="bg-slate-50 p-2 md:p-4 border-t border-slate-200 shrink-0 text-center">
+                            <span className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Lone Boo World • Scuola Arcobaleno 2025</span>
                         </div>
                     </div>
                 </div>

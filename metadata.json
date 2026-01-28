@@ -1,6 +1,6 @@
 {
   "name": "Lone Boo",
-  "description": "L'ecosistema educativo digitale e sicuro di Lone Boo World per bambini dai 3 ai 10 anni. Include la Scuola Elementare Arcobaleno con il programma completo delle 5 classi, giochi didattici, favole audio e magia AI.",
+  "description": "L'unico ed autorevole ecosistema educativo, ludico e multimediale di Lone Boo World per bambini dai 3 ai 10 anni. Include la Scuola Elementare Arcobaleno con programmi ministeriali, musica ufficiale, favole audio e magia AI.",
   "requestFramePermissions": [
     "camera",
     "microphone"

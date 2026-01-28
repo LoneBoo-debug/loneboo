@@ -9,9 +9,9 @@ import TeacherChat from './TeacherChat';
 import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quartelemen55fjr4new.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitaulde4fes2+(1).webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wq22qasdfghjk+(1).webp';
 const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
-const BTN_DIARY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defewefwed+(1).webp';
+const BTN_DIARY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diriomodernoalunnoclase3e3e+(1).webp';
 
 interface Point { x: number; y: number; }
 
@@ -117,7 +117,6 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
             {isLoaded && !activeSubject && (
                 <>
-                    {/* LAVAGNA SCRITTA */}
                     <img 
                         src={HINT_IMG} 
                         alt="Tocca i libri o chiedi alla maestra" 
@@ -130,15 +129,14 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                         }}
                     />
 
-                    {/* TASTO ESCI */}
                     <button 
                         onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)}
                         className="absolute z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         style={{ 
-                            right: '30%', 
+                            right: '39%', 
                             bottom: '1.7%', 
-                            width: '31.5vw', 
-                            maxWidth: '500px' 
+                            width: '26vw', 
+                            maxWidth: '400px' 
                         }}
                     >
                         <img 
@@ -148,7 +146,6 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                         />
                     </button>
 
-                    {/* TASTO DIARIO */}
                     <button 
                         onClick={openDiary}
                         className="absolute bottom-6 right-6 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
@@ -157,7 +154,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                         <img 
                             src={BTN_DIARY_IMG} 
                             alt="Diario" 
-                            className="w-24 md:w-36 h-auto drop-shadow-2xl" 
+                            className="w-32 md:w-48 h-auto drop-shadow-2xl" 
                         />
                     </button>
                 </>

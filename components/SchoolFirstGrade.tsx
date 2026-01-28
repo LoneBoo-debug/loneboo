@@ -9,9 +9,9 @@ import TeacherChat from './TeacherChat';
 import { Loader2 } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/primafirstelem44newr44.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitaulde4fes2+(1).webp';
+const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wq22qasdfghjk+(1).webp';
 const HINT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frechiedimaesre44+(1).webp';
-const BTN_DIARY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defewefwed+(1).webp';
+const BTN_DIARY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/diriomodernoalunnoclase3e3e+(1).webp';
 
 type Point = { x: number; y: number };
 
@@ -68,10 +68,8 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             img.src = BG_URL;
             img.onload = () => {
                 setIsLoaded(true);
-                // Dopo il caricamento, controlliamo se c'è una materia in sospeso
                 const pendingId = sessionStorage.getItem('pending_lesson_id');
                 if (pendingId) {
-                    const chapters = dynamicData.subjects[SchoolSubject.ITALIANO] || []; // Fallback o logica di ricerca estesa se necessario
                 }
                 const pendingSub = sessionStorage.getItem('pending_subject');
                 if (pendingSub && Object.values(SchoolSubject).includes(pendingSub as SchoolSubject)) {
@@ -80,7 +78,6 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                 }
             };
 
-            // Caricamento dati da Google Sheets
             const remoteData = await fetchGradeCurriculum(1);
             if (remoteData) {
                 setDynamicData(prev => {
@@ -153,7 +150,6 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
 
             {isLoaded && !activeSubject && (
                 <>
-                    {/* LAVAGNA SCRITTA */}
                     <img 
                         src={HINT_IMG} 
                         alt="Tocca i libri o chiedi alla maestra" 
@@ -166,15 +162,14 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         }}
                     />
 
-                    {/* TASTO ESCI */}
                     <button 
                         onClick={() => setView(AppView.SCHOOL_FIRST_FLOOR)}
                         className="absolute z-50 hover:scale-110 active:scale-95 transition-all outline-none"
                         style={{ 
-                            right: '30%', 
+                            right: '39%', 
                             bottom: '1.7%', 
-                            width: '31.5vw', 
-                            maxWidth: '500px' 
+                            width: '26vw', 
+                            maxWidth: '400px' 
                         }}
                     >
                         <img 
@@ -184,7 +179,6 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         />
                     </button>
 
-                    {/* TASTO DIARIO */}
                     <button 
                         onClick={openDiary}
                         className="absolute bottom-6 right-6 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
@@ -193,7 +187,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                         <img 
                             src={BTN_DIARY_IMG} 
                             alt="Diario" 
-                            className="w-24 md:w-36 h-auto drop-shadow-2xl" 
+                            className="w-32 md:w-48 h-auto drop-shadow-2xl" 
                         />
                     </button>
                 </>

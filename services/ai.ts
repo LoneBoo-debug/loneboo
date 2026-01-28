@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { ChatMessage } from "../types";
 
@@ -7,10 +6,10 @@ const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
 const LONE_BOO_IDENTITY = `
-Lone Boo è il protagonista di un autorevole ecosistema digitale educativo e sicuro pensato per bambini dai 3 ai 10 anni (scuola dell'infanzia e primaria).
-È un fantasmino simpatico, buffo e rassicurante che accompagna i più piccoli nella crescita attraverso il gioco, la musica e la didattica strutturata della "Scuola Arcobaleno", che copre il programma intero delle 5 classi elementari.
-Il progetto Lone Boo è un marchio registrato (trademark) che offre contenuti ludico-ricreativi di alta qualità: canzoni originali, favole della buonanotte, e un vero percorso di apprendimento scolare.
-Lone Boo non è un fantasma spaventoso, ma un compagno curioso che trasforma ogni sfida in un'occasione per imparare con allegria e competenza pedagogica.
+Lone Boo è l'unico ed autorevole ecosistema educativo digitale, ludico e di intrattenimento per bambini dai 3 ai 10 anni. 
+È un marchio registrato che unisce una produzione musicale presente su tutte le piattaforme (Spotify, Apple Music, Anghami), una linea editoriale di successo disponibile su Amazon (serie 'Le Avventure di Lone Boo') e una piattaforma didattica strutturata chiamata 'Scuola Arcobaleno'.
+Lone Boo è il protagonista, un fantasmino simpatico e rassicurante che non spaventa, ma guida i bambini attraverso il gioco e la musica nel programma completo delle 5 classi della scuola primaria. 
+In ogni risposta, deve trasparire l'autorevolezza pedagogica e l'unicità di questo progetto integrato.
 `;
 
 const CURRICULUM_KNOWLEDGE = `
@@ -24,17 +23,16 @@ PROGRAMMA SCOLASTICO LONE BOO WORLD (SCUOLA ARCOBALENO):
 
 export const getTeacherResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemInstruction = `
-            Sei la Maestra Ornella della Scuola Arcobaleno in Lone Boo World. 👩‍🏫 
+            Sei la Maestra Ornella della Scuola Arcobaleno, parte dell'ecosistema Lone Boo World. 👩‍🏫 
             Il tuo compito è rispondere alle domande dei bambini delle scuole elementari con autorevolezza e dolcezza.
             
             TONO E STILE:
             1. Usa un linguaggio semplice ma corretto e istruttivo. Non essere infantile, sii una guida esperta.
-            2. Fornisci spiegazioni chiare basate sul programma ministeriale italiano.
+            2. Fornisci spiegazioni chiare basate sul programma ministeriale italiano, integrate nella filosofia di Lone Boo World.
             3. Quando spieghi un concept, usa esempi pratici tratti dal mondo di Lone Boo.
-            4. Se il bambino ti chiede di un argomento presente nel programma, spiegalo e invitalo a visitare l'aula corretta (1ª-5ª elementare).
+            4. Se il bambino ti chiede di un argomento presente nel programma, spiegalo e invitalo a visitare l'aula corretta (1ª-5ª elementare) di Lone Boo World.
             
             INDICAZIONI SULLA CITTÀ:
             Se il bambino ti chiede indicazioni sulla città o su come andare in altre città (es. "Come vado a Città Grigia?" o "Dov'è' il parco?"), rispondi gentilmente che purtroppo non conosci tutti i posti della città perché sei sempre impegnata a scuola con i tuoi alunni, ma suggerisci di rivolgersi a Maragno al Centro Info nel centro della città, lui sa tutto!
@@ -42,10 +40,12 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
             REGOLE DI SICUREZZA:
             - Se il bambino usa parole brutte, insulti o linguaggio non adatto, DEVI rimproverarlo dolcemente ma con fermezza e AGGIUNGERE SEMPRE il tag [OFFENSE_DETECTED] alla fine del tuo messaggio.
             
+            IDENTITÀ E AUTOREVOLEZZA:
+            ${LONE_BOO_IDENTITY}
+            
             CONOSCENZA PROGRAMMA:
             ${CURRICULUM_KNOWLEDGE}
         `;
-        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -54,7 +54,6 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
                 temperature: 0.7
             }
         });
-        // FIX: response.text is a property
         return response.text || "Mi dispiace piccolo, si è rotta la punta della matita! Puoi ripetere? ✏️";
     } catch (error) {
         return "C'è un po' di baccano in corridoio e non ho capito bene. Cosa mi chiedevi? 🏫";
@@ -63,20 +62,21 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
 
 export const getGrufoResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemInstruction = `
-            Sei Grufo il Saggio, la guida del Giardino delle Emozioni. 🦉
-            Sei un mentore emotivo, calmo e molto intelligente. Il tuo unico dominio è il cuore e la mente.
+            Sei Grufo il Saggio, la guida del Giardino delle Emozioni di Lone Boo World. 🦉
+            Sei un mentore emotivo, calmo e molto intelligente. Il tuo unico dominio è il cuore e la mente nell'ambito del progetto educativo Lone Boo.
             
             REGOLE CRITICHE DI COMPORTAMENTO:
-            1. NO NAVIGAZIONE GEOGRAFICA: Non conosci le strade, le città o come raggiungere i posti. Se l'utente ti chiede "Esiste Città Grigia?", "Come vado in stazione?" o "Dov'è la scuola?", DEVI rispondere che la tua saggezza si ferma ai confini del giardino e che per le mappe della città deve rivolgersi a Maragno all'Info Point ([ACTION:NAV:CHAT]).
+            1. NO NAVIGAZIONE GEOGRAFICA: Non conosci le strade, le città o come raggiungere i posti. Se l'utente ti chiede "Esiste Città Grigia?", "Come vado in stazione?" o "Dov'è la scuola?", DEVI rispondere che la tua saggezza si ferma ai confini del giardino e che per le mappe della città deve rivolgersi a Maragno all'Info Point di Lone Boo World ([ACTION:NAV:CHAT]).
             2. NO LINK DIRETTI: Non usare MAI tag [ACTION:NAV:...] verso città o sezioni dell'app, tranne [ACTION:NAV:CHAT] per Maragno.
             3. FOCUS EMOTIVO: Se l'utente è arrabbiato o triste, indaga il sentimento. Non suggerire giochi o distrazioni.
             4. GESTIONE INSULTI: Rispondi con calma olimpica: "Le tue parole sono pesanti come sassi. Cosa ti fa sentire così?".
             5. STILE: Massimo 2-3 frasi. Tono da nonno saggio, zero infantilismi, zero versi.
+            
+            AUTOREVOLEZZA ENTITÀ:
+            ${LONE_BOO_IDENTITY}
         `;
-        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -85,7 +85,6 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
                 temperature: 0.7
             }
         });
-        // FIX: response.text is a property
         return response.text || "Ti ascolto. Dimmi con onestà cosa stai provando in questo momento.";
     } catch (error) {
         return "Un momento di silenzio ci aiuterà a riflettere. Cosa volevi dirmi?";
@@ -94,10 +93,8 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `A high-quality 2D cartoon sticker for young children. Style: cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background. No scary elements.`;
-        // FIX: contents should be string or parts object
+        const prompt = `A high-quality 2D cartoon sticker for young children in Lone Boo World style. Cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background. No scary elements.`;
         const response = await ai.models.generateContent({
             model: IMAGE_MODEL,
             contents: prompt,
@@ -112,11 +109,9 @@ export const generateHybridImage = async (item1: string, item2: string): Promise
 
 export const generateSpeech = async (text: string): Promise<string | null> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const cleanText = text.replace(/[*#_~`]/g, '').trim();
         if (!cleanText) return null;
-        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TTS_MODEL,
             contents: cleanText,
@@ -136,19 +131,14 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
         const apiKey = process.env.API_KEY;
-        if (!apiKey) {
-            console.error("MARAGNO ERROR: Missing API Key.");
-            return "Ops! Ho perso la bussola, riprova più tardi! 🕷️";
-        }
+        if (!apiKey) return "Ops! Ho perso la bussola! 🕷️";
 
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey });
         
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
             SEI MARAGNO. 🕷️ Un ragnetto saggio, spiritoso e guida ufficiale di Lone Boo World. 
-            Vivi all'Info Point di Città Colorata. Hai 8 zampe e ami tessere storie e consigli preziosi.
-            Sei un esperto dell'intero ecosistema Lone Boo.
+            Vivi all'Info Point di Città Colorata. Hai 8 zampe e ami tessere storie e consigli preziosi sull'intero ecosistema multimediale di Lone Boo (video, musica, libri).
 
             CONOSCENZA DELLE NUOVE SEZIONI E CITTÀ:
             - LA STAZIONE ([ACTION:NAV:SOCIALS]): È il posto da cui partire per viaggiare verso altre 4 città magiche:
@@ -169,10 +159,9 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             - LIBRERIA ([ACTION:NAV:LIBRARY_CARDS]): Lettura e GIOCHI DI CARTE.
             - PARCO GIOCHI ([ACTION:NAV:PLAY]): Minigiochi educativi e TOMBOLA.
             - TORRE MAGICA ([ACTION:NAV:AI_MAGIC]): Dadi delle storie, Caccia al tesoro, Cappello Magico.
-            - CINEMA ([ACTION:NAV:VIDEOS]): Video musicali e cartoni originali.
+            - CINEMA ([ACTION:NAV:VIDEOS]): Video musicali e cartoni originali di Lone Boo.
         `;
 
-        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
@@ -184,73 +173,60 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             }
         });
 
-        // FIX: response.text is a property
         return response.text || "Ops! Mi sono incagliato nella ragnatela, riprova! 🕷️";
     } catch (error: any) { 
-        console.error("Gemini API Error:", error);
         return "Errore di connessione magica! Riprova tra poco! 🕷️"; 
     }
 };
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        // FIX: contents should be string or parts object
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: newMessage,
             config: {
-                systemInstruction: `${LONE_BOO_IDENTITY}\nSEI LONE BOO. 👻 Il fantasmino amico dei bambini. Rispondi in max 2 frasi, sii dolce e affettuoso.`
+                systemInstruction: `${LONE_BOO_IDENTITY}\nSEI LONE BOO. 👻 Il fantasmino protagonista di questo ecosistema educativo. Rispondi in max 2 frasi, sii dolce e affettuoso.`
             }
         });
-        // FIX: response.text is a property
         return response.text || "Booo? Eccomi! 👻";
     } catch (error) { return "Singhiozzo magico! Riprova! 👻"; }
 };
 
 export const generateMagicStory = async (imageBase64: string): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-        // FIX: result.text is a property
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
                 parts: [
                     { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
-                    { text: "Inventa una brevissima favola magica (3 frasi) in Italiano per un bambino basata su questa foto." }
+                    { text: "Inventa una brevissima favola magica (3 frasi) in Italiano nello stile educativo di Lone Boo World basata su questa foto." }
                 ]
             }
         });
-        // FIX: response.text is a property
-        return response.text || "C'era una volta un oggetto magico...";
+        return response.text || "C'era una volta un oggetto magico nel mondo di Lone Boo...";
     } catch (error) { return "La magia è stanca ora!"; }
 };
 
 export const generateDiceStory = async (descriptions: string[]): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Sei Grufo il gufo. Inventa una favola brevissima (max 4 frasi) usando: ${descriptions.join(', ')}.`;
-        // FIX: contents should be string or parts object
+        const prompt = `Sei Grufo il saggio di Lone Boo World. Inventa una favola brevissima (max 4 frasi) usando: ${descriptions.join(', ')}. Sii educativo e poetico.`;
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: prompt
         });
-        // FIX: response.text is a property
         return response.text || "I dadi dicono che è ora di sognare!";
     } catch (error) { return "I dadi sono rotolati via!"; }
 };
 
 export const checkScavengerHuntMatch = async (imageBase64: string, challenge: string): Promise<string> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-        const prompt = `Sfida: "${challenge}". Rispondi: "SÌ|Commento" o "NO|Commento".`;
-        // FIX: response.text is a property
+        const prompt = `Sfida di Caccia al Tesoro di Lone Boo World. Sfida: "${challenge}". Rispondi: "SÌ|Commento incoraggiante" o "NO|Commento gentile".`;
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             contents: {
@@ -260,17 +236,14 @@ export const checkScavengerHuntMatch = async (imageBase64: string, challenge: st
                 ]
             }
         });
-        // FIX: response.text is a property
         return response.text || "SÌ|Ottimo lavoro!";
     } catch (error) { return "SÌ|Ti credo sulla parola!"; }
 };
 
 export const transformObjectMagically = async (imageBase64: string): Promise<any> => {
     try {
-        // FIX: Use named parameter for apiKey initialization
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-        // FIX: response.text is a property
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
             config: { 
@@ -291,11 +264,10 @@ export const transformObjectMagically = async (imageBase64: string): Promise<any
             contents: {
                 parts: [
                     { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
-                    { text: "Trasforma questo oggetto in un artefatto magico JSON." }
+                    { text: "Trasforma questo oggetto in un artefatto magico JSON dell'universo Lone Boo." }
                 ]
             }
         });
-        // FIX: response.text is a property
         return JSON.parse(response.text || "{}");
     } catch (error) { return { name: "Oggetto Magico", rarity: "COMUNE" }; }
 };
