@@ -154,7 +154,7 @@ const SolarSystemView: React.FC<SolarSystemViewProps> = ({ onClose }) => {
             {selectedPlanet && (
                 <div className="fixed inset-0 z-[600] bg-black/90 flex items-center justify-center p-4 animate-in fade-in" onClick={() => setSelectedPlanet(null)}>
                     <div 
-                        className="bg-white rounded-[2rem] md:rounded-[3rem] border-8 border-yellow-400 w-full max-w-2xl h-[70vh] flex flex-col relative overflow-hidden animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                        className="bg-white rounded-[2rem] md:rounded-[3rem] border-8 border-yellow-400 w-full max-w-2xl h-auto max-h-[85vh] flex flex-col relative overflow-hidden animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                         onClick={e => e.stopPropagation()}
                     >
                         <button 
@@ -164,11 +164,11 @@ const SolarSystemView: React.FC<SolarSystemViewProps> = ({ onClose }) => {
                             <X size={24} strokeWidth={4} />
                         </button>
 
-                        <div className="flex-1 relative bg-black flex items-center justify-center">
+                        <div className="relative bg-black flex items-center justify-center overflow-hidden">
                             <img 
                                 src={PLANET_INFO[selectedPlanet]?.image} 
                                 alt={selectedPlanet} 
-                                className="w-full h-full object-contain"
+                                className="w-full h-auto object-contain max-h-[85vh]"
                             />
                             
                             {/* Nome del pianeta in alto a sinistra stile Lucky */}

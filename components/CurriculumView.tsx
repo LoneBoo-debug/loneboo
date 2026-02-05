@@ -197,9 +197,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         const tolerance = 25;
         const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
         setTotalPages(total > 0 ? total : 1);
-        container.scrollTop = (currentPage - 1) * container.clientHeight;
+        
+        // RIMOSSO: container.scrollTop = (currentPage - 1) * container.clientHeight;
+        // Questa riga causava il problema dello scatto forzato durante lo scorrimento manuale.
     }
-  }, [selectedLesson, currentPage]);
+  }, [selectedLesson]); // Rimossa dipendenza da currentPage per evitare feedback loop
 
   const renderMixedContent = (text: string) => {
       const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\S+)/gi;
@@ -250,6 +252,9 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   useEffect(() => {
     if (selectedLesson && !selectedLesson.isPremium) {
+        // Reset scroll position when a NEW lesson is opened
+        if (textContainerRef.current) textContainerRef.current.scrollTop = 0;
+        
         const timers = [
             setTimeout(checkPages, 100),
             setTimeout(checkPages, 500),
@@ -268,8 +273,10 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     const container = textContainerRef.current;
     if (container) {
         const usableHeight = container.clientHeight || 1;
-        const isAtBottom = container.scrollHeight - container.scrollTop <= usableHeight + 10;
-        const page = isAtBottom ? totalPages : Math.floor(container.scrollTop / usableHeight) + 1;
+        
+        // Calcolo della pagina corrente basato sulla posizione dello scroll
+        // Aggiungiamo un piccolo offset per rendere il cambio pagina più fluido
+        const page = Math.floor((container.scrollTop + (usableHeight / 2)) / usableHeight) + 1;
         
         if (page !== currentPage && page <= totalPages && page > 0) {
             setCurrentPage(page);
@@ -663,11 +670,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             className="w-full overflow-y-auto overflow-x-hidden no-scrollbar pointer-events-auto block"
                             style={{
                                 height: '48vh', 
-                                scrollSnapType: 'y proximity',
-                                touchAction: 'pan-y'
+                                touchAction: 'pan-y',
+                                WebkitOverflowScrolling: 'touch'
                             }}
                         >
-                            <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-4 pb-12">
                                 {renderMixedContent(selectedLesson.text)}
                             </div>
                         </div>

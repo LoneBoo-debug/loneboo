@@ -17,6 +17,7 @@ const ICON_CALENDAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/claenx
 const IMG_CLAIM_TOKENS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gettonoprex4r3e2waa.webp';
 const BTN_ATELIER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/personaliboo90i87y6.webp';
 const IMG_GO_SCHOOL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/andiamoascuolamodaleewerfgr4rf.webp';
+const IMG_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tonjournee5r4e3.webp';
 
 const IMG_SUCCESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riscuotigettonirewards44f55tfre.webp';
 const BTN_OTTIMO_CLOSE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/OTTIMOgettonirccolt654rf4.webp';
@@ -254,13 +255,19 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
             >
                 {/* Header Style Translucido con Saldo Gettoni */}
                 <div className="bg-white/20 p-6 flex justify-between items-center border-b border-white/10 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-white/50 flex items-center gap-1.5 text-white font-black text-xs md:text-base shadow-lg">
+                    <div className="flex items-center gap-3 flex-1">
+                        <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-white/50 flex items-center gap-1.5 text-white font-black text-xs md:text-base shadow-lg shrink-0">
                             <span>{progress.tokens}</span> <span className="text-lg">🪙</span>
                         </div>
-                        <h2 className="text-xl md:text-3xl font-black text-white uppercase tracking-tight">La tua Giornata</h2>
+                        <div className="flex justify-center flex-1 px-2">
+                            <img 
+                                src={IMG_HEADER_TITLE} 
+                                alt="La tua giornata" 
+                                className="h-10 md:h-16 w-auto object-contain drop-shadow-md" 
+                            />
+                        </div>
                     </div>
-                    <button onClick={onClose} className="bg-white/20 text-white p-2 rounded-full hover:bg-white/40 transition-all">
+                    <button onClick={onClose} className="bg-white/20 text-white p-2 rounded-full hover:bg-white/40 transition-all shrink-0">
                         <X size={24} />
                     </button>
                 </div>
@@ -365,8 +372,12 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                                 <img src={IMG_CLAIM_TOKENS} alt="Prendi 5 gettoni" className="w-full h-auto drop-shadow-xl" />
                             </button>
                         ) : (
-                            <div className="w-[28%] opacity-90 transition-all">
-                                <img src={IMG_CLAIMED_STATUS} alt="Gettoni Riscossi" className="w-full h-auto drop-shadow-lg" />
+                            <div className="w-[35%] opacity-90 transition-all flex items-center justify-center">
+                                <img 
+                                    src={IMG_CLAIMED_STATUS} 
+                                    alt="Gettoni Riscossi" 
+                                    className="w-full h-auto drop-shadow-lg transform scale-110" 
+                                />
                             </div>
                         )}
 

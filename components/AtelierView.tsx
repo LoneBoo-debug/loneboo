@@ -253,14 +253,15 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
 
     const specialOverlayImages = useMemo(() => {
         const layers: string[] = [];
-        // La sciarpa (S1) va sotto
-        if (previewLook.special === 'S1') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S1');
-            if (item?.overlay) layers.push(item.overlay);
-        }
-        // L'abito da sera (S5) è come una maglietta, va sopra la sciarpa se presente
+        
+        // L'abito da sera (S5) va sotto la sciarpa
         if (previewLook.special5 === 'S5') {
             const item = SPECIAL_DATA.find(i => i.id === 'S5');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        // La sciarpa (S1) va sopra l'abito da sera
+        if (previewLook.special === 'S1') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S1');
             if (item?.overlay) layers.push(item.overlay);
         }
         // Il cappello Babbo Natale (S2)
