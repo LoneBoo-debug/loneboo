@@ -73,7 +73,7 @@ export const spendTokens = (amount: number): boolean => {
     return false;
 };
 
-export const equipClothing = (type: 'tshirt' | 'hat' | 'glasses', id: string | undefined) => {
+export const equipClothing = (type: 'tshirt' | 'hat' | 'glasses' | 'special' | 'special2' | 'special3' | 'special4' | 'special5', id: string | undefined) => {
     const progress = getProgress();
     progress.equippedClothing[type] = id;
     saveProgress(progress);

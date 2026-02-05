@@ -251,7 +251,7 @@ export interface PlayerProgress {
     completedQuizzes?: Record<string, boolean[]>;
     completedActivities?: Record<string, boolean[]>;
     // Nuovi campi Atelier
-    equippedClothing: { tshirt?: string; hat?: string; glasses?: string };
+    equippedClothing: { tshirt?: string; hat?: string; glasses?: string; special?: string; special2?: string; special3?: string; special4?: string; special5?: string };
     purchasedClothing: string[];
 }
 

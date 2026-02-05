@@ -101,7 +101,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                     </button>
                 </div>
 
-                {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} />}
+                {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.BOO_GARDEN} />}
             </div>
         </RoomLayout>
     );

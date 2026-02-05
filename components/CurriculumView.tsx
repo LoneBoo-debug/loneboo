@@ -646,7 +646,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                         </div>
 
                         {/* Pagination box vertical on the left side, positioned just above the text container */}
-                        <div className="absolute left-1 md:left-4 top-[14%] md:top-[20%] flex flex-col items-center z-30 pointer-events-none">
+                        <div className="absolute left-1 md:left-4 top-[12%] md:top-[18%] flex flex-col items-center z-30 pointer-events-none">
                             <div className="px-2 py-1.5 md:px-4 md:py-3 flex flex-col items-center transition-all pointer-events-auto">
                                 <span className="font-black text-blue-700 text-[8px] md:text-xs uppercase tracking-widest leading-none mb-1">
                                     Pagina

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView, PlayerProgress } from '../types';
 import { getProgress, equipClothing, purchaseClothing } from '../services/tokens';
 import { ATELIER_COMBO_CSV_URL } from '../constants';
-import { ChevronLeft, ChevronRight, Check, Sparkles, AlertCircle, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Sparkles, AlertCircle, ShoppingCart, Volume2, VolumeX } from 'lucide-react';
 
 const BG_ATELIER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfatelieradjncnd77en3h32ws.webp';
 const BOO_BASE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boonudoede32ws34r.webp';
@@ -12,6 +12,7 @@ const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-cl
 const BTN_TSHIRT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtbooteliren4r699gt+(1).webp';
 const BTN_HATS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/capprllibuttonboo6trate+(1).webp';
 const BTN_GLASSES = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/occhialibuttonboosate6t54+(1).webp';
+const BTN_SPECIAL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/buttonspecial7jr83jeduij23ws.webp';
 
 const BTN_ACQUISTA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/acquisatelier55r+(1).webp';
 const IMG_ALERT_NO_TOKENS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/genericalertnoacqui5r4r3.webp';
@@ -19,39 +20,88 @@ const IMG_ALERT_NO_TOKENS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/
 const BTN_INDOSSA_MENU = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ndossabuttonemenutendi88+(1).webp';
 const BTN_RIMUOVI_MENU = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rimuvobutoenmndutdbexs+(1).webp';
 
+// Nuovi Asset Audio/Video
+const ATELIER_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/6a67060f-4b78-4653-991e-80cee04291cc.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+
+type Category = 'TSHIRT' | 'HATS' | 'GLASSES' | 'SPECIAL';
+type MenuType = Category | null;
+
 interface AtelierItem {
     id: string;
     icon: string;
+    overlay?: string; 
     price: number;
     category: Category;
+    slot: keyof PlayerProgress['equippedClothing'];
 }
 
 const TSHIRT_DATA: AtelierItem[] = [
-    { id: 'T1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtbooyellow3e32w+(1).webp', price: 10, category: 'TSHIRT' },
-    { id: 'T2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboostar4e4e4+(1).webp', price: 15, category: 'TSHIRT' },
-    { id: 'T3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboolove8i87u+(1).webp', price: 20, category: 'TSHIRT' },
-    { id: 'T4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboogray55+(1).webp', price: 12, category: 'TSHIRT' },
-    { id: 'T5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboogreen67y67y+(1).webp', price: 12, category: 'TSHIRT' }
+    { id: 'T1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtbooyellow3e32w+(1).webp', price: 10, category: 'TSHIRT', slot: 'tshirt' },
+    { id: 'T2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboostar4e4e4+(1).webp', price: 15, category: 'TSHIRT', slot: 'tshirt' },
+    { id: 'T3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboolove8i87u+(1).webp', price: 20, category: 'TSHIRT', slot: 'tshirt' },
+    { id: 'T4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboogray55+(1).webp', price: 12, category: 'TSHIRT', slot: 'tshirt' },
+    { id: 'T5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tshirtboogreen67y67y+(1).webp', price: 12, category: 'TSHIRT', slot: 'tshirt' }
 ];
 
 const HAT_DATA: AtelierItem[] = [
-    { id: 'H1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappellinoboosimpa5t5y6y+(1).webp', price: 8, category: 'HATS' },
-    { id: 'H2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappellozuccotooboo5r5r+(1).webp', price: 10, category: 'HATS' },
-    { id: 'H3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelloboootuba3e3e3+(1).webp', price: 25, category: 'HATS' },
-    { id: 'H4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/capprllopirtaboo5t6t6+(1).webp', price: 18, category: 'HATS' },
-    { id: 'H5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/coronaboo3e3e+(1).webp', price: 50, category: 'HATS' }
+    { id: 'H1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappellinoboosimpa5t5y6y+(1).webp', price: 8, category: 'HATS', slot: 'hat' },
+    { id: 'H2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappellozuccotooboo5r5r+(1).webp', price: 10, category: 'HATS', slot: 'hat' },
+    { id: 'H3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelloboootuba3e3e3+(1).webp', price: 25, category: 'HATS', slot: 'hat' },
+    { id: 'H4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/capprllopirtaboo5t6t6+(1).webp', price: 18, category: 'HATS', slot: 'hat' },
+    { id: 'H5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/coronaboo3e3e+(1).webp', price: 50, category: 'HATS', slot: 'hat' }
 ];
 
 const GLASSES_DATA: AtelierItem[] = [
-    { id: 'G1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassblackboo98ud83+(1).webp', price: 5, category: 'GLASSES' },
-    { id: 'G2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassloveboo9i8j32+(1).webp', price: 10, category: 'GLASSES' },
-    { id: 'G3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glasspilotboo7ue7h3+(1).webp', price: 15, category: 'GLASSES' },
-    { id: 'G4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassredboo9i8u+(1).webp', price: 7, category: 'GLASSES' },
-    { id: 'G5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassrotondboo432+(1).webp', price: 8, category: 'GLASSES' }
+    { id: 'G1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassblackboo98ud83+(1).webp', price: 5, category: 'GLASSES', slot: 'glasses' },
+    { id: 'G2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassloveboo9i8j32+(1).webp', price: 10, category: 'GLASSES', slot: 'glasses' },
+    { id: 'G3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glasspilotboo7ue7h3+(1).webp', price: 15, category: 'GLASSES', slot: 'glasses' },
+    { id: 'G4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassredboo9i8u+(1).webp', price: 7, category: 'GLASSES', slot: 'glasses' },
+    { id: 'G5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassrotondboo432+(1).webp', price: 8, category: 'GLASSES', slot: 'glasses' }
 ];
 
-type Category = 'TSHIRT' | 'HATS' | 'GLASSES';
-type MenuType = Category | null;
+const SPECIAL_DATA: AtelierItem[] = [
+    { 
+        id: 'S1', 
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarcolored4rg6t5r.webp', 
+        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarpacolorataboocaracters.webp',
+        price: 50, 
+        category: 'SPECIAL',
+        slot: 'special'
+    },
+    {
+        id: 'S2',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconbbbonoel5tfe.webp',
+        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp',
+        price: 75,
+        category: 'SPECIAL',
+        slot: 'special2'
+    },
+    {
+        id: 'S3',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icnnzucc54redsa.webp',
+        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccahalloweenboocarxe4e3ws.webp',
+        price: 75,
+        category: 'SPECIAL',
+        slot: 'special3'
+    },
+    {
+        id: 'S4',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconboxpugil778js.webp',
+        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boxcompete55rt44+(1).webp',
+        price: 85,
+        category: 'SPECIAL',
+        slot: 'special4'
+    },
+    {
+        id: 'S5',
+        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gicoooore.webp',
+        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp',
+        price: 100,
+        category: 'SPECIAL',
+        slot: 'special5'
+    }
+];
 
 interface ActionFeedback {
     message: string;
@@ -64,18 +114,20 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     const [openMenu, setOpenMenu] = useState<MenuType>(null);
     const [progress, setProgress] = useState<PlayerProgress>(getProgress());
     
-    // previewLook memorizza la configurazione attuale degli oggetti visualizzati su Boo
     const [previewLook, setPreviewLook] = useState(progress.equippedClothing);
     const [comboMap, setComboMap] = useState<Record<string, string>>({});
     
-    // Feedback e Pulsanti d'azione
     const [itemToBuy, setItemToBuy] = useState<AtelierItem | null>(null);
     const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+    
+    // Gestione Audio Ambientale
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     
     const menuRef = useRef<HTMLDivElement>(null);
     const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Caricamento mappa combinazioni dal foglio Google
     useEffect(() => {
         const fetchMap = async () => {
             try {
@@ -88,7 +140,6 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                     lines.slice(1).forEach(line => {
                         if (!line.trim()) return;
                         const separator = line.includes(';') ? ';' : ',';
-                        // Rimuove virgolette e spazi bianchi da chiavi e URL
                         const parts = line.split(separator).map(s => s.trim().replace(/^"|"$/g, ''));
                         if (parts.length >= 2) {
                             const [key, url] = parts;
@@ -101,78 +152,178 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         };
         fetchMap();
         
-        // Sincronizzazione con il progresso salvato
         const syncProgress = () => {
             const p = getProgress();
             setProgress(p);
             setPreviewLook(p.equippedClothing);
         };
         window.addEventListener('progressUpdated', syncProgress);
+
+        // Inizializzazione Audio
+        if (!audioRef.current) {
+            audioRef.current = new Audio(ATELIER_VOICE_URL);
+            audioRef.current.loop = false;
+            audioRef.current.volume = 0.5;
+            audioRef.current.addEventListener('play', () => setIsPlaying(true));
+            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            audioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            });
+        }
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled && isLoaded) {
+                audioRef.current?.play().catch(() => {});
+            } else {
+                audioRef.current?.pause();
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
         
         setTimeout(() => setIsLoaded(true), 800);
         return () => {
             window.removeEventListener('progressUpdated', syncProgress);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
         };
-    }, []);
+    }, [isLoaded]);
 
-    // ALGORITMO DI RISOLUZIONE IMMAGINE (Stacking Logic)
+    // Logica intelligente per l'avvio automatico
+    useEffect(() => {
+        if (isLoaded && isAudioOn && audioRef.current) {
+            const alreadyHeard = sessionStorage.getItem('heard_audio_atelier') === 'true';
+            if (!alreadyHeard) {
+                audioRef.current.play().catch(e => console.log("Audio play blocked", e));
+                sessionStorage.setItem('heard_audio_atelier', 'true');
+            }
+        }
+    }, [isLoaded, isAudioOn]);
+
     const currentBooImage = useMemo(() => {
-        const activeIds = Object.values(previewLook)
+        // Se è equipaggiato il cappello speciale S2, la zucca S3 o il casco da boxe S4, nascondiamo il cappello standard
+        const isHeadOverlayWorn = previewLook.special2 === 'S2' || previewLook.special3 === 'S3' || previewLook.special4 === 'S4';
+        const effectiveHat = isHeadOverlayWorn ? undefined : previewLook.hat;
+
+        // Se è equipaggiato l'Abito Sera (S5), nascondiamo la maglietta standard
+        const isBodyOverlayWorn = previewLook.special5 === 'S5';
+        const effectiveTshirt = isBodyOverlayWorn ? undefined : previewLook.tshirt;
+
+        const activeIds = [effectiveTshirt, effectiveHat, previewLook.glasses]
             .filter(Boolean)
             .map(id => (id as string).toUpperCase());
 
         if (activeIds.length === 0) return BOO_BASE;
 
-        // 1. Prova combinazione corrente (può essere singola H1 o multipla H1_T1)
-        // Ordinando e unendo, gestiamo sia i singoli che i mix nello stesso modo
         const currentKey = [...activeIds].sort().join('_');
         if (comboMap[currentKey]) return comboMap[currentKey];
 
-        // 2. Se abbiamo 3 oggetti ma non c'è la combo da 3, prova le coppie (es. H1_T1)
+        // Fallback per combo a 3 pezzi
         if (activeIds.length === 3) {
-            const pairs = [
-                [previewLook.hat, previewLook.tshirt],
-                [previewLook.glasses, previewLook.tshirt],
-                [previewLook.glasses, previewLook.hat]
-            ];
-            for (const pair of pairs) {
-                if (pair[0] && pair[1]) {
-                    const pairKey = pair.map(id => (id as string).toUpperCase()).sort().join('_');
-                    if (comboMap[pairKey]) return comboMap[pairKey];
-                }
+            if (effectiveHat && effectiveTshirt) {
+                const pk = [effectiveHat, effectiveTshirt].map(id => id!.toUpperCase()).sort().join('_');
+                if (comboMap[pk]) return comboMap[pk];
+            }
+            if (previewLook.glasses && effectiveTshirt) {
+                const pk = [previewLook.glasses, effectiveTshirt].map(id => id!.toUpperCase()).sort().join('_');
+                if (comboMap[pk]) return comboMap[pk];
+            }
+            if (previewLook.glasses && effectiveHat) {
+                const pk = [previewLook.glasses, effectiveHat].map(id => id!.toUpperCase()).sort().join('_');
+                if (comboMap[pk]) return comboMap[pk];
             }
         }
 
-        // 3. Fallback sull'oggetto singolo se non troviamo combo
-        // Priorità: Occhiali > Cappello > Maglietta
         const priorityOrder: (keyof typeof previewLook)[] = ['glasses', 'hat', 'tshirt'];
         for (const key of priorityOrder) {
-            const id = (previewLook[key] as string | undefined)?.toUpperCase();
-            if (id && comboMap[id]) return comboMap[id];
+            const idToUse = key === 'hat' ? effectiveHat : (key === 'tshirt' ? effectiveTshirt : previewLook[key]);
+            const idStr = (idToUse as string | undefined)?.toUpperCase();
+            if (idStr && comboMap[idStr]) return comboMap[idStr];
         }
 
         return BOO_BASE;
     }, [previewLook, comboMap]);
+
+    const specialOverlayImages = useMemo(() => {
+        const layers: string[] = [];
+        // La sciarpa (S1) va sotto
+        if (previewLook.special === 'S1') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S1');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        // L'abito da sera (S5) è come una maglietta, va sopra la sciarpa se presente
+        if (previewLook.special5 === 'S5') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S5');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        // Il cappello Babbo Natale (S2)
+        if (previewLook.special2 === 'S2') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S2');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        // La zucca di Halloween (S3)
+        if (previewLook.special3 === 'S3') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S3');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        // Casco da boxe (S4)
+        if (previewLook.special4 === 'S4') {
+            const item = SPECIAL_DATA.find(i => i.id === 'S4');
+            if (item?.overlay) layers.push(item.overlay);
+        }
+        return layers;
+    }, [previewLook.special, previewLook.special2, previewLook.special3, previewLook.special4, previewLook.special5]);
 
     const toggleMenu = (menu: Category) => {
         setOpenMenu(prev => prev === menu ? null : menu);
         setActionFeedback(null);
     };
 
-    // Il bambino tocca un oggetto nel menu: lo visualizziamo in anteprima mantenendo gli altri
     const handleSelectItem = (item: AtelierItem) => {
-        const key = item.category.toLowerCase() as 'tshirt' | 'hat' | 'glasses';
+        const slot = item.slot;
         const isOwned = progress.purchasedClothing.includes(item.id);
 
-        // Se l'oggetto è lo stesso già presente in preview, lo togliamo (toggle)
-        if (previewLook[key] === item.id) {
-            setPreviewLook(prev => ({ ...prev, [key]: undefined }));
+        if (previewLook[slot] === item.id) {
+            setPreviewLook(prev => ({ ...prev, [slot]: undefined }));
             setItemToBuy(null);
         } else {
-            // Aggiorniamo solo lo slot specifico, mantenendo gli altri (STACKING)
-            setPreviewLook(prev => ({ ...prev, [key]: item.id }));
-            // Mostriamo il tasto acquista solo se non lo possediamo già
+            // Creiamo il nuovo look per la prova
+            let nextLook = { ...previewLook, [slot]: item.id };
+            
+            // Logica mutua esclusione per l'area testa: Cappello vs Babbo Natale (S2) vs Zucca (S3) vs Boxe (S4)
+            if (slot === 'hat') {
+                nextLook.special2 = undefined;
+                nextLook.special3 = undefined;
+                nextLook.special4 = undefined;
+            } else if (item.id === 'S2') {
+                nextLook.hat = undefined;
+                nextLook.special3 = undefined;
+                nextLook.special4 = undefined;
+            } else if (item.id === 'S3') {
+                nextLook.hat = undefined;
+                nextLook.special2 = undefined;
+                nextLook.special4 = undefined;
+            } else if (item.id === 'S4') {
+                nextLook.hat = undefined;
+                nextLook.special2 = undefined;
+                nextLook.special3 = undefined;
+            }
+
+            // Logica mutua esclusione per l'area corpo: Magliette vs Abito Sera (S5)
+            if (slot === 'tshirt') {
+                nextLook.special5 = undefined;
+            } else if (item.id === 'S5') {
+                nextLook.tshirt = undefined;
+            }
+
+            setPreviewLook(nextLook);
             if (!isOwned) {
                 setItemToBuy(item);
             } else {
@@ -181,47 +332,76 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         }
         
         setActionFeedback(null);
-        // CHIUDI IL MENU dopo la selezione per vedere l'anteprima pulita
         setOpenMenu(null);
     };
 
     const handleEquipDirect = (item: AtelierItem) => {
-        const key = item.category.toLowerCase() as 'tshirt' | 'hat' | 'glasses';
-        equipClothing(key, item.id);
+        // Logica mutua esclusione persistente per l'area testa
+        if (item.slot === 'hat') {
+            equipClothing('special2', undefined);
+            equipClothing('special3', undefined);
+            equipClothing('special4', undefined);
+        } else if (item.id === 'S2') {
+            equipClothing('hat', undefined);
+            equipClothing('special3', undefined);
+            equipClothing('special4', undefined);
+        } else if (item.id === 'S3') {
+            equipClothing('hat', undefined);
+            equipClothing('special2', undefined);
+            equipClothing('special4', undefined);
+        } else if (item.id === 'S4') {
+            equipClothing('hat', undefined);
+            equipClothing('special2', undefined);
+            equipClothing('special3', undefined);
+        }
+
+        // Logica mutua esclusione persistente per l'area corpo
+        if (item.slot === 'tshirt') {
+            equipClothing('special5', undefined);
+        } else if (item.id === 'S5') {
+            equipClothing('tshirt', undefined);
+        }
+
+        equipClothing(item.slot, item.id);
         
-        // Aggiorniamo lo stato locale
         const p = getProgress();
         setProgress(p);
         setPreviewLook(p.equippedClothing);
         
-        // Messaggio specifico per categoria
-        const labels: Record<Category, string> = {
-            TSHIRT: "MAGLIETTA INDOSSATA!",
-            HATS: "CAPPELLO INDOSSATO!",
-            GLASSES: "OCCHIALI INDOSSATI!"
+        // Messaggi dinamici per categoria
+        let message = "OGGETTO INDOSSATO!";
+        if (item.category === 'TSHIRT') message = "MAGLIETTA INDOSSATA!";
+        else if (item.category === 'HATS') message = "CAPPELLO INDOSSATO!";
+        else if (item.category === 'GLASSES') message = "OCCHIALI INDOSSATI!";
+        
+        // Messaggi speciali personalizzati
+        const specialLabels: Record<string, string> = {
+            S1: "SCIARPA INDOSSATA!",
+            S2: "NATALE È ARRIVATO! 🎅",
+            S3: "DOLCETTO O SCHERZETTO? 🎃",
+            S4: "PRONTO PER IL MATCH! 🥊",
+            S5: "ELEGANTE COME NON MAI! ✨"
         };
 
-        triggerFeedback(labels[item.category], "SUCCESS", item.icon);
+        triggerFeedback(specialLabels[item.id] || message, "SUCCESS", item.icon);
         setOpenMenu(null);
         setItemToBuy(null);
     };
 
-    const handleRemoveDirect = (cat: Category) => {
-        const key = cat.toLowerCase() as 'tshirt' | 'hat' | 'glasses';
-        equipClothing(key, undefined);
+    const handleRemoveDirect = (item: AtelierItem) => {
+        equipClothing(item.slot, undefined);
         
         const p = getProgress();
         setProgress(p);
         setPreviewLook(p.equippedClothing);
         
-        // Messaggio specifico per categoria
-        const labels: Record<Category, string> = {
-            TSHIRT: "MAGLIETTA RIMOSSA!",
-            HATS: "CAPPELLO RIMOSSO!",
-            GLASSES: "OCCHIALI RIMOSSI!"
-        };
-
-        triggerFeedback(labels[cat], "SUCCESS");
+        // Messaggi dinamici per rimozione
+        let message = "OGGETTO RIMOSSO!";
+        if (item.category === 'TSHIRT') message = "MAGLIETTA RIMOSSA!";
+        else if (item.category === 'HATS') message = "CAPPELLO RIMOSSO!";
+        else if (item.category === 'GLASSES') message = "OCCHIALI RIMOSSI!";
+        
+        triggerFeedback(message, "SUCCESS");
         setOpenMenu(null);
         setItemToBuy(null);
     };
@@ -234,27 +414,58 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         }, 4000);
     };
 
-    // Azione del tastone principale "Acquista"
     const handleAction = () => {
         if (!itemToBuy) return;
 
         if (purchaseClothing(itemToBuy.id, itemToBuy.price)) {
-            // Se l'acquisto va a buon fine, lo equipaggiamo anche
-            const key = itemToBuy.category.toLowerCase() as 'tshirt' | 'hat' | 'glasses';
-            equipClothing(key, itemToBuy.id);
+            // All'acquisto applichiamo la stessa logica di mutua esclusione per l'area testa
+            if (itemToBuy.slot === 'hat') {
+                equipClothing('special2', undefined);
+                equipClothing('special3', undefined);
+                equipClothing('special4', undefined);
+            } else if (itemToBuy.id === 'S2') {
+                equipClothing('hat', undefined);
+                equipClothing('special3', undefined);
+                equipClothing('special4', undefined);
+            } else if (itemToBuy.id === 'S3') {
+                equipClothing('hat', undefined);
+                equipClothing('special2', undefined);
+                equipClothing('special4', undefined);
+            } else if (itemToBuy.id === 'S4') {
+                equipClothing('hat', undefined);
+                equipClothing('special2', undefined);
+                equipClothing('special3', undefined);
+            }
+
+            // Logica mutua esclusione per l'area corpo all'acquisto
+            if (itemToBuy.slot === 'tshirt') {
+                equipClothing('special5', undefined);
+            } else if (itemToBuy.id === 'S5') {
+                equipClothing('tshirt', undefined);
+            }
+
+            equipClothing(itemToBuy.slot, itemToBuy.id);
             
             const p = getProgress();
             setProgress(p);
             setPreviewLook(p.equippedClothing);
 
-            // Messaggio specifico per categoria
-            const buyLabels: Record<Category, string> = {
-                TSHIRT: "MAGLIETTA ACQUISTATA!",
-                HATS: "CAPPELLO ACQUISTATO!",
-                GLASSES: "OCCHIALI ACQUISTATI!"
+            // Messaggi dinamici per acquisto
+            let message = "OGGETTO ACQUISTATO!";
+            if (itemToBuy.category === 'TSHIRT') message = "MAGLIETTA ACQUISTATA!";
+            else if (itemToBuy.category === 'HATS') message = "CAPPELLO ACQUISTATO!";
+            else if (itemToBuy.category === 'GLASSES') message = "OCCHIALI ACQUISTATI!";
+
+            // Messaggi speciali per acquisto
+            const buyLabels: Record<string, string> = {
+                S1: "SCIARPA ACQUISTATA!",
+                S2: "CAPPELLO NATALE ACQUISTATO! 🎅",
+                S3: "ZUCCA DI HALLOWEEN PRESA! 🎃",
+                S4: "EQUIP. BOXE ACQUISTATO! 🥊",
+                S5: "ABITO SERA ACQUISTATO! ✨"
             };
 
-            triggerFeedback(buyLabels[itemToBuy.category], "SUCCESS", itemToBuy.icon);
+            triggerFeedback(buyLabels[itemToBuy.id] || message, "SUCCESS", itemToBuy.icon);
             setItemToBuy(null);
             setOpenMenu(null);
         } else {
@@ -273,12 +484,14 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     };
 
     const renderDropdown = (items: AtelierItem[], cat: Category) => (
-        <div className="absolute top-[110%] right-0 bg-white/40 backdrop-blur-2xl border-4 border-blue-400 rounded-[2.5rem] shadow-2xl p-3 flex flex-col gap-2 w-[200px] md:w-[260px] animate-in slide-in-from-top-4 duration-300 z-[100]">
+        <div className={`absolute top-[110%] ${cat === 'TSHIRT' ? 'left-0' : 'right-0'} bg-white/40 backdrop-blur-2xl border-4 border-blue-400 rounded-[2.5rem] shadow-2xl p-3 flex flex-col gap-2 w-[180px] md:w-[220px] animate-in slide-in-from-top-4 duration-300 z-[100]`}>
             <div className="flex flex-col gap-3">
                 {items.map((item) => {
                     const isOwned = progress.purchasedClothing.includes(item.id);
-                    const isEquipped = progress.equippedClothing[item.category.toLowerCase() as 'tshirt' | 'hat' | 'glasses'] === item.id;
-                    const isPreviewed = previewLook[item.category.toLowerCase() as 'tshirt' | 'hat' | 'glasses'] === item.id;
+                    const isEquipped = progress.equippedClothing[item.slot] === item.id;
+                    const isPreviewed = previewLook[item.slot] === item.id;
+                    const isSpecial = item.category === 'SPECIAL';
+                    const isSpecialIconSmaller = item.id === 'S3' || item.id === 'S4';
 
                     return (
                         <div 
@@ -289,9 +502,13 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                             }}
                             className={`flex items-center gap-1 transition-all p-1 rounded-2xl border-2 cursor-pointer ${isPreviewed ? 'border-yellow-400 bg-white/50 shadow-lg' : 'border-transparent bg-black/5 active:scale-95'}`}
                         >
-                            <div className="relative shrink-0 pointer-events-none">
-                                <img src={item.icon} alt="item" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-md" />
-                                {isOwned && <div className="absolute -top-1 -left-1 bg-green-500 rounded-full p-1 border-2 border-white shadow-sm z-10"><Check size={10} className="text-white" strokeWidth={5} /></div>}
+                            <div className="relative shrink-0 pointer-events-none w-16 h-16 md:w-24 md:h-24 flex items-center justify-center">
+                                <img 
+                                    src={item.icon} 
+                                    alt="item" 
+                                    className={`${isSpecial ? (isSpecialIconSmaller ? 'w-16 h-16 md:w-20 md:h-20' : 'w-20 h-20 md:w-24 md:h-24') : 'w-14 h-14 md:w-16 md:h-16'} object-contain drop-shadow-md`} 
+                                />
+                                {isOwned && <div className="absolute top-0 left-0 bg-green-500 rounded-full p-1 border-2 border-white shadow-sm z-10"><Check size={10} className="text-white" strokeWidth={5} /></div>}
                             </div>
                             
                             <div className="flex-1 flex items-center justify-end pr-0.5">
@@ -306,7 +523,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                                             </button>
                                         ) : (
                                             <button 
-                                                onPointerDown={(e) => { e.stopPropagation(); handleRemoveDirect(cat); }}
+                                                onPointerDown={(e) => { e.stopPropagation(); handleRemoveDirect(item); }}
                                                 className="hover:scale-105 active:scale-95 transition-all outline-none"
                                             >
                                                 <img src={BTN_RIMUOVI_MENU} alt="Rimuovi" className="h-10 md:h-12 w-auto drop-shadow-md" />
@@ -324,9 +541,6 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                     );
                 })}
             </div>
-            <div className="text-center pt-1.5 mt-0.5 border-t border-white/10 pointer-events-none">
-                <p className="text-[8px] font-black text-blue-800 uppercase tracking-widest opacity-60">Personalizza Boo!</p>
-            </div>
         </div>
     );
 
@@ -343,7 +557,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                     0%, 100% { transform: scale(1); }
                     50% { transform: scale(1.08); }
                 }
-                .boo-animation { animation: boo-vibe 4s ease-in-out infinite; }
+                .boo-animation-wrapper { animation: boo-vibe 4s ease-in-out infinite; width: 100%; height: 100%; position: relative; }
                 .text-stroke-lucky {
                     -webkit-text-stroke: 2px black;
                     text-shadow: 4px 4px 0px rgba(0,0,0,0.5);
@@ -358,57 +572,93 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             </div>
 
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-                <div className="relative w-full h-full flex items-center justify-center max-w-4xl mx-auto">
-                    <img 
-                        src={currentBooImage} 
-                        alt="Boo" 
-                        className={`w-full h-full object-contain boo-animation transition-all duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        style={{ filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.4))' }}
-                    />
+                <div className="relative w-full h-full max-w-4xl mx-auto flex items-center justify-center overflow-hidden">
+                    <div className={`boo-animation-wrapper transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+                        <img 
+                            src={currentBooImage} 
+                            alt="Boo" 
+                            className="absolute inset-0 w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.4))' }}
+                        />
+                        
+                        {specialOverlayImages.map((src, idx) => (
+                            <img 
+                                key={idx}
+                                src={src} 
+                                alt={`Special Layer ${idx}`} 
+                                className="absolute inset-0 w-full h-full object-contain"
+                                style={{ 
+                                    filter: 'drop-shadow(0 0 30px rgba(255, 255, 255, 0.4))',
+                                    pointerEvents: 'none',
+                                    zIndex: 20 + idx 
+                                }}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            <div className="relative z-50 w-full pt-[75px] md:pt-[105px] px-6 flex justify-between items-center pointer-events-none">
-                <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="relative z-50 w-full pt-[75px] md:pt-[105px] px-4 flex justify-between items-start pointer-events-none">
+                <div className="flex flex-col items-start gap-3 pointer-events-auto">
+                    <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                        <span>{progress.tokens}</span> <span className="text-xl">🪙</span>
+                    </div>
                     <button 
                         onClick={handleExit}
                         className="hover:scale-110 active:scale-95 transition-all outline-none"
                     >
                         <img src={BTN_CLOSE_IMG} alt="Esci" className="w-14 h-14 md:w-22 h-auto drop-shadow-xl" />
                     </button>
-                    <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                        <span>{progress.tokens}</span> <span className="text-xl">🪙</span>
-                    </div>
+
+                    {/* Mini TV di Boo - Appare solo se l'audio è in riproduzione */}
+                    {isAudioOn && isPlaying && (
+                        <div className="mt-4 z-50 animate-in zoom-in duration-500">
+                            <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                                <video 
+                                    src={BOO_TALK_VIDEO} 
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline 
+                                    className="w-full h-full object-cover" 
+                                    style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex-1" />
-
-                <div className="flex items-center gap-3 pointer-events-auto" ref={menuRef}>
+                <div className="flex items-center gap-2 md:gap-3 pointer-events-auto" ref={menuRef}>
                     <div className="relative">
                         <button onClick={() => toggleMenu('TSHIRT')} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                            <img src={BTN_TSHIRT} alt="T-shirt" className="w-14 h-14 md:w-22 h-auto drop-shadow-xl scale-110" />
+                            <img src={BTN_TSHIRT} alt="T-shirt" className="w-14 h-14 md:w-20 md:h-20 drop-shadow-xl scale-110" />
                         </button>
                         {openMenu === 'TSHIRT' && renderDropdown(TSHIRT_DATA, 'TSHIRT')}
                     </div>
                     <div className="relative">
                         <button onClick={() => toggleMenu('HATS')} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                            <img src={BTN_HATS} alt="Cappelli" className="w-14 h-14 md:w-22 h-auto drop-shadow-xl" />
+                            <img src={BTN_HATS} alt="Cappelli" className="w-14 h-14 md:w-20 md:h-20 drop-shadow-xl" />
                         </button>
                         {openMenu === 'HATS' && renderDropdown(HAT_DATA, 'HATS')}
                     </div>
                     <div className="relative">
                         <button onClick={() => toggleMenu('GLASSES')} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                            <img src={BTN_GLASSES} alt="Occhiali" className="w-14 h-14 md:w-22 h-auto drop-shadow-xl" />
+                            <img src={BTN_GLASSES} alt="Occhiali" className="w-14 h-14 md:w-20 md:h-20 drop-shadow-xl" />
                         </button>
                         {openMenu === 'GLASSES' && renderDropdown(GLASSES_DATA, 'GLASSES')}
+                    </div>
+                    <div className="relative">
+                        <button onClick={() => toggleMenu('SPECIAL')} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                            <img src={BTN_SPECIAL} alt="Special" className="w-14 h-14 md:w-20 md:h-20 drop-shadow-xl" />
+                        </button>
+                        {openMenu === 'SPECIAL' && renderDropdown(SPECIAL_DATA, 'SPECIAL')}
                     </div>
                 </div>
             </div>
 
-            {/* AREA ACQUISTO DINAMICA */}
             {itemToBuy && (
                 <div className="absolute bottom-[4%] left-6 z-50 flex items-center gap-4 animate-in slide-in-from-left-10 duration-500 pointer-events-none">
-                    {/* CARD INFO OGGETTO */}
                     <div className="bg-white/90 backdrop-blur-md p-2 rounded-3xl border-4 border-yellow-400 shadow-2xl flex items-center gap-3 pr-6 pointer-events-auto">
                         <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-50 rounded-2xl border-2 border-blue-100 flex items-center justify-center p-1">
                             <img src={itemToBuy.icon} alt="buy-item" className="w-full h-full object-contain" />
@@ -422,7 +672,6 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                         </div>
                     </div>
 
-                    {/* TASTO ACQUISTA */}
                     <button 
                         onClick={handleAction}
                         className="hover:scale-105 active:scale-95 transition-all outline-none pointer-events-auto"

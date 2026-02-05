@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -158,7 +159,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                 })}
             </div>
             
-            {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} />}
+            {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.CITY_MAP} />}
 
             <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none opacity-20"><span className="text-white font-black text-xs uppercase tracking-[1em]">Lone Boo City</span></div>
         </div>

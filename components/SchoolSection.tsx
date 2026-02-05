@@ -87,6 +87,16 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
         setView(AppView.SCHOOL_FIRST_FLOOR);
     };
 
+    const handleExit = () => {
+        const origin = sessionStorage.getItem('school_origin') as AppView;
+        if (origin && Object.values(AppView).includes(origin)) {
+            setView(origin);
+        } else {
+            setView(AppView.CITY_MAP);
+        }
+        sessionStorage.removeItem('school_origin');
+    };
+
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none">
             {!isLoaded && (
@@ -117,8 +127,8 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
             {isLoaded && (
                 <>
                     <div className="absolute bottom-[4%] left-[4%] z-40 pointer-events-auto w-[18vw] md:w-[10vw] max-w-[160px]">
-                        <button onClick={() => setView(AppView.CITY_MAP)} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
-                            <img src={BTN_BACK_CITY_IMG} alt="Torna in Città" className="w-full h-auto drop-shadow-2xl" />
+                        <button onClick={handleExit} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
+                            <img src={BTN_BACK_CITY_IMG} alt="Torna" className="w-full h-auto drop-shadow-2xl" />
                         </button>
                     </div>
                     <div className="absolute bottom-[4%] right-[4%] z-40 pointer-events-auto w-[18vw] md:w-[10vw] max-w-[160px]">

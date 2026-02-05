@@ -232,8 +232,18 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         case 'DAMA': setActiveGame(GameType.CHECKERS); break;
         case 'SCACCHI': setActiveGame(GameType.CHESS); break;
         case 'EDICOLA': setView(AppView.NEWSSTAND); break;
-        case 'TORNA_IN_CITTA': setView(AppView.CITY_MAP); break;
+        case 'TORNA_IN_CITTA': handleExit(); break;
     }
+  };
+
+  const handleExit = () => {
+    const origin = sessionStorage.getItem('play_origin') as AppView;
+    if (origin && Object.values(AppView).includes(origin)) {
+        setView(origin);
+    } else {
+        setView(AppView.CITY_MAP);
+    }
+    sessionStorage.removeItem('play_origin');
   };
 
   if (activeGame !== GameType.NONE) {
