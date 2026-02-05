@@ -75,10 +75,6 @@ const BedroomRoom = lazy(() => import('./components/rooms/BedroomRoom'));
 const BathroomRoom = lazy(() => import('./components/rooms/BathroomRoom'));
 const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
-const SEO_DATA: Record<string, { title: string, desc: string }> = {
-  [AppView.HOME]: { title: "Lone Boo - il mondo di giochi e studio per bambini e ragazzi", desc: "Benvenuti nel mondo magico di Lone Boo: giochi educativi, scuola online, libri e musica per la crescita serena dei bambini." },
-};
-
 const PageLoader = () => (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-boo-purple/90 backdrop-blur-sm">
         <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 animate-spin-horizontal mb-4" />
@@ -110,9 +106,24 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Richiesta Wake Lock iniziale
     requestWakeLock();
+
+    // I browser spesso bloccano il Wake Lock se non c'è stata un'interazione.
+    // Lo richiediamo nuovamente al primo tocco o click dell'utente.
+    const handleFirstInteraction = () => {
+      requestWakeLock();
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('mousedown', handleFirstInteraction);
+    };
+
+    window.addEventListener('touchstart', handleFirstInteraction);
+    window.addEventListener('mousedown', handleFirstInteraction);
+
     return () => {
       releaseWakeLock();
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('mousedown', handleFirstInteraction);
     };
   }, []);
 
