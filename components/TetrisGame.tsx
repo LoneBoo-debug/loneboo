@@ -8,6 +8,9 @@ const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-
 const BOO_POP_IMG = 'https://i.postimg.cc/Sx2DkBZ5/acchiappabooesce.png';
 const ICE_CUBE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cuboice.webp';
 
+// Musica di sottofondo specifica per Tetris
+const TETRIS_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tetris-theme-korobeiniki-rearranged-arr-for-strings-185592.mp3';
+
 // Asset Pulsanti Personalizzati
 const BTN_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/arrsxss.webp';
 const BTN_DOWN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/arrdoensw.webp';
@@ -69,11 +72,31 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
     const dropCounterRef = useRef<number>(0);
     const gameStartTimeRef = useRef<number>(0);
     const audioCtxRef = useRef<AudioContext | null>(null);
+    const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         const p = getProgress();
         setUserTokens(p.tokens);
+
+        // Inizializza musica di sottofondo
+        bgMusicRef.current = new Audio(TETRIS_MUSIC_URL);
+        bgMusicRef.current.loop = true;
+        bgMusicRef.current.volume = 0.85; // Aumentato volume da 0.65 a 0.85
+
+        return () => {
+            if (bgMusicRef.current) {
+                bgMusicRef.current.pause();
+                bgMusicRef.current = null;
+            }
+        };
     }, []);
+
+    // Gestione muting musica in base allo stato sfxEnabled
+    useEffect(() => {
+        if (bgMusicRef.current) {
+            bgMusicRef.current.muted = !sfxEnabled;
+        }
+    }, [sfxEnabled]);
 
     const playSound = (type: 'MOVE' | 'ROTATE' | 'CLEAR' | 'GAMEOVER') => {
         if (!sfxEnabled) return;
@@ -95,7 +118,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
                 osc.start(); osc.stop(now + 0.05);
             } else if (type === 'ROTATE') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(440, now);
                 osc.frequency.linearRampToValueAtTime(600, now + 0.1);
                 gain.gain.setValueAtTime(0.05, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
@@ -169,6 +192,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
             setGameOver(true);
             setIsPlaying(false);
             playSound('GAMEOVER');
+            if (bgMusicRef.current) bgMusicRef.current.pause();
         } else {
             setActivePiece(newPiece);
         }
@@ -257,6 +281,12 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
         lastTimeRef.current = performance.now();
         gameStartTimeRef.current = performance.now();
         dropCounterRef.current = 0;
+
+        // Avvio musica di sottofondo
+        if (bgMusicRef.current) {
+            bgMusicRef.current.currentTime = 0;
+            bgMusicRef.current.play().catch(e => console.log("Audio play blocked", e));
+        }
     };
 
     const gameUpdate = (time = 0) => {
@@ -310,7 +340,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
             {/* HEADER GIOCO */}
             <div className="relative z-20 w-full flex justify-between items-center p-2 md:p-4 pointer-events-none shrink-0">
                 <div className="pointer-events-auto">
-                    <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-transform">
+                    <button onClick={() => { if (bgMusicRef.current) bgMusicRef.current.pause(); onBack(); }} className="hover:scale-110 active:scale-95 transition-transform">
                         <img src={EXIT_BTN_IMG} className="h-16 md:h-28 w-auto drop-shadow-md" alt="Torna in Cucina" />
                     </button>
                 </div>
@@ -434,7 +464,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
             {/* MODALI STATO */}
             {!isPlaying && !gameOver && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center">
-                    <div className="bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border-6 md:border-8 border-blue-600 shadow-2xl max-w-xs md:max-w-sm animate-in zoom-in flex flex-col items-center">
+                    <div className="bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border-6 md:border-8 border-blue-600 shadow-2xl max-xs md:max-w-sm animate-in zoom-in flex flex-col items-center">
                         <h2 className="text-3xl md:text-4xl font-black text-blue-600 mb-2 uppercase leading-tight">Frigo-Tetris! 🧊</h2>
                         <p className="text-gray-600 font-bold mb-6 text-sm md:text-lg leading-snug">Incastra i blocchi di ghiaccio nel frigorifero. Guadagna 2 gettoni ogni 10 righe!</p>
                         <button onClick={startGame} className="hover:scale-105 active:scale-95 transition-all outline-none">
@@ -446,14 +476,14 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
 
             {gameOver && (
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 text-center">
-                    <div className="bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border-6 md:border-8 border-red-600 shadow-2xl max-w-sm md:max-w-md animate-in zoom-in flex flex-col items-center">
+                    <div className="bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border-6 md:border-8 border-red-600 shadow-2xl max-sm md:max-w-md animate-in zoom-in flex flex-col items-center">
                         <img src={GAMEOVER_HEADER_IMG} className="w-48 md:w-64 h-auto mb-3 drop-shadow-md" alt="Gelo Totale" />
                         <p className="text-gray-600 font-bold mb-6 text-sm md:text-base">Il frigo è pieno! Punteggio: <span className="text-blue-600">{score}</span></p>
                         <div className="flex flex-row gap-4 w-full justify-center">
                             <button onClick={startGame} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                 <img src={BTN_RETRY_IMG} alt="Riprova" className="h-24 md:h-36 w-auto drop-shadow-md" />
                             </button>
-                            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                            <button onClick={() => { if (bgMusicRef.current) bgMusicRef.current.pause(); onBack(); }} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                 <img src={BTN_EXIT_IMG} alt="Esci" className="h-24 md:h-36 w-auto drop-shadow-md" />
                             </button>
                         </div>

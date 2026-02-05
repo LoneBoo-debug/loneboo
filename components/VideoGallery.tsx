@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VIDEOS } from '../constants';
 import { Video, AppView } from '../types';
@@ -6,10 +7,14 @@ import { CirclePlay, Loader2, X, Ticket } from 'lucide-react';
 
 const CLOSE_BTN_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const YT_CHANNEL_URL = 'https://www.youtube.com/@ILoneBoo';
-const OFFICIAL_CHANNEL_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaicanasezcinemoff.webp';
-const RETURN_CITY_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torncitdcinesez.webp';
+const OFFICIAL_CHANNEL_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/canalufiidcinemafxn3wqa+(1).webp';
+const RETURN_CITY_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tortortocittcinemafab22+(1).webp';
 const CINEMA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcinemaxxsad.webp';
 const ZUCCOTTO_POPCORN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccottocinemafhe443.webp';
+
+// Asset Audio e Video Ambientali
+const CINEMA_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cnemabooyoutubefan.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 const MOCK_VIDEOS: Video[] = Array.from({ length: 12 }).map((_, i) => ({
     id: `mock-${i}`,
@@ -30,6 +35,11 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   
+  // Gestione Audio Ambientale
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const [calib] = useState({ top: 9.3, left: 18.5, width: 62.4, height: 20.1 });
   const isMounted = useRef(false);
 
@@ -52,19 +62,57 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
   useEffect(() => {
     isMounted.current = true;
     initGallery();
-    return () => { isMounted.current = false; };
+
+    // Inizializza Audio
+    if (!audioRef.current) {
+        audioRef.current = new Audio(CINEMA_VOICE_URL);
+        audioRef.current.loop = false;
+        audioRef.current.volume = 0.5;
+        audioRef.current.addEventListener('play', () => setIsPlaying(true));
+        audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+        audioRef.current.addEventListener('ended', () => {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        });
+    }
+
+    if (isAudioOn) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+
+    const handleGlobalAudioChange = () => {
+        const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        setIsAudioOn(enabled);
+        if (enabled) audioRef.current?.play().catch(() => {});
+        else {
+            audioRef.current?.pause();
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        }
+    };
+    window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+    return () => { 
+        isMounted.current = false; 
+        window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+    };
   }, [initGallery]);
 
   useEffect(() => {
     if (selectedVideo) {
         document.body.classList.add('allow-landscape');
+        // Pausa audio ambientale se si guarda un video
+        audioRef.current?.pause();
     } else {
         document.body.classList.remove('allow-landscape');
+        // Ripristina audio ambientale se attivo
+        if (isAudioOn) audioRef.current?.play().catch(() => {});
     }
     return () => {
         document.body.classList.remove('allow-landscape');
     };
-  }, [selectedVideo]);
+  }, [selectedVideo, isAudioOn]);
 
   const handleExternalClick = (e: React.MouseEvent, url: string) => {
       const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
@@ -119,6 +167,16 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
       
       <div className="relative z-10 h-full flex flex-col pt-[80px] md:pt-[106px] pb-4 px-3 overflow-hidden">
         
+        {/* Mini TV di Boo - Posizionato a SINISTRA - z-[60] per stare sopra featured video */}
+        {isAudioOn && isPlaying && !selectedVideo && (
+            <div className="absolute top-20 md:top-28 left-4 z-[60] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
+        )}
+
         {featuredVideo && (
           <div className="absolute z-50 animate-in fade-in duration-700 pointer-events-auto" style={{ top: `${calib.top}%`, left: `${calib.left}%`, width: `${calib.width}%`, height: `${calib.height}%` }}>
             <div className="group relative w-full h-full cursor-pointer bg-black rounded-lg md:rounded-xl shadow-2xl overflow-hidden border-2 border-white/10" onClick={(e) => { e.stopPropagation(); setSelectedVideo(featuredVideo); }}>
@@ -168,10 +226,10 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
           {/* AREA TASTI NAVIGAZIONE */}
           <div className="w-full max-w-7xl mx-auto flex flex-col items-start gap-4 md:gap-6 relative z-30 px-6">
               <div className="flex justify-start gap-4 md:gap-8 w-full">
-                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
+                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
                       <img src={RETURN_CITY_BTN_IMG} alt="Torna in Città" className="w-full h-auto drop-shadow-xl" />
                   </button>
-                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-transform outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
+                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
                       <img src={OFFICIAL_CHANNEL_BTN_IMG} alt="YouTube" className="w-full h-auto drop-shadow-xl" />
                   </button>
               </div>

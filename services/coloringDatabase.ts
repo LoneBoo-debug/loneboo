@@ -1,4 +1,3 @@
-
 import { ColoringCategory } from '../types';
 import { getAsset } from './LocalAssets';
 
@@ -10,16 +9,15 @@ export const COLORING_DATABASE: ColoringCategory[] = [
         coverImage: 'https://img.freepik.com/free-vector/hand-drawn-wild-animals-collection_23-2149022639.jpg',
         color: 'bg-green-500',
         items: [
-            { id: 'an-1', title: 'Animali nel Bosco', thumbnail: getAsset('https://i.postimg.cc/gjzztf4F/aniamli-(1).jpg'), pdfUrl: 'https://drive.google.com/file/d/1qVuDtjjVUOdLT4V0D1P-Rtx54wT6UFJB/view?usp=sharing' },
-            { id: 'an-2', title: 'Cagnolino col Cappello', thumbnail: getAsset('https://i.postimg.cc/6QKC5QpL/cans.jpg'), pdfUrl: 'https://drive.google.com/file/d/1uAupX7JhJXSTS8E6Qkl4Iui5jFRwK-dT/view?usp=sharing' },
-            { id: 'an-3', title: 'Elefanti Dolci', thumbnail: getAsset('https://i.postimg.cc/15ZFKtpZ/ele.jpg'), pdfUrl: 'https://drive.google.com/file/d/1giCZ8KJ9E_HfL_8xNgNrHbB_Wrk4r76H/view?usp=sharing' },
-            { id: 'an-4', title: 'Giraffa al sole', thumbnail: getAsset('https://i.postimg.cc/V66gmNK7/gir.jpg'), pdfUrl: 'https://drive.google.com/file/d/1SQGZwx9CZwrqqgHYTEWlXvGYm-yPzFB2/view?usp=sharing' },
-            { id: 'an-5', title: 'Gufi nel Bosco', thumbnail: getAsset('https://i.postimg.cc/NGxXptbT/guf.jpg'), pdfUrl: 'https://drive.google.com/file/d/1Pwe_0FR9jqDdwBrg1w9SEZo-waeCYNmt/view?usp=sharing' },
-            { id: 'an-6', title: 'Mucca col Fiore', thumbnail: getAsset('https://i.postimg.cc/Kvw85sX1/muc.jpg'), pdfUrl: 'https://drive.google.com/file/d/1RC-VjohGZPDXn6yMnMmKmIZ0HH4h8OWC/view?usp=sharing' },
-            { id: 'an-7', title: 'Renna Sorridente', thumbnail: getAsset('https://i.postimg.cc/vZXMNPk1/ren.jpg'), pdfUrl: 'https://drive.google.com/file/d/1-eOuP1eLtRy-J3OhvfSQapEN1xRh2GYA/view?usp=sharing' },
-            { id: 'an-8', title: 'Sul Trenino', thumbnail: getAsset('https://i.postimg.cc/9QD160N1/trenn.jpg'), pdfUrl: 'https://drive.google.com/file/d/1nKSr90lnWlCmFrU81F5D4yLwrEeaJtqi/view?usp=sharing' },
-            { id: 'an-9', title: 'Tartaruga Felice', thumbnail: getAsset('https://i.postimg.cc/bwfshF6N/tart.jpg'), pdfUrl: 'https://drive.google.com/file/d/1PHVuBsZrbXkTOE7zQQfFw-WuE1642gnK/view?usp=sharing' },
-            { id: 'an-10', title: 'Rana Felice', thumbnail: getAsset('https://i.postimg.cc/g0JwSLSY/ran.jpg'), pdfUrl: 'https://drive.google.com/file/d/15SBm4rKTVc-Sw2jNLkdWRh-3yepLInX9/view?usp=sharing' },
+            { id: 'an-1', title: 'Il Dolce Cerbiatto', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/bambicerb.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bambicerb.jpg' },
+            { id: 'an-2', title: 'Il Simpatico Orsetto', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Il+SimpaticoOrsetto.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Il+SimpaticoOrsetto.jpg' },
+            { id: 'an-3', title: 'Scoiattolo Goloso', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/ScoiattoloGoloso.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ScoiattoloGoloso.jpg' },
+            { id: 'an-4', title: 'Dolce Coniglio', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/DolceConiglio.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/DolceConiglio.jpg' },
+            { id: 'an-5', title: 'Gattino nel Bosco', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/GattinonelBosco.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/GattinonelBosco.jpg' },
+            { id: 'an-6', title: 'Giraffa Africana', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/GiraffaAfricana.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/GiraffaAfricana.jpg' },
+            { id: 'an-7', title: 'Elefantino Curioso', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/ElefantinoCurioso.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ElefantinoCurioso.jpg' },
+            { id: 'an-8', title: 'Dolce Pinguino', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/DolcePinguino.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/DolcePinguino.jpg' },
+            { id: 'an-9', title: 'Orso Polare', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/OrsoPolare.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/OrsoPolare.jpg' },
         ]
     },
     {
@@ -29,16 +27,12 @@ export const COLORING_DATABASE: ColoringCategory[] = [
         coverImage: 'https://img.freepik.com/free-vector/hand-drawn-christmas-coloring-book-illustration_23-2149723821.jpg',
         color: 'bg-red-600',
         items: [
-            { id: 'xm-1', title: 'Babbo Natale', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Babbo+Natale', pdfUrl: '#' },
-            { id: 'xm-2', title: 'Albero', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Albero', pdfUrl: '#' },
-            { id: 'xm-3', title: 'Renna', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Renna', pdfUrl: '#' },
-            { id: 'xm-4', title: 'Regali', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Regali', pdfUrl: '#' },
-            { id: 'xm-5', title: 'Pupazzo di Neve', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Pupazzo', pdfUrl: '#' },
-            { id: 'xm-6', title: 'Calza', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Calza', pdfUrl: '#' },
-            { id: 'xm-7', title: 'Elfo', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Elfo', pdfUrl: '#' },
-            { id: 'xm-8', title: 'Stella', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Stella', pdfUrl: '#' },
-            { id: 'xm-9', title: 'Presepe', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Presepe', pdfUrl: '#' },
-            { id: 'xm-10', title: 'Befana', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Befana', pdfUrl: '#' },
+            { id: 'xm-1', title: 'Il Grinch', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Ilgrinch.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Ilgrinch.jpg' },
+            { id: 'xm-2', title: 'I Minions a Natale', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/IMinionsaNatale.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/IMinionsaNatale.jpg' },
+            { id: 'xm-3', title: 'Natale Disney', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/NataleDisney.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/NataleDisney.jpg' },
+            { id: 'xm-4', title: 'Kitty e i suoi Regali', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/HellokittyeisuoiRegali.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/HellokittyeisuoiRegali.jpg' },
+            { id: 'xm-5', title: 'Olaf a Natale', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/OlafaNatale.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/OlafaNatale.jpg' },
+            { id: 'xm-6', title: 'Natale a Arendelle', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/NataleaArendelle.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/NataleaArendelle.jpg' },
         ]
     },
     {
@@ -48,16 +42,10 @@ export const COLORING_DATABASE: ColoringCategory[] = [
         coverImage: 'https://img.freepik.com/free-vector/hand-drawn-halloween-coloring-book-illustration_23-2149658933.jpg',
         color: 'bg-orange-500',
         items: [
-            { id: 'hl-1', title: 'Zucca', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Zucca', pdfUrl: '#' },
-            { id: 'hl-2', title: 'Fantasma', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Fantasma', pdfUrl: '#' },
-            { id: 'hl-3', title: 'Pipistrello', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Pipistrello', pdfUrl: '#' },
-            { id: 'hl-4', title: 'Strega', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Strega', pdfUrl: '#' },
-            { id: 'hl-5', title: 'Gatto Nero', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Gatto+Nero', pdfUrl: '#' },
-            { id: 'hl-6', title: 'Ragno', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Ragno', pdfUrl: '#' },
-            { id: 'hl-7', title: 'Scheletro', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Scheletro', pdfUrl: '#' },
-            { id: 'hl-8', title: 'Vampiro', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Vampiro', pdfUrl: '#' },
-            { id: 'hl-9', title: 'Mummia', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Mummia', pdfUrl: '#' },
-            { id: 'hl-10', title: 'Castello', thumbnail: 'https://via.placeholder.com/300x400?text=Anteprima+Castello', pdfUrl: '#' },
+            { id: 'hl-1', title: 'Il Gatto Nero', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/ilgattonero.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ilgattonero.jpg' },
+            { id: 'hl-2', title: 'La Simpatica Streghetta', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/stregasimpatica.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stregasimpatica.jpg' },
+            { id: 'hl-3', title: 'La Casa Stregata', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/casastregata.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casastregata.jpg' },
+            { id: 'hl-4', title: 'Halloween Party', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/halloweenparty.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/halloweenparty.jpg' },
         ]
     },
     {
@@ -102,9 +90,15 @@ export const COLORING_DATABASE: ColoringCategory[] = [
         id: 'characters',
         title: 'Personaggi',
         emoji: '👻',
-        coverImage: '',
+        coverImage: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/algrancompleto.jpg',
         color: 'bg-purple-500',
-        items: []
+        items: [
+            { id: 'ch-1', title: 'Pooh e i suoi amici', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Pooheisuoiamici.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Pooheisuoiamici.jpg' },
+            { id: 'ch-2', title: 'Al Gran Completo', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/algrancompleto.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/algrancompleto.jpg' },
+            { id: 'ch-3', title: 'Lone Boo e i suoi amici', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Lonebooeisuoiamici.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Lonebooeisuoiamici.jpg' },
+            { id: 'ch-4', title: 'Video Games', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Videogames.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Videogames.jpg' },
+            { id: 'ch-5', title: 'Le Favole', thumbnail: getAsset('https://loneboo-images.s3.eu-south-1.amazonaws.com/Lefavole.jpg'), pdfUrl: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Lefavole.jpg' },
+        ]
     },
     {
         id: 'food',

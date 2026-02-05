@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { getFanArt } from '../services/data';
 import { FanArt, AppView } from '../types';
@@ -11,6 +12,10 @@ const MUSEUM_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mu
 const BTN_VAI_GALLERIA = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-museum-gallery.webp';
 const BTN_TORNA_CITTA = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-museum-back.webp';
 const BTN_INVIA_DISEGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-museum-send.webp';
+
+// Asset Audio e Video
+const MUSEUM_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/museumspechlongbri3ew2.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 type FrameConfig = { id: string; points: Point[]; };
@@ -35,7 +40,6 @@ const FRAMES_DESKTOP: FrameConfig[] = [
 const SIGN_INVIA_DESKTOP: Point[] = [ { "x": 23.86, "y": 79.43 }, { "x": 23.96, "y": 94.43 }, { "x": 35.87, "y": 94.43 }, { "x": 35.17, "y": 78.53 } ];
 const SIGN_GALLERY_DESKTOP: Point[] = [ { "x": 45.0, "y": 70.0 }, { "x": 85.0, "y": 70.0 }, { "x": 85.0, "y": 99.0 }, { "x": 45.0, "y": 99.0 } ];
 
-// Fixed: Added React namespace import above
 const renderPolygonalArea = (points: Point[], content: React.ReactNode, onClick: () => void, zIndex: number = 10, useClipPath: boolean = true) => {
     if (points.length < 3) return null;
     const xs = points.map(p => p.x); const ys = points.map(p => p.y);
@@ -52,13 +56,17 @@ const renderPolygonalArea = (points: Point[], content: React.ReactNode, onClick:
 
 interface FanArtGalleryProps { setView?: (view: AppView) => void; }
 
-// Fixed: Added React namespace import above
 const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
   const [gallery, setGallery] = useState<FanArt[]>([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [selectedArt, setSelectedArt] = useState<FanArt | null>(null);
   const [bgLoaded, setBgLoaded] = useState(false);
+
+  // Gestione Audio e Video sincronizzata
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -71,8 +79,49 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
     let loadedCount = 0;
     const checkLoad = () => { loadedCount++; if (loadedCount >= 1) setBgLoaded(true); };
     imgM.onload = checkLoad; imgD.onload = checkLoad;
+
+    // Inizializzazione Audio specifico per il Museo
+    if (!audioRef.current) {
+        audioRef.current = new Audio(MUSEUM_VOICE_URL);
+        audioRef.current.loop = false;
+        audioRef.current.volume = 0.5;
+
+        audioRef.current.addEventListener('play', () => setIsPlaying(true));
+        audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+        audioRef.current.addEventListener('ended', () => {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        });
+    }
+
+    // Avvio automatico se l'audio è già attivo globalmente
+    if (isAudioOn) {
+        audioRef.current.play().catch(e => console.log("Audio play blocked", e));
+    }
+
+    // Listener per cambiamenti audio globali dall'header
+    const handleGlobalAudioChange = () => {
+        const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        setIsAudioOn(enabled);
+        if (enabled) {
+            audioRef.current?.play().catch(() => {});
+        } else {
+            audioRef.current?.pause();
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        }
+    };
+    window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
     setTimeout(() => setBgLoaded(true), 2000);
     window.scrollTo(0, 0);
+
+    return () => {
+        window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+    };
   }, []);
 
   const renderInteractives = (isDesktop: boolean) => {
@@ -92,7 +141,7 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
             ), () => { if (art) setSelectedArt(art); }, 20);
         })}
 
-        {/* TASTO INVIA DISEGNO - RESO FISSO RIMUOVENDO animate-pulse */}
+        {/* TASTO INVIA DISEGNO */}
         {renderPolygonalArea(activeSignInvia, (
             <div className="w-full h-full flex flex-col items-center justify-center relative">
                 <img src={BTN_INVIA_DISEGNO} alt="Invia Disegno" className="w-32 md:w-56 h-auto drop-shadow-lg" />
@@ -119,6 +168,27 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
             <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-amber-800/95 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 animate-spin-horizontal mb-4" />
                 <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
+            </div>
+        )}
+
+        {/* Mini TV di Boo - Posizionato a SINISTRA */}
+        {bgLoaded && isAudioOn && isPlaying && (
+            <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video 
+                        src={BOO_TALK_VIDEO}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                        style={{ 
+                            mixBlendMode: 'screen',
+                            filter: 'contrast(1.1) brightness(1.1)'
+                        }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
             </div>
         )}
 

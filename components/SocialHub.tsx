@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { getChannelStatistics } from '../services/api';
 import { getSocialStatsFromCSV } from '../services/data';
@@ -9,6 +8,10 @@ const TRAIN_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stat
 const TRAIN_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/station-desktop.webp';
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cityfrfwfed+(1).webp';
 const BTN_PARTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/paymentfwe5f5c5er+(1).webp';
+
+// Asset Audio e Video
+const STATION_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/30dd817e-ad8c-4ae6-a5b3-d491075b6725.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
@@ -47,6 +50,9 @@ type SocialStatsState = { youtube: string; instagram: string; tiktok: string; fa
 const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
   const [bgLoaded, setBgLoaded] = useState(false);
   const [stats, setStats] = useState<SocialStatsState>({ youtube: '...', instagram: '...', tiktok: '...', facebook: '...' });
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
       const imgMobile = new Image(); imgMobile.src = TRAIN_BG_MOBILE;
@@ -54,6 +60,7 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
       const checkLoad = () => { setBgLoaded(true); };
       imgMobile.onload = checkLoad; imgDesktop.onload = checkLoad;
       const safetyTimer = setTimeout(() => { setBgLoaded(true); }, 2000);
+      
       const fetchStats = async () => {
           const newStats = { ...stats };
           try {
@@ -71,8 +78,53 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
           setStats(newStats);
       };
       fetchStats();
-      return () => { clearTimeout(safetyTimer); };
-  }, []);
+
+      // Inizializzazione Audio
+      if (!audioRef.current) {
+          audioRef.current = new Audio(STATION_VOICE_URL);
+          audioRef.current.loop = false;
+          audioRef.current.volume = 0.5;
+          audioRef.current.addEventListener('play', () => setIsPlaying(true));
+          audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+          audioRef.current.addEventListener('ended', () => {
+              setIsPlaying(false);
+              if (audioRef.current) audioRef.current.currentTime = 0;
+          });
+      }
+
+      const handleGlobalAudioChange = () => {
+          const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+          setIsAudioOn(enabled);
+          if (enabled && bgLoaded) {
+              audioRef.current?.play().catch(() => {});
+              sessionStorage.setItem('heard_audio_station', 'true');
+          } else {
+              audioRef.current?.pause();
+              if (audioRef.current) audioRef.current.currentTime = 0;
+          }
+      };
+      window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+      return () => { 
+          clearTimeout(safetyTimer);
+          window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+          if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+          }
+      };
+  }, [bgLoaded]);
+
+  // Logica intelligente per l'avvio automatico
+  useEffect(() => {
+      if (bgLoaded && isAudioOn && audioRef.current) {
+          const alreadyHeard = sessionStorage.getItem('heard_audio_station') === 'true';
+          if (!alreadyHeard) {
+              audioRef.current.play().catch(e => console.log("Audio play blocked", e));
+              sessionStorage.setItem('heard_audio_station', 'true');
+          }
+      }
+  }, [bgLoaded, isAudioOn]);
 
   const handleExternalClick = (e: React.MouseEvent, id: string) => {
       e.preventDefault();
@@ -87,7 +139,6 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
 
   const handleStartJourney = () => {
       if (setView) {
-          // FIX: Impedisce il bug del teletrasporto gratuito impostando correttamente l'origine
           sessionStorage.setItem('train_journey_origin', AppView.SOCIALS);
           setView(AppView.TRAIN_JOURNEY);
       }
@@ -124,6 +175,15 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
             </div>
         )}
         <div className="relative w-full h-full overflow-hidden">
+            {isAudioOn && isPlaying && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
+            )}
+            
             {setView && bgLoaded && (
                 <>
                     <button onClick={() => setView(AppView.CITY_MAP)} className="absolute bottom-0 left-4 z-50 hover:scale-110 active:scale-95 transition-all outline-none" title="Torna in città">

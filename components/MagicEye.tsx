@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
 import StoryDice from './StoryDice';
@@ -17,6 +17,10 @@ const BG_PASSPORT_GHOST = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sf
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
 const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflancdadersdd.webp';
 const BG_MAGIC_HAT = 'https://i.postimg.cc/X7VBMLG9/gfffsrr.jpg';
+
+// Asset Audio e Video Ambientali
+const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicaspeechboo4e4e4.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
@@ -42,6 +46,11 @@ interface MagicEyeProps {
 const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Stati per l'audio e video ambientale
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
       const imgM = new Image(); imgM.src = TOWER_BG_MOBILE;
@@ -54,9 +63,57 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       imgM.onload = checkLoaded;
       imgD.onload = checkLoaded;
 
+      // Inizializzazione Audio Ambientale
+      if (!ambientAudioRef.current) {
+          ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
+          ambientAudioRef.current.loop = false;
+          ambientAudioRef.current.volume = 0.5;
+
+          ambientAudioRef.current.addEventListener('play', () => setIsAmbientPlaying(true));
+          ambientAudioRef.current.addEventListener('pause', () => setIsAmbientPlaying(false));
+          ambientAudioRef.current.addEventListener('ended', () => {
+              setIsAmbientPlaying(false);
+              if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
+          });
+      }
+
+      // Avvio automatico se l'audio è già attivo globalmente
+      if (isAudioOn && !activeGame) {
+          ambientAudioRef.current.play().catch(e => console.log("Ambient audio blocked", e));
+      }
+
+      // Listener per cambiamenti audio globali dall'header
+      const handleGlobalAudioChange = () => {
+          const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+          setIsAudioOn(enabled);
+          if (enabled && !activeGame) {
+              ambientAudioRef.current?.play().catch(() => {});
+          } else {
+              ambientAudioRef.current?.pause();
+          }
+      };
+      window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
       const timer = setTimeout(() => setIsLoaded(true), 2500);
-      return () => clearTimeout(timer);
-  }, []);
+      
+      return () => {
+          clearTimeout(timer);
+          window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+          if (ambientAudioRef.current) {
+              ambientAudioRef.current.pause();
+              ambientAudioRef.current.currentTime = 0;
+          }
+      };
+  }, [activeGame]);
+
+  // Interrompe ambient quando si entra in un gioco
+  useEffect(() => {
+    if (activeGame) {
+        ambientAudioRef.current?.pause();
+    } else if (isAudioOn) {
+        ambientAudioRef.current?.play().catch(() => {});
+    }
+  }, [activeGame, isAudioOn]);
 
   const handleZoneClick = (gameId: string) => {
       setActiveGame(gameId);
@@ -107,6 +164,24 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
             </div>
         )}
 
+        {/* MINI TV DI BOO - Sincronizzato con l'audio ambientale */}
+        {isLoaded && isAudioOn && isAmbientPlaying && !activeGame && (
+            <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video 
+                        src={BOO_TALK_VIDEO}
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className="w-full h-full object-cover" 
+                        style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
+        )}
+
         {/* TASTO ESCI PER LA CITTÀ - Posizionato al limite superiore */}
         {isLoaded && !activeGame && (
             <div className="absolute top-1 md:top-2 left-0 md:left-1 z-50 animate-in slide-in-from-left duration-500">
@@ -120,7 +195,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
         )}
         
         <RobotHint 
-            show={isLoaded} 
+            show={isLoaded && !activeGame} 
             message="Tocca un oggetto magico e divertiti.." 
             variant="PURPLE"
         />

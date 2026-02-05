@@ -4,68 +4,20 @@ import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from './stickersDatabas
 
 const STORAGE_KEY = 'loneboo_player_progress';
 
-const ITALIAN_WORDS = [
-    "ACQUA", "AEREO", "ALBERO", "ALICE", "AMICO", "AMORE", "ANGELO", "ANIMA", "ANNO", "APE", 
-    "ARCO", "ARIA", "ARTE", "ASINO", "ATTO", "AUTO", "BACIO", "BAFFO", "BALLO", "BANANA", 
-    "BANCO", "BARCA", "BASSO", "BECCO", "BELLO", "BENE", "BIANCO", "BICI", "BIRRA", "BISCOTTO", 
-    "BLU", "BOCCA", "BOLLA", "BORSA", "BOSCO", "BOTTE", "BRACCIO", "BUCO", "BUFFO", "BUIO", 
-    "BURRO", "CACAO", "CAFFE", "CALDO", "CALZA", "CAMPO", "CANE", "CANTO", "CAPRA", "CARRO", 
-    "CARTA", "CASA", "CASCO", "CASSA", "CATENA", "CAVALLO", "CENA", "CERA", "CESTO", "CIELO", 
-    "CIGNO", "CIMA", "CINQUE", "CITTA", "CLASSE", "CODA", "COLLA", "COLLO", "COLORE", "CONTE", 
-    "CORDA", "CORNO", "CORPO", "CORSA", "CORTO", "COSA", "COSTA", "CREMA", "CROCE", "CUBO", 
-    "CUCINA", "CULLA", "CUORE", "CURA", "DADO", "DAMA", "DENTE", "DISCO", "DITO", "DIVANO", 
-    "DOLCE", "DONNA", "DONO", "DOTTORE", "DRAGO", "DUE", "DURO", "ERBA", "ESTATE", "FAME", 
-    "FARINA", "FARO", "FATA", "FATTO", "FAVOLA", "FEDE", "FELPA", "FERRO", "FESTA", "FETTA", 
-    "FIANO", "FICO", "FIGLIO", "FILO", "FINE", "FIORE", "FIUME", "FOGLIA", "FOLLA", "FONTE", 
-    "FORMA", "FORNO", "FORZA", "FOTO", "FUOCO", "FUMO", "FUNGO", "GABBIA", "GALLO", "GAMBA", 
-    "GATTO", "GELATO", "GENTE", "GIOCO", "GIORNO", "GIRAFFA", "GIRO", "GLOBO", "GOCCIA", "GOMMA", 
-    "GONNA", "GRANO", "GRAZIE", "GRILLO", "GROTTA", "GUFO", "GUSTO", "IDEA", "ISOLA", "LAGO", 
-    "LAMA", "LANA", "LATO", "LATTE", "LAVORO", "LEGNO", "LEONE", "LETTO", "LIBRO", "LIMONE", 
-    "LINEA", "LINGUA", "LIRA", "LISTA", "LITRO", "LUCE", "LUNA", "LUPO", "MADRE", "MAGIA", 
-    "MAGO", "MAIALE", "MAIS", "MALTO", "MAMMA", "MANO", "MARE", "MARTE", "MASCHERA", "MATITA", 
-    "MATTO", "MELA", "MENTA", "MENU", "MESE", "META", "METRO", "MEZZO", "MIELE", "MILLE", 
-    "MINUTO", "MIO", "MODO", "MONDO", "MONTE", "MOTO", "MOZZO", "MUCCA", "MULO", "MURO", 
-    "MUSICA", "NASO", "NATA", "NAVE", "NAZIO", "NEBBIA", "NEVE", "NIDO", "NODO", "NOME", 
-    "NONNO", "NORD", "NOTE", "NOTTE", "NOVE", "NUBE", "NULLA", "NUMERO", "NUOVO", "OCA", 
-    "OCCHIO", "OGGI", "OLIO", "OMBRA", "ONDA", "ORA", "ORCO", "ORO", "ORSO", "ORTO", 
-    "OSSO", "OTTO", "PACE", "PADRE", "PAGLIA", "PALLA", "PALMA", "PANE", "PANNA", "PAPA", 
-    "PARCO", "PARTE", "PASSO", "PASTA", "PATATA", "PAURA", "PAZZO", "PECORA", "PELLE", "PELO", 
-    "PENNA", "PEPE", "PERA", "PESCA", "PESCE", "PEZZO", "PIANO", "PIATTO", "PIEDE", "PIETRA", 
-    "PIGRO", "PILA", "PINO", "PIOGGIA", "PIPA", "PISTA", "PIZZA", "POLLO", "POLSO", "POLVERE", 
-    "POMO", "PONTE", "POPOLO", "PORTA", "PORTO", "POSTA", "PRATO", "PRETE", "PREZZO", "PRIMO", 
-    "PUNTO", "PURO", "QUADRO", "QUATTRO", "QUI", "RANA", "RAGNO", "RAMO", "RATO", "RE", 
-    "RETE", "RICCO", "RISO", "RIVA", "ROBA", "ROCCA", "ROSA", "ROSSO", "ROTA", "RUOTA", 
-    "SABBIA", "SACCO", "SALE", "SALTO", "SANGUE", "SANTO", "SAPONE", "SASSO", "SCALA", "SCATOLA", 
-    "SCUOLA", "SECCHIO", "SEDE", "SEGNO", "SELLA", "SEME", "SENSO", "SERA", "SERPE", "SETE", 
-    "SETTE", "SFERA", "SFIDA", "SI", "SLITTA", "SOGNO", "SOLDI", "SOLE", "SONNO", "SOPRA", 
-    "SORELLA", "SORRISO", "SOTTO", "SPADA", "SPAGO", "SPAZIO", "SPIA", "SPORT", "SPOSA", "STALLA", 
-    "STANZA", "STELLA", "STORIA", "STRADA", "SUCCO", "SUONO", "SUORA", "TAVOLO", "TAZZA", "TE", 
-    "TEMPO", "TENDA", "TERRA", "TESTA", "TETTO", "TIGRE", "TIPO", "TIRO", "TOPO", "TORRE", 
-    "TORTA", "TRE", "TRENO", "TRONO", "TUBO", "TUTTO", "UCCELLO", "UOMO", "UOVO", "UVA", 
-    "VACA", "VALLE", "VAPORE", "VASO", "VELA", "VELO", "VENA", "VENTO", "VERDE", "VERO", 
-    "VESTA", "VETRO", "VIA", "VIAGGIO", "VITA", "VOCE", "VOLO", "VOLPE", "VOLTO", "VOTO", 
-    "ZAFFIRO", "ZAINO", "ZAMPA", "ZERO", "ZIA", "ZIO", "ZONA", "ZOO", "ZUPPA"
-];
-
-const SAFE_WORD_LIST = [...ITALIAN_WORDS, ...Array(256).fill('BOO')].slice(0, 256);
-
-const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
-    charIndex: 0,
-    bgIndex: 0
-};
-
 const INITIAL_PROGRESS: PlayerProgress = {
     playerName: '',
     avatar: 'BOY',
     avatarConfig: undefined,
-    tokens: 0,
+    tokens: 300, // Impostato a 300 per facilitare i test
     unlockedStickers: [],
     hardModeUnlocked: false,
     duplicates: 0,
     duplicateStickers: [],
     currentAlbum: 1,
     completedQuizzes: {},
-    completedActivities: {}
+    completedActivities: {},
+    equippedClothing: {},
+    purchasedClothing: []
 };
 
 export const getProgress = (): PlayerProgress => {
@@ -74,7 +26,14 @@ export const getProgress = (): PlayerProgress => {
         if (localData) {
             const parsed = JSON.parse(localData);
             if (parsed && typeof parsed === 'object') {
-                return { ...INITIAL_PROGRESS, ...parsed };
+                return { 
+                    ...INITIAL_PROGRESS, 
+                    ...parsed,
+                    completedQuizzes: parsed.completedQuizzes || {},
+                    completedActivities: parsed.completedActivities || {},
+                    equippedClothing: parsed.equippedClothing || {},
+                    purchasedClothing: parsed.purchasedClothing || []
+                };
             }
         }
     } catch (e) { console.error("Error reading progress:", e); }
@@ -89,26 +48,11 @@ export const saveProgress = (progress: PlayerProgress) => {
     } catch (e) { console.error("Error saving progress:", e); }
 };
 
-export const markQuizComplete = (lessonId: string, quizIdx: number) => {
-    const progress = getProgress();
-    if (!progress.completedQuizzes) progress.completedQuizzes = {};
-    if (!progress.completedQuizzes[lessonId]) progress.completedQuizzes[lessonId] = [false, false, false];
-    progress.completedQuizzes[lessonId][quizIdx] = true;
-    saveProgress(progress);
-};
+// --- SETTERS AND ACTIONS ---
 
-export const markActivityComplete = (lessonId: string, activityIdx: number) => {
+export const setPlayerName = (name: string) => {
     const progress = getProgress();
-    if (!progress.completedActivities) progress.completedActivities = {};
-    if (!progress.completedActivities[lessonId]) progress.completedActivities[lessonId] = [false, false];
-    progress.completedActivities[lessonId][activityIdx] = true;
-    saveProgress(progress);
-};
-
-export const setPlayerName = (name: string, avatar: 'BOY' | 'GIRL') => {
-    const progress = getProgress();
-    progress.playerName = name.trim().toUpperCase();
-    progress.avatar = avatar;
+    progress.playerName = name;
     saveProgress(progress);
 };
 
@@ -129,6 +73,25 @@ export const spendTokens = (amount: number): boolean => {
     return false;
 };
 
+export const equipClothing = (type: 'tshirt' | 'hat' | 'glasses', id: string | undefined) => {
+    const progress = getProgress();
+    progress.equippedClothing[type] = id;
+    saveProgress(progress);
+};
+
+export const purchaseClothing = (id: string, cost: number): boolean => {
+    const progress = getProgress();
+    if (progress.purchasedClothing.includes(id)) return true;
+    
+    if (progress.tokens >= cost) {
+        progress.tokens -= cost;
+        progress.purchasedClothing.push(id);
+        saveProgress(progress);
+        return true;
+    }
+    return false;
+};
+
 export const unlockHardMode = (): boolean => {
     const progress = getProgress();
     if (progress.tokens >= 1500) {
@@ -138,7 +101,19 @@ export const unlockHardMode = (): boolean => {
         return true;
     }
     return false;
-}
+};
+
+export const upgradeToNextAlbum = (): boolean => {
+    const progress = getProgress();
+    if ((progress.currentAlbum || 1) < 2) {
+        progress.currentAlbum = 2;
+        saveProgress(progress);
+        return true;
+    }
+    return false;
+};
+
+// --- STICKERS LOGIC ---
 
 export const openPack = (albumVersion: number = 1): Sticker => {
     const currentCollection = (albumVersion === 2) ? STICKERS_COLLECTION_VOL2 : STICKERS_COLLECTION;
@@ -183,142 +158,62 @@ export const tradeDuplicates = (): boolean => {
     return false;
 };
 
-export const upgradeToNextAlbum = (): boolean => {
-    const progress = getProgress();
-    if (progress.currentAlbum === 1) {
-        progress.currentAlbum = 2;
-        saveProgress(progress);
-        return true;
-    }
-    return false;
-}
+// --- PASSPORT ENCODING & RECOVERY ---
 
-const getWordIndex = (word: string): number => SAFE_WORD_LIST.indexOf(word.toUpperCase());
-const calculateChecksum = (bytes: number[]): number => {
-    let sum1 = 0, sum2 = 0;
-    for (let byte of bytes) {
-        sum1 = (sum1 + byte) % 255;
-        sum2 = (sum2 + sum1) % 255;
+/**
+ * Codifica i progressi in Base64 supportando caratteri UTF-8 (accenti, emoji, ecc.)
+ */
+export const encodePassport = (progress: PlayerProgress): string => {
+    try {
+        const jsonString = JSON.stringify(progress);
+        // encodeURIComponent + unescape è necessario per permettere a btoa di gestire caratteri non-latin1
+        return btoa(unescape(encodeURIComponent(jsonString)));
+    } catch (e) {
+        console.error("Error encoding passport:", e);
+        return "";
     }
-    return (sum1 + sum2) % 256;
 };
 
-export const encodePassport = (data: PlayerProgress): string => {
+/**
+ * Decodifica i progressi da una stringa Base64 gestendo correttamente UTF-8
+ */
+export const decodePassport = (code: string): PlayerProgress | null => {
     try {
-        const bytes: number[] = [];
-
-        const tokens = Math.min(data.tokens, 65535);
-        bytes.push((tokens >> 8) & 0xFF);
-        bytes.push(tokens & 0xFF);
-
-        let stickerMask1 = 0;
-        STICKERS_COLLECTION.forEach((s, idx) => { if (data.unlockedStickers.includes(s.id)) stickerMask1 |= (1 << idx); });
-        if (data.avatar === 'GIRL') stickerMask1 |= (1 << 30);
-        if (data.hardModeUnlocked) stickerMask1 |= (1 << 31);
-        bytes.push((stickerMask1 >>> 24) & 0xFF);
-        bytes.push((stickerMask1 >>> 16) & 0xFF);
-        bytes.push((stickerMask1 >>> 8) & 0xFF);
-        bytes.push(stickerMask1 & 0xFF);
-
-        if (data.currentAlbum && data.currentAlbum >= 2) {
-            let stickerMask2 = 0;
-            STICKERS_COLLECTION_VOL2.forEach((s, idx) => { if (data.unlockedStickers.includes(s.id)) stickerMask2 |= (1 << idx); });
-            stickerMask2 |= (1 << 31); 
-            bytes.push((stickerMask2 >>> 24) & 0xFF);
-            bytes.push((stickerMask2 >>> 16) & 0xFF);
-            bytes.push((stickerMask2 >>> 8) & 0xFF);
-            bytes.push(stickerMask2 & 0xFF);
-        }
-
-        const ac = data.avatarConfig || DEFAULT_AVATAR_CONFIG;
-        bytes.push(Math.min(ac.charIndex, 255));
-        bytes.push(Math.min(ac.bgIndex, 255));
-
-        bytes.push(calculateChecksum(bytes));
-
-        const words = bytes.map(b => SAFE_WORD_LIST[b]);
-        const name = data.playerName ? data.playerName.split(' ')[0] : 'AGENTE';
-        
-        return [name, ...words].join(' ');
-
-    } catch (e) { return "ERRORE"; }
-};
-
-export const decodePassport = (phrase: string): PlayerProgress | null => {
-    try {
-        const words = phrase.trim().toUpperCase().split(/[\s-]+/).filter(w => w.length > 0);
-        if (words.length < 8) return null;
-
-        const name = words[0];
-        const allBytes = words.slice(1).map(w => getWordIndex(w));
-        if (allBytes.includes(-1)) return null;
-
-        const payloadBytes = allBytes.slice(0, -1);
-        const providedChecksum = allBytes[allBytes.length - 1];
-        if (calculateChecksum(payloadBytes) !== providedChecksum) return null;
-
-        const bytes = payloadBytes;
-        let cursor = 0;
-
-        const tokens = (bytes[cursor] << 8) | bytes[cursor + 1];
-        cursor += 2;
-
-        let mask1 = ((bytes[cursor] << 24) | (bytes[cursor+1] << 16) | (bytes[cursor+2] << 8) | bytes[cursor+3]) >>> 0;
-        cursor += 4;
-        
-        const unlockedStickers: string[] = [];
-        const avatar = (mask1 & (1 << 30)) ? 'GIRL' : 'BOY';
-        const hardModeUnlocked = (mask1 & (1 << 31)) !== 0;
-
-        STICKERS_COLLECTION.forEach((s, idx) => { if ((mask1 & (1 << idx)) !== 0) unlockedStickers.push(s.id); });
-
-        let currentAlbum = 1;
-
-        if (cursor < bytes.length) {
-            const remaining = bytes.length - cursor;
-            
-            if (remaining >= 4) {
-                 let potentialMask2 = ((bytes[cursor] << 24) | (bytes[cursor+1] << 16) | (bytes[cursor+2] << 8) | bytes[cursor+3]) >>> 0;
-                 if ((potentialMask2 & (1 << 31)) !== 0) {
-                     STICKERS_COLLECTION_VOL2.forEach((s, idx) => { if ((potentialMask2 & (1 << idx)) !== 0) unlockedStickers.push(s.id); });
-                     currentAlbum = 2;
-                     cursor += 4;
-                 }
-            }
-        }
-
-        let avatarConfig = DEFAULT_AVATAR_CONFIG;
-        
-        if (cursor + 2 <= bytes.length) {
-             const charIdx = bytes[cursor];
-             const bgIdx = bytes[cursor+1];
-             avatarConfig = { charIndex: charIdx, bgIndex: bgIdx };
-        }
-
-        return {
-            ...INITIAL_PROGRESS,
-            playerName: name,
-            avatar,
-            tokens,
-            unlockedStickers,
-            hardModeUnlocked,
-            currentAlbum,
-            avatarConfig
-        };
-
-    } catch (e) { return null; }
+        const decodedString = decodeURIComponent(escape(atob(code)));
+        return JSON.parse(decodedString);
+    } catch (e) {
+        console.error("Error decoding passport:", e);
+        return null;
+    }
 };
 
 export const getPassportCode = (): string => {
-    const progress = getProgress();
-    return encodePassport(progress);
+    return encodePassport(getProgress());
 };
 
 export const restorePassport = (code: string): boolean => {
-    const decoded = decodePassport(code);
-    if (decoded) {
-        saveProgress(decoded);
+    const p = decodePassport(code);
+    if (p) {
+        saveProgress(p);
         return true;
     }
     return false;
+};
+
+// --- SCHOOL PROGRESS ---
+
+export const markQuizComplete = (lessonId: string, quizIdx: number) => {
+    const progress = getProgress();
+    if (!progress.completedQuizzes) progress.completedQuizzes = {};
+    if (!progress.completedQuizzes[lessonId]) progress.completedQuizzes[lessonId] = [];
+    progress.completedQuizzes[lessonId][quizIdx] = true;
+    saveProgress(progress);
+};
+
+export const markActivityComplete = (lessonId: string, activityIdx: number) => {
+    const progress = getProgress();
+    if (!progress.completedActivities) progress.completedActivities = {};
+    if (!progress.completedActivities[lessonId]) progress.completedActivities[lessonId] = [];
+    progress.completedActivities[lessonId][activityIdx] = true;
+    saveProgress(progress);
 };

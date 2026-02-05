@@ -2,10 +2,6 @@
 import { NOTIFICATIONS_CSV_URL } from '../constants';
 import { AppNotification } from '../types';
 
-/**
- * Parses a single line of CSV.
- * Columns: ID, Message, Link, LinkText, Active, Image
- */
 const parseCSVLine = (line: string): string[] => {
     if (!line.includes('"')) {
         return line.split(',').map(s => s.trim());
@@ -29,41 +25,35 @@ const parseCSVLine = (line: string): string[] => {
 };
 
 export const getLatestNotification = async (): Promise<AppNotification | null> => {
-    if (!NOTIFICATIONS_CSV_URL || NOTIFICATIONS_CSV_URL.includes('ExamplePlaceholder')) return null;
+    if (!NOTIFICATIONS_CSV_URL) return null;
 
     try {
-        const response = await fetch(NOTIFICATIONS_CSV_URL);
+        const response = await fetch(NOTIFICATIONS_CSV_URL, { cache: 'no-store' });
         if (response.ok) {
             const text = await response.text();
             const lines = text.split('\n');
             if (lines.length < 2) return null;
             
             const dataRows = lines.slice(1);
-
             for (let i = dataRows.length - 1; i >= 0; i--) {
                 const line = dataRows[i];
                 if (!line || !line.trim()) continue;
                 
                 const parts = parseCSVLine(line);
-                if (parts.length < 5) continue;
+                if (parts.length < 2) continue;
 
                 const id = parts[0];
                 const message = parts[1];
-                const link = parts[2];
-                const linkText = parts[3];
-                const activeRaw = parts[4] ? parts[4].trim().toUpperCase() : 'FALSE';
-                const image = parts[5] ? parts[5].trim() : undefined;
+                const link = (parts[2] && parts[2] !== "-") ? parts[2] : undefined;
+                const image = (parts[3] && parts[3] !== "-") ? parts[3] : undefined;
 
-                if (activeRaw === 'TRUE' || activeRaw === 'SI' || activeRaw === 'YES') {
-                    return {
-                        id,
-                        message,
-                        link: link === '-' ? undefined : link,
-                        linkText: linkText === '-' ? undefined : linkText,
-                        active: true,
-                        image: (image && image !== '-' && image.startsWith('http')) ? image : undefined
-                    };
-                }
+                return {
+                    id,
+                    message,
+                    link,
+                    active: true,
+                    image
+                };
             }
         }
     } catch (error) {
@@ -73,10 +63,10 @@ export const getLatestNotification = async (): Promise<AppNotification | null> =
 };
 
 export const getAllNotifications = async (): Promise<AppNotification[]> => {
-    if (!NOTIFICATIONS_CSV_URL || NOTIFICATIONS_CSV_URL.includes('ExamplePlaceholder')) return [];
+    if (!NOTIFICATIONS_CSV_URL) return [];
 
     try {
-        const response = await fetch(NOTIFICATIONS_CSV_URL);
+        const response = await fetch(NOTIFICATIONS_CSV_URL, { cache: 'no-store' });
         if (response.ok) {
             const text = await response.text();
             const lines = text.split('\n');
@@ -85,26 +75,20 @@ export const getAllNotifications = async (): Promise<AppNotification[]> => {
             const dataRows = lines.slice(1);
             const notifications: AppNotification[] = [];
 
-            // Iteriamo dal fondo (più recenti) verso l'inizio
             for (let i = dataRows.length - 1; i >= 0; i--) {
                 const line = dataRows[i];
                 if (!line || !line.trim()) continue;
                 
                 const parts = parseCSVLine(line);
-                if (parts.length < 5) continue;
+                if (parts.length < 2) continue;
 
-                const activeRaw = parts[4] ? parts[4].trim().toUpperCase() : 'FALSE';
-
-                if (activeRaw === 'TRUE' || activeRaw === 'SI' || activeRaw === 'YES') {
-                    notifications.push({
-                        id: parts[0],
-                        message: parts[1],
-                        link: parts[2] === '-' ? undefined : parts[2],
-                        linkText: parts[3] === '-' ? undefined : parts[3],
-                        active: true,
-                        image: (parts[5] && parts[5] !== '-' && parts[5].startsWith('http')) ? parts[5].trim() : undefined
-                    });
-                }
+                notifications.push({
+                    id: parts[0],
+                    message: parts[1],
+                    link: (parts[2] && parts[2] !== "-") ? parts[2] : undefined,
+                    active: true,
+                    image: (parts[3] && parts[3] !== "-") ? parts[3] : undefined
+                });
             }
             return notifications;
         }

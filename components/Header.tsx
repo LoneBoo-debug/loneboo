@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy, ChevronDown, TrainFront } from 'lucide-react';
+import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy, ChevronDown, TrainFront, Volume2, VolumeX } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
 import { CHANNEL_LOGO, OFFICIAL_LOGO } from '../constants';
 import { fetchAppNotifications, markNotificationsAsRead, checkHasNewNotifications } from '../services/notificationService';
@@ -13,7 +12,6 @@ const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cityd
 const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/homrefgdsa+(1).webp';
 const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const INIZIO_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/inizioseddfeawq.webp';
 const HOME_HEADER_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 const HOME_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/headlogheadrilo.webp';
 
@@ -21,6 +19,10 @@ const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-noti
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
 const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magic.webp';
 const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
+
+// Asset Audio
+const BTN_AUDIO_ON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicatiicaggdg3edcde+(1).webp';
+const BTN_AUDIO_OFF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicadisattivusns6hsg2+(1).webp';
 
 // Nuovi pulsanti per le città esterne
 const BTN_RETURN_TO_COLOR_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trnsymgnfhd74h43wjs.webp';
@@ -48,10 +50,9 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const [showAccessibilityModal, setShowAccessibilityModal] = useState(false); 
     const [showParentalGate, setShowParentalGate] = useState(false);
     const [showParentalArea, setShowParentalArea] = useState(false);
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     
-    // Logica segreta per Audio Studio Pro
     const [logoClicks, setLogoClicks] = useState(0);
-    // FIX: Changed NodeJS.Timeout to ReturnType<typeof setTimeout> for browser compatibility
     const logoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const menuRef = useRef<HTMLDivElement>(null);
@@ -69,7 +70,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         AppView.LAKE_CITY
     ].includes(currentView);
     
-    const logoImage = isHome ? HOME_HEADER_LOGO : CITY_BTN_IMAGE;
     const titleImage = HOME_HEADER_TITLE;
 
     useEffect(() => {
@@ -82,15 +82,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     }, []);
 
     useEffect(() => {
-        const handleGlobalTrigger = () => {
-            setIsMenuOpen(false);
-            setShowParentalGate(true);
-        };
-        window.addEventListener('triggerParentalGate', handleGlobalTrigger);
-        return () => window.removeEventListener('triggerParentalGate', handleGlobalTrigger);
-    }, []);
-
-    useEffect(() => {
         const loadNotifs = async () => {
             const data = await fetchAppNotifications();
             setNotifications(data);
@@ -100,7 +91,22 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         loadNotifs();
     }, []);
 
-    const handlePlusClick = () => setIsMenuOpen(!isMenuOpen);
+    // Sincronizzazione con cambiamenti esterni dell'audio (es. dalla HomePage)
+    useEffect(() => {
+        const handleSyncAudio = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+        };
+        window.addEventListener('loneboo_audio_changed', handleSyncAudio);
+        return () => window.removeEventListener('loneboo_audio_changed', handleSyncAudio);
+    }, []);
+
+    const toggleAudio = () => {
+        const nextState = !isAudioOn;
+        setIsAudioOn(nextState);
+        localStorage.setItem('loneboo_music_enabled', String(nextState));
+        window.dispatchEvent(new Event('loneboo_audio_changed'));
+    };
 
     const handleOpenNotifications = async () => {
         setIsMenuOpen(false);
@@ -111,15 +117,19 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const handleOpenAccessibility = () => { setIsMenuOpen(false); setShowAccessibilityModal(true); };
     const handleOpenParental = () => { setIsMenuOpen(false); setShowParentalGate(true); };
     const handleParentalSuccess = () => { setShowParentalGate(false); setShowParentalArea(true); };
-    const handleOpenInfo = () => { setIsMenuOpen(false); setView(AppView.INFO_MENU); };
+    
+    const handleOpenInfo = () => { 
+        setIsMenuOpen(false); 
+        // Salviamo la pagina corrente prima di andare al Centro Info
+        sessionStorage.setItem('info_menu_origin', currentView);
+        setView(AppView.INFO_MENU); 
+    };
+
     const handleCityClick = () => setView(AppView.CITY_MAP);
 
     const handleLogoClick = () => {
-        // La logica segreta funziona solo nella Home Page
-        if (currentView !== AppView.HOME) return;
-
+        if (currentView !== AppView.HOME && currentView !== AppView.BOO_GARDEN) return;
         if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
-        
         const nextClicks = logoClicks + 1;
         if (nextClicks >= 5) {
             setLogoClicks(0);
@@ -128,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             setLogoClicks(nextClicks);
             logoTimerRef.current = setTimeout(() => {
                 setLogoClicks(0);
-            }, 3000); // Reset se non clicca più entro 3 secondi
+            }, 3000);
         }
     };
 
@@ -157,11 +167,11 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {!isJourney && !isExternalCity && (
+                    {!isHome && !isExternalCity && (
                         <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
                                 <button 
-                                    onClick={handlePlusClick}
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className={`relative bg-yellow-400 hover:bg-yellow-300 active:scale-95 transition-all w-[11.5vw] h-[11.5vw] md:w-[6vw] md:h-[6vw] lg:w-[5.5vw] lg:h-[5.5vw] rounded-full border-[0.8vw] md:border-4 border-black shadow-[0.6vw_0.6vw_0_rgba(0,0,0,0.6)] md:shadow-[3px_3px_0_rgba(0,0,0,0.6)] flex items-center justify-center z-50 ${isMenuOpen ? 'rotate-45 bg-red-400 border-red-800' : ''}`}
                                 >
                                     {hasNew && !isMenuOpen && (
@@ -197,16 +207,17 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     )}
 
-                    {/* Logo Intestazione Centrale - Cliccabile se in Home per accesso segreto */}
-                    <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
-                        <img 
-                            src={titleImage} 
-                            alt="Lone Boo" 
-                            className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" 
-                        />
-                    </div>
+                    {!isHome && (
+                        <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
+                            <img 
+                                src={titleImage} 
+                                alt="Lone Boo" 
+                                className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" 
+                            />
+                        </div>
+                    )}
 
-                    {!isJourney && (
+                    {!isHome && (
                         <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
                             {isExternalCity ? (
                                 <>
@@ -250,30 +261,34 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                             </div>
                                         )}
                                     </div>
+                                    <div className="flex flex-col items-center group cursor-pointer" onClick={toggleAudio}>
+                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                            <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
+                                        </div>
+                                        <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
+                                    </div>
                                 </>
                             ) : (
                                 <>
-                                    {!isHome && (
-                                        <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={() => setView(AppView.HOME)}>
-                                            <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden shadow-md border-2 border-black/5">
-                                                <img src={INIZIO_BTN_IMG} alt="Inizio" className="w-full h-full object-cover pointer-events-auto" />
-                                            </div>
-                                            <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-green-500 uppercase mt-1">INIZIO</span>
+                                    <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
+                                        <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
+                                            <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                    )}
-                                    {!isHome && (
-                                        <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
-                                            <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
-                                                <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
-                                            </div>
-                                            <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
+                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
+                                    </div>
+
+                                    <div className={`flex flex-col items-center ${isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95'} transition-transform`}>
+                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#60A5FA]`} onClick={handleCityClick}>
+                                            <img src={CITY_BTN_IMAGE} alt="Città" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                    )}
-                                    <div className={`flex flex-col items-center ${isHome ? 'cursor-default' : (isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95')} transition-transform`}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden z-50 ${!isHome ? 'border-[0.8vw] md:border-4 border-[#60A5FA]' : ''}`} onClick={isHome ? undefined : handleCityClick}>
-                                            <img src={logoImage} alt="Logo" className="w-full h-full object-cover pointer-events-auto" />
+                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>
+                                    </div>
+
+                                    <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
+                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                            <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        {!isHome && <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>}
+                                        <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
                                     </div>
                                 </>
                             )}

@@ -1,9 +1,10 @@
+
 import { NOTIFICATIONS_CSV_URL } from '../constants';
 import { AppNotification } from '../types';
 
 /**
- * Servizio NotificationService v2.5
- * Supporto per miniature automatiche YouTube e immagini personalizzate (Colonna D)
+ * Servizio NotificationService v2.8
+ * Risolve l'errore 404 assicurando una richiesta pulita verso Google Sheets.
  */
 
 const getYouTubeThumbnail = (url: string): string | undefined => {
@@ -16,28 +17,27 @@ const getYouTubeThumbnail = (url: string): string | undefined => {
 };
 
 const parseCSVLine = (line: string): string[] => {
-    const cleanLine = line.trim();
-    if (!cleanLine) return [];
-    
-    if (!cleanLine.includes('"')) {
-        return cleanLine.split(',').map(s => s.trim());
-    }
-
-    const result = [];
-    let current = '';
+    const result: string[] = [];
+    let curVal = '';
     let inQuotes = false;
-    for (let i = 0; i < cleanLine.length; i++) {
-        const char = cleanLine[i];
-        if (char === '"') {
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"' && inQuotes && nextChar === '"') {
+            curVal += '"';
+            i++;
+        } else if (char === '"') {
             inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
-            current = '';
+            result.push(curVal.trim());
+            curVal = '';
         } else {
-            current += char;
+            curVal += char;
         }
     }
-    result.push(current.trim());
+    result.push(curVal.trim());
     return result;
 };
 
@@ -45,11 +45,16 @@ export const fetchAppNotifications = async (): Promise<AppNotification[]> => {
     if (!NOTIFICATIONS_CSV_URL) return [];
 
     try {
-        const separator = NOTIFICATIONS_CSV_URL.includes('?') ? '&' : '?';
-        const urlWithCacheBuster = `${NOTIFICATIONS_CSV_URL}${separator}t=${Date.now()}`;
-        
-        const response = await fetch(urlWithCacheBuster, { mode: 'cors' });
-        if (!response.ok) throw new Error("Errore nel caricamento");
+        // Fetch semplice senza header personalizzati per evitare problemi di preflight/CORS/404
+        const response = await fetch(NOTIFICATIONS_CSV_URL, {
+            method: 'GET',
+            cache: 'no-store' // Forza il recupero dei dati più recenti senza cache locale
+        });
+
+        if (!response.ok) {
+            console.warn(`Google Sheets ha risposto con errore ${response.status} per le notifiche.`);
+            return [];
+        }
 
         const text = await response.text();
         const cleanText = text.replace(/^\uFEFF/, '').trim();
@@ -60,22 +65,14 @@ export const fetchAppNotifications = async (): Promise<AppNotification[]> => {
         const notifications = lines.slice(1)
             .map((line, index) => {
                 const parts = parseCSVLine(line);
-                
-                // Mappatura: 
-                // Colonna A (0) = ID
-                // Colonna B (1) = Messaggio
-                // Colonna C (2) = Link
-                // Colonna D (3) = Immagine Personalizzata
                 if (parts.length < 2 || !parts[1]) return null;
 
                 const id = parts[0] || `notif-${index}`;
                 const message = parts[1];
                 const link = (parts[2] && parts[2] !== "" && parts[2] !== "-") ? parts[2].trim() : undefined;
-                
-                // Se c'è un'immagine manuale in Colonna D, usa quella. 
-                // Altrimenti, se il link è YouTube, genera la miniatura.
                 let image = (parts[3] && parts[3] !== "" && parts[3] !== "-") ? parts[3].trim() : undefined;
-                if (!image && link) {
+                
+                if (!image && link && (link.includes('youtube.com') || link.includes('youtu.be'))) {
                     image = getYouTubeThumbnail(link);
                 }
 
@@ -84,7 +81,7 @@ export const fetchAppNotifications = async (): Promise<AppNotification[]> => {
                     message,
                     link,
                     image,
-                    linkText: "VAI", // Testo fisso per il tasto sotto l'immagine
+                    linkText: "VAI",
                     active: true
                 } as AppNotification;
             })
@@ -92,23 +89,31 @@ export const fetchAppNotifications = async (): Promise<AppNotification[]> => {
 
         return notifications.reverse();
     } catch (error) {
-        console.error("Errore recupero notifiche:", error);
+        console.error("Errore critico recupero notifiche:", error);
         return [];
     }
 };
 
 export const checkHasNewNotifications = async (): Promise<boolean> => {
-    const notifications = await fetchAppNotifications();
-    if (notifications.length === 0) return false;
-    const lastSeenId = localStorage.getItem('last_notif_id');
-    const latestId = notifications[0].id;
-    return lastSeenId !== latestId;
+    try {
+        const notifications = await fetchAppNotifications();
+        if (notifications.length === 0) return false;
+        const lastSeenId = localStorage.getItem('last_notif_id');
+        const latestId = notifications[0].id;
+        return lastSeenId !== latestId;
+    } catch {
+        return false;
+    }
 };
 
 export const markNotificationsAsRead = async () => {
-    const notifications = await fetchAppNotifications();
-    if (notifications.length > 0) {
-        localStorage.setItem('last_notif_id', notifications[0].id);
-        window.dispatchEvent(new Event('notificationsRead'));
+    try {
+        const notifications = await fetchAppNotifications();
+        if (notifications.length > 0) {
+            localStorage.setItem('last_notif_id', notifications[0].id);
+            window.dispatchEvent(new Event('notificationsRead'));
+        }
+    } catch (error) {
+        console.error("Impossibile segnare notifiche come lette:", error);
     }
 };

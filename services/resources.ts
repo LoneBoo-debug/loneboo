@@ -31,6 +31,7 @@ const parseCSVLine = (line: string): string[] => {
 export const getAllNotifications = async (): Promise<AppNotification[]> => {
     if (!NOTIFICATIONS_CSV_URL || NOTIFICATIONS_CSV_URL.includes('ExamplePlaceholder')) return [];
     try {
+        // Richiesta pulita per evitare 404
         const response = await fetch(NOTIFICATIONS_CSV_URL);
         if (response.ok) {
             const text = await response.text();
@@ -133,7 +134,9 @@ export const getFanArt = async (): Promise<FanArt[]> => {
     if (FAN_ART_CSV_URL) {
         try {
             const response = await fetch(FAN_ART_CSV_URL);
+            // Fix: Changed 'res' to 'response' to match the variable name defined on line 131
             if (response.ok) {
+                // Fix: Changed 'res' to 'response' and used response.text() as it returns a promise in fetch API
                 const text = await response.text();
                 const lines = text.split('\n');
                 const dataRows = lines.slice(1);

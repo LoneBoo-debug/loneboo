@@ -1,91 +1,211 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
-import { HOME_BG_MOBILE, HOME_BG_DESKTOP } from '../constants';
-import { Settings } from 'lucide-react';
-import NewsletterModal from './NewsletterModal';
+import { OFFICIAL_LOGO } from '../constants';
 
-interface HomePageProps {
-    setView: (view: AppView) => void;
-    lastView?: AppView | null;
-}
+const BG_HOME_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashscreennewhpg44ezwx.webp';
+const BG_HOME_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashnewsdrftoo7zaq.webp';
+const BTN_ENTER_WORLD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/starbuttsplashscreehp009.webp';
+const WELCOME_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/headlogheadrilo.webp';
 
-const CONTEST_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newnovit6675+(1).webp';
-const BTN_STAY_UPDATED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-stay-updated.webp';
-const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const HOW_IT_WORKS_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/igliglg1454.webp';
+// Asset Audio
+const BTN_AUDIO_ON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicatiicaggdg3edcde+(1).webp';
+const BTN_AUDIO_OFF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicadisattivusns6hsg2+(1).webp';
+const IMG_ACTIVATE_AUDIO_HINT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/attivaaudiosnssdfgsa+(2).webp';
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boosplashscreenintrowelcone55ezxx22.mp3';
 
-const ZONES_MOBILE = [
-  { id: AppView.CITY_MAP, points: [{ x: 13.06, y: 64.82 }, { x: 13.33, y: 83.39 }, { x: 41.31, y: 82.56 }, { x: 40.25, y: 64.49 }] },
-  { id: AppView.BOO_GARDEN, points: [{ x: 60.5, y: 64.16 }, { x: 60.5, y: 82.39 }, { x: 89.82, y: 83.39 }, { x: 90.09, y: 64.66 }] }
-];
+// Video unico richiesto
+const BOO_VIDEO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/saluta_qoqfmf.webm';
 
-const ZONES_DESKTOP = [
-  { id: AppView.CITY_MAP, points: [{ x: 37.25, y: 64.26 }, { x: 37.14, y: 84.29 }, { x: 47.06, y: 84.29 }, { x: 47.06, y: 64.48 }] },
-  { id: AppView.BOO_GARDEN, points: [{ x: 53.8, y: 64.7 }, { x: 53.6, y: 82.75 }, { x: 64.02, y: 84.29 }, { x: 63.92, y: 64.48 }] }
-];
-
-const HomePage: React.FC<HomePageProps> = ({ setView }) => {
-    const [isContestOpen, setIsContestOpen] = useState(false);
-    const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
     
-    const getClipPath = (points: { x: number; y: number }[]) => {
-        const poly = points.map(p => `${p.x}% ${p.y}%`).join(', ');
-        return `polygon(${poly})`;
+    // Partiamo sempre con l'audio DISATTIVATO come richiesto
+    const [isAudioOn, setIsAudioOn] = useState(false);
+    
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        // Salva subito lo stato disattivato nel localStorage all'avvio
+        localStorage.setItem('loneboo_music_enabled', 'false');
+        window.dispatchEvent(new Event('loneboo_audio_changed'));
+
+        // Precarica sfondi
+        const imgM = new Image(); imgM.src = BG_HOME_MOBILE;
+        const imgD = new Image(); imgD.src = BG_HOME_DESKTOP;
+        
+        // Inizializza Audio
+        if (!audioRef.current) {
+            audioRef.current = new Audio(BG_MUSIC_URL);
+            audioRef.current.loop = true;
+            audioRef.current.volume = 0.5;
+        }
+
+        const timer = setTimeout(() => setIsLoaded(true), 500);
+        
+        return () => {
+            clearTimeout(timer);
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+        };
+    }, []);
+
+    // Gestione toggle audio
+    const toggleAudio = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const nextState = !isAudioOn;
+        if (nextState && audioRef.current) {
+            audioRef.current.play().catch(() => {});
+        } else if (audioRef.current) {
+            audioRef.current.pause();
+        }
+        setIsAudioOn(nextState);
+        // Salva la scelta nel localStorage: verrà letta dalle stanze successive (Giardino, etc)
+        localStorage.setItem('loneboo_music_enabled', String(nextState));
+        window.dispatchEvent(new Event('loneboo_audio_changed'));
     };
 
+    const handleEnterWorld = () => {
+        // La navigazione porterà al giardino che leggerà 'loneboo_music_enabled' dal localStorage
+        setView(AppView.BOO_GARDEN);
+    };
+
+    // Imposta la velocità del video al 50%
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.playbackRate = 0.5;
+        }
+    }, [isLoaded]);
+
     return (
-        <div className="fixed inset-0 top-0 left-0 w-full h-full overflow-hidden bg-[#8B5CF6] flex flex-col select-none">
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <img src={HOME_BG_MOBILE} alt="" className="block md:hidden w-full h-full object-fill opacity-100" />
-                <img src={HOME_BG_DESKTOP} alt="" className="hidden md:block w-full h-full object-fill opacity-100" />
+        <div className="fixed inset-0 z-0 bg-black overflow-hidden flex flex-col items-center justify-center select-none">
+            <style>{`
+                @keyframes pulse-magical {
+                    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); }
+                    50% { transform: scale(1.08); filter: drop-shadow(0 0 25px rgba(255,255,255,0.9)); }
+                }
+                @keyframes float-sparkle {
+                    0% { transform: translateY(0) translateX(0); opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+                }
+                .animate-pulse-magical { animation: pulse-magical 2.5s ease-in-out infinite; }
+                .sparkle {
+                    position: absolute;
+                    background: white;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    animation: float-sparkle linear infinite;
+                }
+            `}</style>
+
+            <div className="absolute inset-0 z-0">
+                <picture>
+                    <source media="(max-width: 768px)" srcSet={BG_HOME_MOBILE} />
+                    <img 
+                        src={BG_HOME_DESKTOP} 
+                        alt="Lone Boo World Background" 
+                        className={`w-full h-full object-cover md:object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                </picture>
+                <div className="absolute inset-0 bg-black/10"></div>
             </div>
 
-            <div className="absolute inset-0 z-10 w-full h-full pointer-events-none">
+            <div className="absolute inset-0 z-10 pointer-events-none">
+                {[...Array(12)].map((_, i) => (
+                    <div 
+                        key={i}
+                        className="sparkle"
+                        style={{
+                            width: Math.random() * 6 + 2 + 'px',
+                            height: Math.random() * 6 + 2 + 'px',
+                            left: Math.random() * 100 + '%',
+                            top: Math.random() * 100 + '%',
+                            animationDuration: Math.random() * 3 + 2 + 's',
+                            animationDelay: Math.random() * 5 + 's'
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div className={`relative z-20 flex flex-col items-center justify-center w-full h-full transition-all duration-1000 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 
-                <div className="absolute top-[10%] left-[4%] md:top-[12%] md:left-[3.5%] w-[28%] md:w-[16%] z-20 flex flex-col gap-4 pointer-events-auto">
-                    <button onClick={() => setIsContestOpen(true)} className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30 transform rotate-[-4deg]">
-                        <img src={CONTEST_LOGO} alt="Concorso" className="w-full h-auto drop-shadow-md opacity-100 block" />
-                    </button>
-                </div>
-
-                <div className="absolute top-[88%] left-[4.5%] md:top-[84%] md:left-[4%] w-[13%] md:w-[7.5%] z-20 pointer-events-auto">
-                    <button onClick={() => setView(AppView.GUIDE)} className="w-full hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none relative z-30">
-                        <img src={HOW_IT_WORKS_IMG} alt="Come Funziona" className="w-full h-auto drop-shadow-lg opacity-100 block" />
-                    </button>
-                </div>
-
-                <div className="relative w-full h-full pointer-events-none z-10">
-                    <div className="md:hidden absolute inset-0">
-                        {ZONES_MOBILE.map((zone, index) => (
-                            <div key={`mob-${index}`} onClick={() => setView(zone.id)} className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors pointer-events-auto" style={{ clipPath: getClipPath(zone.points) }} />
-                        ))}
+                <div className="absolute top-4 md:top-6 right-4 md:right-6 flex flex-col items-center gap-2 animate-in slide-in-from-top duration-700 z-50">
+                    <img 
+                        src={OFFICIAL_LOGO} 
+                        alt="Lone Boo" 
+                        className="w-16 md:w-28 h-auto drop-shadow-2xl mb-1 md:mb-2"
+                    />
+                    
+                    <div className="flex flex-col items-center gap-1">
+                        <button 
+                            onClick={toggleAudio}
+                            className="hover:scale-110 active:scale-95 transition-transform outline-none"
+                        >
+                            <img 
+                                src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} 
+                                alt="Musica" 
+                                className="w-16 md:w-28 h-auto drop-shadow-lg" 
+                            />
+                        </button>
+                        
+                        {/* IMMAGINE DI INVITO ALL'ATTIVAZIONE (visibile solo se audio è off) - Spostata ulteriormente a sinistra */}
+                        {!isAudioOn && (
+                            <div className="animate-in fade-in zoom-in duration-500 -translate-x-10 md:-translate-x-16">
+                                <img 
+                                    src={IMG_ACTIVATE_AUDIO_HINT} 
+                                    alt="Attiva l'audio" 
+                                    className="w-24 md:w-40 h-auto drop-shadow-md"
+                                />
+                            </div>
+                        )}
                     </div>
-                    <div className="hidden md:block absolute inset-0">
-                        {ZONES_DESKTOP.map((zone, index) => (
-                            <div key={`desk-${index}`} onClick={() => setView(zone.id)} className="absolute inset-0 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors pointer-events-auto" style={{ clipPath: getClipPath(zone.points) }} />
-                        ))}
+                </div>
+
+                <div className="absolute top-36 md:top-32 left-[10%] md:left-[15%] z-30 w-48 md:w-96 aspect-square flex items-center justify-center pointer-events-none">
+                    <video 
+                        ref={videoRef}
+                        src={BOO_VIDEO_URL}
+                        muted
+                        autoPlay
+                        playsInline
+                        loop
+                        className="w-full h-full object-contain drop-shadow-[0_15px_30px_rgba(255,255,255,0.4)]"
+                    />
+                </div>
+
+                <div className="mt-80 md:mt-[520px] flex flex-col items-center gap-10 md:gap-14">
+                    <button 
+                        onClick={handleEnterWorld}
+                        className="relative group transition-transform hover:scale-110 active:scale-95 outline-none"
+                    >
+                        <div className="absolute -inset-10 bg-yellow-400/20 blur-3xl rounded-full animate-pulse group-hover:bg-yellow-400/40"></div>
+                        <img 
+                            src={BTN_ENTER_WORLD} 
+                            alt="Entra" 
+                            className="w-32 md:w-44 h-auto drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] animate-pulse-magical"
+                        />
+                    </button>
+                    
+                    <div className="bg-black/30 backdrop-blur-md px-6 py-3 rounded-full border-2 border-white/20 shadow-xl flex items-center justify-center translate-y-4 md:translate-y-8">
+                        <p className="font-luckiest text-white text-lg md:text-3xl uppercase tracking-widest text-center whitespace-nowrap flex items-center gap-2">
+                            Benvenuti in 
+                            <img src={WELCOME_LOGO} alt="Lone Boo" className="h-6 md:h-12 w-auto drop-shadow-sm" />
+                            World
+                        </p>
+                    </div>
+                </div>
+
+                <div className="absolute bottom-8 left-6 right-6 flex justify-end items-end">
+                    <div className="hidden md:block text-right">
+                        <p className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em]">
+                            LONE BOO OFFICIAL APP • 2025
+                        </p>
                     </div>
                 </div>
             </div>
-
-            {isContestOpen && (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setIsContestOpen(false)}>
-                    <div className="bg-white relative w-full max-md p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl animate-in zoom-in flex flex-col items-center text-center" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setIsContestOpen(false)} className="absolute top-4 right-4 hover:scale-110 active:scale-95 outline-none">
-                            <img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 object-contain pointer-events-auto" />
-                        </button>
-                        <img src={CONTEST_LOGO} className="w-40 h-auto mb-4 pointer-events-auto" alt="" />
-                        <h2 className="text-3xl font-black text-boo-purple mb-4">Novità in Arrivo!</h2>
-                        <p className="text-gray-700 font-bold mb-8">Stiamo preparando dei nuovi concorsi magici per vincere premi fantastici!</p>
-                        <button onClick={() => { setIsContestOpen(false); setIsNewsletterOpen(true); }} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
-                            <img src={BTN_STAY_UPDATED} alt="Rimani Aggiornato" className="w-full h-auto pointer-events-auto" />
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {isNewsletterOpen && <NewsletterModal onClose={() => setIsNewsletterOpen(false)} />}
         </div>
     );
 };

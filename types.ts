@@ -12,7 +12,7 @@ export interface SchoolQuiz {
   options: string[];
   correctIndex: number;
   feedback?: string;
-  image?: string; // Supporto per immagine nelle attività
+  image?: string; 
 }
 
 export interface SchoolLesson {
@@ -22,7 +22,7 @@ export interface SchoolLesson {
   audioUrl: string;
   videoUrl?: string;
   quizzes: SchoolQuiz[];
-  activities: SchoolQuiz[]; // Nuove attività visive (Col U-AB)
+  activities: SchoolQuiz[];
   isPremium?: boolean;
 }
 
@@ -137,7 +137,9 @@ export enum AppView {
   PREMIUM_INFO = 'PREMIUM_INFO',
   VOCAL_FX = 'VOCAL_FX',
   EMOTIONAL_GARDEN = 'EMOTIONAL_GARDEN',
-  TTS_STUDIO = 'TTS_STUDIO'
+  TTS_STUDIO = 'TTS_STUDIO',
+  CALENDAR = 'CALENDAR',
+  ATELIER = 'ATELIER'
 }
 
 export interface ChatMessage {
@@ -246,9 +248,11 @@ export interface PlayerProgress {
     duplicates?: number;
     duplicateStickers?: string[];
     currentAlbum?: number;
-    // Nuovi campi per il diario scolastico
-    completedQuizzes?: Record<string, boolean[]>; // lessonId -> [q0, q1, q2]
-    completedActivities?: Record<string, boolean[]>; // lessonId -> [a0, a1]
+    completedQuizzes?: Record<string, boolean[]>;
+    completedActivities?: Record<string, boolean[]>;
+    // Nuovi campi Atelier
+    equippedClothing: { tshirt?: string; hat?: string; glasses?: string };
+    purchasedClothing: string[];
 }
 
 export interface SocialStats {

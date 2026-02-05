@@ -29,9 +29,9 @@ const GuidePage: React.FC<GuidePageProps> = ({ setView }) => {
       {/* STRATO EFFETTO SPECCHIO/VETRO */}
       <div className="fixed inset-0 bg-white/20 backdrop-blur-[45px] z-[1] pointer-events-none border-t-8 border-white/30"></div>
       
-      {/* TASTO CHIUDI FISSO */}
+      {/* TASTO CHIUDI FISSO - Aggiornato per tornare a INFO_MENU */}
       <button 
-          onClick={() => setView(AppView.HOME)}
+          onClick={() => setView(AppView.INFO_MENU)}
           className="fixed top-20 right-4 z-[100] hover:scale-110 active:scale-95 transition-all outline-none"
           aria-label="Chiudi"
       >

@@ -37,6 +37,8 @@ const IMG_GAME_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com
 const IMG_ACTIVITY_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/attivitiesinarrivo872xx.webp';
 const IMG_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercizioinarrivopop998u.webp';
 
+const ORNELLA_TALK_ANIM = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ornelaspiega.mp4';
+
 interface Point { x: number; y: number; }
 
 const ITALIAN_1_HOTSPOTS = {
@@ -144,6 +146,16 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [zoomedLessonImage, setZoomedLessonImage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // --- COORDINATE CALIBRATE FINALI ---
+  const calib = {
+    tvTop: 9,
+    tvLeft: 3,
+    tvSize: 120,
+    playerTop: 20,
+    playerRight: 2,
+    playerWidth: 228
+  };
+
   useEffect(() => {
     const premium = localStorage.getItem('is_premium_active') === 'true';
     setIsPremiumActive(premium);
@@ -185,8 +197,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         const tolerance = 25;
         const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
         setTotalPages(total > 0 ? total : 1);
-        // Resettiamo alla prima pagina solo se cambiamo lezione, altrimenti manteniamo la corrente
-        // se siamo già dentro la stessa lezione (es. durante caricamento immagini)
         container.scrollTop = (currentPage - 1) * container.clientHeight;
     }
   }, [selectedLesson, currentPage]);
@@ -206,7 +216,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             alt="Immagine Lezione" 
                             className="w-full h-auto rounded-2xl border-4 border-white shadow-md animate-in zoom-in duration-500 cursor-zoom-in hover:scale-[1.01] transition-transform" 
                             onLoad={() => {
-                                // Ricalcola le pagine quando l'immagine è caricata
                                 setTimeout(checkPages, 100);
                             }}
                             onClick={() => setZoomedLessonImage(url)}
@@ -465,7 +474,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                         <img 
                                             src={iconUrl} 
                                             alt={isLocked ? "Bloccato" : "Libero"} 
-                                            className="w-8 h-8 md:w-11 md:h-11 object-contain drop-shadow-md" 
+                                            className="w-8 f-8 md:w-11 md:h-11 object-contain drop-shadow-md" 
                                         />
                                         <span className="leading-none">{ch.title}</span>
                                     </div>
@@ -513,40 +522,89 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               )}
           </div>
 
+          {/* --- MINI TV MAESTRA (POSIZIONAMENTO CALIBRATO) --- */}
           {showAudioPlayer && !selectedLesson.isPremium && (
-              <div className="absolute top-[18%] right-[5%] z-50 animate-in slide-in-from-top-4 duration-300">
-                  <div className="bg-yellow-400 border-4 border-black p-3 rounded-[2rem] shadow-2xl flex items-center gap-3 w-[260px] md:w-[320px]">
-                      <div className="flex gap-2">
+              <div 
+                className="absolute z-50 animate-in slide-in-from-left duration-500"
+                style={{ 
+                    top: `${calib.tvTop}%`, 
+                    left: `${calib.tvLeft}%`, 
+                    width: `${calib.tvSize}px`, 
+                    height: `${calib.tvSize}px` 
+                }}
+              >
+                  <div className="relative w-full h-full bg-black/40 backdrop-blur-sm rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center">
+                      <video 
+                          src={ORNELLA_TALK_ANIM} 
+                          autoPlay={isAudioPlaying}
+                          loop 
+                          muted 
+                          playsInline 
+                          className="w-full h-full object-cover" 
+                          style={{ 
+                              mixBlendMode: 'screen', 
+                              filter: 'contrast(1.1) brightness(1.1)',
+                              opacity: isAudioPlaying ? 1 : 0.5 
+                          }} 
+                          ref={(el) => {
+                              if (el) {
+                                  if (isAudioPlaying) el.play().catch(() => {});
+                                  else el.pause();
+                              }
+                          }}
+                      />
+                      {!isAudioPlaying && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <Pause size={32} className="text-white/60" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                  </div>
+              </div>
+          )}
+
+          {/* --- MINI PLAYER COMPATTO (POSIZIONAMENTO CALIBRATO) --- */}
+          {showAudioPlayer && !selectedLesson.isPremium && (
+            <div 
+                className="absolute z-50 animate-in slide-in-from-right duration-500"
+                style={{ 
+                    top: `${calib.playerTop}%`, 
+                    right: `${calib.playerRight}%`,
+                    width: `${calib.playerWidth}px`
+                }}
+            >
+                <div className="bg-white/30 backdrop-blur-md border-4 border-yellow-400 p-1.5 md:p-2 rounded-2xl shadow-2xl flex flex-row items-center gap-2 md:gap-4 h-12 md:h-16">
+                    <div className="flex gap-1 shrink-0">
                         <button 
                             onClick={() => toggleLessonAudio(selectedLesson.audioUrl)}
-                            className="bg-white p-2 rounded-full border-2 border-black active:scale-90 transition-transform"
+                            className="bg-white w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black flex items-center justify-center active:scale-90 transition-transform"
                         >
-                            {isAudioPlaying ? <Pause size={20} fill="black" /> : <Play size={20} fill="black" />}
+                            {isAudioPlaying ? <Pause size={14} fill="black" /> : <Play size={14} fill="black" className="translate-x-0.5" />}
                         </button>
                         <button 
                             onClick={stopAudio}
-                            className="bg-red-500 p-2 rounded-full border-2 border-black active:scale-90 transition-transform"
+                            className="bg-red-500 w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black flex items-center justify-center active:scale-90 transition-transform"
                         >
-                            <Square size={20} fill="white" />
+                            <Square size={14} fill="white" />
                         </button>
-                      </div>
+                    </div>
 
-                      <div className="flex-1 flex flex-col gap-1">
-                          <input 
+                    <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                        <input 
                             type="range" 
                             min="0" 
                             max={audioDuration || 100} 
                             value={audioCurrentTime} 
                             onChange={handleSeek}
-                            className="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                          />
-                          <div className="flex justify-between text-[10px] font-black text-black/60 uppercase">
-                              <span>{formatAudioTime(audioCurrentTime)}</span>
-                              <span>{formatAudioTime(audioDuration)}</span>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+                            className="w-full h-1 bg-black/20 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        />
+                        <div className="flex justify-between text-[8px] font-black text-black/80 uppercase">
+                            <span>{formatAudioTime(audioCurrentTime)}</span>
+                            <span>{formatAudioTime(audioDuration)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
           )}
 
           <div className="flex-1 flex flex-col items-center z-10 pt-44 md:pt-56 px-6 overflow-hidden">
@@ -573,7 +631,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                   <button onClick={handleCloseLesson} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                       <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-24 md:w-32 h-auto drop-shadow-lg" />
                                   </button>
-                                  <button onClick={handleOpenPremiumInfo} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                                  <button onClick={handleOpenPremiumInfo} className="hover:scale-110 active:scale-95 transition-all outline-none" style={{ marginLeft: '10px' }}>
                                       <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-24 md:w-32 h-auto drop-shadow-lg" />
                                   </button>
                               </div>
@@ -581,9 +639,23 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       </div>
                   ) : (
                       <>
-                        <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase mb-4 md:mb-6 leading-tight shrink-0 drop-shadow-sm mt-8 md:mt-12">
-                            {selectedLesson.title}
-                        </h3>
+                        <div className="w-full flex flex-col items-center justify-center min-h-[60px] md:min-h-[120px] mb-4 md:mb-6 shrink-0 mt-8 md:mt-12">
+                            <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase leading-tight drop-shadow-sm">
+                                {selectedLesson.title}
+                            </h3>
+                        </div>
+
+                        {/* Pagination box vertical on the left side, positioned just above the text container */}
+                        <div className="absolute left-1 md:left-4 top-[14%] md:top-[20%] flex flex-col items-center z-30 pointer-events-none">
+                            <div className="px-2 py-1.5 md:px-4 md:py-3 flex flex-col items-center transition-all pointer-events-auto">
+                                <span className="font-black text-blue-700 text-[8px] md:text-xs uppercase tracking-widest leading-none mb-1">
+                                    Pagina
+                                </span>
+                                <span className="font-black text-blue-700 text-xs md:text-2xl leading-none">
+                                    {currentPage}/{totalPages}
+                                </span>
+                            </div>
+                        </div>
 
                         <div 
                             ref={textContainerRef}
@@ -597,14 +669,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                         >
                             <div className="flex flex-col gap-4">
                                 {renderMixedContent(selectedLesson.text)}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-center w-full mt-3 md:mt-5 px-2 shrink-0 mb-8 md:mb-12">
-                            <div className="bg-white/70 backdrop-blur-md px-6 md:px-8 py-2 md:py-3 rounded-full border-4 border-slate-200 shadow-sm transition-all">
-                                <span className="font-black text-slate-600 text-sm md:text-2xl uppercase tracking-tighter">
-                                    Pagina {currentPage} di {totalPages}
-                                </span>
                             </div>
                         </div>
                       </>
@@ -647,7 +711,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
           {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && (
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
                   <div className="bg-white w-full max-w-2xl rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto max-h-[800px]">
-                      <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"><X size={24} strokeWidth={4} /></button>
+                      <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
                       
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
                           <img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" />
@@ -723,6 +787,32 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-[210]"><X size={24} /></button>
                       <div className="flex-1 w-full aspect-video bg-black"><iframe src={embedUrl} className="w-full h-full border-0" allowFullScreen allow="autoplay; fullscreen" /></div>
                       <div className="p-4 text-center bg-white shrink-0 border-t border-gray-100 flex items-center justify-center gap-3"><PlayCircle className="text-red-600" /><h3 className="text-gray-800 text-lg md:text-xl font-black uppercase truncate px-2">Impariamo con Lone Boo!</h3></div>
+                  </div>
+              </div>
+          )}
+
+          {/* --- MODALE ZOOM IMMAGINE LEZIONE --- */}
+          {zoomedLessonImage && (
+              <div 
+                className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300"
+                onClick={() => setZoomedLessonImage(null)}
+              >
+                  <button 
+                    onClick={() => setZoomedLessonImage(null)}
+                    className="absolute top-20 md:top-28 right-6 z-[510] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 transition-all active:scale-95"
+                  >
+                      <X size={24} strokeWidth={4} />
+                  </button>
+
+                  <div 
+                    className="relative max-w-full max-h-[75vh] bg-white p-2 md:p-4 rounded-[2rem] md:rounded-[3rem] border-8 border-yellow-400 shadow-[0_0_50px_rgba(255,255,255,0.2)] overflow-hidden flex items-center justify-center"
+                    onClick={e => e.stopPropagation()}
+                  >
+                      <img 
+                        src={zoomedLessonImage} 
+                        alt="Ingrandimento" 
+                        className="max-w-full max-h-[70vh] object-contain rounded-2xl" 
+                      />
                   </div>
               </div>
           )}

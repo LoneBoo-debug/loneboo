@@ -1,9 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 
-const SCHOOL_SF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuola+secondopiano.webp';
+const SCHOOL_SF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pianischoolslsmnetray66tr+(1).webp';
+
+// Asset Audio e Video
+const SCHOOL_FLOOR_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/e6201c78-2a97-40a8-9bf4-29fbce108801.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 interface SchoolSecondFloorProps {
     setView: (view: AppView) => void;
@@ -13,6 +17,9 @@ type Point = { x: number; y: number };
 
 const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // --- COORDINATE DEFINITIVE FORNITE DALL'UTENTE ---
     const SAVED_ZONES: Record<string, Point[]> = {
@@ -31,10 +38,44 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
         const img = new Image();
         img.src = SCHOOL_SF_BG;
         img.onload = () => setIsLoaded(true);
+        
+        if (!audioRef.current) {
+            audioRef.current = new Audio(SCHOOL_FLOOR_VOICE_URL);
+            audioRef.current.loop = false;
+            audioRef.current.volume = 0.5;
+            audioRef.current.addEventListener('play', () => setIsPlaying(true));
+            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            audioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            });
+        }
+
+        if (isAudioOn) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled && isLoaded) audioRef.current?.play().catch(() => {});
+            else {
+                audioRef.current?.pause();
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
         const timer = setTimeout(() => setIsLoaded(true), 2500);
         window.scrollTo(0, 0);
-        return () => clearTimeout(timer);
-    }, []);
+        
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, [isLoaded]);
 
     const getClipPath = (pts: Point[]) => {
         if (pts.length < 3) return 'none';
@@ -54,6 +95,16 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
                     <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Salgo all'ultimo piano...</span>
+                </div>
+            )}
+
+            {/* Mini TV di Boo - Posizionato a SINISTRA */}
+            {isLoaded && isAudioOn && isPlaying && (
+                <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
                 </div>
             )}
 

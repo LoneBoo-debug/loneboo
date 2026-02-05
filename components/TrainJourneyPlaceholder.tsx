@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AppView } from '../types';
 import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight } from 'lucide-react';
@@ -14,6 +13,10 @@ const BTN_PAY_AND_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/payem
 const BTN_SECRET_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5t4rft5egr+(1)+(1).webp';
 const IMG_ZOOMABLE_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/caricsfondcittaaltre55tf4.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacuty55frxxw21+(1).webp';
+
+// Asset Marlo Capostazione
+const MARLO_STATION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlocapostatione443.mp4';
+const MARLO_STATION_AUDIO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/22e87f1b-5836-4444-9fd1-32cbeffe7de1.mp3';
 
 interface TrainJourneyPlaceholderProps {
     setView: (view: AppView) => void;
@@ -247,30 +250,42 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const [currentPos, setCurrentPos] = useState<Point>({ x: 50, y: 50 });
     const [pathProgress, setPathProgress] = useState(0);
     
+    // Gestione Audio Marlo
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isMarloTalking, setIsMarloTalking] = useState(false);
+    
     const travelTimerRef = useRef<number | null>(null);
     const trainAudioRef = useRef<HTMLAudioElement | null>(null);
+    const marloVideoRef = useRef<HTMLVideoElement | null>(null);
+    const marloVoiceRef = useRef<HTMLAudioElement | null>(null);
 
     const [isReturnTrip, setIsReturnTrip] = useState(false);
 
     useEffect(() => {
         const p = getProgress();
-        setTokens(p.tokens);
+        setUserTokens(p.tokens);
 
         trainAudioRef.current = new Audio(TRAIN_SOUND_URL);
         trainAudioRef.current.loop = true;
         trainAudioRef.current.volume = 0.5;
 
-        // --- GESTIONE DESTINAZIONE DIRETTA ---
+        // Inizializzazione Audio Voce Marlo
+        marloVoiceRef.current = new Audio(MARLO_STATION_AUDIO);
+        marloVoiceRef.current.loop = false; // L'audio deve essere riprodotto una sola volta
+        marloVoiceRef.current.volume = 0.6;
+        
+        // Quando l'audio finisce, scompare il mini TV
+        marloVoiceRef.current.onended = () => {
+            setIsMarloTalking(false);
+        };
+
         const targetCity = sessionStorage.getItem('train_target_city') as AppView;
         const returnFlag = sessionStorage.getItem('train_journey_return') === 'true';
 
         if (targetCity) {
             sessionStorage.removeItem('train_target_city');
             const targetZone = FINAL_ZONES.find(z => z.id === targetCity);
-            if (targetZone) {
-                // Sostituito avvio automatico con apertura modale
-                setSelectedZone(targetZone);
-            }
+            if (targetZone) setSelectedZone(targetZone);
         } else if (returnFlag) {
             sessionStorage.removeItem('train_journey_return');
             setIsReturnTrip(true);
@@ -285,7 +300,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     name: "CITTÀ COLORATA",
                     cost: 0
                 };
-                // Sostituito avvio automatico con apertura modale
                 setSelectedZone(returnZone);
             }
         }
@@ -294,47 +308,63 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         img.src = MAP_BG;
         img.onload = () => setIsLoaded(true);
         
-        const travelImg = new Image();
-        travelImg.src = TRAVEL_BG;
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
         const timer = setTimeout(() => setIsLoaded(true), 2000);
         return () => {
             clearTimeout(timer);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (travelTimerRef.current) clearInterval(travelTimerRef.current);
             if (trainAudioRef.current) {
                 trainAudioRef.current.pause();
                 trainAudioRef.current = null;
             }
+            if (marloVoiceRef.current) {
+                marloVoiceRef.current.pause();
+                marloVoiceRef.current = null;
+            }
         };
     }, []);
 
-    const setTokens = (t: number) => setUserTokens(t);
+    // Effetto per riproduzione video/audio Marlo quando audio abilitato o disabilitato
+    useEffect(() => {
+        if (isAudioOn && isLoaded && !isTraveling) {
+            setIsMarloTalking(true);
+            // Reset audio all'inizio e riproduzione
+            if (marloVoiceRef.current) {
+                marloVoiceRef.current.currentTime = 0;
+                marloVoiceRef.current.play().catch(e => console.log("Voice blocked", e));
+            }
+        } else {
+            // Stop e reset audio se disattivato
+            setIsMarloTalking(false);
+            if (marloVoiceRef.current) {
+                marloVoiceRef.current.pause();
+                marloVoiceRef.current.currentTime = 0;
+            }
+        }
+    }, [isAudioOn, isLoaded, isTraveling]);
 
     const handlePurchase = () => {
         if (!selectedZone) return;
-
         if (userTokens >= selectedZone.cost) {
-            if (selectedZone.cost > 0) {
-                spendTokens(selectedZone.cost);
-            }
+            if (selectedZone.cost > 0) spendTokens(selectedZone.cost);
             startTravelAnimation(selectedZone);
         }
     };
 
     const handleCancel = () => {
         const origin = sessionStorage.getItem('train_journey_origin') as AppView;
-        // FIX: Pulisce TUTTE le chiavi legate al viaggio per evitare leak di navigazione che permettono viaggi gratis
         sessionStorage.removeItem('train_journey_origin');
         sessionStorage.removeItem('train_target_city');
         sessionStorage.removeItem('train_journey_return');
         sessionStorage.removeItem('train_journey_source_city');
-
-        if (origin) {
-            setView(origin);
-        } else {
-            // Se per qualche motivo non c'è l'origine, torna alla stazione (fallback sicuro)
-            setView(AppView.SOCIALS);
-        }
+        if (origin) setView(origin);
+        else setView(AppView.SOCIALS);
     };
 
     const getPointAtProgress = (points: Point[], progress: number): Point => {
@@ -342,21 +372,14 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         if (points.length === 1) return points[0];
         if (progress <= 0) return points[0];
         if (progress >= 1) return points[points.length - 1];
-
         const activePath = isReturnTrip ? [...points].reverse() : points;
-
         const numSegments = activePath.length - 1;
         const segmentFloat = progress * numSegments;
         const segmentIdx = Math.floor(segmentFloat);
         const segmentProgress = segmentFloat - segmentIdx;
-
         const p1 = activePath[segmentIdx];
         const p2 = activePath[segmentIdx + 1];
-
-        return {
-            x: p1.x + (p2.x - p1.x) * segmentProgress,
-            y: p1.y + (p2.y - p1.y) * segmentProgress
-        };
+        return { x: p1.x + (p2.x - p1.x) * segmentProgress, y: p1.y + (p2.y - p1.y) * segmentProgress };
     };
 
     const startTravelAnimation = (zone: ZoneInfo) => {
@@ -389,12 +412,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
             if (progress >= 1) {
                 if (travelTimerRef.current) clearInterval(travelTimerRef.current);
-                
-                if (trainAudioRef.current) {
-                    trainAudioRef.current.pause();
-                }
+                if (trainAudioRef.current) trainAudioRef.current.pause();
 
-                // FIX: Pulisce lo stato del viaggio completato per evitare bug di teletrasporto gratuito nelle sessioni future
                 sessionStorage.removeItem('train_journey_origin');
                 sessionStorage.removeItem('train_target_city');
                 sessionStorage.removeItem('train_journey_return');
@@ -404,16 +423,12 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 arrivalChime.volume = 0.7;
                 arrivalChime.play().catch(e => console.error("Chime blocked", e));
 
-                setTimeout(() => {
-                    setView(zone.id);
-                }, 100); 
+                setTimeout(() => setView(zone.id), 100); 
             }
         }, 30);
     };
 
-    const getClipPath = (pts: Point[]) => {
-        return `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
-    };
+    const getClipPath = (pts: Point[]) => `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center overflow-hidden bg-sky-900">
@@ -431,9 +446,27 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 </div>
             )}
 
+            {/* MINI TV MARLO CAPOSTAZIONE - In alto a sinistra */}
+            {isLoaded && isMarloTalking && !isTraveling && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video 
+                            ref={marloVideoRef}
+                            src={MARLO_STATION_VIDEO} 
+                            autoPlay 
+                            loop={true} 
+                            playsInline 
+                            muted
+                            className="w-full h-full object-cover" 
+                            style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
+            )}
+
             {isTraveling && selectedZone && (
                 <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500">
-                    {/* MAPPA DI SFONDO CON PERCORSO (Dietro al bambino) */}
                     <div className="absolute inset-0 w-full h-full z-0">
                         <img 
                             src={TRAVEL_BG} 
@@ -442,10 +475,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         />
                         <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
 
-                        {/* SVG LAYER PER IL PERCORSO E IL PUNTINO ROSSO - VISIBILE SOLO SE NON È RITORNO */}
                         {!isReturnTrip && (
                             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-10">
-                                {/* Tracciato completo punteggiato (Guida leggera) */}
                                 {selectedZone.pathPoints.length > 1 && (
                                     <polyline
                                         points={selectedZone.pathPoints.map(p => `${p.x},${p.y}`).join(' ')}
@@ -457,17 +488,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                                         vectorEffect="non-scaling-stroke"
                                     />
                                 )}
-                                
-                                {/* Puntino Rosso in Movimento */}
                                 <g style={{ transform: `translate(${currentPos.x}px, ${currentPos.y}px)` }}>
-                                    <circle 
-                                        r="1.2" 
-                                        fill="#ef4444" 
-                                        stroke="white" 
-                                        strokeWidth="0.3" 
-                                        vectorEffect="non-scaling-stroke" 
-                                        className="animate-pulse" 
-                                    />
+                                    <circle r="1.2" fill="#ef4444" stroke="white" strokeWidth="0.3" vectorEffect="non-scaling-stroke" className="animate-pulse" />
                                 </g>
                             </svg>
                         )}
@@ -482,16 +504,10 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         </h3>
                     </div>
 
-                    {/* ILLUSTRAZIONE BAMBINO IN TRENO - GRANDE E CENTRATA IN PRIMO PIANO */}
                     <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-in zoom-in duration-1000">
-                        <img 
-                            src={TRAVEL_CENTER_IMG} 
-                            alt="Bambino in treno" 
-                            className="w-full max-w-[85vw] max-h-[75vh] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.4)]" 
-                        />
+                        <img src={TRAVEL_CENTER_IMG} alt="Bambino in treno" className="w-full max-w-[85vw] max-h-[75vh] object-contain anchor-middle drop-shadow-[0_20px_50px_rgba(0,0,0,0.4)]" />
                     </div>
 
-                    {/* DASHBOARD INFO */}
                     <div className="absolute bottom-8 left-4 right-4 md:bottom-12 md:left-12 md:right-12 z-40 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-700">
                         <div className="bg-black/75 backdrop-blur-xl border-4 border-white/20 rounded-[2.5rem] p-4 md:p-6 shadow-2xl flex flex-col gap-3 w-full md:w-auto md:min-w-[550px]">
                             <div className="flex flex-row justify-between items-center gap-4 md:gap-10 px-2 border-b border-white/10 pb-2">
@@ -502,23 +518,16 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                                     <Timer size={14} /> Tempo stimato: <span className="text-white ml-0.5">{selectedZone.duration}</span>
                                 </div>
                             </div>
-
                             <div className="flex flex-row justify-between items-end gap-4 md:gap-10 px-2">
                                 <div className="flex-1 flex flex-col items-start">
                                     <div className="flex items-baseline gap-2">
-                                        <span className="font-luckiest text-white text-4xl md:text-7xl uppercase leading-none drop-shadow-[3px_3px_0px_black]" style={{ WebkitTextStroke: '1.5px black' }}>
-                                            {travelKm}
-                                        </span>
+                                        <span className="font-luckiest text-white text-4xl md:text-7xl uppercase leading-none drop-shadow-[3px_3px_0px_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelKm}</span>
                                         <span className="font-luckiest text-blue-400 text-xl md:text-3xl uppercase" style={{ WebkitTextStroke: '1px black' }}>KM</span>
                                     </div>
                                 </div>
-
                                 <div className="w-px bg-white/20 rounded-full h-12 md:h-16 self-center mx-2"></div>
-
                                 <div className="flex-1 flex flex-col items-end">
-                                    <span className="font-luckiest text-white text-3xl md:text-6xl uppercase leading-none drop-shadow-[3px_3px_0_black]" style={{ WebkitTextStroke: '1.5px black' }}>
-                                        {travelTimeDisplay}
-                                    </span>
+                                    <span className="font-luckiest text-white text-3xl md:text-6xl uppercase leading-none drop-shadow-[3px_3px_0_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelTimeDisplay}</span>
                                 </div>
                             </div>
                         </div>
@@ -528,37 +537,18 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             <div className={`absolute inset-0 z-0 ${isTraveling ? 'hidden' : 'block'}`}>
-                <img 
-                    src={MAP_BG} 
-                    alt="" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                />
+                <img src={MAP_BG} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
 
                 {isLoaded && (
-                    <button 
-                        onClick={() => setShowMapModal(true)}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-50 hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img 
-                            src={BTN_SECRET_MAP} 
-                            alt="Mappa Segreta" 
-                            className="w-20 md:w-32 h-auto drop-shadow-2xl animate-bounce-slow" 
-                        />
+                    <button onClick={() => setShowMapModal(true)} className="absolute left-4 top-1/2 -translate-y-1/2 z-50 hover:scale-110 active:scale-95 transition-all outline-none">
+                        <img src={BTN_SECRET_MAP} alt="Mappa Segreta" className="w-20 md:w-32 h-auto drop-shadow-2xl animate-bounce-slow" />
                     </button>
                 )}
 
                 {isLoaded && FINAL_ZONES.map((zone) => (
                     <React.Fragment key={zone.id}>
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); setSelectedZone(zone); }}
-                            className="absolute inset-0 z-10 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-all"
-                            style={{ clipPath: getClipPath(zone.points) }}
-                        />
-                        
-                        <div 
-                            className="absolute z-20 pointer-events-none transform -translate-x-full -translate-y-full"
-                            style={{ left: `${zone.labelPos.x}%`, top: `${zone.labelPos.y}%` }}
-                        >
+                        <div onClick={(e) => { e.stopPropagation(); setSelectedZone(zone); }} className="absolute inset-0 z-10 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-all" style={{ clipPath: getClipPath(zone.points) }} />
+                        <div className="absolute z-20 pointer-events-none transform -translate-x-full -translate-y-full" style={{ left: `${zone.labelPos.x}%`, top: `${zone.labelPos.y}%` }}>
                             <div className="bg-white/95 backdrop-blur-sm border-2 border-orange-500 px-2 py-0.5 md:px-3 md:py-1 rounded-full shadow-lg flex items-center gap-1">
                                 <span className="font-black text-[9px] md:text-sm text-orange-600 uppercase leading-none">Costo:</span>
                                 <span className="font-black text-[10px] md:text-base text-black leading-none">{zone.cost}</span>
@@ -570,19 +560,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             </div>
             
             {!isTraveling && (
-                <div className="fixed top-24 md:top-32 left-0 right-0 px-4 flex justify-between items-center z-50 pointer-events-none">
-                    <button 
-                        onClick={() => setView(AppView.CITY_MAP)} 
-                        className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none"
-                        title="Torna in Città"
-                    >
-                        <img 
-                            src={BTN_BACK_CITY} 
-                            alt="Torna in Città" 
-                            className="w-24 md:w-36 h-auto drop-shadow-2xl" 
-                        />
-                    </button>
-
+                <div className="fixed top-24 md:top-32 left-0 right-0 px-4 flex justify-end items-center z-50 pointer-events-none">
                     <div className="pointer-events-auto bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl shadow-black/50">
                         <span>{userTokens}</span> <span className="text-xl">🪙</span>
                     </div>
@@ -591,78 +569,39 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
             {selectedZone && !isTraveling && (
                 <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={handleCancel}>
-                    <div 
-                        className="bg-white rounded-[40px] border-8 border-orange-500 p-6 md:p-8 w-full max-lg text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <button 
-                            onClick={handleCancel} 
-                            className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"
-                        >
-                            <X size={24} strokeWidth={4} />
-                        </button>
+                    <div className="bg-white rounded-[40px] border-8 border-orange-500 p-6 md:p-8 w-full max-lg text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center" onClick={e => e.stopPropagation()}>
+                        <button onClick={handleCancel} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"><X size={24} strokeWidth={4} /></button>
 
                         <div className="w-full flex flex-row items-center gap-4 md:gap-6 mb-8 text-left bg-slate-50 p-4 rounded-[30px] border-4 border-slate-100 shadow-inner">
                             <div className="w-32 md:w-44 shrink-0 flex items-center justify-center">
-                                <img 
-                                    src={selectedZone.ticketImg} 
-                                    alt="Biglietto" 
-                                    className="w-full h-full object-contain drop-shadow-lg" 
-                                />
+                                <img src={selectedZone.ticketImg} alt="Biglietto" className="w-full h-full object-contain drop-shadow-lg" />
                             </div>
                             <div className="flex flex-col min-w-0">
                                 <h2 className="text-blue-900 font-black uppercase text-[10px] md:text-xs tracking-tight leading-none mb-1">Biglietto di viaggio</h2>
-                                <h3 className="text-orange-600 font-black text-lg md:text-2xl uppercase leading-tight mb-3 break-words overflow-visible">
-                                    {selectedZone.name}
-                                </h3>
-                                
+                                <h3 className="text-orange-600 font-black text-lg md:text-2xl uppercase leading-tight mb-3 break-words overflow-visible">{selectedZone.name}</h3>
                                 <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2 text-gray-500">
-                                        <Timer size={16} className="text-blue-400 shrink-0" />
-                                        <span className="text-[11px] md:text-sm font-bold leading-none">Durata: <span className="text-slate-800">{selectedZone.duration}</span></span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-500">
-                                        <MapPin size={16} className="text-blue-400 shrink-0" />
-                                        <span className="text-[11px] md:text-sm font-bold leading-none">Distanza: <span className="text-slate-800">{selectedZone.distance}</span></span>
-                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-500"><Timer size={16} className="text-blue-400 shrink-0" /><span className="text-[11px] md:text-sm font-bold leading-none">Durata: <span className="text-slate-800">{selectedZone.duration}</span></span></div>
+                                    <div className="flex items-center gap-2 text-gray-500"><MapPin size={16} className="text-blue-400 shrink-0" /><span className="text-[11px] md:text-sm font-bold leading-none">Distanza: <span className="text-slate-800">{selectedZone.distance}</span></span></div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="w-full bg-slate-100/50 rounded-2xl p-4 border-2 border-slate-200 mb-8 flex flex-col gap-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-400 font-bold uppercase text-xs">Prezzo Biglietto</span>
-                                <span className="font-black text-lg">{selectedZone.cost} 🪙</span>
-                            </div>
+                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-xs">Prezzo Biglietto</span><span className="font-black text-lg">{selectedZone.cost} 🪙</span></div>
                             <div className="h-px bg-slate-200"></div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-400 font-bold uppercase text-xs">I tuoi Gettoni</span>
-                                <span className={`font-black text-lg ${userTokens >= selectedZone.cost ? 'text-green-600' : 'text-red-500'}`}>{userTokens} 🪙</span>
-                            </div>
+                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-xs">I tuoi Gettoni</span><span className={`font-black text-lg ${userTokens >= selectedZone.cost ? 'text-green-600' : 'text-red-500'}`}>{userTokens} 🪙</span></div>
                         </div>
 
                         {userTokens >= selectedZone.cost ? (
-                            <button 
-                                onClick={handlePurchase}
-                                className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"
-                            >
-                                <img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-48 md:w-64 h-auto drop-shadow-xl" />
-                            </button>
+                            <button onClick={handlePurchase} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-48 md:w-64 h-auto drop-shadow-xl" /></button>
                         ) : (
-                            <div className="flex flex-row items-center gap-4 w-full justify-center">
-                                <img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-32 md:w-44 h-auto opacity-50 grayscale pointer-events-none" />
-                                <span className="text-red-500 font-black text-[10px] md:text-sm uppercase leading-tight text-left max-w-[120px]">
-                                    Non hai abbastanza gettoni per questo viaggio!
-                                </span>
-                            </div>
+                            <div className="flex flex-row items-center gap-4 w-full justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-32 md:w-44 h-auto opacity-50 grayscale pointer-events-none" /><span className="text-red-500 font-black text-[10px] md:text-sm uppercase leading-tight text-left max-w-[120px]">Non hai abbastanza gettoni per questo viaggio!</span></div>
                         )}
                     </div>
                 </div>
             )}
 
-            {showMapModal && (
-                <MapImageModal onClose={() => setShowMapModal(false)} />
-            )}
+            {showMapModal && <MapImageModal onClose={() => setShowMapModal(false)} />}
         </div>
     );
 };

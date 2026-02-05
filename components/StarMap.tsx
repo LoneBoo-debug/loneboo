@@ -1,28 +1,177 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Move } from 'lucide-react';
 
-// --- DATA: LE 12 COSTELLAZIONI ---
+import React, { useState, useRef, useEffect } from 'react';
+import { Move, Globe, Sparkles } from 'lucide-react';
+import SolarSystemView from './SolarSystemView';
+
+// --- DATA: LE 12 COSTELLAZIONI CON NOMI DELLE STELLE ---
 const CONSTELLATIONS = [
-    { id: 'aries', name: 'ARIETE ♈', stars: [{x: 300, y: 400}, {x: 380, y: 380}, {x: 450, y: 420}, {x: 480, y: 480}], lines: [[0,1], [1,2], [2,3]], color: '#ff9999' },
-    { id: 'taurus', name: 'TORO ♉', stars: [{x: 600, y: 300}, {x: 650, y: 350}, {x: 700, y: 320}, {x: 650, y: 450}, {x: 750, y: 400}], lines: [[0,1], [1,2], [1,3], [3,4]], color: '#99ff99' },
-    { id: 'gemini', name: 'GEMELLI ♊', stars: [{x: 900, y: 200}, {x: 950, y: 200}, {x: 900, y: 500}, {x: 950, y: 500}, {x: 925, y: 350}], lines: [[0,2], [1,3], [2,4], [3,4]], color: '#ffff99' },
-    { id: 'cancer', name: 'CANCRO ♋', stars: [{x: 1200, y: 400}, {x: 1250, y: 450}, {x: 1300, y: 400}, {x: 1250, y: 550}, {x: 1250, y: 350}], lines: [[0,1], [1,2], [1,3], [1,4]], color: '#99ccff' },
-    { id: 'leo', name: 'LEONE ♌', stars: [{x: 1500, y: 300}, {x: 1550, y: 250}, {x: 1600, y: 280}, {x: 1580, y: 350}, {x: 1500, y: 450}, {x: 1650, y: 400}], lines: [[0,1], [1,2], [2,3], [3,4], [3,5], [4,5]], color: '#ffcc99' },
-    { id: 'virgo', name: 'VERGINE ♍', stars: [{x: 300, y: 800}, {x: 400, y: 750}, {x: 500, y: 800}, {x: 450, y: 900}, {x: 350, y: 950}, {x: 250, y: 850}], lines: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]], color: '#d9b3ff' },
-    { id: 'libra', name: 'BILANCIA ♎', stars: [{x: 700, y: 800}, {x: 800, y: 750}, {x: 900, y: 800}, {x: 800, y: 950}], lines: [[0,1], [1,2], [0,3], [2,3]], color: '#ff99cc' },
-    { id: 'scorpio', name: 'SCORPIONE ♏', stars: [{x: 1100, y: 800}, {x: 1150, y: 850}, {x: 1150, y: 950}, {x: 1100, y: 1050}, {x: 1200, y: 1050}, {x: 1250, y: 1000}], lines: [[0,1], [1,2], [2,3], [3,4], [4,5]], color: '#ff4d4d' },
-    { id: 'sagittarius', name: 'SAGITTARIO ♐', stars: [{x: 1500, y: 800}, {x: 1600, y: 800}, {x: 1550, y: 750}, {x: 1550, y: 900}, {x: 1450, y: 950}, {x: 1650, y: 950}], lines: [[0,1], [0,2], [1,2], [0,3], [1,3], [3,4], [3,5]], color: '#99e6e6' },
-    { id: 'capricorn', name: 'CAPRICORNO ♑', stars: [{x: 400, y: 1300}, {x: 500, y: 1250}, {x: 600, y: 1300}, {x: 500, y: 1400}], lines: [[0,1], [1,2], [2,3], [3,0]], color: '#cccc00' },
-    { id: 'aquarius', name: 'ACQUARIO ♒', stars: [{x: 800, y: 1250}, {x: 850, y: 1300}, {x: 900, y: 1250}, {x: 950, y: 1300}, {x: 1000, y: 1250}], lines: [[0,1], [1,2], [2,3], [3,4]], color: '#66ffcc' },
-    { id: 'pisces', name: 'PESCI ♓', stars: [{x: 1300, y: 1300}, {x: 1400, y: 1250}, {x: 1500, y: 1350}, {x: 1400, y: 1450}, {x: 1400, y: 1350}], lines: [[0,4], [4,1], [4,2], [4,3]], color: '#cc99ff' }
+    { 
+        id: 'aries', 
+        name: 'ARIETE ♈', 
+        stars: [
+            {x: 300, y: 400, name: 'Hamal'}, 
+            {x: 380, y: 380, name: 'Sheratan'}, 
+            {x: 450, y: 420, name: 'Mesarthim'}, 
+            {x: 480, y: 480, name: '41 Ari'}
+        ], 
+        lines: [[0,1], [1,2], [2,3]], 
+        color: '#ff9999' 
+    },
+    { 
+        id: 'taurus', 
+        name: 'TORO ♉', 
+        stars: [
+            {x: 600, y: 300, name: 'Aldebaran'}, 
+            {x: 650, y: 350, name: 'Elnath'}, 
+            {x: 700, y: 320, name: 'Alcyone'}, 
+            {x: 650, y: 450, name: 'Tianguan'}, 
+            {x: 750, y: 400, name: 'Atlas'}
+        ], 
+        lines: [[0,1], [1,2], [1,3], [3,4]], 
+        color: '#99ff99' 
+    },
+    { 
+        id: 'gemini', 
+        name: 'GEMELLI ♊', 
+        stars: [
+            {x: 900, y: 200, name: 'Castor'}, 
+            {x: 950, y: 200, name: 'Pollux'}, 
+            {x: 900, y: 500, name: 'Alhena'}, 
+            {x: 950, y: 500, name: 'Wasat'}, 
+            {x: 925, y: 350, name: 'Mebsuta'}
+        ], 
+        lines: [[0,2], [1,3], [2,4], [3,4]], 
+        color: '#ffff99' 
+    },
+    { 
+        id: 'cancer', 
+        name: 'CANCRO ♋', 
+        stars: [
+            {x: 1200, y: 400, name: 'Altarf'}, 
+            {x: 1250, y: 450, name: 'Asellus Aus.'}, 
+            {x: 1300, y: 400, name: 'Acubens'}, 
+            {x: 1250, y: 550, name: 'Tegmine'}, 
+            {x: 1250, y: 350, name: 'Asellus Bor.'}
+        ], 
+        lines: [[0,1], [1,2], [1,3], [1,4]], 
+        color: '#99ccff' 
+    },
+    { 
+        id: 'leo', 
+        name: 'LEONE ♌', 
+        stars: [
+            {x: 1500, y: 300, name: 'Regulus'}, 
+            {x: 1550, y: 250, name: 'Denebola'}, 
+            {x: 1600, y: 280, name: 'Algieba'}, 
+            {x: 1580, y: 350, name: 'Zosma'}, 
+            {x: 1500, y: 450, name: 'Adhafera'}, 
+            {x: 1650, y: 400, name: 'Chertan'}
+        ], 
+        lines: [[0,1], [1,2], [2,3], [3,4], [3,5], [4,5]], 
+        color: '#ffcc99' 
+    },
+    { 
+        id: 'virgo', 
+        name: 'VERGINE ♍', 
+        stars: [
+            {x: 300, y: 800, name: 'Spica'}, 
+            {x: 400, y: 750, name: 'Zavijava'}, 
+            {x: 500, y: 800, name: 'Porrima'}, 
+            {x: 450, y: 900, name: 'Auva'}, 
+            {x: 350, y: 950, name: 'Heze'}, 
+            {x: 250, y: 850, name: 'Vindemiatrix'}
+        ], 
+        lines: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]], 
+        color: '#d9b3ff' 
+    },
+    { 
+        id: 'libra', 
+        name: 'BILANCIA ♎', 
+        stars: [
+            {x: 700, y: 800, name: 'Zubeneschamali'}, 
+            {x: 800, y: 750, name: 'Zubenelgenubi'}, 
+            {x: 900, y: 800, name: 'Zubenakuabi'}, 
+            {x: 800, y: 950, name: 'Brachium'}
+        ], 
+        lines: [[0,1], [1,2], [0,3], [2,3]], 
+        color: '#ff99cc' 
+    },
+    { 
+        id: 'scorpio', 
+        name: 'SCORPIONE ♏', 
+        stars: [
+            {x: 1100, y: 800, name: 'Antares'}, 
+            {x: 1150, y: 850, name: 'Shaula'}, 
+            {x: 1150, y: 950, name: 'Sargas'}, 
+            {x: 1100, y: 1050, name: 'Dschubba'}, 
+            {x: 1200, y: 1050, name: 'Girtab'}, 
+            {x: 1250, y: 1000, name: 'Iclil'}
+        ], 
+        lines: [[0,1], [1,2], [2,3], [3,4], [4,5]], 
+        color: '#ff4d4d' 
+    },
+    { 
+        id: 'sagittarius', 
+        name: 'SAGITTARIO ♐', 
+        stars: [
+            {x: 1500, y: 800, name: 'Kaus Aus.'}, 
+            {x: 1600, y: 800, name: 'Nunki'}, 
+            {x: 1550, y: 750, name: 'Ascella'}, 
+            {x: 1550, y: 900, name: 'Kaus Media'}, 
+            {x: 1450, y: 950, name: 'Albaldah'}, 
+            {x: 1650, y: 950, name: 'Kaus Bor.'}
+        ], 
+        lines: [[0,1], [0,2], [1,2], [0,3], [1,3], [3,4], [3,5]], 
+        color: '#99e6e6' 
+    },
+    { 
+        id: 'capricorn', 
+        name: 'CAPRICORNO ♑', 
+        stars: [
+            {x: 400, y: 1300, name: 'Algedi'}, 
+            {x: 500, y: 1250, name: 'Dabih'}, 
+            {x: 600, y: 1300, name: 'Nashira'}, 
+            {x: 500, y: 1400, name: 'Deneb Alg.'}
+        ], 
+        lines: [[0,1], [1,2], [2,3], [3,0]], 
+        color: '#cccc00' 
+    },
+    { 
+        id: 'aquarius', 
+        name: 'ACQUARIO ♒', 
+        stars: [
+            {x: 800, y: 1250, name: 'Sadalsuud'}, 
+            {x: 850, y: 1300, name: 'Sadalmelik'}, 
+            {x: 900, y: 1250, name: 'Skat'}, 
+            {x: 950, y: 1300, name: 'Sadachbia'}, 
+            {x: 1000, y: 1250, name: 'Albali'}
+        ], 
+        lines: [[0,1], [1,2], [2,3], [3,4]], 
+        color: '#66ffcc' 
+    },
+    { 
+        id: 'pisces', 
+        name: 'PESCI ♓', 
+        stars: [
+            {x: 1300, y: 1300, name: 'Alrescha'}, 
+            {x: 1400, y: 1250, name: 'Revati'}, 
+            {x: 1500, y: 1350, name: 'Kullat Nunu'}, 
+            {x: 1400, y: 1450, name: 'Torcular'}, 
+            {x: 1400, y: 1350, name: 'Fumalsamakah'}
+        ], 
+        lines: [[0,4], [4,1], [4,2], [4,3]], 
+        color: '#cc99ff' 
+    }
 ];
 
 const MAP_SIZE = 2000;
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
+const BTN_SOLAR_SYSTEM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/olasistembutton3wq.webp';
 
 const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [offset, setOffset] = useState({ x: -300, y: -300 });
     const [isDragging, setIsDragging] = useState(false);
+    const [showSolarSystem, setShowSolarSystem] = useState(false);
     const lastPos = useRef({ x: 0, y: 0 });
     const [bgStars, setBgStars] = useState<{x: number, y: number, size: number, opacity: number}[]>([]);
 
@@ -33,7 +182,6 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         }
         setBgStars(stars);
         
-        // Blocca lo scroll del body quando la mappa è aperta
         document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = 'auto';
@@ -54,7 +202,6 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             let newX = prev.x + dx;
             let newY = prev.y + dy;
             
-            // Impediamo di uscire troppo dai bordi della mappa rispetto alla finestra corrente
             const containerWidth = window.innerWidth;
             const containerHeight = window.innerHeight; 
             
@@ -74,10 +221,14 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const handleEnd = () => setIsDragging(false);
 
+    if (showSolarSystem) {
+        return <SolarSystemView onClose={() => setShowSolarSystem(false)} />;
+    }
+
     return (
         <div className="fixed inset-0 z-[200] bg-black flex flex-col overflow-hidden select-none touch-none animate-in fade-in duration-500">
             
-            {/* Header Mappa - Robusto e fisso sopra l'header globale */}
+            {/* Header Mappa */}
             <div className="bg-slate-900 p-4 md:p-6 flex items-center justify-between border-b-4 border-cyan-800 shrink-0 shadow-xl relative z-[210]">
                 <div className="flex items-center gap-4">
                     <button 
@@ -94,12 +245,21 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         </p>
                     </div>
                 </div>
-                <div className="hidden md:block">
-                   <span className="text-cyan-900 font-black text-4xl opacity-20 select-none">LONE BOO SKY</span>
+
+                <div className="flex items-center gap-3">
+                   <button 
+                        onClick={() => setShowSolarSystem(true)}
+                        className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto"
+                   >
+                        <img src={BTN_SOLAR_SYSTEM_IMG} alt="Sistema Solare" className="w-24 h-24 md:w-44 md:h-44 drop-shadow-xl object-contain" />
+                   </button>
+                   <div className="hidden md:block ml-4">
+                      <span className="text-cyan-900 font-black text-4xl opacity-20 select-none">LONE BOO SKY</span>
+                   </div>
                 </div>
             </div>
 
-            {/* Area Mappa - Touch Action None previene lo scroll del browser */}
+            {/* Area Mappa */}
             <div 
                 className="flex-1 relative cursor-move overflow-hidden touch-none"
                 style={{ touchAction: 'none' }}
@@ -125,7 +285,7 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         <div key={`bg-${i}`} className="absolute rounded-full bg-white" style={{ left: star.x, top: star.y, width: star.size, height: star.size, opacity: star.opacity, boxShadow: `0 0 ${star.size * 2}px white` }} />
                     ))}
 
-                    <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
+                    <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-10">
                         {CONSTELLATIONS.map(constellation => (
                             <g key={constellation.id}>
                                 {constellation.lines.map((pair, idx) => {
@@ -134,7 +294,21 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                     return <line key={`l-${idx}`} x1={s1.x} y1={s1.y} x2={s2.x} y2={s2.y} stroke={constellation.color} strokeWidth="2" strokeOpacity="0.4" strokeDasharray="5,5" />;
                                 })}
                                 {constellation.stars.map((star, idx) => (
-                                    <circle key={`s-${idx}`} cx={star.x} cy={star.y} r="5" fill="white" filter="url(#glow)" />
+                                    <React.Fragment key={`s-group-${idx}`}>
+                                        <circle cx={star.x} cy={star.y} r="5" fill="white" filter="url(#glow)" />
+                                        {/* NOME DELLA STELLA */}
+                                        <text 
+                                            x={star.x + 8} 
+                                            y={star.y + 15} 
+                                            fill="white" 
+                                            fontSize="10" 
+                                            fontWeight="900" 
+                                            className="uppercase tracking-tighter italic opacity-80"
+                                            style={{ textShadow: '1px 1px 2px black' }}
+                                        >
+                                            {star.name}
+                                        </text>
+                                    </React.Fragment>
                                 ))}
                             </g>
                         ))}
@@ -149,8 +323,8 @@ const StarMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         const avgX = c.stars.reduce((acc, s) => acc + s.x, 0) / c.stars.length;
                         const avgY = c.stars.reduce((acc, s) => acc + s.y, 0) / c.stars.length;
                         return (
-                            <div key={`label-${c.id}`} className="absolute transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none" style={{ left: avgX, top: avgY + 50 }}>
-                                <span className="text-white font-black text-xs md:text-base uppercase tracking-widest" style={{ color: c.color, textShadow: '0 0 8px black' }}>{c.name}</span>
+                            <div key={`label-${c.id}`} className="absolute transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none" style={{ left: avgX, top: avgY + 60 }}>
+                                <span className="text-white font-black text-sm md:text-xl uppercase tracking-widest" style={{ color: c.color, textShadow: '0 0 8px black' }}>{c.name}</span>
                             </div>
                         )
                     })}

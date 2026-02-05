@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Tag } from 'lucide-react';
 import { AppView } from '../types';
@@ -21,6 +22,19 @@ const InfoMenu: React.FC<InfoMenuProps> = ({ setView }) => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Funzione per gestire la chiusura e il ritorno alla pagina precedente
+  const handleClose = () => {
+    const origin = sessionStorage.getItem('info_menu_origin') as AppView;
+    // Se abbiamo un'origine valida, torniamo lì, altrimenti Home
+    if (origin && Object.values(AppView).includes(origin)) {
+        setView(origin);
+    } else {
+        setView(AppView.HOME);
+    }
+    // Puliamo l'origine per non influenzare aperture future non correlate
+    sessionStorage.removeItem('info_menu_origin');
+  };
+
   return (
     <div className="fixed inset-0 z-0 overflow-y-auto no-scrollbar">
       {/* SFONDO AZZURRO INTENSO E FISSO */}
@@ -31,7 +45,7 @@ const InfoMenu: React.FC<InfoMenuProps> = ({ setView }) => {
       
       {/* FIXED EXIT BUTTON */}
       <button 
-          onClick={() => setView(AppView.HOME)}
+          onClick={handleClose}
           className="fixed top-20 right-4 z-[100] hover:scale-110 active:scale-95 transition-all outline-none"
           aria-label="Chiudi"
       >

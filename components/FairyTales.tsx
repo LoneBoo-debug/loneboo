@@ -13,6 +13,10 @@ const TALES_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tal
 const MARAGNO_EASTER_EGG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mrarafilo+(1).webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fungindiccitt.png';
 
+// Nuovi Asset Audio e Video Ambientali
+const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boscofiabespecchboo5r33.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 
@@ -28,7 +32,13 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showSpider, setShowSpider] = useState(false);
+  
+  // Stati per l'audio e video ambientale
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
       const imgMobile = new Image(); imgMobile.src = FOREST_BG_MOBILE;
@@ -44,12 +54,57 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
           setShowSpider(true);
       }, 1000);
 
+      // Inizializzazione Audio Ambientale
+      if (!ambientAudioRef.current) {
+          ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
+          ambientAudioRef.current.loop = false;
+          ambientAudioRef.current.volume = 0.5;
+
+          ambientAudioRef.current.addEventListener('play', () => setIsAmbientPlaying(true));
+          ambientAudioRef.current.addEventListener('pause', () => setIsAmbientPlaying(false));
+          ambientAudioRef.current.addEventListener('ended', () => {
+              setIsAmbientPlaying(false);
+              if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
+          });
+      }
+
+      // Avvio automatico se l'audio è già attivo globalmente
+      if (isAudioOn) {
+          ambientAudioRef.current.play().catch(e => console.log("Ambient audio blocked", e));
+      }
+
+      // Listener per cambiamenti audio globali dall'header
+      const handleGlobalAudioChange = () => {
+          const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+          setIsAudioOn(enabled);
+          if (enabled && !showPlayerModal) {
+              ambientAudioRef.current?.play().catch(() => {});
+          } else {
+              ambientAudioRef.current?.pause();
+          }
+      };
+      window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
       window.scrollTo(0, 0);
       return () => {
           clearTimeout(timer);
           clearTimeout(spiderTimer);
+          window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+          if (ambientAudioRef.current) {
+              ambientAudioRef.current.pause();
+              ambientAudioRef.current.currentTime = 0;
+          }
       };
   }, []); 
+
+  // Gestione interruzione ambient quando si apre una fiaba
+  useEffect(() => {
+      if (showPlayerModal) {
+          ambientAudioRef.current?.pause();
+      } else if (isAudioOn) {
+          ambientAudioRef.current?.play().catch(() => {});
+      }
+  }, [showPlayerModal, isAudioOn]);
 
   useEffect(() => {
     if (audioRef.current && currentAudio) {
@@ -129,7 +184,25 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
             </div>
         )}
 
-        {/* MARAGNO EASTER EGG - SPOSTATO LEGGERMENTE PIÙ A SINISTRA (da -8%/-5% a -12%/-10%) */}
+        {/* MINI TV DI BOO - Sincronizzato con l'audio ambientale */}
+        {isLoaded && isAudioOn && isAmbientPlaying && !showPlayerModal && (
+            <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video 
+                        src={BOO_TALK_VIDEO}
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className="w-full h-full object-cover" 
+                        style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
+        )}
+
+        {/* MARAGNO EASTER EGG */}
         {showSpider && isLoaded && !isMenuOpen && !showPlayerModal && (
             <button 
                 onClick={() => setView(AppView.CHAT)}

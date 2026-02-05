@@ -18,6 +18,14 @@ const GRUFO_BANNER_BTN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gru
 const BTN_MARAGNO_NAV = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/HATRUFOMARAGNO.webp';
 const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/calm-piano-mickeyscat-147764.mp3';
 
+// Asset per il Dialogo Iniziale
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+const GRUFO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grufanimation131.mp4';
+
+const AUDIO_SEQ_1 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oonebooemozioni1.mp3';
+const AUDIO_SEQ_2 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gruforsispondea+boo2parte.mp3';
+const AUDIO_SEQ_3 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boo2parteripgrufo.mp3';
+
 type EmotionCategory = 'FELICE' | 'TRISTE' | 'ARRABBIATO' | 'PREOCCUPATO';
 
 interface SubEmotion {
@@ -175,36 +183,64 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
     const [activeSubEmotionLabel, setActiveSubEmotionLabel] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     
-    const voiceAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    // --- STATI PER LA SEQUENZA DIALOGO ---
+    const [isSeqPlaying, setIsSeqPlaying] = useState(false);
+    const [currentVideoSrc, setCurrentVideoSrc] = useState(BOO_TALK_VIDEO);
+    const [showMiniTV, setShowMiniTV] = useState(false);
+    
+    const seqAudioRef = useRef<HTMLAudioElement | null>(null);
+    const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
     const bgMusicRef = useRef<HTMLAudioElement | null>(null);
-    const voiceTimeoutRef = useRef<number | null>(null);
-    const endMusicTimeoutRef = useRef<number | null>(null);
+    
+    const sequenceTimerRef = useRef<number | null>(null);
     const fadeIntervalRef = useRef<number | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
+
+        // Controllo audio iniziale per la sequenza
+        const isAudioEnabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        if (isAudioEnabled) {
+            startDialogueSequence();
+        }
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            if (enabled) {
+                startDialogueSequence();
+            } else {
+                stopAllAudio();
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
         return () => {
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             stopAllAudio();
         };
     }, []);
 
     const stopAllAudio = () => {
         setActiveSubEmotionLabel(null);
-        if (voiceAudioSourceRef.current) {
-            try { voiceAudioSourceRef.current.stop(); } catch(e) {}
-            voiceAudioSourceRef.current = null;
+        setIsSeqPlaying(false);
+        setShowMiniTV(false);
+        
+        if (seqAudioRef.current) {
+            seqAudioRef.current.pause();
+            seqAudioRef.current = null;
+        }
+        if (voiceAudioRef.current) {
+            voiceAudioRef.current.pause();
+            voiceAudioRef.current = null;
         }
         if (bgMusicRef.current) {
             bgMusicRef.current.pause();
             bgMusicRef.current = null;
         }
-        if (voiceTimeoutRef.current) {
-            clearTimeout(voiceTimeoutRef.current);
-            voiceTimeoutRef.current = null;
-        }
-        if (endMusicTimeoutRef.current) {
-            clearTimeout(endMusicTimeoutRef.current);
-            endMusicTimeoutRef.current = null;
+
+        if (sequenceTimerRef.current) {
+            clearTimeout(sequenceTimerRef.current);
+            sequenceTimerRef.current = null;
         }
         if (fadeIntervalRef.current) {
             clearInterval(fadeIntervalRef.current);
@@ -212,20 +248,47 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         }
     };
 
-    const startFadeOut = (audio: HTMLAudioElement) => {
-        if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-        
-        const fadeStep = 0.02;
-        fadeIntervalRef.current = window.setInterval(() => {
-            if (audio.volume > fadeStep) {
-                audio.volume -= fadeStep;
-            } else {
-                audio.volume = 0;
-                audio.pause();
-                if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-                fadeIntervalRef.current = null;
-            }
-        }, 100); 
+    // --- LOGICA SEQUENZA DIALOGO ---
+    const startDialogueSequence = () => {
+        stopAllAudio();
+        setIsSeqPlaying(true);
+        runStep1();
+    };
+
+    const runStep1 = () => {
+        setCurrentVideoSrc(BOO_TALK_VIDEO);
+        setShowMiniTV(true);
+        const audio = new Audio(AUDIO_SEQ_1);
+        audio.onended = () => {
+            setShowMiniTV(false);
+            sequenceTimerRef.current = window.setTimeout(runStep2, 1000);
+        };
+        seqAudioRef.current = audio;
+        audio.play().catch(e => console.error("Audio step 1 blocked", e));
+    };
+
+    const runStep2 = () => {
+        setCurrentVideoSrc(GRUFO_TALK_VIDEO);
+        setShowMiniTV(true);
+        const audio = new Audio(AUDIO_SEQ_2);
+        audio.onended = () => {
+            setShowMiniTV(false);
+            sequenceTimerRef.current = window.setTimeout(runStep3, 1000);
+        };
+        seqAudioRef.current = audio;
+        audio.play().catch(e => console.error("Audio step 2 blocked", e));
+    };
+
+    const runStep3 = () => {
+        setCurrentVideoSrc(BOO_TALK_VIDEO);
+        setShowMiniTV(true);
+        const audio = new Audio(AUDIO_SEQ_3);
+        audio.onended = () => {
+            setShowMiniTV(false);
+            setIsSeqPlaying(false);
+        };
+        seqAudioRef.current = audio;
+        audio.play().catch(e => console.error("Audio step 3 blocked", e));
     };
 
     const handleFlowerClick = (cat: EmotionCategory) => {
@@ -237,7 +300,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         setSelectedCategory(null);
     };
 
-    const handleSubEmotionClick = async (emo: SubEmotion) => {
+    const handleSubEmotionClick = (emo: SubEmotion) => {
         if (!emo.audio) return;
         
         if (activeSubEmotionLabel === emo.label) {
@@ -249,44 +312,40 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         setActiveSubEmotionLabel(emo.label);
         
         const bgMusic = new Audio(BG_MUSIC_URL);
-        // Alzato il volume della musica di sottofondo a 0.5
         bgMusic.volume = 0.5; 
         bgMusicRef.current = bgMusic;
         bgMusic.play().catch(e => console.error("Audio background play blocked", e));
         
-        // Ritardo di 5 secondi per l'ingresso del narrato
-        voiceTimeoutRef.current = window.setTimeout(async () => {
-            try {
-                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-                const response = await fetch(emo.audio!);
-                const arrayBuffer = await response.arrayBuffer();
-                const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-                
-                const source = ctx.createBufferSource();
-                source.buffer = audioBuffer;
-                
-                const gainNode = ctx.createGain();
-                // Volume al 100% (Gain 1.0) senza amplificazione ulteriore
-                gainNode.gain.value = 1.0; 
-                
-                source.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                
-                source.onended = () => {
-                    // Coda di 5 secondi per la musica dopo il narrato
-                    endMusicTimeoutRef.current = window.setTimeout(() => {
-                        if (bgMusicRef.current) {
-                            startFadeOut(bgMusicRef.current);
-                        }
-                    }, 5000);
-                };
-                
-                source.start(0);
-                voiceAudioSourceRef.current = source;
-            } catch (err) {
-                console.error("Errore riproduzione voce narrata:", err);
-            }
+        sequenceTimerRef.current = window.setTimeout(() => {
+            const voice = new Audio(emo.audio);
+            voice.volume = 1.0;
+            voiceAudioRef.current = voice;
+
+            voice.onended = () => {
+                sequenceTimerRef.current = window.setTimeout(() => {
+                    if (bgMusicRef.current) {
+                        startFadeOut(bgMusicRef.current);
+                    }
+                }, 5000);
+            };
+
+            voice.play().catch(err => console.error("Errore riproduzione voce narrata:", err));
         }, 5000);
+    };
+
+    const startFadeOut = (audio: HTMLAudioElement) => {
+        if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+        const fadeStep = 0.02;
+        fadeIntervalRef.current = window.setInterval(() => {
+            if (audio.volume > fadeStep) {
+                audio.volume -= fadeStep;
+            } else {
+                audio.volume = 0;
+                audio.pause();
+                if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+                fadeIntervalRef.current = null;
+            }
+        }, 100); 
     };
 
     return (
@@ -319,7 +378,25 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 <img src={BG_URL} alt="" className="w-full h-full object-fill" />
             </div>
 
-            {/* HEADER SUPERIORE: 3 COLONNE PER CENTRARE IL BANNER DI GRUFO */}
+            {/* MINI TV PER LA SEQUENZA DIALOGO */}
+            {showMiniTV && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video 
+                            src={currentVideoSrc} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="w-full h-full object-cover" 
+                            style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
+            )}
+
+            {/* HEADER SUPERIORE */}
             <div className="relative z-[60] w-full p-4 md:p-6 grid grid-cols-3 items-center shrink-0">
                 <div className="flex justify-start">
                     {selectedCategory && (
@@ -332,7 +409,6 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                     )}
                 </div>
 
-                {/* GRUFO AL CENTRO IN ALTO - BANNER IMMAGINE */}
                 <div className="flex justify-center">
                     <button 
                         onClick={() => setIsChatOpen(true)}

@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
-import { Mail, MessageSquare, Handshake, Info, X, ExternalLink } from 'lucide-react';
+
+import React, { useEffect, useState } from 'react';
+import { Mail, MessageSquare, Handshake, Info, X, ExternalLink, Bell } from 'lucide-react';
 import { AppView } from '../types';
+import NewsletterModal from './NewsletterModal';
 
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const ICON_CONTACT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/contattir775hxd3ws.webp';
@@ -10,6 +12,8 @@ interface ContactPageProps {
 }
 
 const ContactPage: React.FC<ContactPageProps> = ({ setView }) => {
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -75,8 +79,25 @@ const ContactPage: React.FC<ContactPageProps> = ({ setView }) => {
                 </div>
                 <p className="text-gray-600 font-bold mb-4 leading-relaxed text-sm">Vuoi inviarci un disegno da pubblicare nel Museo? Usa la funzione "Invia Disegno" direttamente nel Museo Fan Art dell'app!</p>
             </div>
+
+            {/* NUOVO BOX NEWSLETTER */}
+            <div 
+                onClick={() => setIsNewsletterOpen(true)}
+                className="bg-white/50 backdrop-blur-md rounded-[30px] border-4 border-white p-6 shadow-xl md:col-span-2 cursor-pointer hover:bg-white/70 transition-all group"
+            >
+                <div className="flex items-center gap-4 mb-3">
+                    <div className="bg-yellow-100 p-3 rounded-xl text-yellow-600"><Bell size={28} /></div>
+                    <h3 className="text-2xl font-black text-gray-800 group-hover:text-yellow-600">Newsletter Magica</h3>
+                </div>
+                <p className="text-gray-600 font-bold mb-4 leading-relaxed text-sm">Iscriviti per ricevere tutte le novità, i nuovi giochi e le storie di Lone Boo direttamente nella tua email!</p>
+                <div className="bg-yellow-400 text-black font-black py-2 px-6 rounded-xl inline-flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_black] group-hover:scale-105 transition-transform">
+                    ISCRIVITI ORA! ✨
+                </div>
+            </div>
         </div>
       </div>
+
+      {isNewsletterOpen && <NewsletterModal onClose={() => setIsNewsletterOpen(false)} />}
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { BOOKS_DATABASE } from '../services/booksDatabase';
 import { X } from 'lucide-react';
@@ -8,6 +9,10 @@ const LIBRARY_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/li
 const AMAZON_STORE_URL = 'https://www.amazon.it/stores/Lone-Boo/author/B0G3JTJSTB';
 const BTN_LIBRERIA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-library-shelf.webp';
 const BTN_SEE_AMAZON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-amazon.webp';
+
+// Asset Audio e Video
+const LIBRARY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bibliotecaspechboovoice44ew.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; name: string; points: Point[]; };
@@ -28,11 +33,59 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
+    // Gestione Audio e Video sincronizzata con l'header
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
     useEffect(() => {
-        const img = new Image(); img.src = LIBRARY_BG_MOBILE;
+        const img = new Image(); 
+        img.src = LIBRARY_BG_MOBILE;
         img.onload = () => setIsLoaded(true);
-        setTimeout(() => setIsLoaded(true), 2000);
+
+        // Inizializzazione Audio specifico per la Biblioteca
+        if (!audioRef.current) {
+            audioRef.current = new Audio(LIBRARY_VOICE_URL);
+            audioRef.current.loop = false;
+            audioRef.current.volume = 0.5;
+
+            audioRef.current.addEventListener('play', () => setIsPlaying(true));
+            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            audioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            });
+        }
+
+        // Avvio automatico rispettando lo stato globale dell'header
+        if (isAudioOn) {
+            audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+        }
+
+        // Listener per il tasto audio globale nell'header
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled) {
+                audioRef.current?.play().catch(() => {});
+            } else {
+                audioRef.current?.pause();
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+        const timer = setTimeout(() => setIsLoaded(true), 2000);
         window.scrollTo(0, 0);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
     }, []);
 
     const handleExternalClick = (url: string) => {
@@ -55,6 +108,7 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
     };
 
     const getClipPath = (points: Point[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    
     const getBoundingBox = (points: Point[]) => {
         const xs = points.map(p => p.x); const ys = points.map(p => p.y);
         const minX = Math.min(...xs); const maxX = Math.max(...xs);
@@ -78,6 +132,28 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
                     <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">STO CARICANDO...</span>
                 </div>
             )}
+
+            {/* Mini TV di Boo - Posizionato a SINISTRA */}
+            {isLoaded && isAudioOn && isPlaying && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video 
+                            src={BOO_TALK_VIDEO}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                            style={{ 
+                                mixBlendMode: 'screen',
+                                filter: 'contrast(1.1) brightness(1.1)'
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
+            )}
+
             <div className="absolute inset-0 z-0 w-full h-full cursor-default">
                 <img src={LIBRARY_BG_MOBILE} alt="Biblioteca" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
                 {isLoaded && ZONES_DATA.map(zone => {
@@ -93,11 +169,13 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
                     return ( <div key={zone.id} onClick={(e) => { e.stopPropagation(); handleZoneInteraction(zone.id); }} className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors" style={{ clipPath: getClipPath(zone.points) }} /> );
                 })}
             </div>
+
             <div className="absolute top-[58%] right-6 md:right-12 z-40">
                 <button onClick={() => setView(AppView.BOOKS_LIST)} className="outline-none group">
                     <img src={BTN_LIBRERIA_IMG} alt="Vai alla Libreria" className="w-24 md:w-40 lg:w-48 h-auto drop-shadow-2xl" />
                 </button>
             </div>
+
             {selectedBook && (
                 <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in" onClick={() => setSelectedBook(null)}>
                     <style>{`.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>

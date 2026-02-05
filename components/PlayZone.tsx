@@ -1,7 +1,6 @@
 
 import React, { useState, Suspense, useEffect, useRef } from 'react';
-import { Loader2, ArrowLeft, Store, ShoppingBag, Check, Sparkles } from 'lucide-react';
-import RobotHint from './RobotHint';
+import { Loader2 } from 'lucide-react';
 import { getProgress, addTokens } from '../services/tokens';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
@@ -17,25 +16,19 @@ const MathGame = React.lazy(() => import('./MathGame'));
 const ColorMatchGame = React.lazy(() => import('./ColorMatchGame'));
 const OddOneOutGame = React.lazy(() => import('./OddOneOutGame'));
 const GuessNumberGame = React.lazy(() => import('./GuessNumberGame'));
-const DrawingGame = React.lazy(() => import('./DrawingGame'));
 const CheckersGame = React.lazy(() => import('./CheckersGame'));
 const ChessGame = React.lazy(() => import('./ChessGame'));
 const ConnectFourGame = React.lazy(() => import('./ConnectFourGame'));
 const WordGuessGame = React.lazy(() => import('./WordGuessGame'));
 const ArcadeConsole = React.lazy(() => import('./ArcadeConsole'));
-const AstroBooGame = React.lazy(() => import('./AstroBooGame'));
-const BooBreakerGame = React.lazy(() => import('./BooBreakerGame'));
-const FlappyBooGame = React.lazy(() => import('./FlappyBooGame'));
-const FallingNotesGame = React.lazy(() => import('./FallingNotesGame'));
-const MazeGame = React.lazy(() => import('./MazeGame'));
-const RainDodgeGame = React.lazy(() => import('./RainDodgeGame'));
 const BingoGame = React.lazy(() => import('./BingoGame'));
 
-const PARK_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/park-mobile.webp';
-const PARK_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/park-desktop.webp';
-const NEWSSTAND_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newsstand.webp';
-const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
-const DECOR_IMAGE_TOP_RIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ghgf+(1)+(1)445789456.webp';
+const PARK_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
+const PARK_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newparcogiochimape3rfcxxs.webp';
+
+// Asset Audio e Video
+const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parcogiochispeechboo6tr64.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 enum GameType {
   NONE = 'NONE',
@@ -46,341 +39,289 @@ enum GameType {
   RPS = 'RPS',
   SIMON = 'SIMON',
   MATH = 'MATH',
-  COLOR = 'COLOR',
   ODD = 'ODD',
   GUESS = 'GUESS',
-  DRAW = 'DRAW',
   CHECKERS = 'CHECKERS',
   CHESS = 'CHESS',
   CONNECT4 = 'CONNECT4',
   WORDGUESS = 'WORDGUESS',
   ARCADE = 'ARCADE',
-  ASTRO = 'ASTRO',
-  BREAKER = 'BREAKER',
-  FLAPPY = 'FLAPPY',
-  FALLING = 'FALLING',
-  MAZE = 'MAZE',
-  RAIN = 'RAIN',
   BINGO = 'BINGO'
 }
 
 type Point = { x: number; y: number };
-type ZoneConfig = { id: string; points: Point[]; };
 
-// ZONE DEFINITIVE (MOBILE - VERTICALE)
-const ZONES_MOBILE: ZoneConfig[] = [
-  { "id": "Quiz", "points": [ { "x": 13.59, "y": 29.97 }, { "x": 21.86, "y": 34.1 }, { "x": 43.98, "y": 24.95 }, { "x": 34.38, "y": 20.28 } ] },
-  { "id": "Forza 4", "points": [ { "x": 43.71, "y": 13.82 }, { "x": 53.3, "y": 18.49 }, { "x": 67.7, "y": 13.1 }, { "x": 58.64, "y": 8.08 } ] },
-  { "id": "Tris", "points": [ { "x": 85.02, "y": 16.33 }, { "x": 70.1, "y": 23.51 }, { "x": 83.96, "y": 28.72 }, { "x": 97.28, "y": 21.72 } ] },
-  { "id": "Acchiappa Boo", "points": [ { "x": 61.57, "y": 26.38 }, { "x": 55.97, "y": 39.84 }, { "x": 70.1, "y": 42.89 }, { "x": 74.09, "y": 30.69 } ] },
-  { "id": "Simon", "points": [ { "x": 81.56, "y": 44.33 }, { "x": 70.1, "y": 49.35 }, { "x": 81.82, "y": 55.1 }, { "x": 94.08, "y": 49.53 } ] },
-  { "id": "Morra", "points": [ { "x": 35.71, "y": 45.41 }, { "x": 35.18, "y": 57.61 }, { "x": 55.17, "y": 56.89 }, { "x": 55.97, "y": 44.69 } ] },
-  { "id": "Boo Runner", "points": [ { "x": 8.8, "y": 44.33 }, { "x": 8.26, "y": 60.66 }, { "x": 24.25, "y": 59.76 }, { "x": 22.39, "y": 40.92 } ] },
-  { "id": "Scacchi", "points": [ { "x": 59.7, "y": 62.46 }, { "x": 67.7, "y": 65.87 }, { "x": 76.76, "y": 62.28 }, { "x": 67.96, "y": 57.43 } ] },
-  { "id": "Dama", "points": [ { "x": 74.09, "y": 68.38 }, { "x": 82.36, "y": 72.15 }, { "x": 90.88, "y": 68.74 }, { "x": 82.89, "y": 64.79 } ] },
-  { "id": "Math", "points": [ { "x": 9.33, "y": 79.33 }, { "x": 14.66, "y": 81.66 }, { "x": 19.72, "y": 79.86 }, { "x": 14.66, "y": 75.92 } ] },
-  { "id": "Indovina Parola", "points": [ { "x": 19.72, "y": 75.2 }, { "x": 24.52, "y": 77.89 }, { "x": 30.38, "y": 76.45 }, { "x": 25.32, "y": 72.86 } ] },
-  { "id": "Indovina Numero", "points": [ { "x": 45.58, "y": 72.33 }, { "x": 46.64, "y": 87.94 }, { "x": 57.84, "y": 88.84 }, { "x": 57.84, "y": 71.61 } ] },
-  { "id": "Memory", "points": [ { "x": 28.52, "y": 91.89 }, { "x": 27.72, "y": 98.17 }, { "x": 44.78, "y": 98.17 }, { "x": 42.11, "y": 90.99 } ] },
-  { "id": "Trova Intruso", "points": [ { "x": 77.29, "y": 76.63 }, { "x": 77.56, "y": 95.3 }, { "x": 86.62, "y": 96.2 }, { "x": 86.35, "y": 76.99 } ] }
-];
-
-// ZONE DEFINITIVE (DESKTOP - 16:9)
-const ZONES_DESKTOP: ZoneConfig[] = [
-  { "id": "Quiz", "points": [ { "x": 34.88, "y": 25.88 }, { "x": 38.09, "y": 31.95 }, { "x": 47.21, "y": 21.15 }, { "x": 43.4, "y": 15.98 } ] },
-  { "id": "Forza 4", "points": [ { "x": 47.51, "y": 9.68 }, { "x": 51.52, "y": 15.08 }, { "x": 57.94, "y": 7.88 }, { "x": 54.03, "y": 2.7 } ] },
-  { "id": "Tris", "points": [ { "x": 64.25, "y": 11.25 }, { "x": 57.74, "y": 19.35 }, { "x": 63.35, "y": 26.33 }, { "x": 69.47, "y": 17.78 } ] },
-  { "id": "Acchiappa Boo", "points": [ { "x": 55.03, "y": 21.38 }, { "x": 52.13, "y": 38.03 }, { "x": 56.94, "y": 42.98 }, { "x": 60.14, "y": 27.9 } ] },
-  { "id": "Simon", "points": [ { "x": 62.75, "y": 41.85 }, { "x": 57.34, "y": 47.93 }, { "x": 62.55, "y": 55.13 }, { "x": 67.96, "y": 47.93 } ] },
-  { "id": "Morra", "points": [ { "x": 44.11, "y": 42.53 }, { "x": 44.21, "y": 57.61 }, { "x": 52.13, "y": 56.71 }, { "x": 52.13, "y": 42.53 } ] },
-  { "id": "Boo Runner", "points": [ { "x": 33.28, "y": 42.53 }, { "x": 33.38, "y": 60.08 }, { "x": 39.6, "y": 58.96 }, { "x": 40, "y": 39.83 } ] },
-  { "id": "Scacchi", "points": [ { "x": 56.94, "y": 56.93 }, { "x": 54.13, "y": 60.98 }, { "x": 57.04, "y": 65.03 }, { "x": 60.14, "y": 60.76 } ] },
-  { "id": "Dama", "points": [ { "x": 62.95, "y": 64.58 }, { "x": 60.14, "y": 67.73 }, { "x": 62.75, "y": 71.56 }, { "x": 66.16, "y": 67.73 } ] },
-  { "id": "Math", "points": [ { "x": 33.68, "y": 79.21 }, { "x": 35.69, "y": 83.03 }, { "x": 38.19, "y": 80.33 }, { "x": 35.79, "y": 76.28 } ] },
-  { "id": "Indovina Parola", "points": [ { "x": 38.19, "y": 75.38 }, { "x": 39.8, "y": 78.08 }, { "x": 42.1, "y": 76.51 }, { "x": 40.4, "y": 73.13 } ] },
-  { "id": "Indovina Numero", "points": [ { "x": 48.52, "y": 70.88 }, { "x": 49.02, "y": 88.43 }, { "x": 52.23, "y": 88.88 }, { "x": 52.93, "y": 72.01 } ] },
-  { "id": "Memory", "points": [ { "x": 43.91, "y": 89.33 }, { "x": 39.49, "y": 95.86 }, { "x": 45.81, "y": 99.01 }, { "x": 48.82, "y": 95.18 } ] },
-  { "id": "Trova Intruso", "points": [ { "x": 60.55, "y": 76.96 }, { "x": 60.55, "y": 94.51 }, { "x": 64.35, "y": 95.18 }, { "x": 64.35, "y": 76.28 } ] }
-];
+// --- COORDINATE DEFINITIVE CALIBRATE ---
+const INITIAL_MAP_DATA: Record<string, Point[]> = {
+  "QUIZ": [
+    { "x": 57.3, "y": 24.28 },
+    { "x": 55.17, "y": 37.32 },
+    { "x": 67.96, "y": 35.22 },
+    { "x": 69.56, "y": 24.43 }
+  ],
+  "FORZA_4": [
+    { "x": 78.62, "y": 25.93 },
+    { "x": 75.43, "y": 38.22 },
+    { "x": 93.82, "y": 41.37 },
+    { "x": 93.55, "y": 27.73 }
+  ],
+  "TRIS": [
+    { "x": 23.19, "y": 45.71 },
+    { "x": 40.78, "y": 50.81 },
+    { "x": 57.3, "y": 47.21 },
+    { "x": 42.38, "y": 41.82 }
+  ],
+  "ACCHIAPPA_BOO": [
+    { "x": 3.46, "y": 47.21 },
+    { "x": 13.59, "y": 56.21 },
+    { "x": 26.12, "y": 54.41 },
+    { "x": 17.06, "y": 44.51 }
+  ],
+  "SIMON_BOO": [
+    { "x": 38.65, "y": 58.75 },
+    { "x": 49.31, "y": 61.15 },
+    { "x": 60.5, "y": 58.75 },
+    { "x": 49.84, "y": 52.76 }
+  ],
+  "MORRA": [
+    { "x": 3.2, "y": 33.12 },
+    { "x": 11.19, "y": 43.17 },
+    { "x": 27.19, "y": 41.52 },
+    { "x": 18.39, "y": 30.88 }
+  ],
+  "DAMA": [
+    { "x": 67.16, "y": 43.17 },
+    { "x": 74.09, "y": 46.31 },
+    { "x": 81.82, "y": 43.76 },
+    { "x": 75.43, "y": 40.62 }
+  ],
+  "SCACCHI": [
+    { "x": 61.03, "y": 51.71 },
+    { "x": 70.63, "y": 54.41 },
+    { "x": 77.56, "y": 52.61 },
+    { "x": 69.3, "y": 49.01 }
+  ],
+  "MATEMATICA_MAGICA": [
+    { "x": 2.4, "y": 60.85 },
+    { "x": 15.72, "y": 68.94 },
+    { "x": 27.99, "y": 65.65 },
+    { "x": 19.19, "y": 58.45 }
+  ],
+  "INDOVINA_LA_PAROLA": [
+    { "x": 83.42, "y": 44.81 },
+    { "x": 81.82, "y": 54.41 },
+    { "x": 96.75, "y": 57.55 },
+    { "x": 97.81, "y": 46.46 }
+  ],
+  "INDOVINA_IL_NUMERO": [
+    { "x": 32.52, "y": 63.85 },
+    { "x": 30.65, "y": 72.99 },
+    { "x": 42.64, "y": 73.14 },
+    { "x": 45.58, "y": 64.15 }
+  ],
+  "TROVA_INTRUSO": [
+    { "x": 34.91, "y": 26.83 },
+    { "x": 32.25, "y": 35.82 },
+    { "x": 49.04, "y": 37.02 },
+    { "x": 48.51, "y": 26.23 }
+  ],
+  "MEMORY": [
+    { "x": 61.57, "y": 68.79 },
+    { "x": 74.36, "y": 72.69 },
+    { "x": 94.35, "y": 62.2 },
+    { "x": 80.49, "y": 58.9 }
+  ],
+  "SALA_GIOCHI": [
+    { "x": 30.38, "y": 89.48 },
+    { "x": 6.4, "y": 95.77 },
+    { "x": 2.13, "y": 74.64 },
+    { "x": 21.59, "y": 74.19 }
+  ],
+  "EDICOLA": [
+    { "x": 80.76, "y": 73.89 },
+    { "x": 98.08, "y": 71.49 },
+    { "x": 97.01, "y": 96.97 },
+    { "x": 78.89, "y": 94.12 }
+  ],
+  "TORNA_IN_CITTA": [
+    { "x": 64.23, "y": 84.23 },
+    { "x": 65.03, "y": 92.78 },
+    { "x": 74.89, "y": 93.08 },
+    { "x": 75.96, "y": 83.63 }
+  ]
+};
 
 interface PlayZoneProps {
-    setView: (view: AppView) => void;
+  setView: (view: AppView) => void;
 }
 
 const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [activeGame, setActiveGame] = useState<GameType>(GameType.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  
-  // TOKEN ECONOMY STATE
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [tokensEarnedAnimation, setTokensEarnedAnimation] = useState<number | null>(null);
+  const [tokenBalance, setTokenBalance] = useState(() => getProgress().tokens);
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Interaction Tracking
-  const hasInteractedRef = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // 1. INITIALIZATION & HINT EFFECT
   useEffect(() => {
-      const imgMobile = new Image();
-      imgMobile.src = PARK_BG_MOBILE;
-      const imgDesktop = new Image();
-      imgDesktop.src = PARK_BG_DESKTOP;
+    const handleProgressUpdate = () => {
+      setTokenBalance(getProgress().tokens);
+    };
+    window.addEventListener('progressUpdated', handleProgressUpdate);
+    
+    const imgM = new Image(); imgM.src = PARK_BG_MOBILE;
+    const imgD = new Image(); imgD.src = PARK_BG_DESKTOP;
+    const checkLoaded = () => setIsLoaded(true);
+    imgM.onload = checkLoaded;
+    imgD.onload = checkLoaded;
 
-      let loadedCount = 0;
-      const checkLoad = () => {
-          loadedCount++;
-          if (loadedCount >= 1) setIsLoaded(true);
-      };
+    if (!ambientAudioRef.current) {
+      ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
+      ambientAudioRef.current.loop = false;
+      ambientAudioRef.current.volume = 0.5;
+      ambientAudioRef.current.addEventListener('play', () => setIsPlaying(true));
+      ambientAudioRef.current.addEventListener('pause', () => setIsPlaying(false));
+      ambientAudioRef.current.addEventListener('ended', () => {
+        setIsPlaying(false);
+        if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
+      });
+    }
 
-      imgMobile.onload = checkLoad;
-      imgDesktop.onload = checkLoad;
-      setTimeout(() => setIsLoaded(true), 1500);
+    if (isAudioOn && activeGame === GameType.NONE) {
+      ambientAudioRef.current.play().catch(e => console.log("Audio blocked", e));
+    }
 
-      window.scrollTo(0, 0);
+    const handleGlobalAudioChange = () => {
+      const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+      setIsAudioOn(enabled);
+      if (enabled && activeGame === GameType.NONE) ambientAudioRef.current?.play().catch(() => { });
+      else ambientAudioRef.current?.pause();
+    };
+    window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-      // Check for target game (deeplink from other sections)
-      const targetGame = sessionStorage.getItem('target_game');
-      if (targetGame) {
-          sessionStorage.removeItem('target_game');
-          if (Object.keys(GameType).includes(targetGame)) {
-              setActiveGame(targetGame as GameType);
-              hasInteractedRef.current = true;
-          }
+    setTimeout(() => setIsLoaded(true), 2500);
+    return () => {
+      window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+      window.removeEventListener('progressUpdated', handleProgressUpdate);
+      if (ambientAudioRef.current) {
+        ambientAudioRef.current.pause();
+        ambientAudioRef.current.currentTime = 0;
       }
-
-      const timer = setTimeout(() => {
-          if (!hasInteractedRef.current) setShowHint(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-  }, []); 
-
-  // 2. GAME STATE & TOKEN EFFECT
-  useEffect(() => {
-      const current = getProgress();
-      setTokenBalance(current.tokens);
-
-      const updateHandler = () => {
-          const updated = getProgress();
-          setTokenBalance(updated.tokens);
-      };
-      window.addEventListener('progressUpdated', updateHandler);
-      return () => window.removeEventListener('progressUpdated', updateHandler);
-  }, [activeGame]);
-
-  const handleInteraction = () => {
-      if (showHint) setShowHint(false);
-  };
+    };
+  }, [activeGame, isAudioOn]);
 
   const getClipPath = (points: Point[]) => {
-      if (!points || points.length === 0) return 'none';
-      const poly = points.map(p => `${p.x}% ${p.y}%`).join(', ');
-      return `polygon(${poly})`;
+      if (!points || points.length < 3) return 'none';
+      return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
   };
 
-  const handleZoneClick = (zoneId: string) => {
-      setShowHint(false);
-      hasInteractedRef.current = true; 
-      
-      switch (zoneId) {
-          case 'Quiz': setActiveGame(GameType.QUIZ); break;
-          case 'Forza 4': setActiveGame(GameType.CONNECT4); break;
-          case 'Tris': setActiveGame(GameType.TICTACTOE); break;
-          case 'Acchiappa Boo': setActiveGame(GameType.WHACK); break;
-          case 'Simon': setActiveGame(GameType.SIMON); break;
-          case 'Morra': setActiveGame(GameType.RPS); break;
-          case 'Boo Runner': setActiveGame(GameType.ARCADE); break;
-          case 'Scacchi': setActiveGame(GameType.CHESS); break;
-          case 'Dama': setActiveGame(GameType.CHECKERS); break;
-          case 'Math': setActiveGame(GameType.MATH); break;
-          case 'Indovina Parola': setActiveGame(GameType.WORDGUESS); break;
-          case 'Indovina Numero': setActiveGame(GameType.GUESS); break;
-          case 'Memory': setActiveGame(GameType.MEMORY); break;
-          case 'Trova Intruso': setActiveGame(GameType.ODD); break;
-          default: setActiveGame(GameType.NONE); break;
-      }
+  const handleZoneClick = (key: string) => {
+    switch (key) {
+        case 'QUIZ': setActiveGame(GameType.QUIZ); break;
+        case 'MEMORY': setActiveGame(GameType.MEMORY); break;
+        case 'TRIS': setActiveGame(GameType.TICTACTOE); break;
+        case 'ACCHIAPPA_BOO': setActiveGame(GameType.WHACK); break;
+        case 'MORRA': setActiveGame(GameType.RPS); break;
+        case 'SIMON_BOO': setActiveGame(GameType.SIMON); break;
+        case 'MATEMATICA_MAGICA': setActiveGame(GameType.MATH); break;
+        case 'TROVA_INTRUSO': setActiveGame(GameType.ODD); break;
+        case 'INDOVINA_IL_NUMERO': setActiveGame(GameType.GUESS); break;
+        case 'FORZA_4': setActiveGame(GameType.CONNECT4); break;
+        case 'INDOVINA_LA_PAROLA': setActiveGame(GameType.WORDGUESS); break;
+        case 'SALA_GIOCHI': setActiveGame(GameType.ARCADE); break;
+        case 'DAMA': setActiveGame(GameType.CHECKERS); break;
+        case 'SCACCHI': setActiveGame(GameType.CHESS); break;
+        case 'EDICOLA': setView(AppView.NEWSSTAND); break;
+        case 'TORNA_IN_CITTA': setView(AppView.CITY_MAP); break;
+    }
   };
 
-  const handleEarnTokens = (amount: number) => {
-      const newTotal = addTokens(amount);
-      setTokenBalance(newTotal);
-      setTokensEarnedAnimation(amount);
-      setTimeout(() => setTokensEarnedAnimation(null), 2000);
-  };
-
-  const handleOpenNewsstand = () => {
-      setView(AppView.NEWSSTAND);
-  };
-
-  const renderGame = () => {
-    const commonProps = { 
-        onBack: () => setActiveGame(GameType.NONE),
-        onEarnTokens: handleEarnTokens,
-        onOpenNewsstand: handleOpenNewsstand
-    };
-
-    const Component = (() => {
-      switch (activeGame) {
-        case GameType.QUIZ: return QuizGame;
-        case GameType.MEMORY: return MemoryGame;
-        case GameType.TICTACTOE: return TicTacToeGame;
-        case GameType.WHACK: return WhackGhostGame;
-        case GameType.RPS: return RPSGame;
-        case GameType.SIMON: return SimonGame;
-        case GameType.MATH: return MathGame;
-        case GameType.COLOR: return ColorMatchGame;
-        case GameType.ODD: return OddOneOutGame;
-        case GameType.GUESS: return GuessNumberGame;
-        case GameType.DRAW: return DrawingGame;
-        case GameType.CHECKERS: return CheckersGame;
-        case GameType.CHESS: return ChessGame;
-        case GameType.CONNECT4: return ConnectFourGame;
-        case GameType.WORDGUESS: return WordGuessGame;
-        case GameType.ARCADE: return ArcadeConsole;
-        case GameType.ASTRO: return AstroBooGame;
-        case GameType.BREAKER: return BooBreakerGame;
-        case GameType.FLAPPY: return FlappyBooGame;
-        case GameType.FALLING: return FallingNotesGame;
-        case GameType.MAZE: return MazeGame;
-        case GameType.RAIN: return RainDodgeGame;
-        case GameType.BINGO: return BingoGame;
-        default: return null;
-      }
-    })();
-
-    if (!Component) return null;
-
-    return (
-      <Suspense 
-        fallback={
-          <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
-            <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
-            <p className="font-bold text-lg text-white mt-4 tracking-widest animate-pulse">STO CARICANDO...</p>
-          </div>
-        }
-      >
-        {/* @ts-ignore - dynamic prop passing */}
-        <Component {...commonProps} />
-      </Suspense>
-    );
-  };
-
-  // VISTA GIOCO ATTIVO
   if (activeGame !== GameType.NONE) {
-      return (
-          <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-black flex flex-col overflow-hidden">
-                {tokensEarnedAnimation && 
-                 activeGame !== GameType.CONNECT4 && 
-                 activeGame !== GameType.QUIZ && 
-                 activeGame !== GameType.MEMORY && 
-                 activeGame !== GameType.ODD && 
-                 activeGame !== GameType.TICTACTOE && 
-                 activeGame !== GameType.CHECKERS && (
-                    <div className="absolute top-24 left-1/2 -translate-x-1/2 z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none">
-                        <div className="bg-yellow-400 text-black font-black text-3xl px-6 py-3 rounded-full border-4 border-white shadow-[0_0_30px_gold] flex items-center gap-2">
-                            <span>+{tokensEarnedAnimation}</span> 🪙
-                        </div>
-                    </div>
-                )}
-
-                {activeGame !== GameType.ARCADE && (
-                    <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40 pt-[64px] md:pt-[96px]">
-                        <button
-                            onClick={() => setActiveGame(GameType.NONE)}
-                            className="hover:scale-105 active:scale-95 transition-transform"
-                        >
-                            <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 md:h-14 w-auto drop-shadow-md" />
-                        </button>
-                        
-                        <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black">
-                            <span>{tokenBalance}</span> 🪙
-                        </div>
-                    </div>
-                )}
-
-                <div className={`flex-1 w-full h-full relative overflow-hidden flex flex-col items-center justify-center ${activeGame === GameType.ARCADE ? 'p-0' : 'p-2'}`}>
-                    {renderGame()}
-                </div>
+    return (
+      <div className="fixed inset-0 z-0 bg-slate-900 flex flex-col animate-in fade-in duration-300 pt-[64px] md:pt-[96px]">
+        <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40">
+          <button onClick={() => setActiveGame(GameType.NONE)} className="hover:scale-105 active:scale-95 transition-transform">
+            <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp" alt="Back" className="h-10 md:h-14 w-auto" />
+          </button>
+          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black">
+            <span>{tokenBalance}</span> 🪙
           </div>
-      );
+        </div>
+        <Suspense fallback={
+          <div className="flex-1 flex flex-col items-center justify-center bg-slate-800">
+            <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
+            <span className="text-white font-black tracking-widest uppercase">Preparo il gioco...</span>
+          </div>
+        }>
+          {activeGame === GameType.QUIZ && <QuizGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.MEMORY && <MemoryGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.TICTACTOE && <TicTacToeGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.WHACK && <WhackGhostGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.RPS && <RPSGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+          {activeGame === GameType.SIMON && <SimonGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.MATH && <MathGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+          {activeGame === GameType.ODD && <OddOneOutGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.GUESS && <GuessNumberGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+          {activeGame === GameType.CHECKERS && <CheckersGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.CHESS && <ChessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.CONNECT4 && <ConnectFourGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.WORDGUESS && <WordGuessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.ARCADE && <ArcadeConsole onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+          {activeGame === GameType.BINGO && <BingoGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+        </Suspense>
+      </div>
+    );
   }
 
-  // VISTA PRINCIPALE (PARCO GIOCHI) - CONFIGURATA COME CITY MAP
   return (
-    <div 
-        className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#b388f4] overflow-hidden touch-none overscroll-none select-none"
-        onClick={handleInteraction}
-    >
-        {!isLoaded && (
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-600/95 backdrop-blur-md">
-                <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-4" />
-                <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">
-                    STO CARICANDO...
-                </span>
-            </div>
-        )}
-
-        {isLoaded && (
-            <>
-                {/* DECORAZIONE TOP RIGHT RICHIESTA - MODIFICATA (SPOSTATA PIÙ A SINISTRA) */}
-                <div className="absolute top-14 md:top-20 right-12 md:right-20 z-30 pointer-events-none animate-in fade-in slide-in-from-right duration-700">
-                    <img 
-                        src={DECOR_IMAGE_TOP_RIGHT} 
-                        alt="Decorazione Parco" 
-                        className="w-20 md:w-36 h-auto drop-shadow-xl"
-                    />
-                </div>
-
-                <div className="absolute top-[35%] -translate-y-1/2 right-0 z-30 animate-in slide-in-from-right duration-500 p-0 md:p-2 pointer-events-none">
-                    <div className="relative group cursor-pointer pointer-events-auto" onClick={() => handleOpenNewsstand()}>
-                        <div className="w-28 h-28 md:w-56 md:h-56 origin-right">
-                            <img src={NEWSSTAND_ICON} alt="" className="w-full h-full object-contain drop-shadow-2xl" />
-                        </div>
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-black font-black text-[10px] md:text-sm px-3 py-0.5 rounded-full border-2 border-black shadow-lg whitespace-nowrap z-10">
-                            {tokenBalance} 🪙
-                        </div>
-                    </div>
-                </div>
-            </>
-        )}
-
-        <RobotHint show={showHint && isLoaded} message="Tocca un gioco per vincere gettoni!" variant="ROBOT" />
-
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden absolute inset-0">
-                <img 
-                    src={PARK_BG_MOBILE} 
-                    alt="Parco Mobile" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
-                {isLoaded && ZONES_MOBILE.map((zone, i) => (
-                    <div
-                        key={i}
-                        className="absolute inset-0 cursor-pointer"
-                        style={{ clipPath: getClipPath(zone.points) }}
-                        onClick={(e) => { e.stopPropagation(); handleZoneClick(zone.id); }}
-                    ></div>
-                ))}
-            </div>
-
-            <div className="hidden md:block absolute inset-0">
-                <img 
-                    src={PARK_BG_DESKTOP} 
-                    alt="Parco Desktop" 
-                    className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    draggable={false}
-                />
-                {isLoaded && ZONES_DESKTOP.map((zone, i) => (
-                    <div
-                        key={i}
-                        className="absolute inset-0 cursor-pointer"
-                        style={{ clipPath: getClipPath(zone.points) }}
-                        onClick={(e) => { e.stopPropagation(); handleZoneClick(zone.id); }}
-                    ></div>
-                ))}
-            </div>
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-green-900 overflow-hidden touch-none overscroll-none select-none">
+      {!isLoaded && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-green-600/95 backdrop-blur-md">
+          <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
+          <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Entro nel Parco...</span>
         </div>
+      )}
+
+      {isLoaded && isAudioOn && isPlaying && (
+        <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+          <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+            <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+          </div>
+        </div>
+      )}
+
+      <div 
+        className="absolute inset-0 z-0"
+      >
+        <picture>
+          <source media="(max-width: 768px)" srcSet={PARK_BG_MOBILE} />
+          <img src={PARK_BG_DESKTOP} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+        </picture>
+        
+        {/* BOX SALDO GETTONI - STILE COERENTE CON I GIOCHI - Abbassato al 74% */}
+        {isLoaded && (
+          <div className="absolute top-[74%] right-[4%] z-[60] animate-in slide-in-from-bottom-2 duration-700 pointer-events-auto">
+              <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl transition-transform hover:scale-105">
+                  <span>{tokenBalance}</span> <span className="text-xl">🪙</span>
+              </div>
+          </div>
+        )}
+
+        {isLoaded && (Object.entries(INITIAL_MAP_DATA) as [string, Point[]][]).map(([key, pts]) => {
+          return (
+            <div
+              key={key}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                handleZoneClick(key); 
+              }}
+              className="absolute inset-0 z-10 cursor-pointer active:bg-white/10 pointer-events-auto"
+              style={{ clipPath: getClipPath(pts) }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

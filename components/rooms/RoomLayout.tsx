@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AppView } from '../../types';
@@ -25,7 +26,7 @@ const ROOM_IMAGES_MOBILE: Record<string, string> = {
     [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-mobile.webp',
     [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-mobile.webp',
     [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-mobile.webp',
-    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/garden.webp',
+    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousemobiledefnewmao776gbs11.webp',
 };
 
 const ROOM_IMAGES_DESKTOP: Record<string, string> = {
@@ -33,7 +34,7 @@ const ROOM_IMAGES_DESKTOP: Record<string, string> = {
     [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-desktop.webp', 
     [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-desktop.webp',
     [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-desktop.webp',
-    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/garden.webp',
+    [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousnewdesktopmversi87y33.webp',
 };
 
 const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string }; right?: { view: AppView; label: string } }> = {
@@ -41,7 +42,7 @@ const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string };
     [AppView.BOO_BEDROOM]: { left: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" }, right: { view: AppView.BOO_KITCHEN, label: "CUCINA" } },
     [AppView.BOO_LIVING_ROOM]: { left: { view: AppView.BOO_KITCHEN, label: "CUCINA" }, right: { view: AppView.BOO_BATHROOM, label: "BAGNO" } },
     [AppView.BOO_BATHROOM]: { left: { view: AppView.BOO_GARDEN, label: "GIARDINO" }, right: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" } },
-    [AppView.BOO_GARDEN]: { right: { view: AppView.BOO_HOUSE, label: "ENTRA IN CASA" } }
+    [AppView.BOO_GARDEN]: {} // Rimosso il navigatore destro perché usiamo l'area cliccabile nel componente specifico
 };
 
 interface RoomLayoutProps {

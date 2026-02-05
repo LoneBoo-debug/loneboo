@@ -6,6 +6,7 @@ import { AppView } from './types';
 import { OFFICIAL_LOGO } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
+import { addTokens } from './services/tokens';
 
 const TTSStudio = lazy(() => import('./components/TTSStudio'));
 const InstallPWA = lazy(() => import('./components/InstallPWA')); 
@@ -42,6 +43,7 @@ const SchoolFifthGrade = lazy(() => import('./components/SchoolFifthGrade'));
 const SchoolDiaryView = lazy(() => import('./components/SchoolDiaryView'));
 const CharactersPage = lazy(() => import('./components/CharactersPage'));
 const CityMap = lazy(() => import('./components/CityMap'));
+const NewCityMap = lazy(() => import('./components/NewCityMap')); 
 const RoomView = lazy(() => import('./components/RoomView')); 
 const InfoMenu = lazy(() => import('./components/InfoMenu'));
 const SvegliaBoo = lazy(() => import('./components/SvegliaBoo'));
@@ -59,6 +61,8 @@ const TrainJourneyPlaceholder = lazy(() => import('./components/TrainJourneyPlac
 const PremiumInfoPage = lazy(() => import('./components/PremiumInfoPage'));
 const VocalFxPage = lazy(() => import('./components/VocalFxPage'));
 const EmotionalGarden = lazy(() => import('./components/EmotionalGarden'));
+const CalendarView = lazy(() => import('./components/CalendarView'));
+const AtelierView = lazy(() => import('./components/AtelierView'));
 
 const RainbowCity = lazy(() => import('./components/RainbowCity'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
@@ -72,7 +76,7 @@ const BathroomRoom = lazy(() => import('./components/rooms/BathroomRoom'));
 const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
 const SEO_DATA: Record<string, { title: string, desc: string }> = {
-  [AppView.HOME]: { title: "Lone Boo World - Ecosistema Educativo 3-10 anni", desc: "Benvenuti nel mondo magico di Lone Boo, dove il gioco diventa apprendimento scolare e prescolare sicuro." },
+  [AppView.HOME]: { title: "Lone Boo - il mondo di giochi e studio per bambini e ragazzi", desc: "Benvenuti nel mondo magico di Lone Boo: giochi educativi, scuola online, libri e musica per la crescita serena dei bambini." },
 };
 
 const PageLoader = () => (
@@ -87,6 +91,13 @@ const App: React.FC = () => {
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
 
   useEffect(() => {
+    // Bonus gettoni per i test dell'Atelier
+    const bonusKey = 'loneboo_test_bonus_300_v1';
+    if (localStorage.getItem(bonusKey) !== 'true') {
+        addTokens(300);
+        localStorage.setItem(bonusKey, 'true');
+    }
+
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
     if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
@@ -120,7 +131,7 @@ const App: React.FC = () => {
             <Suspense fallback={<PageLoader />}>
                 {currentView === AppView.HOME && <HomePage setView={handleSetView} />}
                 {currentView === AppView.TTS_STUDIO && <TTSStudio setView={handleSetView} />}
-                {currentView === AppView.CITY_MAP && <CityMap setView={handleSetView} />}
+                {currentView === AppView.CITY_MAP && <NewCityMap setView={handleSetView} />}
                 {currentView === AppView.BOO_HOUSE && <RoomView setView={handleSetView} />}
                 {currentView === AppView.INTRO && <IntroPage setView={handleSetView} />}
                 {currentView === AppView.PLAY && <PlayZone setView={handleSetView} />}
@@ -178,6 +189,8 @@ const App: React.FC = () => {
                 {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
                 {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
+                {currentView === AppView.CALENDAR && <CalendarView setView={handleSetView} />}
+                {currentView === AppView.ATELIER && <AtelierView setView={handleSetView} />}
             </Suspense>
         </main>
     </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
@@ -18,6 +18,19 @@ const PlaceholderInstrument = lazy(() => import('./sound/PlaceholderInstrument')
 const DISCO_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-mobile.webp';
 const DISCO_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/disco-desktop.webp';
 const BTN_EXIT_DISCO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exitdiscocit.webp';
+
+// Asset per il dialogo
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+const BEAT_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/0beatanimationboospech.mp4';
+
+const DIALOGUE_SEQUENCE = [
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/1boolonespechhy6ts.mp3', video: BOO_TALK_VIDEO },
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/2batbeat2.mp3', video: BEAT_TALK_VIDEO },
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/3boospechddisco99.mp3', video: BOO_TALK_VIDEO },
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/4beat432.mp3', video: BEAT_TALK_VIDEO },
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5boospechdg4ed.mp3', video: BOO_TALK_VIDEO },
+    { audio: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/6beat63wa.mp3', video: BEAT_TALK_VIDEO },
+];
 
 enum SoundMode {
     NONE = 'NONE',
@@ -59,23 +72,77 @@ const ZONES_DESKTOP: ZoneConfig[] = [
 const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
   const [activeMode, setActiveMode] = useState<SoundMode>(SoundMode.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Gestione Dialogo Lone Boo & BatBeat
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [currentStep, setCurrentStep] = useState<number>(-1); // -1 = idle, 0-5 = steps
+  const dialogueAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopDialogue = useCallback(() => {
+    if (dialogueAudioRef.current) {
+        dialogueAudioRef.current.pause();
+        dialogueAudioRef.current = null;
+    }
+    setCurrentStep(-1);
+  }, []);
+
+  const playDialogueStep = useCallback((index: number) => {
+    if (index >= DIALOGUE_SEQUENCE.length) {
+        setCurrentStep(-1);
+        return;
+    }
+    
+    setCurrentStep(index);
+    const audio = new Audio(DIALOGUE_SEQUENCE[index].audio);
+    audio.onended = () => playDialogueStep(index + 1);
+    dialogueAudioRef.current = audio;
+    audio.play().catch(e => console.log("Dialogue playback blocked", e));
+  }, []);
+
+  const startDialogue = useCallback(() => {
+    stopDialogue();
+    playDialogueStep(0);
+  }, [playDialogueStep, stopDialogue]);
 
   useEffect(() => {
-      const imgMobile = new Image(); imgMobile.src = DISCO_BG_MOBILE;
-      const imgDesktop = new Image(); imgDesktop.src = DISCO_BG_DESKTOP;
-      let loadedCount = 0;
-      const checkLoad = () => { 
-          loadedCount++; 
-          if (loadedCount >= 1) setIsLoaded(true); 
-      };
-      imgMobile.onload = checkLoad; 
-      imgDesktop.onload = checkLoad;
-      
-      setTimeout(() => setIsLoaded(true), 2000);
-      window.scrollTo(0, 0);
-  }, []); 
+    const imgMobile = new Image(); imgMobile.src = DISCO_BG_MOBILE;
+    const imgDesktop = new Image(); imgDesktop.src = DISCO_BG_DESKTOP;
+    let loadedCount = 0;
+    const checkLoad = () => { 
+        loadedCount++; 
+        if (loadedCount >= 1) setIsLoaded(true); 
+    };
+    imgMobile.onload = checkLoad; 
+    imgDesktop.onload = checkLoad;
+    
+    setTimeout(() => setIsLoaded(true), 2000);
+    window.scrollTo(0, 0);
+
+    // Gestione audio iniziale
+    if (isAudioOn && activeMode === SoundMode.NONE) {
+        startDialogue();
+    }
+
+    const handleGlobalAudioChange = () => {
+        const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        setIsAudioOn(enabled);
+        if (enabled && activeMode === SoundMode.NONE) {
+            startDialogue();
+        } else {
+            stopDialogue();
+        }
+    };
+    window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+    return () => {
+        window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        stopDialogue();
+    };
+  }, [activeMode]);
 
   const handleZoneClick = (zoneId: string) => {
+      // Quando si entra in uno strumento, fermiamo il dialogo
+      stopDialogue();
       switch (zoneId) {
           case 'Piano': setActiveMode(SoundMode.PIANO); break;
           case 'Batteria': setActiveMode(SoundMode.DRUMS); break;
@@ -129,6 +196,25 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                     >
                         <img src={BTN_EXIT_DISCO} alt="Esci" className="h-20 md:h-32 w-auto" />
                     </button>
+                </div>
+            )}
+
+            {/* MINI TV DIALOGO */}
+            {isLoaded && currentStep !== -1 && isAudioOn && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video 
+                            key={DIALOGUE_SEQUENCE[currentStep].video}
+                            src={DIALOGUE_SEQUENCE[currentStep].video} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="w-full h-full object-cover" 
+                            style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
                 </div>
             )}
 

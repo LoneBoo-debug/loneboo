@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AppView } from '../types';
 import CityExplorationModal from './CityExplorationModal';
 
-const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittaarcobanleodn55fe32.webp';
+const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/coloredcityfgshbg66tpzqwas.webp';
 
 const EXPLORATION_ITEMS = [
     { image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rainbow_city_explore_1.webp', text: 'Vivi i colori infiniti della Città degli Arcobaleni!' },

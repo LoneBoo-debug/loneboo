@@ -1,15 +1,19 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { COLORING_DATABASE } from '../services/coloringDatabase';
 import { ColoringCategory, AppView } from '../types';
 import { Download, ZoomIn, X, Construction } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 
 const SCHOOL_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/academy-mobile.webp';
+const LIST_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scaricaimngasedcolorarede33e3.webp';
 const BTN_BACK_ACCADEMIA_IMG = 'https://i.postimg.cc/sDLjTmQX/TORNACCADEMIA-(1)-(1).png';
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaia+scuola.png';
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
+
+// Asset Audio e Video
+const ACADEMY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bf1cde66-0232-492f-a201-1fff9144d3e2.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; name: string; points: Point[]; };
@@ -49,17 +53,57 @@ const INITIAL_ZONES: ZoneConfig[] = [
 
 const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
   const [selectedCategory, setSelectedCategory] = useState<ColoringCategory | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const zones = INITIAL_ZONES;
 
   useEffect(() => {
       const img = new Image();
       img.src = SCHOOL_BG_MOBILE;
       img.onload = () => setIsLoaded(true);
+      
+      if (!audioRef.current) {
+          audioRef.current = new Audio(ACADEMY_VOICE_URL);
+          audioRef.current.loop = false;
+          audioRef.current.volume = 0.5;
+          audioRef.current.addEventListener('play', () => setIsPlaying(true));
+          audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+          audioRef.current.addEventListener('ended', () => {
+              setIsPlaying(false);
+              if (audioRef.current) audioRef.current.currentTime = 0;
+          });
+      }
+
+      if (isAudioOn) {
+          audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+      }
+
+      const handleGlobalAudioChange = () => {
+          const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+          setIsAudioOn(enabled);
+          if (enabled && isLoaded) audioRef.current?.play().catch(() => {});
+          else {
+              audioRef.current?.pause();
+              if (audioRef.current) audioRef.current.currentTime = 0;
+          }
+      };
+      window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
       const timer = setTimeout(() => setIsLoaded(true), 2000);
       window.scrollTo(0, 0);
-      return () => clearTimeout(timer);
-  }, []);
+      
+      return () => {
+          clearTimeout(timer);
+          window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+          if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+          }
+      };
+  }, [isLoaded]);
 
   const handleZoneClick = (zoneId: string) => {
       const cat = COLORING_DATABASE.find(c => c.id === zoneId);
@@ -74,44 +118,88 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
   // VISTA LISTA DISEGNI
   if (selectedCategory) {
       return (
-        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] bg-white overflow-y-auto animate-in slide-in-from-right duration-300">
-            <div className="max-w-7xl mx-auto p-4 md:p-6 pb-24 min-h-full">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 mt-[74px] md:mt-[116px] border-b-4 border-gray-100 pb-6 relative">
-                    <button onClick={() => setSelectedCategory(null)} className="hover:scale-105 active:scale-95 transition-transform outline-none">
-                        <img src={BTN_BACK_ACCADEMIA_IMG} alt="Torna" className="h-24 md:h-36 w-auto drop-shadow-md" />
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] bg-purple-900 overflow-y-auto animate-in slide-in-from-right duration-300">
+            {/* SFONDO GALLERIA A TUTTO SCHERMO */}
+            <img 
+                src={LIST_BG} 
+                alt="" 
+                className="fixed inset-0 w-full h-full object-fill z-0 pointer-events-none" 
+            />
+            
+            {/* OVERLAY PER MIGLIORARE LA LEGGIBILITÀ */}
+            <div className="fixed inset-0 bg-white/10 backdrop-blur-[1px] z-[1] pointer-events-none"></div>
+
+            {/* TASTO TORNA FISSO IN ALTO A SINISTRA */}
+            <div className="fixed top-20 md:top-28 left-4 z-[100] animate-in slide-in-from-left duration-500">
+                <button 
+                    onClick={() => setSelectedCategory(null)} 
+                    className="hover:scale-105 active:scale-95 transition-transform outline-none"
+                >
+                    <img src={BTN_BACK_ACCADEMIA_IMG} alt="Torna" className="h-20 md:h-32 w-auto drop-shadow-xl" />
+                </button>
+            </div>
+
+            {/* POPUP ZOOM DISEGNO */}
+            {zoomedImage && (
+                <div 
+                    className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+                    onClick={() => setZoomedImage(null)}
+                >
+                    <button className="absolute top-24 right-6 bg-red-500 text-white p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 active:scale-95 transition-all z-10">
+                        <X size={32} strokeWidth={4} />
                     </button>
-                    <h2 className={`text-3xl md:text-5xl font-black uppercase text-center flex-1 ${selectedCategory.color.replace('bg-', 'text-')}`}>
-                        {selectedCategory.title} {selectedCategory.emoji}
-                    </h2>
+                    <div 
+                        className="w-full max-w-4xl flex flex-col items-center gap-4 animate-in zoom-in duration-500" 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="relative bg-white p-2 rounded-[2rem] border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center max-h-[80vh]">
+                            <img 
+                                src={zoomedImage} 
+                                alt="Ingrandimento" 
+                                className="max-w-full max-h-[70vh] object-contain rounded-xl" 
+                            />
+                        </div>
+                        <p className="text-white font-black text-xl uppercase tracking-widest drop-shadow-md">Anteprima del disegno ✨</p>
+                    </div>
                 </div>
-                {selectedCategory.items.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        {selectedCategory.items.map((item) => (
-                            <div key={item.id} className="bg-white rounded-2xl overflow-hidden border-4 border-gray-200 hover:border-boo-purple transition-colors shadow-lg flex flex-col">
-                                <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden group cursor-pointer border-b-2 border-gray-100">
-                                    <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
-                                        <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg"><ZoomIn size={24} /></a>
+            )}
+
+            <div className="relative z-10 max-w-7xl mx-auto p-4 md:p-6 pb-24 min-h-full">
+                <div className="mt-[160px] md:mt-[220px]">
+                    {selectedCategory.items.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {selectedCategory.items.map((item) => (
+                                <div key={item.id} className="bg-white/90 backdrop-blur-md rounded-2xl overflow-hidden border-4 border-white hover:border-boo-purple transition-colors shadow-xl flex flex-col">
+                                    <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden group cursor-pointer border-b-2 border-gray-100">
+                                        <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                                            <button 
+                                                onClick={() => setZoomedImage(item.pdfUrl)}
+                                                className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg outline-none"
+                                            >
+                                                <ZoomIn size={24} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 flex flex-col flex-1">
+                                        <h4 className="font-bold text-gray-700 text-sm md:text-base leading-tight mb-2 line-clamp-2">{item.title}</h4>
+                                        <div className="mt-auto pt-2">
+                                            <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-white font-black text-sm transition-all shadow-md active:scale-95 ${selectedCategory.color} hover:brightness-110`}><Download size={16} /> SCARICA</a>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="p-3 flex flex-col flex-1">
-                                    <h4 className="font-bold text-gray-700 text-sm md:text-base leading-tight mb-2 line-clamp-2">{item.title}</h4>
-                                    <div className="mt-auto pt-2">
-                                        <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-white font-black text-sm transition-all shadow-md active:scale-95 ${selectedCategory.color} hover:brightness-110`}><Download size={16} /> SCARICA</a>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center text-center py-12 bg-white rounded-[40px] border-4 border-dashed border-gray-300 shadow-sm min-h-[50vh] animate-in zoom-in">
-                        <img src={CONSTRUCTION_IMG} alt="Lavori" className="w-48 h-48 md:w-64 mb-6 object-contain drop-shadow-lg" />
-                        <h3 className="text-3xl md:text-4xl font-black text-gray-800 mb-4 uppercase tracking-tighter">In Costruzione! 🚧</h3>
-                        <p className="text-lg md:text-2xl font-bold text-gray-500 max-w-md leading-relaxed px-4">
-                            Sto preparando nuovi disegni per {selectedCategory.title}!
-                        </p>
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-center py-12 bg-white/80 backdrop-blur-md rounded-[40px] border-4 border-dashed border-gray-300 shadow-xl min-h-[50vh] animate-in zoom-in">
+                            <img src={CONSTRUCTION_IMG} alt="Lavori" className="w-48 h-48 md:w-64 mb-6 object-contain drop-shadow-lg" />
+                            <h3 className="text-3xl md:text-4xl font-black text-gray-800 mb-4 uppercase tracking-tighter">In Costruzione! 🚧</h3>
+                            <p className="text-lg md:text-2xl font-bold text-gray-500 max-w-md leading-relaxed px-4">
+                                Sto preparando nuovi disegni per {selectedCategory.title}!
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
       );
@@ -125,6 +213,16 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-orange-400/95 backdrop-blur-md">
                 <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
                 <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Sto Caricando...</span>
+            </div>
+        )}
+
+        {/* Mini TV di Boo - Posizionato a SINISTRA */}
+        {isLoaded && isAudioOn && isPlaying && (
+            <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
             </div>
         )}
 
@@ -160,7 +258,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                     <img 
                         src={BTN_BACK_CITY_IMG} 
                         alt="Torna in Città" 
-                        className="w-full h-auto drop-shadow-2xl"
+                        className="w-full h-auto drop-shadow-2xl" 
                     />
                 </button>
             </div>
@@ -178,7 +276,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                     <img 
                         src={BTN_GOTO_SCHOOL_IMG} 
                         alt="Vai a Scuola" 
-                        className="w-full h-auto drop-shadow-2xl"
+                        className="w-full h-auto drop-shadow-2xl" 
                     />
                 </button>
             </div>

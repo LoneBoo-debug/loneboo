@@ -1,40 +1,83 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { AppNotification, AppView, CommunityPost } from '../types';
 import { fetchAppNotifications, markNotificationsAsRead } from '../services/notificationService';
 import { getLatestVideos } from '../services/api';
 import { getCommunityPosts } from '../services/data';
 import { OFFICIAL_LOGO } from '../constants';
-import { Bell, ExternalLink, Heart, MessageSquare, X, PlayCircle } from 'lucide-react';
-import RobotHint from './RobotHint';
+import { Bell, ExternalLink, PlayCircle } from 'lucide-react';
 
-const PIAZZA_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazza-mobile.webp';
-const PIAZZA_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazza-desktop.webp';
+const PIAZZA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp';
 const FACEBOOK_GROUP_URL = 'https://www.facebook.com/groups/2648776785470151/';
 const NOTIF_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/notif-piazza.webp';
 const NEWS_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/news-piazza.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
-const BOARD_BANNER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bannernoticeboohander.webp';
 const NOTIF_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 
-const BTN_GOTO_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wsqaw6547ffr5+(1).webp';
-const BTN_GOTO_GARDEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/csaboo887ughytr33+(1).webp';
+// Asset Audio e Video
+const PIAZZA_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/placespeechboo44rf.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
-type ZoneConfig = { id: string; points: Point[]; };
 
-const ZONES_MOBILE: ZoneConfig[] = [
-  { "id": "BOARD_FEED", "points": [ { "x": 38.38, "y": 10.77 }, { "x": 38.65, "y": 21.36 }, { "x": 60.77, "y": 21.54 }, { "x": 61.57, "y": 10.59 } ] },
-  { "id": "FACEBOOK_LINK", "points": [ { "x": 3.73, "y": 54.2 }, { "x": 3.73, "y": 66.22 }, { "x": 9.86, "y": 68.92 }, { "x": 16.52, "y": 65.51 }, { "x": 13.33, "y": 51.87 } ] },
-  { "id": "MUSEUM_LINK", "points": [ { "x": 82.36, "y": 56.53 }, { "x": 78.89, "y": 67.66 }, { "x": 91.68, "y": 70.71 }, { "x": 94.35, "y": 57.43 } ] },
-  { "id": "BOO_MEGAPHONE", "points": [ { "x": 44.24, "y": 30.15 }, { "x": 41.58, "y": 44.33 }, { "x": 54.37, "y": 44.87 }, { "x": 54.9, "y": 30.69 } ] }
-];
-
-const ZONES_DESKTOP: ZoneConfig[] = [
-  { "id": "BOARD_FEED", "points": [ { "x": 44.48, "y": 6.82 }, { "x": 44.59, "y": 17.84 }, { "x": 55.2, "y": 18.1 }, { "x": 55.65, "y": 6.29 } ] },
-  { "id": "FACEBOOK_LINK", "points": [ { "x": 27.66, "y": 51.41 }, { "x": 27.77, "y": 65.83 }, { "x": 34.32, "y": 66.36 }, { "x": 33.98, "y": 50.36 } ] },
-  { "id": "MUSEUM_LINK", "points": [ { "x": 64.91, "y": 55.08 }, { "x": 64.12, "y": 66.09 }, { "x": 69.54, "y": 68.45 }, { "x": 70.33, "y": 57.18 } ] },
-  { "id": "BOO_MEGAPHONE", "points": [ { "x": 47.19, "y": 27.8 }, { "x": 46.96, "y": 42.49 }, { "x": 52.16, "y": 43.28 }, { "x": 52.95, "y": 28.59 } ] }
-];
+// --- COORDINATE DEFINITIVE CALIBRATE ---
+const INITIAL_ZONES: Record<string, Point[]> = {
+  "museo": [
+    { "x": 81.82, "y": 61 },
+    { "x": 77.56, "y": 75.84 },
+    { "x": 93.55, "y": 77.79 },
+    { "x": 97.28, "y": 62.05 }
+  ],
+  "facebook": [
+    { "x": 75.69, "y": 44.21 },
+    { "x": 72.76, "y": 59.2 },
+    { "x": 94.62, "y": 58.45 },
+    { "x": 91.95, "y": 45.26 }
+  ],
+  "notizie": [
+    { "x": 50.11, "y": 11.24 },
+    { "x": 49.84, "y": 17.54 },
+    { "x": 70.1, "y": 18.29 },
+    { "x": 70.36, "y": 12.44 }
+  ],
+  "avvisi": [
+    { "x": 40.51, "y": 24.13 },
+    { "x": 30.65, "y": 43.17 },
+    { "x": 56.24, "y": 45.86 },
+    { "x": 76.23, "y": 34.32 },
+    { "x": 73.03, "y": 25.63 }
+  ],
+  "scuola": [
+    { "x": 4, "y": 48.26 },
+    { "x": 4, "y": 53.81 },
+    { "x": 25.32, "y": 56.5 },
+    { "x": 25.32, "y": 50.81 }
+  ],
+  "accademia": [
+    { "x": 4, "y": 56.5 },
+    { "x": 4, "y": 62.2 },
+    { "x": 25.32, "y": 65.8 },
+    { "x": 25.85, "y": 59.2 }
+  ],
+  "libreria": [
+    { "x": 31.72, "y": 52.01 },
+    { "x": 31.72, "y": 57.4 },
+    { "x": 54.1, "y": 60.55 },
+    { "x": 54.1, "y": 54.71 }
+  ],
+  "emozioni": [
+    { "x": 31.72, "y": 60.55 },
+    { "x": 31.98, "y": 66.25 },
+    { "x": 53.84, "y": 69.84 },
+    { "x": 54.37, "y": 63.85 }
+  ],
+  "cinema": [
+    { "x": 31.72, "y": 69.54 },
+    { "x": 31.72, "y": 74.94 },
+    { "x": 53.57, "y": 78.99 },
+    { "x": 53.57, "y": 73.29 }
+  ]
+};
 
 const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -42,51 +85,106 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   const [bgLoaded, setBgLoaded] = useState(false);
   const [isFullFeedOpen, setIsFullFeedOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  
+  // Gestione Audio Ambientale
+  const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-      const imgMobile = new Image(); imgMobile.src = PIAZZA_BG_MOBILE;
-      const imgDesktop = new Image(); imgDesktop.src = PIAZZA_BG_DESKTOP;
-      let loadedCount = 0;
-      const onLoad = () => { loadedCount++; if (loadedCount >= 1) setBgLoaded(true); };
-      imgMobile.onload = onLoad; imgDesktop.onload = onLoad;
-      setTimeout(() => setBgLoaded(true), 2000);
+    const img = new Image();
+    img.src = PIAZZA_BG;
+    img.onload = () => setBgLoaded(true);
+    
+    // Inizializza Audio
+    if (!audioRef.current) {
+        audioRef.current = new Audio(PIAZZA_VOICE_URL);
+        audioRef.current.loop = false;
+        audioRef.current.volume = 0.5;
+        audioRef.current.addEventListener('play', () => setIsPlaying(true));
+        audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+        audioRef.current.addEventListener('ended', () => {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        });
+    }
 
-      const loadData = async () => {
-          try {
-              const [dynamicPosts, latestVideos, allNotifs] = await Promise.all([
-                  getCommunityPosts(),
-                  getLatestVideos(),
-                  fetchAppNotifications()
-              ]);
-              
-              const mappedVideos: CommunityPost[] = latestVideos.map(v => ({
-                  id: v.id, type: 'IMAGE', content: v.title, image: v.thumbnail,
-                  date: v.publishedAt ? new Date(v.publishedAt).toLocaleDateString('it-IT') : "Novità",
-                  likes: 0
-              }));
-              setPosts([...dynamicPosts, ...mappedVideos]);
-              setNotifications(allNotifs);
-          } catch (err) { console.error(err); }
-      };
-      loadData();
-      
-      window.scrollTo(0, 0);
-  }, []); 
+    if (isAudioOn) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+
+    const handleGlobalAudioChange = () => {
+        const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        setIsAudioOn(enabled);
+        if (enabled) audioRef.current?.play().catch(() => {});
+        else {
+            audioRef.current?.pause();
+            if (audioRef.current) audioRef.current.currentTime = 0;
+        }
+    };
+    window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+    const loadData = async () => {
+      try {
+          const [dynamicPosts, latestVideos, allNotifs] = await Promise.all([
+              getCommunityPosts(),
+              getLatestVideos(),
+              fetchAppNotifications()
+          ]);
+          
+          const mappedVideos: CommunityPost[] = latestVideos.map(v => ({
+              id: v.id, type: 'IMAGE', content: v.title, image: v.thumbnail,
+              date: v.publishedAt ? new Date(v.publishedAt).toLocaleDateString('it-IT') : "Novità",
+              likes: 0
+          }));
+          setPosts([...dynamicPosts, ...mappedVideos]);
+          setNotifications(allNotifs);
+      } catch (err) { console.error(err); }
+    };
+    loadData();
+    window.scrollTo(0, 0);
+
+    return () => {
+        window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+    };
+  }, []);
 
   const handleExternalClick = (e: React.MouseEvent, url: string) => {
-      const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
-      if (linksDisabled) {
-          e.preventDefault();
-          e.stopPropagation();
-          alert("Navigazione esterna bloccata dai genitori! 🔒");
-          return;
-      }
-      window.open(url, '_blank');
+    const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
+    if (linksDisabled) {
+        e.preventDefault();
+        alert("Navigazione esterna bloccata dai genitori! 🔒");
+        return;
+    }
+    window.open(url, '_blank');
   };
 
   const handleBooClick = async () => {
-      setIsNotifModalOpen(true);
-      await markNotificationsAsRead();
+    setIsNotifModalOpen(true);
+    await markNotificationsAsRead();
+  };
+
+  const handleZoneInteraction = (zoneKey: string) => {
+    if (!setView) return;
+
+    switch(zoneKey) {
+        case 'museo': setView(AppView.FANART); break;
+        case 'facebook': window.open(FACEBOOK_GROUP_URL, '_blank'); break;
+        case 'notizie': setIsFullFeedOpen(true); break;
+        case 'avvisi': handleBooClick(); break;
+        case 'scuola': setView(AppView.SCHOOL); break;
+        case 'accademia': setView(AppView.COLORING); break;
+        case 'libreria': setView(AppView.BOOKS_LIST); break;
+        case 'emozioni': setView(AppView.EMOTIONAL_GARDEN); break;
+        case 'cinema': setView(AppView.VIDEOS); break;
+    }
+  };
+
+  const getClipPath = (pts: Point[]) => {
+    if (!pts || pts.length < 3) return 'none';
+    return `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
   };
 
   const renderNotificationsModal = () => (
@@ -104,7 +202,6 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                                   <img src={NOTIF_ICON_IMG} alt="" className="w-10 h-10 md:w-12 md:h-12 object-contain shrink-0 drop-shadow-sm" />
                                   <div className="flex-1"><p className="text-gray-800 font-black text-base md:text-xl leading-snug">{notif.message}</p></div>
                               </div>
-                              
                               {notif.image && (
                                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-purple-200 shadow-inner group">
                                       <img src={notif.image} alt="Preview" className="w-full h-full object-cover" />
@@ -115,12 +212,8 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                                       ) : null}
                                   </div>
                               )}
-
                               {notif.link && (
-                                  <button 
-                                    onClick={(e) => handleExternalClick(e, notif.link!)} 
-                                    className="bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-b-6 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-lg md:text-xl shadow-lg uppercase tracking-wider outline-none"
-                                  >
+                                  <button onClick={(e) => handleExternalClick(e, notif.link!)} className="bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-b-6 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-lg md:text-xl shadow-lg uppercase tracking-wider outline-none">
                                     {notif.linkText || "VAI"} <ExternalLink size={20} />
                                   </button>
                               )}
@@ -134,14 +227,15 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
       </div>
   );
 
-  const getClipPath = (points: Point[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
-  const getBoundingBoxStyle = (points: Point[]) => {
-      const xs = points.map(p => p.x); const ys = points.map(p => p.y);
-      return { top: `${Math.min(...ys)}%`, left: `${Math.min(...xs)}%`, width: `${Math.max(...xs) - Math.min(...xs)}%`, height: `${Math.max(...ys) - Math.min(...ys)}%` };
-  };
-
   return (
-    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-indigo-900 overflow-hidden touch-none overscroll-none select-none">
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#0f172a] overflow-hidden touch-none overscroll-none select-none">
+        <style>{`
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
+
+        {isNotifModalOpen && renderNotificationsModal()}
+        
         {isFullFeedOpen && (
             <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in">
                 <div className="relative w-full max-w-2xl bg-white rounded-[30px] border-4 border-yellow-400 shadow-2xl overflow-hidden h-[75vh] flex flex-col animate-in zoom-in duration-300">
@@ -160,95 +254,47 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                                         <span className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-widest">{post.date}</span>
                                     </div>
                                 </div>
-                                <p className="text-gray-800 font-bold text-base md:text-xl mb-4 leading-relaxed relative z-10 font-sans">
-                                    {post.content}
-                                </p>
+                                <p className="text-gray-800 font-bold text-base md:text-xl mb-4 leading-relaxed relative z-10 font-sans">{post.content}</p>
                                 {post.type === 'IMAGE' && post.image && (
                                     <div className="mb-2 rounded-lg overflow-hidden aspect-video bg-gray-200 border-2 border-gray-300 relative z-10">
                                         <img src={post.image} alt="Post" className="w-full h-full object-cover" />
                                     </div>
                                 )}
-                                <div className="mt-4 flex justify-between items-center opacity-40 pt-2 border-t border-dashed border-gray-300 relative z-10">
-                                    <span className="text-[8px] font-black uppercase tracking-[0.2em]">Città Colorata Press</span>
-                                    <div className="flex gap-1">
-                                        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                                        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                                    </div>
-                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
         )}
-        {isNotifModalOpen && renderNotificationsModal()}
-        {!bgLoaded && <div className="fixed inset-0 flex flex-col items-center justify-center bg-sky-100 z-[150]"><img src={OFFICIAL_LOGO} alt="" className="w-32 h-32 object-contain animate-spin-horizontal mb-4" /><span className="text-sky-600 font-black text-2xl animate-pulse uppercase">Arrivo in Piazza...</span></div>}
 
-        {/* --- NUOVO SISTEMA DI NAVIGAZIONE E HINT FISSO --- */}
-        {bgLoaded && !isFullFeedOpen && !isNotifModalOpen && (
-            <div className="fixed bottom-6 left-0 right-0 z-[70] flex items-center justify-center gap-1 md:gap-5 px-8 md:px-12 pointer-events-none animate-in slide-in-from-bottom-4 duration-500">
-                <button 
-                    onClick={() => setView && setView(AppView.CITY_MAP)}
-                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
-                >
-                    <img src={BTN_GOTO_CITY_IMG} className="w-24 md:w-44 h-auto drop-shadow-lg" alt="Mappa" />
-                </button>
-                
-                <div className="pointer-events-auto shrink-0 flex items-center justify-center">
-                    <RobotHint 
-                        show={true} 
-                        message="Tocca gli oggetti o Boo per sapere le ultime..." 
-                        variant="ROBOT" 
-                        noRotate={true}
-                        isStatic={true}
-                        compact={true}
-                    />
+        {/* Mini TV di Boo - Posizionato a SINISTRA */}
+        {bgLoaded && isAudioOn && isPlaying && (
+            <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                 </div>
-
-                <button 
-                    onClick={() => setView && setView(AppView.BOO_GARDEN)}
-                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
-                >
-                    <img src={BTN_GOTO_GARDEN_IMG} className="w-24 md:w-44 h-auto drop-shadow-lg" alt="Casa" />
-                </button>
             </div>
         )}
 
-        <div className="relative w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden absolute inset-0">
-                <img src={PIAZZA_BG_MOBILE} alt="" className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
-                {bgLoaded && (
-                    <>
-                        <div className="absolute z-20 cursor-pointer flex items-center justify-center" style={getBoundingBoxStyle(ZONES_MOBILE[0].points)} onClick={() => setIsFullFeedOpen(true)}>
-                            <img src={BOARD_BANNER_IMG} alt="Notizie di Boo" className="w-full h-full object-contain" />
-                        </div>
-                        <div 
-                          onClick={(e) => handleExternalClick(e, FACEBOOK_GROUP_URL)} 
-                          className="absolute z-30 cursor-pointer" 
-                          style={{ clipPath: getClipPath(ZONES_MOBILE[1].points), inset: 0 }}
-                        ></div>
-                        <div onClick={() => setView && setView(AppView.FANART)} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_MOBILE[2].points), inset: 0 }}></div>
-                        <div onClick={handleBooClick} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_MOBILE[3].points), inset: 0 }}></div>
-                    </>
-                )}
-            </div>
-            <div className="hidden md:block absolute inset-0">
-                <img src={PIAZZA_BG_DESKTOP} alt="" className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
-                {bgLoaded && (
-                    <>
-                        <div className="absolute z-20 cursor-pointer flex items-center justify-center" style={getBoundingBoxStyle(ZONES_DESKTOP[0].points)} onClick={() => setIsFullFeedOpen(true)}>
-                            <img src={BOARD_BANNER_IMG} alt="Notizie di Boo" className="w-full h-full object-contain" />
-                        </div>
-                        <div 
-                          onClick={(e) => handleExternalClick(e, FACEBOOK_GROUP_URL)} 
-                          className="absolute z-30 cursor-pointer" 
-                          style={{ clipPath: getClipPath(ZONES_DESKTOP[1].points), inset: 0 }}
-                        ></div>
-                        <div onClick={() => setView && setView(AppView.FANART)} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_DESKTOP[2].points), inset: 0 }}></div>
-                        <div onClick={handleBooClick} className="absolute z-30 cursor-pointer" style={{ clipPath: getClipPath(ZONES_DESKTOP[3].points), inset: 0 }}></div>
-                    </>
-                )}
-            </div>
+        {/* MAIN INTERACTIVE CONTAINER */}
+        <div className="absolute inset-0 z-0">
+            <img 
+                src={PIAZZA_BG} 
+                alt="Piazza" 
+                className={`w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                draggable={false} 
+            />
+
+            {/* AREAS VISUALIZER */}
+            {bgLoaded && Object.entries(INITIAL_ZONES).map(([key, pts]) => (
+                <div 
+                    key={key} 
+                    onClick={() => handleZoneInteraction(key)}
+                    className="absolute inset-0 z-10 cursor-pointer pointer-events-auto active:bg-white/10"
+                    style={{ clipPath: getClipPath(pts) }}
+                />
+            ))}
         </div>
     </div>
   );

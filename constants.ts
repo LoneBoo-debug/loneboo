@@ -3,7 +3,6 @@ import { Video, SocialLink, AppView } from './types';
 
 export const APP_VERSION = '1.8.7';
 
-// URLs Originali (Remoti) - Stringhe pure senza filtri
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 export const HOME_ICON = 'https://i.postimg.cc/9M6v55V8/logsede.png';
 export const HOME_HERO_IMAGE = 'https://i.postimg.cc/SKdgjcXW/ghhhhost.png';
@@ -13,14 +12,17 @@ export const HOME_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.co
 export const HOME_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/home-desktopdesww.webp';
 export const CHANNEL_LOGO = 'https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee';
 
-// CSVs
 export const FAN_ART_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL1SLGxxN1zN0qEwN0QpuK8dPSRcVDIx1Dy-sryRlIAm5cIgQS3j9o1nN1kGbHH7VrRS0VBo7KvfSm/pub?gid=0&single=true&output=csv'; 
 export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQztpA2nvwkfSoJ4CArYQC-FlfRcvn6ngfstnyZEEGNsjkuGS0aOpheX3jsUBE95boEo_dLe8dfQXGT/pub?gid=0&single=true&output=csv'; 
 export const NOTIFICATIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTuB_-wFGsDVWxL6Kk-K87B_URCHgEIB2ax1FCyXsUDuhhjHyWRQGE3e4nM-D6frI5cg2zpyn_CR_3b/pub?gid=0&single=true&output=csv'; 
 export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOn4nPnIbqs4jzAVQbpPYCXll7iX3lxLWIA5he7lqeEMXfxDRa2rJ62vyYZ0_8IYzpnTpJHo-nSUXy/pub?gid=0&single=true&output=csv'; 
 export const SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDck5eVCJQL553cZunTTmwNpO6wjgm89vpGOhYb6tGoQ2_gR6uRbRGw4lAWWSOQA8Pe_Xl5bftx2Dh/pub?gid=0&single=true&output=csv';
 
-// Config YouTube
+// Google Sheet per Combinazioni Atelier
+// Formato: ComboKey, ImageURL
+// Esempio: G1_H3_T2, https://.../img.webp
+export const ATELIER_COMBO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdi6lcUt_ErSYhmM8mKFk28Ri6LxmuEqfqiPWeZjM6Ani0LugKVlMsAXb4d54Hv34easdng4XRW9z_/pub?gid=0&single=true&output=csv';
+
 export const YOUTUBE_CONFIG = {
   CHANNEL_ID: 'UC54EfsufATyB7s2XcRkt1Eg'
 };
@@ -34,11 +36,11 @@ export const MAP_LOCATIONS = [
     { id: AppView.BOOKS_LIST, label: 'Libreria', emoji: '📖', top: '42%', left: '60%', mobileTop: '34%', mobileLeft: '75%', color: 'bg-orange-600', border: 'border-orange-800', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolelibre.webp' },
     { id: AppView.SOUNDS, label: 'Disco', emoji: '🎧', top: '66%', left: '35.99%', mobileTop: '56%', mobileLeft: '33%', color: 'bg-pink-500', border: 'border-pink-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvladisco.webp' },
     { id: AppView.COMMUNITY, label: 'Piazza', emoji: '📰', top: '91%', left: '40.1%', mobileTop: '84%', mobileLeft: '44%', color: 'bg-teal-500', border: 'border-teal-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolapiazza.webp' },
-    { id: AppView.SCHOOL, label: 'Scuola', emoji: '🏫', top: '75%', left: '36%', mobileTop: '70%', mobileLeft: '42%', color: 'bg-purple-500', border: 'border-purple-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schoolfumet.webp' },
+    { id: AppView.SCHOOL, label: 'Scuola', emoji: '🏫', top: '75%', left: '36%', mobileTop: '70%', mobileLeft: '42%', color: 'bg-purple-500', border: 'border-purple-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/edscuoledefle+enrter445rfc+(1).webp' },
     { id: AppView.COLORING, label: 'Accademia', emoji: '🎨', top: '78.17%', left: '17.24%', mobileTop: '73%', mobileLeft: '16%', color: 'bg-orange-500', border: 'border-orange-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoleaccade.webp' },
     { id: AppView.FANART, label: 'Museo', emoji: '🖼️', top: '79.67%', left: '71.87%', mobileTop: '74%', mobileLeft: '77%', color: 'bg-yellow-400', border: 'border-yellow-600', textDark: true, bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolamuseo.webp' },
     { id: AppView.VIDEOS, label: 'Cinema', emoji: '🍿', top: '45.7%', left: '10.73%', mobileTop: '48%', mobileLeft: '14%', color: 'bg-red-500', border: 'border-red-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolecinema.webp' },
-    { id: AppView.SOCIALS, label: 'Stazione', emoji: '🚂', top: '74.93%', left: '85%', mobileTop: '60%', mobileLeft: '88%', color: 'bg-gray-700', border: 'border-gray-900', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazz+(1).webp' },
+    { id: AppView.SOCIALS, label: 'Stazione', emoji: '🚂', top: '74.93%', left: '85%', mobileTop: '60%', mobileLeft: '88%', color: 'bg-gray-700', border: 'border-gray-900', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stzzzionebdrkfumeto55ffed.webp' },
     { id: AppView.CHAT, label: 'Info Point', emoji: '💬', top: '63.19%', left: '58.54%', mobileTop: '59%', mobileLeft: '56%', color: 'bg-cyan-500', border: 'border-cyan-700', bubbleImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolapont.webp' },
 ];
 

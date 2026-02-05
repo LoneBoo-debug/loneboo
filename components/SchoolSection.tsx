@@ -1,11 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 
-const SCHOOL_SPLASH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashscreeschoolarco.webp';
-const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
-const BTN_GYM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/polkiuj88+(1)+(1).webp';
+const SCHOOL_SPLASH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp';
+const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vai+icitt%C3%A0schollong877webswq.webp';
+const BTN_GYM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/viainpalestrschoolnwespng55r4.webp';
+
+// Asset Audio e Video
+const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo6tr4.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 interface SchoolSectionProps {
     setView: (view: AppView) => void;
@@ -15,6 +19,9 @@ type Point = { x: number; y: number };
 
 const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     
     // --- AREAS DEFINITION ---
     const FIRST_FLOOR_ZONE: Point[] = [
@@ -25,16 +32,49 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     ];
 
     useEffect(() => {
-        // Ogni volta che si passa da qui (splash screen), resettiamo lo stato del disclaimer.
-        // Questo garantisce che rientrare a scuola dalla città faccia riapparire il banner.
-        sessionStorage.removeItem('school_disclaimer_accepted');
-
         const img = new Image();
         img.src = SCHOOL_SPLASH_BG;
         img.onload = () => setIsLoaded(true);
-        const timer = setTimeout(() => setIsLoaded(true), 100);
+        img.onerror = () => setIsLoaded(true); // Fallback per mostrare comunque la UI
+        
+        if (!audioRef.current) {
+            audioRef.current = new Audio(SCHOOL_VOICE_URL);
+            audioRef.current.loop = false;
+            audioRef.current.volume = 0.5;
+            audioRef.current.addEventListener('play', () => setIsPlaying(true));
+            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            audioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            });
+        }
+
+        if (isAudioOn) {
+            audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+        }
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled) audioRef.current?.play().catch(() => {});
+            else {
+                audioRef.current?.pause();
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+        const timer = setTimeout(() => setIsLoaded(true), 2500);
         window.scrollTo(0, 0);
-        return () => clearTimeout(timer);
+        
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
     }, []);
 
     const getClipPath = (pts: Point[]) => {
@@ -48,76 +88,44 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     };
 
     return (
-        <div 
-            className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none"
-        >
-            
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none">
             {!isLoaded && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
-                    <img 
-                        src={OFFICIAL_LOGO} 
-                        alt="Caricamento..." 
-                        className="w-32 h-32 object-contain animate-spin-horizontal mb-6" 
-                    />
+                    <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
                     <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Apro la Scuola...</span>
                 </div>
             )}
 
-            {/* BACKGROUND */}
-            <div className="absolute inset-0 z-0">
-                <img 
-                    src={SCHOOL_SPLASH_BG} 
-                    alt="Scuola di Lone Boo" 
-                    className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
-                    draggable={false}
-                />
-            </div>
-
-            {/* CLICKABLE ZONES (INGRESSO SCUOLA) */}
-            {isLoaded && (
-                <div 
-                    onClick={handleZoneClick}
-                    className="absolute inset-0 z-10 cursor-pointer active:bg-white/10"
-                    style={{ clipPath: getClipPath(FIRST_FLOOR_ZONE) }}
-                />
+            {/* Mini TV di Boo - Posizionato a SINISTRA */}
+            {isLoaded && isAudioOn && isPlaying && (
+                <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
             )}
 
-            {/* UI LAYER */}
+            <div className="absolute inset-0 z-0">
+                <img src={SCHOOL_SPLASH_BG} alt="Scuola di Lone Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
+            </div>
+
+            {isLoaded && (
+                <div onClick={handleZoneClick} className="absolute inset-0 z-10 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(FIRST_FLOOR_ZONE) }} />
+            )}
+
             {isLoaded && (
                 <>
-                    {/* TASTO TORNA IN CITTÀ (IN BASSO A SINISTRA) */}
-                    <div 
-                        className="absolute bottom-[4%] left-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
-                    >
-                        <button 
-                            onClick={() => setView(AppView.CITY_MAP)}
-                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
-                        >
-                            <img 
-                                src={BTN_BACK_CITY_IMG} 
-                                alt="Torna in Città" 
-                                className="w-full h-auto drop-shadow-2xl"
-                            />
+                    <div className="absolute bottom-[4%] left-[4%] z-40 pointer-events-auto w-[18vw] md:w-[10vw] max-w-[160px]">
+                        <button onClick={() => setView(AppView.CITY_MAP)} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
+                            <img src={BTN_BACK_CITY_IMG} alt="Torna in Città" className="w-full h-auto drop-shadow-2xl" />
                         </button>
                     </div>
-
-                    {/* TASTO VAI IN PALESTRA (IN BASSO A DESTRA) */}
-                    <div 
-                        className="absolute bottom-[4%] right-[4%] z-40 pointer-events-auto w-[28vw] md:w-[15vw] max-w-[240px]"
-                    >
-                        <button 
-                            onClick={() => setView(AppView.SCHOOL_GYM)}
-                            className="w-full hover:scale-105 active:scale-95 transition-all outline-none"
-                        >
-                            <img 
-                                src={BTN_GYM_IMG} 
-                                alt="Vai in Palestra" 
-                                className="w-full h-auto drop-shadow-2xl"
-                            />
+                    <div className="absolute bottom-[4%] right-[4%] z-40 pointer-events-auto w-[18vw] md:w-[10vw] max-w-[160px]">
+                        <button onClick={() => setView(AppView.SCHOOL_GYM)} className="w-full hover:scale-105 active:scale-95 transition-all outline-none">
+                            <img src={BTN_GYM_IMG} alt="Vai in Palestra" className="w-full h-auto drop-shadow-2xl" />
                         </button>
                     </div>
-
-                    {/* FUMETTO FISSO IN BASSO A DESTRA */}
                     <div className="absolute bottom-[18%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
                             <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter">Entra a Scuola!</span>

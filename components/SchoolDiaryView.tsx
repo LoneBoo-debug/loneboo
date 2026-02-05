@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData, SchoolLesson } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -327,12 +328,12 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                 
                                 {/* 1. BOX MESSAGGIO MAESTRA (TOP - FISSO) */}
                                 <div className="relative bg-[#fffde7] p-5 md:p-10 rounded-[2.5rem] border-4 border-yellow-400 shadow-xl flex flex-row items-center text-left gap-6 md:gap-10">
-                                    {/* BADGE SPOSTATO A SINISTRA SOPRA LA MAESTRA */}
+                                    {/* BADGE AGGIORNATO */}
                                     <div className="absolute -top-3 left-6 md:left-12 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-[10px] md:text-xs uppercase shadow-md whitespace-nowrap z-10 border-2 border-black/10">
-                                        Messaggio per te
+                                        La Maestra Ornella dice...
                                     </div>
                                     
-                                    <div className="w-28 h-28 md:w-48 md:h-48 shrink-0">
+                                    <div className="w-32 h-32 md:w-60 md:h-60 shrink-0">
                                         <img 
                                             src={PAGELLA_MAESTRA_READING} 
                                             className="w-full h-full object-contain drop-shadow-2xl" 

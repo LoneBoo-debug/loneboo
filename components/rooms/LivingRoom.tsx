@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 
@@ -19,41 +19,87 @@ const ZONES_DESKTOP = [
   { "id": "libri", "points": [{"x":53.83,"y":65.71},{"x":53.23,"y":72.23},{"x":56.54,"y":74.26},{"x":58.14,"y":67.73}] }
 ];
 
+// Asset Audio e Video
+const LIVING_ROOM_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salottolonboovoice554.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+
 const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
-    const handleZoneClick = (id: string) => {
-        if (id === 'tv') setView(AppView.VIDEOS);
-        else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
-        else if (id === 'chi_sono') setView(AppView.INTRO);
-        else if (id === 'amici') setView(AppView.CHARACTERS);
-        else if (id === 'libri') setView(AppView.BOOKS_LIST);
-    };
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        setIsLoaded(true);
+        if (!audioRef.current) {
+            audioRef.current = new Audio(LIVING_ROOM_MUSIC_URL);
+            audioRef.current.loop = false;
+            audioRef.current.volume = 0.5;
+            audioRef.current.addEventListener('play', () => setIsPlaying(true));
+            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            audioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            });
+        }
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled && isLoaded) {
+                audioRef.current?.play().catch(() => {});
+                sessionStorage.setItem('heard_audio_living', 'true');
+            } else {
+                audioRef.current?.pause();
+                if (audioRef.current) audioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+        return () => {
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, [isLoaded]);
+
+    // Logica intelligente audio
+    useEffect(() => {
+        if (isLoaded && isAudioOn && audioRef.current) {
+            const alreadyHeard = sessionStorage.getItem('heard_audio_living') === 'true';
+            if (!alreadyHeard) {
+                audioRef.current.play().catch(e => console.log("Audio play blocked", e));
+                sessionStorage.setItem('heard_audio_living', 'true');
+            }
+        }
+    }, [isLoaded, isAudioOn]);
 
     const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
         <RoomLayout roomType={AppView.BOO_LIVING_ROOM} setView={setView} disableHint={true}>
-            <div className="absolute inset-0 z-10 md:hidden">
-                {ZONES_MOBILE.map(z => (
-                    <div 
-                        key={z.id} 
-                        onClick={() => handleZoneClick(z.id)} 
-                        className="absolute inset-0 cursor-pointer active:bg-white/10" 
-                        style={{ clipPath: getClipPath(z.points) }}
-                    ></div>
-                ))}
-            </div>
-            <div className="absolute inset-0 z-10 hidden md:block">
-                {ZONES_DESKTOP.map(z => (
-                    <div 
-                        key={z.id} 
-                        onClick={() => handleZoneClick(z.id)} 
-                        className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
-                        style={{ clipPath: getClipPath(z.points) }}
-                    ></div>
-                ))}
-            </div>
+            {isAudioOn && isPlaying && (
+                <div className="absolute top-48 md:top-64 left-4 z-50 animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
+                </div>
+            )}
+            <div className="absolute inset-0 z-10 md:hidden">{ZONES_MOBILE.map(z => (<div key={z.id} onClick={() => handleZoneClick(z.id)} className="absolute inset-0 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>))}</div>
+            <div className="absolute inset-0 z-10 hidden md:block">{ZONES_DESKTOP.map(z => (<div key={z.id} onClick={() => handleZoneClick(z.id)} className="absolute inset-0 cursor-pointer hover:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>))}</div>
         </RoomLayout>
     );
+
+    function handleZoneClick(id: string) {
+        if (id === 'tv') setView(AppView.VIDEOS);
+        else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
+        else if (id === 'chi_sono') setView(AppView.INTRO);
+        else if (id === 'amici') setView(AppView.CHARACTERS);
+        else if (id === 'libri') setView(AppView.BOOKS_LIST);
+    }
 };
 
 export default LivingRoom;

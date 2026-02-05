@@ -12,6 +12,10 @@ const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bkcitm
 const BTN_CHAT_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/askmaragncart.webp';
 const MARLO_TAXI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlo-taxi.webp';
 
+// Asset Audio e Video
+const INFO_POINT_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/infpointmaragnoboovoice4ees.mp3';
+const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
+
 const INSULT_LIMIT = 5;
 const BAN_DURATION_MS = 5 * 60 * 1000;
 
@@ -27,6 +31,11 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     const [isListening, setIsListening] = useState(false);
     const [pendingNav, setPendingNav] = useState<AppView | null>(null);
     
+    // Gestione Audio e Video ambientale sincronizzata con l'header
+    const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
+
     // Safety & Ban Logic
     const [insultCount, setInsultCount] = useState(() => Number(localStorage.getItem('maragno_insults') || 0));
     const [banUntil, setBanUntil] = useState(() => Number(localStorage.getItem('maragno_ban_until') || 0));
@@ -56,7 +65,40 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         const img = new Image();
         img.src = INFO_POINT_BG;
         img.onload = () => setIsLoaded(true);
-        setTimeout(() => setIsLoaded(true), 2000);
+        
+        // Inizializza Audio specifico per l'Info Point
+        if (!ambientAudioRef.current) {
+            ambientAudioRef.current = new Audio(INFO_POINT_MUSIC_URL);
+            ambientAudioRef.current.loop = false;
+            ambientAudioRef.current.volume = 0.5;
+
+            ambientAudioRef.current.addEventListener('play', () => setIsPlaying(true));
+            ambientAudioRef.current.addEventListener('pause', () => setIsPlaying(false));
+            ambientAudioRef.current.addEventListener('ended', () => {
+                setIsPlaying(false);
+                if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
+            });
+        }
+
+        // Avvio automatico rispettando lo stato globale dell'header
+        if (isAudioOn) {
+            ambientAudioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+        }
+
+        // Listener per il tasto audio globale nell'header
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled) {
+                ambientAudioRef.current?.play().catch(() => {});
+            } else {
+                ambientAudioRef.current?.pause();
+                if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+
+        const timer = setTimeout(() => setIsLoaded(true), 2000);
 
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -75,6 +117,15 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             
             recognitionRef.current = recognition;
         }
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            if (ambientAudioRef.current) {
+                ambientAudioRef.current.pause();
+                ambientAudioRef.current.currentTime = 0;
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -181,7 +232,6 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
 
     const handleTaxiClick = () => {
         if (pendingNav) {
-            // Lista delle città che richiedono il passaggio in stazione e il biglietto
             const externalCities = [
                 AppView.RAINBOW_CITY, 
                 AppView.GRAY_CITY, 
@@ -190,14 +240,10 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             ];
 
             if (externalCities.includes(pendingNav)) {
-                // Impostiamo la destinazione nel sessionStorage affinché la biglietteria la riconosca
                 sessionStorage.setItem('train_target_city', pendingNav);
-                // Impostiamo l'origine come SOCIALS così se annullano il biglietto restano in stazione
                 sessionStorage.setItem('train_journey_origin', AppView.SOCIALS);
-                // Navighiamo alla Biglietteria/Viaggio (TRAIN_JOURNEY)
                 setView(AppView.TRAIN_JOURNEY);
             } else {
-                // Per tutte le altre destinazioni interne a Città Colorata, navigazione diretta
                 setView(pendingNav);
             }
             
@@ -221,6 +267,27 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-sky-400/90 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento" className="w-32 h-32 animate-spin-horizontal mb-4" />
                     <span className="text-white font-black text-xl animate-pulse uppercase">Arrivo all'Info Point...</span>
+                </div>
+            )}
+
+            {/* Mini TV di Boo - Posizionato a SINISTRA (Nascosto se la chat è aperta) */}
+            {isLoaded && !isChatOpen && isAudioOn && isPlaying && (
+                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                        <video 
+                            src={BOO_TALK_VIDEO}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                            style={{ 
+                                mixBlendMode: 'screen',
+                                filter: 'contrast(1.1) brightness(1.1)'
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                    </div>
                 </div>
             )}
 
