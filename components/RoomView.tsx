@@ -81,7 +81,7 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
         };
     }, [isLoaded, isAudioOn]);
 
-    const getClipPath = (points: Point[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
         <div className="fixed inset-0 z-0 bg-black overflow-hidden select-none touch-none animate-in fade-in duration-700">
@@ -108,12 +108,30 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                 <img src={HOUSE_MAP_IMAGE} alt="Casa di Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
                 <div className="hidden md:block absolute inset-0 z-10">
                     {ZONES_DESKTOP.map(z => (
-                        <div key={z.id} onClick={() => setView(z.id)} className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" style={{ clipPath: getClipPath(z.points) }}></div>
+                        <div 
+                            key={z.id} 
+                            onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setView(z.id);
+                            }} 
+                            className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
+                            style={{ clipPath: getClipPath(z.points) }} 
+                        />
                     ))}
                 </div>
                 <div className="block md:hidden absolute inset-0 z-10">
                     {ZONES_MOBILE.map(z => (
-                        <div key={z.id} onClick={() => setView(z.id)} className="absolute inset-0 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>
+                        <div 
+                            key={z.id} 
+                            onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setView(z.id);
+                            }} 
+                            className="absolute inset-0 cursor-pointer active:bg-white/10" 
+                            style={{ clipPath: getClipPath(z.points) }} 
+                        />
                     ))}
                 </div>
             </div>

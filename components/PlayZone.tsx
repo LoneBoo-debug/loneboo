@@ -250,7 +250,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
     return (
       <div className="fixed inset-0 z-0 bg-slate-900 flex flex-col animate-in fade-in duration-300 pt-[64px] md:pt-[96px]">
         <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40">
-          <button onClick={() => setActiveGame(GameType.NONE)} className="hover:scale-105 active:scale-95 transition-transform">
+          <button onPointerDown={() => setActiveGame(GameType.NONE)} className="hover:scale-105 active:scale-95 transition-transform outline-none">
             <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp" alt="Back" className="h-10 md:h-14 w-auto" />
           </button>
           <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black">
@@ -322,7 +322,8 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
           return (
             <div
               key={key}
-              onClick={(e) => { 
+              onPointerDown={(e) => { 
+                e.preventDefault();
                 e.stopPropagation(); 
                 handleZoneClick(key); 
               }}

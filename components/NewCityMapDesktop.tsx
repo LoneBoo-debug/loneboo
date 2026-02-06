@@ -143,7 +143,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
             {/* TASTO CALENDARIO GIORNALIERO */}
             {isLoaded && (
                 <button 
-                    onClick={() => setShowDailyModal(true)}
+                    onPointerDown={() => setShowDailyModal(true)}
                     className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
                 >
                     <img src={CALENDAR_ICON_URL} alt="Calendario Giornaliero" className="w-24 md:w-44 drop-shadow-2xl" />
@@ -155,7 +155,17 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                 {isLoaded && Object.entries(MAP_AREAS_DESKTOP).map(([key, pts]) => {
                     const targetView = AREA_MAPPING[key];
                     if (!targetView) return null;
-                    return <div key={key} onClick={() => setView(targetView)} className="absolute inset-0 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors z-10" style={{ clipPath: getPolygonPath(pts) }} title={`Vai a ${key.replace('_', ' ')}`} />;
+                    return <div 
+                        key={key} 
+                        onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setView(targetView);
+                        }} 
+                        className="absolute inset-0 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors z-10" 
+                        style={{ clipPath: getPolygonPath(pts) }} 
+                        title={`Vai a ${key.replace('_', ' ')}`} 
+                    />;
                 })}
             </div>
             

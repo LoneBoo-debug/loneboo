@@ -1,22 +1,29 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { AppView } from '../types';
-import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight } from 'lucide-react';
+import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight, Sun, Cloud, CloudRain } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 import { getProgress, spendTokens } from '../services/tokens';
 
 const MAP_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietteriadovevai887xs32.webp';
-const TRAVEL_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/caricsfondcittaaltre55tf4.webp';
+const TRAVEL_VIDEO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinasewsq.mp4';
 const TRAVEL_CENTER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinviagibimbd45f42.webp';
-const TRAIN_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indian-train-sound-from-vestibule-realistic-interior-noise-314562.mp3';
+const TRAIN_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freesound_community-train-yokosuka-79155.mp3';
 const CHIME_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/subway-station-chime-100558.mp3';
 const BTN_PAY_AND_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/payementbillet54r44.webp';
 const BTN_SECRET_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5t4rft5egr+(1)+(1).webp';
 const IMG_ZOOMABLE_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/caricsfondcittaaltre55tf4.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacuty55frxxw21+(1).webp';
+const BTN_RETURN_TO_CITY_GRAF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp';
 
 // Asset Marlo Capostazione
 const MARLO_STATION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlocapostatione443.mp4';
 const MARLO_STATION_AUDIO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/22e87f1b-5836-4444-9fd1-32cbeffe7de1.mp3';
+
+// Asset Meteo
+const ICON_WEATHER_SUNNY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/soleggiatoviaggio43ed23edc.webp';
+const ICON_WEATHER_CLOUDY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolosoviaggio883ujws.webp';
+const ICON_WEATHER_RAINY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tempestaviaggio88.webp';
 
 interface TrainJourneyPlaceholderProps {
     setView: (view: AppView) => void;
@@ -49,13 +56,13 @@ const FINAL_ZONES: ZoneInfo[] = [
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliettocittaarcobaleni775f.webp',
         duration: "4 ore",
         distance: "55 km",
-        travelTimeMs: 6000, 
+        travelTimeMs: 10000, 
         maxKm: 55,
         maxMinutes: 240,
         pathPoints: [
             {"x": 44.61,"y": 26.14},{"x": 48.98,"y": 26.98},{"x": 53.35,"y": 26.31},{"x": 55.98,"y": 24.62},{"x": 57.14,"y": 21.42},
             {"x": 57.14,"y": 19.56},{"x": 58.89,"y": 17.03},{"x": 62.39,"y": 16.02},{"x": 66.76,"y": 15.51},{"x": 71.14,"y": 15.18},
-            {"x": 74.64,"y": 14.84},{"x": 79.88,"y": 15.18},{"x": 83.38,"y": 15.18},{"x": 86.3,"y": 15.68},{"x": 88.63,"y": 16.53},
+            {"x": 74.64,"y": 14.84},{"x": 79.88,"y": 15.18},{"x": 83.38,"y": 15.18},{"x": 86.3,"y": 15.68},{"x": 83.38,"y": 15.18},{"x": 86.3,"y": 15.68},{"x": 88.63,"y": 16.53},
             {"x": 90.38,"y": 17.2},{"x": 92.71,"y": 18.21},{"x": 95.63,"y": 18.72},{"x": 96.5,"y": 19.9},{"x": 96.21,"y": 23.27},
             {"x": 96.5,"y": 25.46},{"x": 97.38,"y": 27.82},{"x": 97.38,"y": 30.19},{"x": 97.08,"y": 33.56},{"x": 97.08,"y": 35.75},
             {"x": 97.08,"y": 37.44},{"x": 96.5,"y": 40.13},{"x": 96.5,"y": 41.65},{"x": 97.08,"y": 43.68},{"x": 97.08,"y": 45.19},
@@ -78,7 +85,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliettcittagrigidsk45.webp',
         duration: "1 ora",
         distance: "15 km",
-        travelTimeMs: 6000,
+        travelTimeMs: 10000,
         maxKm: 15,
         maxMinutes: 60,
         pathPoints: [
@@ -96,7 +103,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietocittamontagnej55eed.webp',
         duration: "3 ore",
         distance: "45 km",
-        travelTimeMs: 6000,
+        travelTimeMs: 10000,
         maxKm: 45,
         maxMinutes: 180,
         pathPoints: [
@@ -122,7 +129,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliecittadeilaghir43ws2.webp',
         duration: "1 ora 30 minuti",
         distance: "20 km",
-        travelTimeMs: 6000,
+        travelTimeMs: 10000,
         maxKm: 20,
         maxMinutes: 90,
         pathPoints: [
@@ -256,10 +263,43 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     
     const travelTimerRef = useRef<number | null>(null);
     const trainAudioRef = useRef<HTMLAudioElement | null>(null);
-    const marloVideoRef = useRef<HTMLVideoElement | null>(null);
     const marloVoiceRef = useRef<HTMLAudioElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
 
     const [isReturnTrip, setIsReturnTrip] = useState(false);
+
+    // --- CALCOLO METEO ---
+    const weatherData = useMemo(() => {
+        const today = new Date();
+        const days = [];
+        const dayNames = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+        
+        // Configuriamo i 3 giorni richiesti: L'altro ieri, Ieri, Oggi
+        for (let i = 2; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            
+            let icon, labelPrefix;
+            if (i === 2) { 
+                icon = ICON_WEATHER_RAINY; 
+                labelPrefix = "L'altro ieri"; 
+            } else if (i === 1) { 
+                icon = ICON_WEATHER_CLOUDY; 
+                labelPrefix = "Ieri"; 
+            } else { 
+                icon = ICON_WEATHER_SUNNY; 
+                labelPrefix = "Oggi"; 
+            }
+
+            days.push({
+                label: labelPrefix,
+                date: `${dayNames[d.getDay()]} ${d.getDate()}`,
+                icon,
+                type: i === 0 ? 'today' : 'past'
+            });
+        }
+        return days;
+    }, []); 
 
     useEffect(() => {
         const p = getProgress();
@@ -271,10 +311,9 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
         // Inizializzazione Audio Voce Marlo
         marloVoiceRef.current = new Audio(MARLO_STATION_AUDIO);
-        marloVoiceRef.current.loop = false; // L'audio deve essere riprodotto una sola volta
+        marloVoiceRef.current.loop = false;
         marloVoiceRef.current.volume = 0.6;
         
-        // Quando l'audio finisce, scompare il mini TV
         marloVoiceRef.current.onended = () => {
             setIsMarloTalking(false);
         };
@@ -298,7 +337,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     ...sourceZone,
                     id: AppView.SOCIALS, 
                     name: "CITTÀ COLORATA",
-                    cost: 0
+                    cost: 0,
+                    travelTimeMs: 10000 
                 };
                 setSelectedZone(returnZone);
             }
@@ -330,17 +370,14 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         };
     }, []);
 
-    // Effetto per riproduzione video/audio Marlo quando audio abilitato o disabilitato
     useEffect(() => {
         if (isAudioOn && isLoaded && !isTraveling) {
             setIsMarloTalking(true);
-            // Reset audio all'inizio e riproduzione
             if (marloVoiceRef.current) {
                 marloVoiceRef.current.currentTime = 0;
                 marloVoiceRef.current.play().catch(e => console.log("Voice blocked", e));
             }
         } else {
-            // Stop e reset audio se disattivato
             setIsMarloTalking(false);
             if (marloVoiceRef.current) {
                 marloVoiceRef.current.pause();
@@ -365,6 +402,14 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         sessionStorage.removeItem('train_journey_source_city');
         if (origin) setView(origin);
         else setView(AppView.SOCIALS);
+    };
+
+    const handleBackToCity = () => {
+        sessionStorage.removeItem('train_journey_origin');
+        sessionStorage.removeItem('train_target_city');
+        sessionStorage.removeItem('train_journey_return');
+        sessionStorage.removeItem('train_journey_source_city');
+        setView(AppView.CITY_MAP);
     };
 
     const getPointAtProgress = (points: Point[], progress: number): Point => {
@@ -410,6 +455,12 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             const mins = currentTotalMinutes % 60;
             setTravelTimeDisplay(`${hours}h ${mins.toString().padStart(2, '0')}m`);
 
+            if (progress >= 0.95) { // Suona il campanello poco prima della fine
+                const arrivalChime = new Audio(CHIME_SOUND_URL);
+                arrivalChime.volume = 0.7;
+                arrivalChime.play().catch(e => console.error("Chime blocked", e));
+            }
+
             if (progress >= 1) {
                 if (travelTimerRef.current) clearInterval(travelTimerRef.current);
                 if (trainAudioRef.current) trainAudioRef.current.pause();
@@ -418,10 +469,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 sessionStorage.removeItem('train_target_city');
                 sessionStorage.removeItem('train_journey_return');
                 sessionStorage.removeItem('train_journey_source_city');
-
-                const arrivalChime = new Audio(CHIME_SOUND_URL);
-                arrivalChime.volume = 0.7;
-                arrivalChime.play().catch(e => console.error("Chime blocked", e));
 
                 setTimeout(() => setView(zone.id), 100); 
             }
@@ -446,12 +493,11 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 </div>
             )}
 
-            {/* MINI TV MARLO CAPOSTAZIONE - In alto a sinistra */}
+            {/* MINI TV MARLO CAPOSTAZIONE */}
             {isLoaded && isMarloTalking && !isTraveling && (
                 <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
                         <video 
-                            ref={marloVideoRef}
                             src={MARLO_STATION_VIDEO} 
                             autoPlay 
                             loop={true} 
@@ -466,72 +512,86 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             {isTraveling && selectedZone && (
-                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500">
-                    <div className="absolute inset-0 w-full h-full z-0">
-                        <img 
-                            src={TRAVEL_BG} 
-                            alt="Mappa del viaggio" 
-                            className="w-full h-full object-fill opacity-70"
-                        />
-                        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden">
+                    <video 
+                        ref={videoRef}
+                        src={TRAVEL_VIDEO_URL}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        className="absolute inset-0 w-full h-full object-cover z-0"
+                        style={{ 
+                            transform: 'translateZ(0)', 
+                            willChange: 'transform, opacity',
+                            backfaceVisibility: 'hidden',
+                            filter: 'saturate(1.3) contrast(1.1) brightness(1.05)'
+                        }}
+                    />
 
-                        {!isReturnTrip && (
-                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-10">
-                                {selectedZone.pathPoints.length > 1 && (
-                                    <polyline
-                                        points={selectedZone.pathPoints.map(p => `${p.x},${p.y}`).join(' ')}
-                                        fill="none"
-                                        stroke="rgba(255,255,255,0.3)"
-                                        strokeWidth="0.8"
-                                        strokeDasharray="1,1"
-                                        strokeLinecap="round"
-                                        vectorEffect="non-scaling-stroke"
-                                    />
-                                )}
-                                <g style={{ transform: `translate(${currentPos.x}px, ${currentPos.y}px)` }}>
-                                    <circle r="1.2" fill="#ef4444" stroke="white" strokeWidth="0.3" vectorEffect="non-scaling-stroke" className="animate-pulse" />
-                                </g>
-                            </svg>
-                        )}
-                    </div>
-
-                    <div className="absolute top-24 md:top-32 left-0 right-0 z-40 flex flex-col items-center text-center animate-in slide-in-from-top duration-700 pointer-events-none">
-                        <h2 className="font-luckiest text-white text-xl md:text-3xl uppercase tracking-widest drop-shadow-[2px_2px_0px_black] opacity-80" style={{ WebkitTextStroke: '1px black' }}>
-                            {isReturnTrip ? 'BENTORNATI A...' : 'IN VIAGGIO VERSO...'}
-                        </h2>
-                        <h3 className="font-luckiest text-yellow-400 text-3xl md:text-6xl uppercase tracking-tighter drop-shadow-[4px_4px_0px_black] mt-1 animate-bounce-slow" style={{ WebkitTextStroke: '1.5px black' }}>
-                            {selectedZone.name}
-                        </h3>
-                    </div>
-
-                    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-in zoom-in duration-1000">
-                        <img src={TRAVEL_CENTER_IMG} alt="Bambino in treno" className="w-full max-w-[85vw] max-h-[75vh] object-contain anchor-middle drop-shadow-[0_20px_50px_rgba(0,0,0,0.4)]" />
-                    </div>
-
-                    <div className="absolute bottom-8 left-4 right-4 md:bottom-12 md:left-12 md:right-12 z-40 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-700">
-                        <div className="bg-black/75 backdrop-blur-xl border-4 border-white/20 rounded-[2.5rem] p-4 md:p-6 shadow-2xl flex flex-col gap-3 w-full md:w-auto md:min-w-[550px]">
-                            <div className="flex flex-row justify-between items-center gap-4 md:gap-10 px-2 border-b border-white/10 pb-2">
-                                <div className="flex items-center gap-2 text-blue-300 font-black text-[9px] md:text-sm uppercase tracking-widest opacity-80">
-                                    <MapPin size={14} /> Distanza: <span className="text-white ml-0.5">{selectedZone.distance}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-orange-300 font-black text-[9px] md:text-sm uppercase tracking-widest opacity-80">
-                                    <Timer size={14} /> Tempo stimato: <span className="text-white ml-0.5">{selectedZone.duration}</span>
-                                </div>
+                    {/* HUD PROGRESSI SUPERIORE TRASLUCIDO */}
+                    <div className="absolute top-[80px] md:top-[120px] left-4 right-4 z-40 flex flex-col items-center animate-in slide-in-from-top-4 duration-700">
+                        <div className="bg-white/5 backdrop-blur-md border-2 border-white/10 rounded-[2.5rem] p-4 md:p-6 shadow-2xl flex flex-col gap-3 w-full md:w-auto md:min-w-[550px]">
+                            <div className="text-center border-b border-white/5 pb-2">
+                                <h2 className="font-luckiest text-white text-lg md:text-2xl uppercase tracking-widest drop-shadow-[2px_2px_0px_black] opacity-70" style={{ WebkitTextStroke: '1px black' }}>
+                                    {isReturnTrip ? 'BENTORNATI A...' : 'IN VIAGGIO VERSO...'}
+                                </h2>
+                                <h3 className="font-luckiest text-yellow-400 text-2xl md:text-5xl uppercase tracking-tighter drop-shadow-[4px_4px_0px_black] mt-1" style={{ WebkitTextStroke: '1.5px black' }}>
+                                    {selectedZone.name}
+                                </h3>
                             </div>
-                            <div className="flex flex-row justify-between items-end gap-4 md:gap-10 px-2">
+                            
+                            <div className="flex flex-row justify-between items-center gap-4 md:gap-10 px-2">
                                 <div className="flex-1 flex flex-col items-start">
                                     <div className="flex items-baseline gap-2">
-                                        <span className="font-luckiest text-white text-4xl md:text-7xl uppercase leading-none drop-shadow-[3px_3px_0px_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelKm}</span>
-                                        <span className="font-luckiest text-blue-400 text-xl md:text-3xl uppercase" style={{ WebkitTextStroke: '1px black' }}>KM</span>
+                                        <span className="font-luckiest text-white text-3xl md:text-7xl uppercase leading-none drop-shadow-[3px_3px_0_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelKm}</span>
+                                        <span className="font-luckiest text-blue-400 text-lg md:text-2xl uppercase" style={{ WebkitTextStroke: '1px black' }}>KM</span>
                                     </div>
                                 </div>
-                                <div className="w-px bg-white/20 rounded-full h-12 md:h-16 self-center mx-2"></div>
+                                <div className="w-px bg-white/10 rounded-full h-10 md:h-14 self-center mx-2"></div>
                                 <div className="flex-1 flex flex-col items-end">
-                                    <span className="font-luckiest text-white text-3xl md:text-6xl uppercase leading-none drop-shadow-[3px_3px_0_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelTimeDisplay}</span>
+                                    <span className="font-luckiest text-white text-2xl md:text-5xl uppercase leading-none drop-shadow-[3px_3px_0_black]" style={{ WebkitTextStroke: '1.5px black' }}>{travelTimeDisplay}</span>
                                 </div>
                             </div>
                         </div>
-                        <p className="text-white/30 font-black text-[7px] md:text-[9px] uppercase tracking-[0.3em] mt-3">Sistemi di navigazione attivi • Lone Boo Express</p>
+
+                        {/* BOX METEO ARRICCHITO - 3 GIORNI (FISSO) */}
+                        <div className="mt-3 bg-white/5 backdrop-blur-md border-2 border-white/10 rounded-[2rem] p-3 md:p-5 shadow-xl flex flex-col gap-4 w-full md:w-auto md:min-w-[550px] animate-in slide-in-from-top-2 duration-700 delay-300">
+                            {/* Cronologia Meteo */}
+                            <div className="flex justify-around items-center px-4">
+                                {weatherData.map((day, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        className={`flex flex-col items-center gap-1 transition-all duration-500 ${day.type === 'today' ? 'scale-110' : 'opacity-60'}`}
+                                    >
+                                        <div className="flex flex-col items-center leading-none mb-1">
+                                            <span className="text-[9px] md:text-xs font-black text-yellow-400 uppercase tracking-tighter" style={{ WebkitTextStroke: '0.5px black' }}>{day.label}</span>
+                                            <span className="text-[7px] md:text-[10px] font-bold text-yellow-300/80 uppercase" style={{ WebkitTextStroke: '0.3px black' }}>{day.date}</span>
+                                        </div>
+                                        <div className={`p-1 rounded-2xl border-2 ${day.type === 'today' ? 'bg-yellow-400/20 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]' : 'bg-white/5 border-white/10'}`}>
+                                            <img 
+                                                src={day.icon} 
+                                                alt={day.label}
+                                                className={`object-contain ${day.type === 'today' ? 'w-12 h-12 md:w-20 md:h-20' : 'w-8 h-8 md:w-14 md:h-14'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Testo Previsione - UNICA RIGA CON CITTA BIANCA E PIU GRANDE */}
+                            <div className="flex flex-row items-center justify-center gap-2 border-t border-white/10 pt-3 flex-wrap">
+                                <span className="font-luckiest text-yellow-400 text-xs md:text-2xl uppercase tracking-tight text-center" style={{ WebkitTextStroke: '1px black', textShadow: '2px 2px 0px black' }}>
+                                    SI PREVEDE BEL TEMPO A
+                                </span>
+                                <span className="font-luckiest text-white text-base md:text-4xl uppercase tracking-tighter text-center" style={{ WebkitTextStroke: '1.5px black', textShadow: '3px 3px 0px black' }}>
+                                    {selectedZone.name.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p className="text-white/20 font-black text-[7px] md:text-[9px] uppercase tracking-[0.3em] mt-3">Sistemi di navigazione attivi • Lone Boo Express</p>
                     </div>
                 </div>
             )}
@@ -540,9 +600,16 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <img src={MAP_BG} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
 
                 {isLoaded && (
-                    <button onClick={() => setShowMapModal(true)} className="absolute left-4 top-1/2 -translate-y-1/2 z-50 hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_SECRET_MAP} alt="Mappa Segreta" className="w-20 md:w-32 h-auto drop-shadow-2xl animate-bounce-slow" />
-                    </button>
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 items-center">
+                        {/* TASTO TORNA IN CITTÀ COLORATA (ORA IN ALTO) - Aumentate dimensioni e azione diretta */}
+                        <button onClick={handleBackToCity} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                            <img src={BTN_RETURN_TO_CITY_GRAF} alt="Torna in Città" className="w-24 md:w-44 h-auto drop-shadow-2xl" />
+                        </button>
+                        
+                        <button onClick={() => setShowMapModal(true)} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                            <img src={BTN_SECRET_MAP} alt="Mappa Segreta" className="w-20 md:w-32 h-auto drop-shadow-2xl animate-bounce-slow" />
+                        </button>
+                    </div>
                 )}
 
                 {isLoaded && FINAL_ZONES.map((zone) => (

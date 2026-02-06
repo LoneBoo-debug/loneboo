@@ -140,7 +140,7 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             {/* TASTO CALENDARIO GIORNALIERO */}
             {isLoaded && (
                 <button 
-                    onClick={() => setShowDailyModal(true)}
+                    onPointerDown={() => setShowDailyModal(true)}
                     className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
                 >
                     <img src={CALENDAR_ICON_URL} alt="Calendario Giornaliero" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
@@ -150,7 +150,17 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             <img src={MOBILE_MAP_URL} alt="Nuova Mappa Mobile" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
 
             {isLoaded && Object.entries(MAP_AREAS).map(([viewKey, pts]) => (
-                <div key={viewKey} onClick={() => setView(viewKey as AppView)} className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors z-10" style={{ clipPath: getPolygonPath(pts) }} aria-label={`Vai a ${viewKey}`} />
+                <div 
+                    key={viewKey} 
+                    onPointerDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setView(viewKey as AppView);
+                    }} 
+                    className="absolute inset-0 cursor-pointer active:bg-white/10 transition-colors z-10" 
+                    style={{ clipPath: getPolygonPath(pts) }} 
+                    aria-label={`Vai a ${viewKey}`} 
+                />
             ))}
             
             {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.CITY_MAP} />}

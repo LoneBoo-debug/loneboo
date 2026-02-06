@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy, ChevronDown, TrainFront, Volume2, VolumeX } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
@@ -167,7 +168,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {!isHome && !isExternalCity && (
+                    {/* MENU PLUS - NASCOSTO IN HOME E DURANTE IL VIAGGIO */}
+                    {!isHome && !isExternalCity && !isJourney && (
                         <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
                                 <button 
@@ -217,9 +219,18 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     )}
 
+                    {/* TASTI DESTRA - NASCOSTI IN HOME */}
                     {!isHome && (
                         <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
-                            {isExternalCity ? (
+                            {isJourney ? (
+                                /* DURANTE IL VIAGGIO: SOLO TASTO AUDIO */
+                                <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
+                                    <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                        <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
+                                    </div>
+                                    <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
+                                </div>
+                            ) : isExternalCity ? (
                                 <>
                                     <div className="flex flex-col items-center group cursor-pointer" onClick={handleExploreCity}>
                                         <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-yellow-400">
