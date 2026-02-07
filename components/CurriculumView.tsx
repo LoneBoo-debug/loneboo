@@ -35,7 +35,7 @@ const BTN_PREMIUM_INFO_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com
 const IMG_VIDEO_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/videorijfh77arrivo09oi8.webp';
 const IMG_GAME_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocoinarrivof56tg7y.webp';
 const IMG_ACTIVITY_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/attivitiesinarrivo872xx.webp';
-const IMG_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercizioinarrivopop998u.webp';
+const IMG_ACTIVITY_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercizioinarrivopop998u.webp';
 
 const ORNELLA_TALK_ANIM = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ornelaspiega.mp4';
 
@@ -97,24 +97,12 @@ interface CurriculumViewProps {
   onExit: () => void;
   bgUrl: string;
   setView?: (view: AppView) => void;
+  initialLesson?: SchoolLesson; // NUOVA PROP PER NAVIGAZIONE DIRETTA
 }
 
-const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView }) => {
+const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView, initialLesson }) => {
   const [selectedSubject, setSelectedSubject] = useState<SchoolSubject>(initialSubject);
-  const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(() => {
-    const pendingId = sessionStorage.getItem('pending_lesson_id');
-    if (pendingId) {
-        const chapters = data.subjects[initialSubject] || [];
-        for (const ch of chapters) {
-            const found = ch.lessons.find(l => l.id === pendingId);
-            if (found) {
-                sessionStorage.removeItem('pending_lesson_id');
-                return found;
-            }
-        }
-    }
-    return null;
-  });
+  const [selectedLesson, setSelectedLesson] = useState<SchoolLesson | null>(initialLesson || null);
 
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
@@ -161,7 +149,31 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setIsPremiumActive(premium);
   }, []);
 
+  /**
+   * EFFETTO DI AGGANCIO REINDIRIZZAMENTO ARCHIVIO
+   */
+  useEffect(() => {
+      // Se abbiamo già una lezione iniziale via prop, non cerchiamo nel sessionStorage
+      if (initialLesson) return;
+
+      const pendingId = sessionStorage.getItem('pending_lesson_id');
+      if (pendingId) {
+          const chapters = data.subjects[selectedSubject] || [];
+          for (const ch of chapters) {
+              const found = ch.lessons.find(l => l.id === pendingId);
+              if (found) {
+                  sessionStorage.removeItem('pending_lesson_id');
+                  handleOpenLesson(found);
+                  break;
+              }
+          }
+      }
+  }, [data, selectedSubject, initialLesson]);
+
   const getSpecialBg = (isLessonView: boolean) => {
+    // Se siamo in un Argomento Extra (grade 0), usiamo lo sfondo passato come prop
+    if (data.grade === 0) return bgUrl;
+
     switch (selectedSubject) {
         case SchoolSubject.ITALIANO: return isLessonView ? GRADE1_ITALIAN_LESSON_BG : GRADE1_ITALIAN_INDEX_BG;
         case SchoolSubject.MATEMATICA: return isLessonView ? GRADE1_MATH_LESSON_BG : GRADE1_MATH_INDEX_BG;
@@ -185,7 +197,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     );
   };
 
-  // Funzione per il calcolo delle pagine (stabile come useCallback)
   const checkPages = useCallback(() => {
     const container = textContainerRef.current;
     if (container && selectedLesson) {
@@ -197,18 +208,16 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
         const tolerance = 25;
         const total = Math.ceil((container.scrollHeight - tolerance) / (container.clientHeight || 1));
         setTotalPages(total > 0 ? total : 1);
-        
-        // RIMOSSO: container.scrollTop = (currentPage - 1) * container.clientHeight;
-        // Questa riga causava il problema dello scatto forzato durante lo scorrimento manuale.
     }
-  }, [selectedLesson]); // Rimossa dipendenza da currentPage per evitare feedback loop
+  }, [selectedLesson]);
 
   const renderMixedContent = (text: string) => {
-      const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\S+)/gi;
+      // Regex migliorata per catturare link ad immagini anche senza estensione fissa se contengono loneboo-images.s3
+      const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\.eu-south-1\.amazonaws\.com\/\S+)/gi;
       const parts = text.split(imgRegex);
       
       return parts.map((part, index) => {
-          if (isImageUrl(part)) {
+          if (isImageUrl(part) || (part && part.includes('loneboo-images.s3.eu-south-1.amazonaws.com'))) {
               const url = part.trim();
               return (
                 <div key={index} className="w-full flex justify-center my-4 group">
@@ -252,7 +261,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   useEffect(() => {
     if (selectedLesson && !selectedLesson.isPremium) {
-        // Reset scroll position when a NEW lesson is opened
         if (textContainerRef.current) textContainerRef.current.scrollTop = 0;
         
         const timers = [
@@ -273,11 +281,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     const container = textContainerRef.current;
     if (container) {
         const usableHeight = container.clientHeight || 1;
-        
-        // Calcolo della pagina corrente basato sulla posizione dello scroll
-        // Aggiungiamo un piccolo offset per rendere il cambio pagina più fluido
         const page = Math.floor((container.scrollTop + (usableHeight / 2)) / usableHeight) + 1;
-        
         if (page !== currentPage && page <= totalPages && page > 0) {
             setCurrentPage(page);
         }
@@ -720,9 +724,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   <div className="bg-white w-full max-w-2xl rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto max-h-[800px]">
                       <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
                       
-                      <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0">
-                          <img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" />
-                      </div>
+                      <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0"><img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" /></div>
 
                       <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden gap-3">
                           <div className="text-center">
@@ -777,7 +779,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                               src={
                                   comingSoonModal.type === 'VIDEO' ? IMG_VIDEO_COMING_SOON : 
                                   comingSoonModal.type === 'ACTIVITY' ? IMG_ACTIVITY_COMING_SOON :
-                                  comingSoonModal.type === 'EXERCISE' ? IMG_EXERCISE_COMING_SOON :
+                                  comingSoonModal.type === 'EXERCISE' ? IMG_ACTIVITY_EXERCISE_COMING_SOON :
                                   IMG_GAME_COMING_SOON
                               } 
                               alt="In arrivo" 

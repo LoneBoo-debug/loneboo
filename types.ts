@@ -21,9 +21,12 @@ export interface SchoolLesson {
   text: string;
   audioUrl: string;
   videoUrl?: string;
+  iconUrl?: string;     // Nuova colonna C
   quizzes: SchoolQuiz[];
   activities: SchoolQuiz[];
   isPremium?: boolean;
+  grade?: number;      
+  subject?: string;    
 }
 
 export interface SchoolChapter {
@@ -100,6 +103,8 @@ export enum AppView {
   SCHOOL_FOURTH_GRADE = 'SCHOOL_FOURTH_GRADE',
   SCHOOL_FIFTH_GRADE = 'SCHOOL_FIFTH_GRADE',
   SCHOOL_DIARY = 'SCHOOL_DIARY',
+  SCHOOL_ARCHIVE = 'SCHOOL_ARCHIVE',
+  EXTRA_ARGUMENTS = 'EXTRA_ARGUMENTS',
   BOO_GARDEN = 'BOO_GARDEN',
   BOO_BEDROOM = 'BOO_BEDROOM',
   BOO_LIVING_ROOM = 'BOO_LIVING_ROOM',

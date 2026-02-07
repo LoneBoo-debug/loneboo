@@ -10,7 +10,7 @@ const TRAVEL_VIDEO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tri
 const TRAVEL_CENTER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinviagibimbd45f42.webp';
 const TRAIN_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freesound_community-train-yokosuka-79155.mp3';
 const CHIME_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/subway-station-chime-100558.mp3';
-const BTN_PAY_AND_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/payementbillet54r44.webp';
+const BTN_PAY_AND_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/paga+e+parti44edfdsdcvfrd.webp';
 const BTN_SECRET_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5t4rft5egr+(1)+(1).webp';
 const IMG_ZOOMABLE_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/caricsfondcittaaltre55tf4.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacuty55frxxw21+(1).webp';
@@ -254,14 +254,12 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const [isTraveling, setIsTraveling] = useState(false);
     const [travelKm, setTravelKm] = useState(0);
     const [travelTimeDisplay, setTravelTimeDisplay] = useState("0h 00m");
-    const [currentPos, setCurrentPos] = useState<Point>({ x: 50, y: 50 });
-    const [pathProgress, setPathProgress] = useState(0);
     
     // Gestione Audio Marlo
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isMarloTalking, setIsMarloTalking] = useState(false);
     
-    const travelTimerRef = useRef<number | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
     const trainAudioRef = useRef<HTMLAudioElement | null>(null);
     const marloVoiceRef = useRef<HTMLAudioElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -274,7 +272,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         const days = [];
         const dayNames = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
         
-        // Configuriamo i 3 giorni richiesti: L'altro ieri, Ieri, Oggi
         for (let i = 2; i >= 0; i--) {
             const d = new Date();
             d.setDate(today.getDate() - i);
@@ -309,7 +306,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         trainAudioRef.current.loop = true;
         trainAudioRef.current.volume = 0.5;
 
-        // Inizializzazione Audio Voce Marlo
         marloVoiceRef.current = new Audio(MARLO_STATION_AUDIO);
         marloVoiceRef.current.loop = false;
         marloVoiceRef.current.volume = 0.6;
@@ -358,7 +354,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         return () => {
             clearTimeout(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-            if (travelTimerRef.current) clearInterval(travelTimerRef.current);
+            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
             if (trainAudioRef.current) {
                 trainAudioRef.current.pause();
                 trainAudioRef.current = null;
@@ -412,40 +408,20 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         setView(AppView.CITY_MAP);
     };
 
-    const getPointAtProgress = (points: Point[], progress: number): Point => {
-        if (!points || points.length === 0) return { x: 50, y: 50 };
-        if (points.length === 1) return points[0];
-        if (progress <= 0) return points[0];
-        if (progress >= 1) return points[points.length - 1];
-        const activePath = isReturnTrip ? [...points].reverse() : points;
-        const numSegments = activePath.length - 1;
-        const segmentFloat = progress * numSegments;
-        const segmentIdx = Math.floor(segmentFloat);
-        const segmentProgress = segmentFloat - segmentIdx;
-        const p1 = activePath[segmentIdx];
-        const p2 = activePath[segmentIdx + 1];
-        return { x: p1.x + (p2.x - p1.x) * segmentProgress, y: p1.y + (p2.y - p1.y) * segmentProgress };
-    };
-
     const startTravelAnimation = (zone: ZoneInfo) => {
         setIsTraveling(true);
-        const startTime = Date.now();
+        const startTime = performance.now();
         const duration = zone.travelTimeMs;
+        let chimePlayed = false;
 
         if (trainAudioRef.current) {
             trainAudioRef.current.currentTime = 0;
             trainAudioRef.current.play().catch(e => console.error("Audio blocked", e));
         }
 
-        travelTimerRef.current = window.setInterval(() => {
-            const elapsed = Date.now() - startTime;
+        const animate = (timestamp: number) => {
+            const elapsed = timestamp - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            setPathProgress(progress);
-
-            if (zone.pathPoints && zone.pathPoints.length > 0) {
-                const pos = getPointAtProgress(zone.pathPoints, progress);
-                setCurrentPos(pos);
-            }
 
             const currentKm = Math.floor(progress * zone.maxKm);
             setTravelKm(currentKm);
@@ -455,14 +431,16 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             const mins = currentTotalMinutes % 60;
             setTravelTimeDisplay(`${hours}h ${mins.toString().padStart(2, '0')}m`);
 
-            if (progress >= 0.95) { // Suona il campanello poco prima della fine
+            if (progress >= 0.95 && !chimePlayed) { 
+                chimePlayed = true;
                 const arrivalChime = new Audio(CHIME_SOUND_URL);
                 arrivalChime.volume = 0.7;
                 arrivalChime.play().catch(e => console.error("Chime blocked", e));
             }
 
-            if (progress >= 1) {
-                if (travelTimerRef.current) clearInterval(travelTimerRef.current);
+            if (progress < 1) {
+                animationFrameRef.current = requestAnimationFrame(animate);
+            } else {
                 if (trainAudioRef.current) trainAudioRef.current.pause();
 
                 sessionStorage.removeItem('train_journey_origin');
@@ -472,7 +450,9 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
                 setTimeout(() => setView(zone.id), 100); 
             }
-        }, 30);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     const getClipPath = (pts: Point[]) => `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
@@ -512,7 +492,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             {isTraveling && selectedZone && (
-                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden">
+                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden bg-black">
                     <video 
                         ref={videoRef}
                         src={TRAVEL_VIDEO_URL}
@@ -525,8 +505,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         style={{ 
                             transform: 'translateZ(0)', 
                             willChange: 'transform, opacity',
-                            backfaceVisibility: 'hidden',
-                            filter: 'saturate(1.3) contrast(1.1) brightness(1.05)'
+                            backfaceVisibility: 'hidden'
                         }}
                     />
 
@@ -601,7 +580,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
                 {isLoaded && (
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 items-center">
-                        {/* TASTO TORNA IN CITTÀ COLORATA (ORA IN ALTO) - Aumentate dimensioni e azione diretta */}
                         <button onClick={handleBackToCity} className="hover:scale-110 active:scale-95 transition-all outline-none">
                             <img src={BTN_RETURN_TO_CITY_GRAF} alt="Torna in Città" className="w-24 md:w-44 h-auto drop-shadow-2xl" />
                         </button>
@@ -660,9 +638,9 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         </div>
 
                         {userTokens >= selectedZone.cost ? (
-                            <button onClick={handlePurchase} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-48 md:w-64 h-auto drop-shadow-xl" /></button>
+                            <button onClick={handlePurchase} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-40 md:w-56 h-auto drop-shadow-xl" /></button>
                         ) : (
-                            <div className="flex flex-row items-center gap-4 w-full justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-32 md:w-44 h-auto opacity-50 grayscale pointer-events-none" /><span className="text-red-500 font-black text-[10px] md:text-sm uppercase leading-tight text-left max-w-[120px]">Non hai abbastanza gettoni per questo viaggio!</span></div>
+                            <div className="flex flex-row items-center gap-4 w-full justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-28 md:w-36 h-auto opacity-50 grayscale pointer-events-none" /><span className="text-red-500 font-black text-[10px] md:text-sm uppercase leading-tight text-left max-w-[120px]">Non hai abbastanza gettoni per questo viaggio!</span></div>
                         )}
                     </div>
                 </div>

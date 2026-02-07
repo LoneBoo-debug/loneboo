@@ -32,7 +32,6 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
     const [isFetching, setIsFetching] = useState(false);
     const [dynamicData, setDynamicData] = useState<GradeCurriculumData>(GRADE4_DATA);
     
-    // FIX: Inizializzazione intelligente per caricare la materia se si arriva dal diario
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(() => {
         const pendingSub = sessionStorage.getItem('pending_subject');
         if (pendingSub) {
@@ -57,13 +56,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
             const remoteData = await fetchGradeCurriculum(4);
             if (remoteData) {
-                setDynamicData(prev => {
-                    const merged = { ...prev };
-                    (Object.keys(remoteData.subjects) as SchoolSubject[]).forEach(s => {
-                        if (remoteData.subjects[s] && remoteData.subjects[s].length > 0) merged.subjects[s] = remoteData.subjects[s];
-                    });
-                    return merged;
-                });
+                setDynamicData(remoteData);
             }
             setIsFetching(false);
         };
@@ -81,21 +74,9 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
             });
         }
 
-        const handleGlobalAudioChange = () => {
-            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
-            setIsAudioOn(enabled);
-            if (enabled && isLoaded && !isFetching) audioRef.current?.play().catch(() => {});
-            else {
-                audioRef.current?.pause();
-                if (audioRef.current) audioRef.current.currentTime = 0;
-            }
-        };
-        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-
         window.scrollTo(0, 0);
 
         return () => {
-            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
@@ -103,7 +84,6 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
         };
     }, []);
 
-    // EFFETTO PER FAR PARTIRE L'AUDIO SOLO A CARICAMENTO ULTIMATO E CON LOGICA INTELLIGENTE
     useEffect(() => {
         if (isLoaded && !isFetching && isAudioOn && audioRef.current) {
             const alreadyHeard = sessionStorage.getItem('heard_audio_school_grade_4') === 'true';

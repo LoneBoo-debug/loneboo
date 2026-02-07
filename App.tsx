@@ -41,6 +41,7 @@ const SchoolThirdGrade = lazy(() => import('./components/SchoolThirdGrade'));
 const SchoolFourthGrade = lazy(() => import('./components/SchoolFourthGrade'));
 const SchoolFifthGrade = lazy(() => import('./components/SchoolFifthGrade'));
 const SchoolDiaryView = lazy(() => import('./components/SchoolDiaryView'));
+const SchoolArchive = lazy(() => import('./components/SchoolArchive'));
 const CharactersPage = lazy(() => import('./components/CharactersPage'));
 const CityMap = lazy(() => import('./components/CityMap'));
 const NewCityMap = lazy(() => import('./components/NewCityMap')); 
@@ -170,6 +171,7 @@ const App: React.FC = () => {
                 {currentView === AppView.SCHOOL_FOURTH_GRADE && <SchoolFourthGrade setView={handleSetView} />}
                 {currentView === AppView.SCHOOL_FIFTH_GRADE && <SchoolFifthGrade setView={handleSetView} />}
                 {currentView === AppView.SCHOOL_DIARY && <SchoolDiaryView setView={handleSetView} />}
+                {currentView === AppView.SCHOOL_ARCHIVE && <SchoolArchive setView={handleSetView} />}
                 {currentView === AppView.CHAT && <ChatWithBoo setView={handleSetView} />}
                 {currentView === AppView.AI_MAGIC && <MagicEye setView={handleSetView} />}
                 {currentView === AppView.SOUNDS && <SoundZone setView={handleSetView} />}

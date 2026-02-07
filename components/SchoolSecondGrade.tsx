@@ -32,7 +32,6 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
     const [isFetching, setIsFetching] = useState(false);
     const [dynamicData, setDynamicData] = useState<GradeCurriculumData>(GRADE2_DATA);
     
-    // FIX: Inizializzazione intelligente per caricare la materia se si arriva dal diario
     const [activeSubject, setActiveSubject] = useState<SchoolSubject | null>(() => {
         const pendingSub = sessionStorage.getItem('pending_subject');
         if (pendingSub) {
@@ -57,13 +56,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
 
             const remoteData = await fetchGradeCurriculum(2);
             if (remoteData) {
-                setDynamicData(prev => {
-                    const merged = { ...prev };
-                    (Object.keys(remoteData.subjects) as SchoolSubject[]).forEach(s => {
-                        if (remoteData.subjects[s] && remoteData.subjects[s].length > 0) merged.subjects[s] = remoteData.subjects[s];
-                    });
-                    return merged;
-                });
+                setDynamicData(remoteData);
             }
             setIsFetching(false);
         };
@@ -84,7 +77,6 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
         window.scrollTo(0, 0);
 
         return () => {
-            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
@@ -92,7 +84,6 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
         };
     }, []);
 
-    // EFFETTO PER FAR PARTIRE L'AUDIO SOLO A CARICAMENTO ULTIMATO E CON LOGICA INTELLIGENTE
     useEffect(() => {
         if (isLoaded && !isFetching && isAudioOn && audioRef.current) {
             const alreadyHeard = sessionStorage.getItem('heard_audio_school_grade_2') === 'true';
@@ -142,7 +133,6 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                 </div>
             )}
 
-            {/* Mini TV di Ornella - Posizionato a DESTRA */}
             {isLoaded && !isFetching && !activeSubject && isAudioOn && isPlaying && (
                 <div className="absolute top-20 md:top-28 right-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">

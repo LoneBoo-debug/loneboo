@@ -8,19 +8,18 @@ export const HOME_ICON = 'https://i.postimg.cc/9M6v55V8/logsede.png';
 export const HOME_HERO_IMAGE = 'https://i.postimg.cc/SKdgjcXW/ghhhhost.png';
 export const CITY_MAP_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-desktop.webp';
 export const CITY_MAP_IMAGE_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/city-map-mobile.webp';
-export const HOME_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/home-mobile322.webp';
-export const HOME_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/home-desktopdesww.webp';
+export const HOME_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashscreennewhpg44ezwx.webp';
+export const HOME_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/splashnewsdrftoo7zaq.webp';
 export const CHANNEL_LOGO = 'https://lh3.googleusercontent.com/d/1jnecFUan677BId1slOSsP532hZ_DKWee';
 
 export const FAN_ART_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL1SLGxxN1zN0qEwN0QpuK8dPSRcVDIx1Dy-sryRlIAm5cIgQS3j9o1nN1kGbHH7VrRS0VBo7KvfSm/pub?gid=0&single=true&output=csv'; 
 export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQztpA2nvwkfSoJ4CArYQC-FlfRcvn6ngfstnyZEEGNsjkuGS0aOpheX3jsUBE95boEo_dLe8dfQXGT/pub?gid=0&single=true&output=csv'; 
 export const NOTIFICATIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTuB_-wFGsDVWxL6Kk-K87B_URCHgEIB2ax1FCyXsUDuhhjHyWRQGE3e4nM-D6frI5cg2zpyn_CR_3b/pub?gid=0&single=true&output=csv'; 
 export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOn4nPnIbqs4jzAVQbpPYCXll7iX3lxLWIA5he7lqeEMXfxDRa2rJ62vyYZ0_8IYzpnTpJHo-nSUXy/pub?gid=0&single=true&output=csv'; 
+
+// Database Scolastico Ufficiale fornito dall'utente
 export const SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDck5eVCJQL553cZunTTmwNpO6wjgm89vpGOhYb6tGoQ2_gR6uRbRGw4lAWWSOQA8Pe_Xl5bftx2Dh/pub?gid=0&single=true&output=csv';
 
-// Google Sheet per Combinazioni Atelier
-// Formato: ComboKey, ImageURL
-// Esempio: G1_H3_T2, https://.../img.webp
 export const ATELIER_COMBO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdi6lcUt_ErSYhmM8mKFk28Ri6LxmuEqfqiPWeZjM6Ani0LugKVlMsAXb4d54Hv34easdng4XRW9z_/pub?gid=0&single=true&output=csv';
 
 export const YOUTUBE_CONFIG = {

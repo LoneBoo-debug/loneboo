@@ -137,10 +137,10 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* TASTO CALENDARIO GIORNALIERO */}
+            {/* TASTO CALENDARIO GIORNALIERO - Fix Mobile: Cambiato in onClick */}
             {isLoaded && (
                 <button 
-                    onPointerDown={() => setShowDailyModal(true)}
+                    onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
                     className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
                 >
                     <img src={CALENDAR_ICON_URL} alt="Calendario Giornaliero" className="w-16 h-16 md:w-28 drop-shadow-2xl" />

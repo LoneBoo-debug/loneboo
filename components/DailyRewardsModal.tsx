@@ -17,6 +17,7 @@ const ICON_CALENDAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/claenx
 const IMG_CLAIM_TOKENS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gettonoprex4r3e2waa.webp';
 const BTN_ATELIER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/personaliboo90i87y6.webp';
 const IMG_GO_SCHOOL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/andiamoascuolamodaleewerfgr4rf.webp';
+const IMG_GO_EXTRA = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exextraaasqq12q.webp';
 const IMG_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tonjournee5r4e3.webp';
 
 const IMG_SUCCESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riscuotigettonirewards44f55tfre.webp';
@@ -67,8 +68,10 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                 if (response.ok) {
                     const text = await response.text();
                     const cleanText = text.replace(/\r/g, '');
+                    // FIX: Define lines by splitting cleanText to resolve 'Cannot find name lines'
+                    const lines = cleanText.split('\n');
                     const map: Record<string, string> = {};
-                    text.split('\n').slice(1).forEach(line => {
+                    lines.slice(1).forEach(line => {
                         const parts = line.split(line.includes(';') ? ';' : ',').map(s => s.trim().replace(/^"|"$/g, ''));
                         if (parts.length >= 2) map[parts[0].toUpperCase()] = parts[1];
                     });
@@ -86,15 +89,24 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
         return () => clearInterval(interval);
     }, [holidayInfo]);
 
-    const instructionalTime = useMemo(() => {
+    const kidFriendlyTime = useMemo(() => {
         const h = now.getHours();
         const m = now.getMinutes();
-        if (h < 13) return null;
-        const displayH = h - 12;
-        const hStr = displayH === 1 ? "l'1" : `le ${displayH}`;
-        const mStr = m === 0 ? "" : ` e ${m}`;
-        const period = h < 18 ? "pomeriggio" : "sera";
-        return `(${hStr}${mStr} di ${period})`;
+        const mStr = m === 0 ? "" : (m === 1 ? " e 1 minuto" : ` e ${m} minuti`);
+
+        if (h === 0) return `è mezzanotte${mStr}`;
+        if (h === 12) return `è mezzogiorno${mStr}`;
+        
+        let displayH = h > 12 ? h - 12 : h;
+        let period = "";
+        if (h >= 1 && h < 12) period = "di mattina";
+        else if (h >= 13 && h < 18) period = "di pomeriggio";
+        else if (h >= 18 && h <= 23) period = "di sera";
+
+        const verb = (displayH === 1) ? "è" : "sono";
+        const article = displayH === 1 ? "l'" : "le ";
+        
+        return `${verb} ${article}${displayH}${mStr} ${period}`;
     }, [now]);
 
     const moonData = useMemo(() => {
@@ -212,11 +224,15 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                     {/* BOX INFO ORA/DATA/LUNA/STAGIONE */}
                     <div className="bg-black/30 backdrop-blur-md rounded-3xl p-4 md:p-6 border border-white/20 flex flex-col items-start gap-5 w-full shadow-xl">
                         <div className="flex flex-row items-center gap-3 w-full">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0">
                                 <img src={ICON_CLOCK} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt="" />
                                 <span className="font-black text-3xl md:text-5xl tracking-widest text-yellow-300 drop-shadow-sm">{timeStr}</span>
                             </div>
-                            {instructionalTime && <span className="text-yellow-100 font-luckiest text-sm md:text-2xl uppercase tracking-wider opacity-85 ml-1 pt-1">{instructionalTime}</span>}
+                            <div className="flex-1 min-w-0">
+                                <span className="text-yellow-100 font-luckiest text-[11px] md:text-xl uppercase tracking-wider opacity-90 leading-none block text-stroke-lucky-small">
+                                    {kidFriendlyTime}
+                                </span>
+                            </div>
                         </div>
                         
                         <div className="flex flex-row gap-8 w-full items-center">
@@ -252,21 +268,24 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                         )}
                     </div>
 
-                    <div className="flex flex-row justify-center items-center gap-4 pb-6 shrink-0 px-2 mt-auto">
+                    <div className="flex flex-row justify-center items-end gap-3 pb-6 shrink-0 px-2 mt-auto">
                         {!hasClaimed ? (
-                            <button onClick={handleClaim} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
+                            <button onClick={handleClaim} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
                                 <img src={IMG_CLAIM_TOKENS} alt="Prendi 5 gettoni" className="w-full h-auto drop-shadow-xl" />
                             </button>
                         ) : (
-                            <div className="w-[30%] opacity-90 transition-all flex items-center justify-center">
+                            <div className="w-[28%] opacity-90 transition-all flex items-center justify-center">
                                 <img src={IMG_CLAIMED_STATUS} alt="Gettoni Riscossi" className="w-full h-auto drop-shadow-lg transform scale-110" />
                             </div>
                         )}
-                        <button onClick={() => handleNavigate(AppView.ATELIER, 'atelier_origin')} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
+                        <button onClick={() => handleNavigate(AppView.ATELIER, 'atelier_origin')} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
                             <img src={BTN_ATELIER_IMG} alt="Personalizza Boo" className="w-full h-auto drop-shadow-xl" />
                         </button>
-                        <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[27%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
+                        <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
                             <img src={IMG_GO_SCHOOL} alt="Vai a Scuola" className="w-full h-auto drop-shadow-xl" />
+                        </button>
+                        <button onClick={() => { sessionStorage.setItem('show_extra_immediately', 'true'); handleNavigate(AppView.SCHOOL_ARCHIVE); }} className="w-[21%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
+                            <img src={IMG_GO_EXTRA} alt="Contenuti Extra" className="w-full h-auto drop-shadow-xl" />
                         </button>
                     </div>
                 </div>
@@ -274,7 +293,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                 {showClaimSuccess && (
                     <div className="absolute inset-0 z-[100] flex flex-col animate-in zoom-in duration-500 overflow-hidden">
                         <img src={IMG_SUCCESS_BG} className="absolute inset-0 w-full h-full object-cover" alt="Successo" />
-                        <div className="absolute bottom-6 left-6 z-[110]">
+                        <div className="absolute bottom-6 left-6 z-110">
                             <button onClick={() => setShowClaimSuccess(false)} className="hover:scale-110 active:scale-95 transition-all outline-none border-4 border-white rounded-[2rem] shadow-[0_0_20px_rgba(255,255,255,0.6)] bg-white/20 backdrop-blur-sm">
                                 <img src={BTN_OTTIMO_CLOSE} alt="Ottimo!" className="w-32 md:w-52 h-auto block" />
                             </button>
