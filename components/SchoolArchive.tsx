@@ -11,6 +11,7 @@ const BTN_ASK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiediar
 const IMG_NOT_FOUND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/argomentonotrovato43e3.webp';
 const BTN_EXTRA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/extraarguments99.webp';
 const BOOK_EXTRA_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/libroextralectionschool89.webp';
+const DICTIONARY_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sonicontreaiconews.webp';
 
 // Asset Audio e Video
 const ARCHIVE_AUDIO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/a77febf7-70a5-4800-a65d-c6b6ce1e6fe8.mp3';
@@ -136,6 +137,9 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const recognitionRef = useRef<any>(null);
 
+    // CRITICO: Ref per bypassare la closure del SpeechRecognition
+    const lessonsRef = useRef<SchoolLesson[]>([]);
+
     const loadData = async () => {
         setIsLoading(true);
         setDbError(false);
@@ -147,10 +151,50 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 const text = await res.text();
                 if (text.trim().toLowerCase().startsWith('<!doctype')) { setDbError(true); return; }
                 const data = parseCSV(text);
-                if (data.length === 0) { setDbError(true); } 
-                else { setAllLessons(data); }
+                if (data.length === 0) { 
+                    setDbError(true); 
+                } else { 
+                    setAllLessons(data);
+                    lessonsRef.current = data; // Sincronizziamo il ref
+                }
             } else { setDbError(true); }
         } catch (e) { setDbError(true); } finally { setIsLoading(false); }
+    };
+
+    // Funzione di ricerca riutilizzabile che usa il ref se necessario
+    const performSearch = (searchText: string) => {
+        const cleanQuery = superNormalize(searchText);
+        if (!cleanQuery) { 
+            setFilteredResults([]); 
+            setQuery(""); 
+            return; 
+        }
+
+        setIsSearching(true);
+        setQuery(searchText);
+
+        setTimeout(() => {
+            const words = cleanQuery.split(" ").filter(w => w.length > 0);
+            // Usiamo il ref per essere sicuri di avere i dati più recenti nel callback vocale
+            const sourceData = lessonsRef.current.length > 0 ? lessonsRef.current : allLessons;
+
+            const results = sourceData
+                .map(lesson => {
+                    const normalizedTitle = superNormalize(lesson.title);
+                    const normalizedText = superNormalize(lesson.text);
+                    let score = 0;
+                    if (words.every(w => normalizedTitle.includes(w))) score = 100;
+                    else if (words.every(w => normalizedText.includes(w))) score = 50;
+                    else if (words.some(w => normalizedTitle.includes(w))) score = 25;
+                    return { lesson, score };
+                })
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .map(item => item.lesson);
+
+            setFilteredResults(results.slice(0, 40));
+            setIsSearching(false);
+        }, 350);
     };
 
     useEffect(() => {
@@ -171,12 +215,16 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 }
             });
         }
-        if (isAudioOn) audioRef.current.play().catch(() => {});
+        if (isAudioOn) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+
         const handleGlobalAudioChange = () => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
             setIsAudioOn(enabled);
             if (enabled) audioRef.current?.play().catch(() => {});
-            else { audioRef.current?.pause(); if (audioRef.current) { audioRef.current.src = ARCHIVE_AUDIO_URL; audioRef.current.currentTime = 0; } }
+            else { 
+                audioRef.current?.pause(); 
+                if (audioRef.current) { audioRef.current.src = ARCHIVE_AUDIO_URL; audioRef.current.currentTime = 0; } 
+            }
         };
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
@@ -185,48 +233,43 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.lang = 'it-IT';
+            recognition.interimResults = false;
+            
             recognition.onstart = () => setIsListening(true);
             recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
-                setQuery(transcript);
-                handleSearch(transcript);
+                // Chiamiamo performSearch invece di handleSearch per evitare closures stale
+                performSearch(transcript);
             };
-            recognition.onerror = () => setIsListening(false);
+            recognition.onerror = (e: any) => {
+                console.error("Speech Error:", e);
+                setIsListening(false);
+            };
             recognition.onend = () => setIsListening(false);
             recognitionRef.current = recognition;
         }
-        return () => { window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange); if (audioRef.current) audioRef.current.pause(); };
+
+        return () => { 
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange); 
+            if (audioRef.current) audioRef.current.pause(); 
+        };
     }, []);
 
-    const handleSearch = (searchText: string) => {
-        const cleanQuery = superNormalize(searchText);
-        if (!cleanQuery) { setFilteredResults([]); setQuery(""); return; }
-        setIsSearching(true);
-        setTimeout(() => {
-            const words = cleanQuery.split(" ").filter(w => w.length > 0);
-            const results = allLessons
-                .map(lesson => {
-                    const normalizedTitle = superNormalize(lesson.title);
-                    const normalizedText = superNormalize(lesson.text);
-                    let score = 0;
-                    if (words.every(w => normalizedTitle.includes(w))) score = 100;
-                    else if (words.every(w => normalizedText.includes(w))) score = 50;
-                    else if (words.some(w => normalizedTitle.includes(w))) score = 25;
-                    return { lesson, score };
-                })
-                .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .map(item => item.lesson);
-            setFilteredResults(results.slice(0, 40));
-            setIsSearching(false);
-        }, 350);
-    };
-
     const handleManualSearch = () => {
-        if (manualInput.trim()) { setQuery(manualInput); handleSearch(manualInput); setManualInput(''); }
+        if (manualInput.trim()) { 
+            performSearch(manualInput);
+            setManualInput(''); 
+        }
     };
 
-    const startListening = () => { if (recognitionRef.current && !isListening) recognitionRef.current.start(); };
+    const startListening = () => { 
+        if (recognitionRef.current && !isListening) {
+            recognitionRef.current.start(); 
+        } else if (!recognitionRef.current) {
+            alert("Il tuo browser non supporta la ricerca vocale.");
+        }
+    };
+
     const clearSearch = () => { setQuery(""); setFilteredResults([]); setManualInput(""); };
 
     const navigateToLesson = (lesson: SchoolLesson) => {
@@ -255,6 +298,7 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 .custom-scroll::-webkit-scrollbar { display: none; }
                 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
                 .text-stroke-lucky { -webkit-text-stroke: 1.5px black; text-shadow: 2px 2px 0px rgba(0,0,0,0.5); }
+                .text-stroke-lucky-small { -webkit-text-stroke: 1.2px black; text-shadow: 2px 2px 0px rgba(0,0,0,0.5); }
             `}</style>
             <div className="absolute inset-0 z-0"><img src={ARCHIVE_BG} alt="" className="w-full h-full object-fill select-none" /></div>
             {isAudioOn && isPlaying && (
@@ -265,32 +309,65 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     </div>
                 </div>
             )}
-            <div className="relative z-50 w-full pt-20 md:pt-28 px-4 flex justify-between items-center pointer-events-none">
-                <div className="bg-white/10 backdrop-blur-xl px-6 py-2 rounded-full border-2 border-white/20 shadow-xl ml-auto">
-                    <h2 className="text-white font-luckiest text-2xl md:text-5xl uppercase tracking-widest" style={{ WebkitTextStroke: '1px black' }}>Archivio</h2>
-                </div>
-                <div className="flex flex-col gap-3 ml-4 pointer-events-auto items-center">
-                    <button onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
-                    </button>
-                    <button onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_EXTRA_IMG} alt="Extra" className="w-16 h-16 md:w-28 drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
-                    </button>
-                </div>
-            </div>
-            <div className="relative z-10 flex-1 overflow-y-auto custom-scroll p-2 md:p-6 pt-6 pb-48">
-                <div className="max-w-4xl mx-auto flex flex-col gap-6">
+
+            {/* HEADER - RISTRUTTURATO PER ESPANSIONE VERSO SINISTRA */}
+            <div className="relative z-50 w-full pt-20 md:pt-28 px-4 flex justify-between items-start pointer-events-none">
+                {/* CONTENITORE CENTRALE/SINISTRA ESPANDIBILE */}
+                <div className="flex flex-col items-end gap-2 flex-1 pointer-events-none">
+                    <div className="bg-white/10 backdrop-blur-xl px-6 py-2 rounded-full border-2 border-white/20 shadow-xl pointer-events-auto">
+                        <h2 className="text-white font-luckiest text-2xl md:text-5xl uppercase tracking-widest" style={{ WebkitTextStroke: '1px black' }}>Archivio</h2>
+                    </div>
+
+                    {/* PILLOLA CERCANDO - ESPANSA VERSO SINISTRA FINO AL BORDO */}
                     {query && (
-                        <div className="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border-2 border-white/20 text-white text-center animate-in slide-in-from-top-2 shadow-2xl relative">
-                             <span className="font-luckiest uppercase tracking-tight text-lg md:text-2xl" style={{ WebkitTextStroke: '1px black' }}>Cercando: "{query}"</span>
+                        <div className="bg-white/20 backdrop-blur-xl px-6 py-3 rounded-[2rem] border-2 border-white/20 text-white text-center animate-in slide-in-from-top-2 shadow-2xl relative flex flex-col items-center gap-2 pointer-events-auto w-full max-w-[95%]">
+                             <span className="font-luckiest uppercase tracking-tight text-sm md:text-2xl break-words leading-tight" style={{ WebkitTextStroke: '0.8px black' }}>
+                                {query}
+                             </span>
                              <button 
                                 onClick={clearSearch}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white p-1 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                                className="bg-red-500 text-white p-1.5 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all"
                              >
-                                <X size={18} strokeWidth={4} />
+                                <X size={16} strokeWidth={4} />
                              </button>
                         </div>
                     )}
+                    
+                    {/* ETICHETTA HO TROVATO QUESTO IN STILE LUCKY GUY - GRANDE E ALLINEATA A DESTRA */}
+                    {query && filteredResults.length > 0 && !isSearching && (
+                        <p 
+                            className="font-luckiest text-yellow-400 uppercase text-xl md:text-4xl animate-in fade-in slide-in-from-top-1 duration-500 mr-4"
+                            style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
+                        >
+                            Ho trovato questo...
+                        </p>
+                    )}
+                </div>
+
+                {/* COLONNA TASTI A DESTRA (FISSA) */}
+                <div className="flex flex-col gap-3 ml-4 pointer-events-auto items-center shrink-0">
+                    <button onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                        <img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
+                    </button>
+                    <button 
+                        onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} 
+                        className="hover:scale-110 active:scale-95 transition-all outline-none relative group"
+                    >
+                        <img src={BOOK_EXTRA_ICON} alt="Extra" className="w-16 h-22 md:w-36 md:h-48 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
+                        <img src={BTN_EXTRA_IMG} alt="" className="absolute -bottom-1 -right-1 w-10 h-10 md:w-18 md:h-18 drop-shadow-md z-10" />
+                    </button>
+                    <button 
+                        onClick={() => setView(AppView.SCHOOL_DICTIONARY)} 
+                        className="hover:scale-110 active:scale-95 transition-all outline-none relative"
+                    >
+                        <img src={DICTIONARY_ICON} alt="Dizionario" className="w-16 h-22 md:w-36 md:h-48 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
+                    </button>
+                </div>
+            </div>
+
+            {/* AREA CONTENUTO - ALZATA RIDUCENDO PT */}
+            <div className="relative z-10 flex-1 overflow-y-auto custom-scroll p-2 md:p-6 pt-2 md:pt-4 pb-48">
+                <div className="max-w-4xl mx-auto flex flex-col gap-6">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20">
                             <Loader2 className="animate-spin text-white mb-4" size={48} />
@@ -328,7 +405,6 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     ) : query ? (
                         <div className="flex flex-col items-center justify-center animate-in zoom-in duration-500 pt-1 pb-10">
                             <div className="bg-white/10 backdrop-blur-md p-3 rounded-[3rem] border-4 border-white/20 shadow-2xl max-sm md:max-w-lg overflow-hidden relative">
-                                <button onClick={clearSearch} className="absolute top-4 right-4 z-20 bg-red-500 text-white p-2 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all"><X size={20} strokeWidth={4} /></button>
                                 <img src={IMG_NOT_FOUND} alt="Argomento non trovato" className="w-full h-auto rounded-[2rem] shadow-inner" />
                             </div>
                         </div>

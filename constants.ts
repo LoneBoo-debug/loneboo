@@ -1,7 +1,7 @@
 
 import { Video, SocialLink, AppView } from './types';
 
-export const APP_VERSION = '1.8.7';
+export const APP_VERSION = '1.8.8';
 
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 export const HOME_ICON = 'https://i.postimg.cc/9M6v55V8/logsede.png';
@@ -17,8 +17,11 @@ export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX
 export const NOTIFICATIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTuB_-wFGsDVWxL6Kk-K87B_URCHgEIB2ax1FCyXsUDuhhjHyWRQGE3e4nM-D6frI5cg2zpyn_CR_3b/pub?gid=0&single=true&output=csv'; 
 export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOn4nPnIbqs4jzAVQbpPYCXll7iX3lxLWIA5he7lqeEMXfxDRa2rJ62vyYZ0_8IYzpnTpJHo-nSUXy/pub?gid=0&single=true&output=csv'; 
 
-// Database Scolastico Ufficiale fornito dall'utente
+// Database Scolastico Ufficiale
 export const SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDck5eVCJQL553cZunTTmwNpO6wjgm89vpGOhYb6tGoQ2_gR6uRbRGw4lAWWSOQA8Pe_Xl5bftx2Dh/pub?gid=0&single=true&output=csv';
+
+// Database Dizionario Sinonimi e Contrari
+export const DICTIONARY_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTKBlP3n0AaA2X2Svo1KdIJOlT42JtV-n5ZcM1qDL0p04uieplscARs4_NjFKHqKvwAa7MLHzacI9a2/pub?gid=0&single=true&output=csv';
 
 export const ATELIER_COMBO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdi6lcUt_ErSYhmM8mKFk28Ri6LxmuEqfqiPWeZjM6Ani0LugKVlMsAXb4d54Hv34easdng4XRW9z_/pub?gid=0&single=true&output=csv';
 
