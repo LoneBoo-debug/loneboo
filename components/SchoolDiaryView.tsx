@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData, SchoolLesson } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import { getProgress } from '../services/tokens';
@@ -16,7 +16,14 @@ const BTN_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-clo
 const BTN_GO_LESS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaiallalezioneicone44ew2.webp';
 const BTN_EVALUATION_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/valytazion3edediary44.webp';
 const PAGELLA_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pagellaintest55r4xsw.webp';
-const PAGELLA_MAESTRA_READING = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/estraorneleggepage3ws.webp';
+const ORNELLA_TALK_ANIM = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ornelaspiega.mp4';
+
+// Audio Pagella per step
+const AUDIO_PAGELLA_0 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/4483cfbe-7fd4-4b82-94cd-a756d6434f73.mp3';
+const AUDIO_PAGELLA_1_29 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fcee2ad8-ad3c-4817-9b84-80e76ed50d7d.mp3';
+const AUDIO_PAGELLA_30_69 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/0dff869e-b273-4d44-8362-a720d7bd731a.mp3';
+const AUDIO_PAGELLA_70_99 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/e6db8486-1b65-44f2-87ee-a49f18d76c4a.mp3';
+const AUDIO_PAGELLA_100 = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/910bcdec-c031-4361-9bc7-94d19fadc336.mp3';
 
 // Mappa immagini Titoli Diari per classe
 const DIARIO_TITLE_IMAGES: Record<number, string> = {
@@ -52,6 +59,10 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
     const [progress, setProgress] = useState(getProgress());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isEvalOpen, setIsEvalOpen] = useState(false);
+    
+    // Stati per Audio/Video Pagella
+    const [isEvalTalking, setIsEvalTalking] = useState(false);
+    const evalAudioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         const currentGrade = parseInt(sessionStorage.getItem('current_diary_grade') || '1');
@@ -87,33 +98,14 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
             setProgress(getProgress());
         };
         window.addEventListener('progressUpdated', handleProgressUpdate);
-        return () => window.removeEventListener('progressUpdated', handleProgressUpdate);
+        return () => {
+            window.removeEventListener('progressUpdated', handleProgressUpdate);
+            if (evalAudioRef.current) {
+                evalAudioRef.current.pause();
+                evalAudioRef.current = null;
+            }
+        };
     }, []);
-
-    const handleExit = () => {
-        const returnMap: Record<number, AppView> = {
-            1: AppView.SCHOOL_FIRST_GRADE,
-            2: AppView.SCHOOL_SECOND_GRADE,
-            3: AppView.SCHOOL_THIRD_GRADE,
-            4: AppView.SCHOOL_FOURTH_GRADE,
-            5: AppView.SCHOOL_FIFTH_GRADE
-        };
-        setView(returnMap[grade] || AppView.SCHOOL_FIRST_FLOOR);
-    };
-
-    const handleLessonNavigate = (subject: SchoolSubject, lessonId: string) => {
-        sessionStorage.setItem('pending_subject', subject);
-        sessionStorage.setItem('pending_lesson_id', lessonId);
-        
-        const targetMap: Record<number, AppView> = {
-            1: AppView.SCHOOL_FIRST_GRADE,
-            2: AppView.SCHOOL_SECOND_GRADE,
-            3: AppView.SCHOOL_THIRD_GRADE,
-            4: AppView.SCHOOL_FOURTH_GRADE,
-            5: AppView.SCHOOL_FIFTH_GRADE
-        };
-        setView(targetMap[grade] || AppView.SCHOOL_FIRST_FLOOR);
-    };
 
     const isLessonQuizComplete = (lesson: SchoolLesson) => {
         if (!lesson.quizzes || lesson.quizzes.length === 0) return false;
@@ -166,20 +158,85 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
         const percentage = grandTotal > 0 ? (grandDone / grandTotal) * 100 : 0;
         
         let comment = "";
+        let audioUrl = AUDIO_PAGELLA_0;
+
         if (percentage === 0) {
             comment = "Ciao tesoro! Vedo che il tuo diario è ancora tutto da scrivere. Sono sicura che sei un bambino molto curioso! Proviamo a fare il primo esercizio? ✨";
+            audioUrl = AUDIO_PAGELLA_0;
         } else if (percentage < 30) {
             comment = "Ben fatto! Hai mosso i primi passi. Ricorda che ogni grande scrittore ha iniziato proprio come te. Continua così, diventerai bravissimo! Forza! 🍎";
+            audioUrl = AUDIO_PAGELLA_1_29;
         } else if (percentage < 70) {
             comment = "Splendido lavoro! Stai diventando un vero esperto. Mi piace moltissimo come ti impegni nelle attività. Continua a studiare con questa gioia! 🌟";
+            audioUrl = AUDIO_PAGELLA_30_69;
         } else if (percentage < 100) {
             comment = "Sei quasi al traguardo, che meraviglia! I tuoi risultati sono eccellenti e dimostrano che sei un alunno attento e volenteroso. Manca pochissimo! 🎈";
+            audioUrl = AUDIO_PAGELLA_70_99;
         } else {
             comment = "INCREDIBILE! Hai completato ogni singola sfida! Sei un vero campione e hai dimostrato un impegno straordinario. Bravissimo! 🏆✨";
+            audioUrl = AUDIO_PAGELLA_100;
         }
 
-        return { stats, grandTotal, grandDone, percentage, comment };
+        return { stats, grandTotal, grandDone, percentage, comment, audioUrl };
     }, [curriculum, progress]);
+
+    const playEvalAudio = useCallback(() => {
+        if (!evaluationData) return;
+        
+        if (evalAudioRef.current) {
+            evalAudioRef.current.pause();
+        }
+        
+        const audio = new Audio(evaluationData.audioUrl);
+        audio.volume = 0.8;
+        audio.onplay = () => setIsEvalTalking(true);
+        audio.onended = () => setIsEvalTalking(false);
+        audio.onpause = () => setIsEvalTalking(false);
+        
+        evalAudioRef.current = audio;
+        audio.play().catch(e => console.log("Audio report card blocked", e));
+    }, [evaluationData]);
+
+    // Gestione audio/video all'apertura del modale pagella
+    useEffect(() => {
+        if (isEvalOpen && evaluationData) {
+            const isAudioEnabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            if (isAudioEnabled) {
+                playEvalAudio();
+            }
+        } else {
+            if (evalAudioRef.current) {
+                evalAudioRef.current.pause();
+                evalAudioRef.current = null;
+            }
+            setIsEvalTalking(false);
+        }
+    }, [isEvalOpen, evaluationData, playEvalAudio]);
+
+    const handleExit = () => {
+        const returnMap: Record<number, AppView> = {
+            1: AppView.SCHOOL_FIRST_GRADE,
+            2: AppView.SCHOOL_SECOND_GRADE,
+            3: AppView.SCHOOL_THIRD_GRADE,
+            4: AppView.SCHOOL_FOURTH_GRADE,
+            5: AppView.SCHOOL_FIFTH_GRADE
+        };
+        setView(returnMap[grade] || AppView.SCHOOL_FIRST_FLOOR);
+    };
+
+    const handleLessonNavigate = (subject: SchoolSubject, lessonId: string) => {
+        sessionStorage.setItem('pending_subject', subject);
+        sessionStorage.setItem('pending_lesson_id', lessonId);
+        
+        const targetMap: Record<number, AppView> = {
+            1: AppView.SCHOOL_FIRST_GRADE,
+            2: AppView.SCHOOL_SECOND_GRADE,
+            3: AppView.SCHOOL_THIRD_GRADE,
+            4: AppView.SCHOOL_FOURTH_GRADE,
+            5: AppView.SCHOOL_FIFTH_GRADE
+        };
+        setView(targetMap[grade] || AppView.SCHOOL_FIRST_FLOOR);
+    };
 
     return (
         <div className="fixed inset-0 z-0 bg-sky-100 flex flex-col pt-[64px] md:pt-[96px] overflow-hidden">
@@ -188,12 +245,10 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
-            {/* Background */}
             <div className="absolute inset-0 z-0 opacity-50">
                 <img src={DIARY_BG} alt="" className="w-full h-full object-cover blur-sm" />
             </div>
 
-            {/* Header Pagina */}
             <div className="relative z-20 w-full p-3 md:p-4 flex justify-between items-center bg-white/70 backdrop-blur-md border-b-4 border-white/30 shrink-0">
                 <div className="flex items-center gap-2">
                     <img 
@@ -218,7 +273,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 </div>
             </div>
 
-            {/* TABS MATERIE */}
             <div className="relative z-20 p-4 grid grid-cols-5 w-full shrink-0 gap-3 items-center">
                 {Object.values(SchoolSubject).map((subj) => {
                     const isActive = activeSubject === subj;
@@ -238,7 +292,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 })}
             </div>
 
-            {/* LISTA LEZIONI */}
             <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar p-3 md:p-6">
                 <div className="max-w-4xl mx-auto pb-24 space-y-3">
                     {!curriculum ? (
@@ -250,6 +303,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                         curriculum.subjects[activeSubject].flatMap(chapter => chapter.lessons).map((lesson) => {
                             const hasQuizzes = lesson.quizzes && lesson.quizzes.length > 0;
                             const hasActivities = lesson.activities && lesson.activities.length > 0;
+                            const hasAudio = !!lesson.audioUrl && lesson.audioUrl !== "";
                             const quizDone = isLessonQuizComplete(lesson);
                             const actDone = isLessonActivityComplete(lesson);
 
@@ -279,6 +333,18 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                                 className="w-5 h-5 md:w-8 md:h-8 object-contain drop-shadow-sm" 
                                             />
                                         </div>
+                                        
+                                        {/* INDICATORE AUDIO */}
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[6px] md:text-[8px] font-black text-slate-500 uppercase leading-none mb-1">Ascolto</span>
+                                            <div className="w-5 h-5 md:w-8 md:h-8 flex items-center justify-center">
+                                                {hasAudio ? (
+                                                    <Volume2 className="text-blue-500 w-full h-full drop-shadow-sm" />
+                                                ) : (
+                                                    <VolumeX className="text-slate-400 w-full h-full opacity-50" />
+                                                )}
+                                            </div>
+                                        </div>
 
                                         <button 
                                             onClick={() => handleLessonNavigate(activeSubject, lesson.id)}
@@ -299,19 +365,17 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 </div>
             </div>
 
-            {/* MODALE VALUTAZIONE - LAYOUT RESTRUTTURATO E ABBASSATO */}
+            {/* MODALE VALUTAZIONE */}
             {isEvalOpen && evaluationData && (
                 <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEvalOpen(false)}>
                     <div 
                         className="bg-[#fdfcf0] w-full max-w-4xl max-h-[85vh] rounded-[3rem] border-8 border-blue-500 shadow-2xl flex flex-col overflow-hidden relative animate-in zoom-in duration-300 transform translate-y-6"
                         onClick={e => e.stopPropagation()}
                     >
-                        {/* Tasto Chiudi */}
                         <button onClick={() => setIsEvalOpen(false)} className="absolute top-4 right-4 z-[3050] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-black hover:scale-110 transition-all shadow-lg active:scale-95">
                             <X size={20} strokeWidth={4} />
                         </button>
 
-                        {/* Header Modale */}
                         <div className="bg-blue-600 p-4 md:p-6 border-b-4 border-blue-800 flex items-center gap-4 shrink-0">
                             <div className="w-12 h-12 md:w-20 md:h-20 shrink-0">
                                 <img src={PAGELLA_HEADER_IMG} className="w-full h-full object-contain" alt="Maestra" />
@@ -322,23 +386,44 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                             </div>
                         </div>
 
-                        {/* Corpo Modale - Scrollabile */}
                         <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] bg-white/20">
                             <div className="flex flex-col gap-8">
                                 
-                                {/* 1. BOX MESSAGGIO MAESTRA (TOP - FISSO) */}
+                                {/* BOX MESSAGGIO MAESTRA CON MINI TV */}
                                 <div className="relative bg-[#fffde7] p-5 md:p-10 rounded-[2.5rem] border-4 border-yellow-400 shadow-xl flex flex-row items-center text-left gap-6 md:gap-10">
-                                    {/* BADGE AGGIORNATO */}
                                     <div className="absolute -top-3 left-6 md:left-12 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-[10px] md:text-xs uppercase shadow-md whitespace-nowrap z-10 border-2 border-black/10">
                                         La Maestra Ornella dice...
                                     </div>
                                     
-                                    <div className="w-32 h-32 md:w-60 md:h-60 shrink-0">
-                                        <img 
-                                            src={PAGELLA_MAESTRA_READING} 
-                                            className="w-full h-full object-contain drop-shadow-2xl" 
-                                            alt="Maestra Ornella" 
+                                    {/* MINI TV MAESTRA CON TASTO PLAY */}
+                                    <div 
+                                        className="w-32 h-32 md:w-60 md:h-60 shrink-0 relative bg-black/40 rounded-[2rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center cursor-pointer group"
+                                        onClick={playEvalAudio}
+                                    >
+                                        <video 
+                                            src={ORNELLA_TALK_ANIM} 
+                                            autoPlay={isEvalTalking}
+                                            loop 
+                                            muted 
+                                            playsInline 
+                                            className="w-full h-full object-cover" 
+                                            style={{ 
+                                                mixBlendMode: 'screen', 
+                                                filter: 'contrast(1.1) brightness(1.1)',
+                                            }} 
+                                            ref={(el) => {
+                                                if (el) {
+                                                    if (isEvalTalking) el.play().catch(() => {});
+                                                    else el.pause();
+                                                }
+                                            }}
                                         />
+                                        {!isEvalTalking && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
+                                                <Play size={48} className="text-white drop-shadow-2xl group-hover:scale-110 transition-transform" fill="white" />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                                     </div>
                                     
                                     <div className="flex-1">
@@ -348,7 +433,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                     </div>
                                 </div>
 
-                                {/* 2. BOX RIEPILOGO */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 rounded-3xl border-4 border-blue-400 shadow-lg flex flex-col items-center justify-center text-center">
                                         <CheckCircle2 className="text-blue-500 mb-1" size={32} />
@@ -362,7 +446,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                     </div>
                                 </div>
 
-                                {/* 3. ELENCO MATERIE */}
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-center gap-2 mb-2 px-2">
                                         <Award className="text-blue-600" size={32} />
@@ -400,7 +483,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                             </div>
                         </div>
                         
-                        {/* Footer Modale */}
                         <div className="bg-slate-50 p-2 md:p-4 border-t border-slate-200 shrink-0 text-center">
                             <span className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Lone Boo World • Scuola Arcobaleno 2025</span>
                         </div>
@@ -408,7 +490,6 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* Footer Decor */}
             <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-20 pointer-events-none z-0">
                 <img src={OFFICIAL_LOGO} alt="" className="w-10 h-10 object-contain grayscale" />
             </div>

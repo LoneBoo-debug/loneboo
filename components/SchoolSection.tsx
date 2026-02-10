@@ -1,14 +1,19 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
+import { getWeatherForDate } from '../services/weatherService';
 
-const SCHOOL_SPLASH_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp';
+const SCHOOL_SPLASH_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp';
+const SCHOOL_SPLASH_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolapiggoaera.webp';
+const SCHOOL_SPLASH_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolaventoerssa.webp';
+const SCHOOL_SPLASH_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolaneveaaoseoa.webp';
+
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vai+icitt%C3%A0schollong877webswq.webp';
 const BTN_GYM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/viainpalestrschoolnwespng55r4.webp';
 
 // Asset Audio e Video
-const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo6tr4.mp3';
+const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo3w3w.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 interface SchoolSectionProps {
@@ -23,6 +28,18 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     
+    // Determiniamo il meteo coerente per la giornata
+    const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+
+    const currentBg = useMemo(() => {
+        switch (todayWeather) {
+            case 'RAIN': return SCHOOL_SPLASH_RAIN;
+            case 'WIND': return SCHOOL_SPLASH_WIND;
+            case 'SNOW': return SCHOOL_SPLASH_SNOW;
+            default: return SCHOOL_SPLASH_SUN;
+        }
+    }, [todayWeather]);
+
     // --- AREAS DEFINITION ---
     const FIRST_FLOOR_ZONE: Point[] = [
         { "x": 29.85, "y": 31.77 },
@@ -33,9 +50,9 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
 
     useEffect(() => {
         const img = new Image();
-        img.src = SCHOOL_SPLASH_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
-        img.onerror = () => setIsLoaded(true); // Fallback per mostrare comunque la UI
+        img.onerror = () => setIsLoaded(true); 
         
         if (!audioRef.current) {
             audioRef.current = new Audio(SCHOOL_VOICE_URL);
@@ -75,7 +92,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                 audioRef.current.currentTime = 0;
             }
         };
-    }, []);
+    }, [currentBg]);
 
     const getClipPath = (pts: Point[]) => {
         if (pts.length < 3) return 'none';
@@ -117,7 +134,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
             )}
 
             <div className="absolute inset-0 z-0">
-                <img src={SCHOOL_SPLASH_BG} alt="Scuola di Lone Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
+                <img src={currentBg} alt="Scuola di Lone Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
             </div>
 
             {isLoaded && (

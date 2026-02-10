@@ -12,6 +12,7 @@ const IMG_NOT_FOUND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/argome
 const BTN_EXTRA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/extraarguments99.webp';
 const BOOK_EXTRA_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/libroextralectionschool89.webp';
 const DICTIONARY_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sonicontreaiconews.webp';
+const MATH_EXERCISES_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esematerescds.webp';
 
 // Asset Audio e Video
 const ARCHIVE_AUDIO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/a77febf7-70a5-4800-a65d-c6b6ce1e6fe8.mp3';
@@ -310,62 +311,69 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 </div>
             )}
 
-            {/* HEADER - RISTRUTTURATO PER ESPANSIONE VERSO SINISTRA */}
-            <div className="relative z-50 w-full pt-20 md:pt-28 px-4 flex justify-between items-start pointer-events-none">
-                {/* CONTENITORE CENTRALE/SINISTRA ESPANDIBILE */}
-                <div className="flex flex-col items-end gap-2 flex-1 pointer-events-none">
-                    <div className="bg-white/10 backdrop-blur-xl px-6 py-2 rounded-full border-2 border-white/20 shadow-xl pointer-events-auto">
-                        <h2 className="text-white font-luckiest text-2xl md:text-5xl uppercase tracking-widest" style={{ WebkitTextStroke: '1px black' }}>Archivio</h2>
-                    </div>
-
-                    {/* PILLOLA CERCANDO - ESPANSA VERSO SINISTRA FINO AL BORDO */}
-                    {query && (
-                        <div className="bg-white/20 backdrop-blur-xl px-6 py-3 rounded-[2rem] border-2 border-white/20 text-white text-center animate-in slide-in-from-top-2 shadow-2xl relative flex flex-col items-center gap-2 pointer-events-auto w-full max-w-[95%]">
-                             <span className="font-luckiest uppercase tracking-tight text-sm md:text-2xl break-words leading-tight" style={{ WebkitTextStroke: '0.8px black' }}>
-                                {query}
-                             </span>
-                             <button 
-                                onClick={clearSearch}
-                                className="bg-red-500 text-white p-1.5 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all"
-                             >
-                                <X size={16} strokeWidth={4} />
-                             </button>
-                        </div>
-                    )}
-                    
-                    {/* ETICHETTA HO TROVATO QUESTO IN STILE LUCKY GUY - GRANDE E ALLINEATA A DESTRA */}
-                    {query && filteredResults.length > 0 && !isSearching && (
-                        <p 
-                            className="font-luckiest text-yellow-400 uppercase text-xl md:text-4xl animate-in fade-in slide-in-from-top-1 duration-500 mr-4"
-                            style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
-                        >
-                            Ho trovato questo...
-                        </p>
-                    )}
-                </div>
-
-                {/* COLONNA TASTI A DESTRA (FISSA) */}
-                <div className="flex flex-col gap-3 ml-4 pointer-events-auto items-center shrink-0">
-                    <button onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
-                    </button>
+            {/* HEADER - OTTIMIZZATO PER SPAZIO ORIZZONTALE */}
+            <div className="relative z-50 w-full pt-20 md:pt-28 px-4 md:px-12 flex justify-between items-start pointer-events-none">
+                
+                {/* SINISTRA: I TRE LIBRI */}
+                <div className="flex flex-row items-end gap-1.5 md:gap-3 pointer-events-auto shrink-0">
+                    {/* 1. LIBRO ESERCIZI MATEMATICA */}
                     <button 
-                        onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} 
-                        className="hover:scale-110 active:scale-95 transition-all outline-none relative group"
+                        onClick={() => setView(AppView.SCHOOL_MATH_EXERCISES)} 
+                        className="hover:scale-110 active:scale-95 transition-all outline-none relative"
                     >
-                        <img src={BOOK_EXTRA_ICON} alt="Extra" className="w-16 h-22 md:w-36 md:h-48 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
-                        <img src={BTN_EXTRA_IMG} alt="" className="absolute -bottom-1 -right-1 w-10 h-10 md:w-18 md:h-18 drop-shadow-md z-10" />
+                        <img src={MATH_EXERCISES_ICON} alt="Esercizi Matematica" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
                     </button>
+
+                    {/* 2. DIZIONARIO */}
                     <button 
                         onClick={() => setView(AppView.SCHOOL_DICTIONARY)} 
                         className="hover:scale-110 active:scale-95 transition-all outline-none relative"
                     >
-                        <img src={DICTIONARY_ICON} alt="Dizionario" className="w-16 h-22 md:w-36 md:h-48 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
+                        <img src={DICTIONARY_ICON} alt="Dizionario" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
+                    </button>
+
+                    {/* 3. LIBRO EXTRA */}
+                    <button 
+                        onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} 
+                        className="hover:scale-110 active:scale-95 transition-all outline-none relative group"
+                    >
+                        <img src={BOOK_EXTRA_ICON} alt="Extra" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
+                    </button>
+                </div>
+
+                {/* DESTRA: TASTO ESCI (TITOLO RIMOSSO) */}
+                <div className="flex flex-col items-end gap-3 shrink-0 pointer-events-none">
+                    <button 
+                        onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} 
+                        className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto mr-4 md:mr-8"
+                    >
+                        <img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
                     </button>
                 </div>
             </div>
 
-            {/* AREA CONTENUTO - ALZATA RIDUCENDO PT */}
+            {/* AREA RISULTATI RICERCA - CENTRATA E SU UNA RIGA */}
+            {query && filteredResults.length > 0 && !isSearching && (
+                <div className="relative z-[60] w-full mt-2 flex justify-center animate-in slide-in-from-top-4 duration-500 px-4">
+                    <div className="bg-white/10 backdrop-blur-xl px-6 py-2 rounded-full border-2 border-white/20 shadow-2xl flex items-center gap-4 pointer-events-auto">
+                        <p 
+                            className="font-luckiest text-yellow-400 uppercase text-lg md:text-4xl whitespace-nowrap leading-none"
+                            style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
+                        >
+                            Ho trovato questo...
+                        </p>
+                        <button 
+                            onClick={clearSearch}
+                            className="bg-red-500 text-white p-1 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all"
+                            title="Cancella ricerca"
+                        >
+                            <X size={14} strokeWidth={4} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* AREA CONTENUTO */}
             <div className="relative z-10 flex-1 overflow-y-auto custom-scroll p-2 md:p-6 pt-2 md:pt-4 pb-48">
                 <div className="max-w-4xl mx-auto flex flex-col gap-6">
                     {isLoading ? (
@@ -405,6 +413,13 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     ) : query ? (
                         <div className="flex flex-col items-center justify-center animate-in zoom-in duration-500 pt-1 pb-10">
                             <div className="bg-white/10 backdrop-blur-md p-3 rounded-[3rem] border-4 border-white/20 shadow-2xl max-sm md:max-w-lg overflow-hidden relative">
+                                <button 
+                                    onClick={clearSearch}
+                                    className="absolute top-4 right-4 z-50 bg-red-500 text-white p-2 rounded-full border-2 border-white shadow-xl hover:scale-110 active:scale-95 transition-all"
+                                    title="Chiudi"
+                                >
+                                    <X size={20} strokeWidth={4} />
+                                </button>
                                 <img src={IMG_NOT_FOUND} alt="Argomento non trovato" className="w-full h-auto rounded-[2rem] shadow-inner" />
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import { AppView, PlayerProgress } from '../types';
 import { addTokens, getProgress } from '../services/tokens';
 import { CALENDAR_INFO, monthNames } from '../services/calendarDatabase';
 import { ATELIER_COMBO_CSV_URL } from '../constants';
+import { getForecast } from '../services/weatherService';
 
 interface DailyRewardsModalProps {
     onClose: () => void;
@@ -26,17 +27,6 @@ const IMG_CLAIMED_STATUS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/g
 
 const BOO_BASE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boonudoede32ws34r.webp';
 
-const MOON_IMGS = {
-    NEW: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lunanuova33.webp',
-    WAXING_CRESCENT: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lna+crescente44.webp',
-    FIRST_QUARTER: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lunaprimoquarto55.webp',
-    WAXING_GIBBOUS: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gibbosacrescente88.webp',
-    FULL: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lunapiena55.webp',
-    WANING_GIBBOUS: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gibbosacalante45.webp',
-    LAST_QUARTER: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lunaultimoquartp.webp',
-    WANING_CRESCENT: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lunacalante43.webp'
-};
-
 const SPECIAL_OVERLAYS: Record<string, string> = {
     'S1': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarpacolorataboocaracters.webp',
     'S2': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp',
@@ -56,6 +46,8 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
     const dateKey = useMemo(() => `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`, [now]);
     const holidayInfo = useMemo(() => CALENDAR_INFO[dateKey], [dateKey]);
 
+    const forecast = useMemo(() => getForecast(now), [now]);
+
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000);
         const todayStr = new Date().toISOString().split('T')[0];
@@ -68,7 +60,6 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                 if (response.ok) {
                     const text = await response.text();
                     const cleanText = text.replace(/\r/g, '');
-                    // FIX: Define lines by splitting cleanText to resolve 'Cannot find name lines'
                     const lines = cleanText.split('\n');
                     const map: Record<string, string> = {};
                     lines.slice(1).forEach(line => {
@@ -85,44 +76,10 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
     useEffect(() => {
         if (!holidayInfo) return;
-        const interval = setInterval(() => setDisplayMode(prev => prev === 'BOO' ? 'EVENT' : 'BOO'), 5000);
+        // Alternanza ogni 10 secondi per permettere una lettura più rilassata
+        const interval = setInterval(() => setDisplayMode(prev => prev === 'BOO' ? 'EVENT' : 'BOO'), 10000);
         return () => clearInterval(interval);
     }, [holidayInfo]);
-
-    const kidFriendlyTime = useMemo(() => {
-        const h = now.getHours();
-        const m = now.getMinutes();
-        const mStr = m === 0 ? "" : (m === 1 ? " e 1 minuto" : ` e ${m} minuti`);
-
-        if (h === 0) return `è mezzanotte${mStr}`;
-        if (h === 12) return `è mezzogiorno${mStr}`;
-        
-        let displayH = h > 12 ? h - 12 : h;
-        let period = "";
-        if (h >= 1 && h < 12) period = "di mattina";
-        else if (h >= 13 && h < 18) period = "di pomeriggio";
-        else if (h >= 18 && h <= 23) period = "di sera";
-
-        const verb = (displayH === 1) ? "è" : "sono";
-        const article = displayH === 1 ? "l'" : "le ";
-        
-        return `${verb} ${article}${displayH}${mStr} ${period}`;
-    }, [now]);
-
-    const moonData = useMemo(() => {
-        const lp = 2551443; const nowMs = now.getTime();
-        const new_moon = new Date(1970, 0, 7, 20, 35, 0).getTime();
-        const phase = ((nowMs - new_moon) / 1000) % lp;
-        const age = Math.floor(phase / (24 * 3600)) + 1;
-        if (age < 2) return { label: "Luna Nuova", img: MOON_IMGS.NEW };
-        if (age < 8) return { label: "Luna Crescente", img: MOON_IMGS.WAXING_CRESCENT };
-        if (age < 12) return { label: "Primo Quarto", img: MOON_IMGS.FIRST_QUARTER };
-        if (age < 15) return { label: "Gibbosa Crescente", img: MOON_IMGS.WAXING_GIBBOUS };
-        if (age < 17) return { label: "Luna Piena", img: MOON_IMGS.FULL };
-        if (age < 22) return { label: "Gibbosa Calante", img: MOON_IMGS.WANING_GIBBOUS };
-        if (age < 26) return { label: "Ultimo Quarto", img: MOON_IMGS.LAST_QUARTER };
-        return { label: "Luna Calante", img: MOON_IMGS.WANING_CRESCENT };
-    }, [now]);
 
     const seasonData = useMemo(() => {
         const springStart = new Date(now.getFullYear(), 2, 20);
@@ -200,7 +157,6 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
             
             <div className="bg-white/30 backdrop-blur-xl border-4 border-white/20 rounded-[2.5rem] shadow-2xl w-full max-md overflow-hidden relative animate-in zoom-in duration-300 flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
                 
-                {/* AVATAR DI BOO RIDIMENSIONATO E CENTRATO SULLO SFONDO */}
                 <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden">
                     <div className="relative w-full h-full flex items-center justify-center opacity-60">
                         <img src={currentBooImage} className="absolute w-auto h-[70%] max-w-none scale-[1.3] md:scale-[1.6] transform translate-y-[5%]" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.5))' }} alt="" />
@@ -221,31 +177,41 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                 </div>
 
                 <div className="p-4 space-y-4 overflow-y-auto no-scrollbar flex-1 relative z-10">
-                    {/* BOX INFO ORA/DATA/LUNA/STAGIONE */}
-                    <div className="bg-black/30 backdrop-blur-md rounded-3xl p-4 md:p-6 border border-white/20 flex flex-col items-start gap-5 w-full shadow-xl">
-                        <div className="flex flex-row items-center gap-3 w-full">
-                            <div className="flex items-center gap-2 shrink-0">
-                                <img src={ICON_CLOCK} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt="" />
-                                <span className="font-black text-3xl md:text-5xl tracking-widest text-yellow-300 drop-shadow-sm">{timeStr}</span>
+                    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-col gap-4 w-full shadow-xl">
+                        
+                        {/* RIGA 1: ORARIO */}
+                        <div className="flex flex-row items-center gap-4 w-full">
+                            <img src={ICON_CLOCK} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md shrink-0" alt="" />
+                            <div className="flex flex-col">
+                                <span className="font-black text-3xl md:text-5xl tracking-widest text-yellow-300 drop-shadow-sm leading-none">{timeStr}</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <span className="text-yellow-100 font-luckiest text-[11px] md:text-xl uppercase tracking-wider opacity-90 leading-none block text-stroke-lucky-small">
-                                    {kidFriendlyTime}
-                                </span>
-                            </div>
+                        </div>
+
+                        {/* RIGA 2: DATA */}
+                        <div className="flex flex-row items-center gap-3 w-full border-t border-white/10 pt-3">
+                            <img src={ICON_CALENDAR} className="w-8 h-8 md:w-11 md:h-11 object-contain drop-shadow-md shrink-0" alt="" />
+                            <p className="text-white font-black text-sm md:text-xl uppercase opacity-90">{dateStr}</p>
                         </div>
                         
-                        <div className="flex flex-row gap-8 w-full items-center">
-                            <div className="flex items-center gap-3">
-                                <img src={ICON_CALENDAR} className="w-9 h-9 md:w-12 md:h-12 object-contain drop-shadow-md" alt="" />
-                                <p className="text-white font-black text-sm md:text-xl uppercase opacity-90">{dateStr}</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <img src={moonData.img} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt="" />
-                                <p className="text-blue-200 font-black text-[11px] md:text-lg uppercase tracking-tighter">{moonData.label}</p>
-                            </div>
+                        {/* NUOVA RIGA 3: METEO CITTÀ COLORATA */}
+                        <div className="grid grid-cols-3 gap-2 w-full pt-1 border-t border-white/10 pt-3">
+                            {forecast.map((f, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-300 ${i === 0 ? 'bg-white/15 border-yellow-400/50 shadow-lg scale-[1.03]' : 'bg-black/20 border-white/10'}`}
+                                >
+                                    <span className={`text-[8px] md:text-[10px] font-black uppercase mb-1 ${i === 0 ? 'text-yellow-400' : 'text-white/60'}`}>
+                                        {f.label}
+                                    </span>
+                                    <img src={f.icon} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt={f.type} />
+                                    <span className="text-[7px] md:text-[9px] font-bold text-white/40 uppercase mt-1">
+                                        {f.date}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                        <p className="text-green-300 font-black text-[10px] md:text-sm uppercase tracking-tight opacity-90 border-t border-white/10 pt-3 w-full">{seasonData.message}</p>
+
+                        <p className="text-green-300 font-black text-[9px] md:text-sm uppercase tracking-tight opacity-90 border-t border-white/10 pt-2 w-full text-center">{seasonData.message}</p>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex flex-col justify-center relative overflow-hidden transition-all duration-500 shadow-lg min-h-[120px]">

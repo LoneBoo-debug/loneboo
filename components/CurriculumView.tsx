@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square, ZoomIn } from 'lucide-react';
@@ -39,6 +38,10 @@ const IMG_ACTIVITY_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.
 
 const ORNELLA_TALK_ANIM = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ornelaspiega.mp4';
 
+// --- ASSET AUDIO FEEDBACK ---
+const SFX_WIN_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/11l-victory_trumpet-1749704498589-358767.mp3';
+const SFX_FAIL_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartoon-fail-trumpet-278822.mp3';
+
 interface Point { x: number; y: number; }
 
 const ITALIAN_1_HOTSPOTS = {
@@ -67,6 +70,7 @@ const HISTORY_GRADE_HOTSPOTS = {
   "ASK_TEACHER": [{"x": 86.43, "y": 11.09}, {"x": 86.97, "y": 17.39}, {"x": 97.37, "y": 17.39}, {"x": 96.57, "y": 10.94}],
   "EXERCISES": [{"x": 4.27, "y": 88.76}, {"x": 4.27, "y": 93.71}, {"x": 25.88, "y": 93.86}, {"x": 25.08, "y": 88.61}],
   "VISUAL_ACTIVITY": [{"x": 28.54, "y": 88.46}, {"x": 28.81, "y": 93.71}, {"x": 49.62, "y": 94.16}, {"x": 48.55, "y": 88.46}],
+  // FIX: Corrected syntax error in coordinates array for GAMES property
   "GAMES": [{"x": 52.29, "y": 88.61}, {"x": 52.82, "y": 93.86}, {"x": 73.63, "y": 94.01}, {"x": 73.09, "y": 88.91}],
   "YOUTUBE": [{"x": 76.3, "y": 88.61}, {"x": 77.1, "y": 93.86}, {"x": 97.1, "y": 93.56}, {"x": 97.1, "y": 88.61}]
 };
@@ -97,7 +101,7 @@ interface CurriculumViewProps {
   onExit: () => void;
   bgUrl: string;
   setView?: (view: AppView) => void;
-  initialLesson?: SchoolLesson; // NUOVA PROP PER NAVIGAZIONE DIRETTA
+  initialLesson?: SchoolLesson;
 }
 
 const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, onExit, bgUrl, setView, initialLesson }) => {
@@ -134,7 +138,17 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [zoomedLessonImage, setZoomedLessonImage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // --- COORDINATE CALIBRATE FINALI ---
+  // Helper per riprodurre i suoni di feedback
+  const playFeedbackSfx = (success: boolean) => {
+    try {
+      const sfx = new Audio(success ? SFX_WIN_URL : SFX_FAIL_URL);
+      sfx.volume = 0.6;
+      sfx.play().catch(e => console.warn("Audio sfx blocked", e));
+    } catch (err) {
+      console.warn("Feedback sfx error", err);
+    }
+  };
+
   const calib = {
     tvTop: 9,
     tvLeft: 3,
@@ -149,13 +163,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setIsPremiumActive(premium);
   }, []);
 
-  /**
-   * EFFETTO DI AGGANCIO REINDIRIZZAMENTO ARCHIVIO
-   */
   useEffect(() => {
-      // Se abbiamo già una lezione iniziale via prop, non cerchiamo nel sessionStorage
       if (initialLesson) return;
-
       const pendingId = sessionStorage.getItem('pending_lesson_id');
       if (pendingId) {
           const chapters = data.subjects[selectedSubject] || [];
@@ -171,9 +180,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   }, [data, selectedSubject, initialLesson]);
 
   const getSpecialBg = (isLessonView: boolean) => {
-    // Se siamo in un Argomento Extra (grade 0), usiamo lo sfondo passato come prop
     if (data.grade === 0) return bgUrl;
-
     switch (selectedSubject) {
         case SchoolSubject.ITALIANO: return isLessonView ? GRADE1_ITALIAN_LESSON_BG : GRADE1_ITALIAN_INDEX_BG;
         case SchoolSubject.MATEMATICA: return isLessonView ? GRADE1_MATH_LESSON_BG : GRADE1_MATH_INDEX_BG;
@@ -212,8 +219,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   }, [selectedLesson]);
 
   const renderMixedContent = (text: string) => {
-      // Regex migliorata per catturare link ad immagini anche senza estensione fissa se contengono loneboo-images.s3
-      const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\.eu-south-1\.amazonaws\.com\/\S+)/gi;
+      const imgRegex = /(https?:\/\/\S+\.(?:webp|jpg|jpeg|png|gif)(?:\?\S*)?|https?:\/\/loneboo-images\.s3\.eu-south-1\.amazonaws.com\/\S+)/gi;
       const parts = text.split(imgRegex);
       
       return parts.map((part, index) => {
@@ -262,13 +268,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   useEffect(() => {
     if (selectedLesson && !selectedLesson.isPremium) {
         if (textContainerRef.current) textContainerRef.current.scrollTop = 0;
-        
         const timers = [
             setTimeout(checkPages, 100),
             setTimeout(checkPages, 500),
             setTimeout(checkPages, 1500)
         ];
-        
         window.addEventListener('resize', checkPages);
         return () => {
             timers.forEach(clearTimeout);
@@ -317,7 +321,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   const toggleLessonAudio = (url: string) => {
     if (!url || selectedLesson?.isPremium) return;
-    
     if (audioRef.current && audioRef.current.src === url) {
         if (isAudioPlaying) { 
             audioRef.current.pause(); 
@@ -333,7 +336,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             audioRef.current.removeEventListener('timeupdate', handleAudioTimeUpdate);
             audioRef.current.removeEventListener('loadedmetadata', handleAudioLoadedMetadata);
         }
-        
         const audio = new Audio(url);
         audio.addEventListener('timeupdate', handleAudioTimeUpdate);
         audio.addEventListener('loadedmetadata', handleAudioLoadedMetadata);
@@ -341,7 +343,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             setIsAudioPlaying(false);
             setShowAudioPlayer(false);
         };
-        
         audio.play();
         audioRef.current = audio;
         setIsAudioPlaying(true);
@@ -371,7 +372,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setQuizAnswer(idx);
     setShowFeedback(true);
     const quiz = selectedLesson?.quizzes[currentQuizIdx];
-    if (idx === quiz?.correctIndex) {
+    const isCorrect = idx === quiz?.correctIndex;
+    
+    // Riproduce Sfx vittoria o errore
+    playFeedbackSfx(isCorrect);
+
+    if (isCorrect) {
         if (selectedLesson) markQuizComplete(selectedLesson.id, currentQuizIdx);
     } else {
         setTimeout(() => { setQuizAnswer(null); setShowFeedback(false); }, 2000);
@@ -393,7 +399,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
     setActivityAnswer(idx);
     setShowActivityFeedback(true);
     const activity = selectedLesson?.activities[currentActivityIdx];
-    if (idx === activity?.correctIndex) {
+    const isCorrect = idx === activity?.correctIndex;
+    
+    // Riproduce Sfx vittoria o errore
+    playFeedbackSfx(isCorrect);
+
+    if (isCorrect) {
         if (selectedLesson) markActivityComplete(selectedLesson.id, currentActivityIdx);
     } else {
         setTimeout(() => { setActivityAnswer(null); setShowActivityFeedback(false); }, 2000);
@@ -533,7 +544,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               )}
           </div>
 
-          {/* --- MINI TV MAESTRA (POSIZIONAMENTO CALIBRATO) --- */}
           {showAudioPlayer && !selectedLesson.isPremium && (
               <div 
                 className="absolute z-50 animate-in slide-in-from-left duration-500"
@@ -574,7 +584,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* --- MINI PLAYER COMPATTO (POSIZIONAMENTO CALIBRATO) --- */}
           {showAudioPlayer && !selectedLesson.isPremium && (
             <div 
                 className="absolute z-50 animate-in slide-in-from-right duration-500"
@@ -631,13 +640,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                     className="w-full h-auto max-w-[200px] drop-shadow-md" 
                                   />
                               </div>
-
                               <h3 className="text-2xl md:text-3xl font-black text-blue-900 uppercase mb-2 tracking-tighter leading-none">Contenuto Premium</h3>
                               <p className="text-gray-600 font-bold mb-8 text-sm md:text-lg leading-snug">
                                   Questa lezione è riservata agli abbonati di Lone Boo World! 👑 <br/> 
                                   <span className="text-xs text-slate-400 mt-2 block">Chiedi a mamma o papà!</span>
                               </p>
-
                               <div className="flex gap-4 w-full justify-center">
                                   <button onClick={handleCloseLesson} className="hover:scale-110 active:scale-95 transition-all outline-none">
                                       <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-24 md:w-32 h-auto drop-shadow-lg" />
@@ -655,28 +662,17 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                 {selectedLesson.title}
                             </h3>
                         </div>
-
-                        {/* Pagination box vertical on the left side, positioned just above the text container */}
                         <div className="absolute left-1 md:left-4 top-[12%] md:top-[18%] flex flex-col items-center z-30 pointer-events-none">
                             <div className="px-2 py-1.5 md:px-4 md:py-3 flex flex-col items-center transition-all pointer-events-auto">
-                                <span className="font-black text-blue-700 text-[8px] md:text-xs uppercase tracking-widest leading-none mb-1">
-                                    Pagina
-                                </span>
-                                <span className="font-black text-blue-700 text-xs md:text-2xl leading-none">
-                                    {currentPage}/{totalPages}
-                                </span>
+                                <span className="font-black text-blue-700 text-[8px] md:text-xs uppercase tracking-widest leading-none mb-1">Pagina</span>
+                                <span className="font-black text-blue-700 text-xs md:text-2xl leading-none">{currentPage}/{totalPages}</span>
                             </div>
                         </div>
-
                         <div 
                             ref={textContainerRef}
                             onScroll={handleManualScroll}
                             className="w-full overflow-y-auto overflow-x-hidden no-scrollbar pointer-events-auto block"
-                            style={{
-                                height: '48vh', 
-                                touchAction: 'pan-y',
-                                WebkitOverflowScrolling: 'touch'
-                            }}
+                            style={{ height: '48vh', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
                         >
                             <div className="flex flex-col gap-4 pb-12">
                                 {renderMixedContent(selectedLesson.text)}
@@ -723,20 +719,15 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
                   <div className="bg-white w-full max-w-2xl rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto max-h-[800px]">
                       <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
-                      
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0"><img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" /></div>
-
                       <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden gap-3">
                           <div className="text-center">
                               <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">Attività {currentActivityIdx + 1} di {selectedLesson.activities.length}</span>
                           </div>
-
                           <div className="w-full aspect-video bg-slate-100 border-4 border-orange-200 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
                                <img src={currentActivity.image} className="w-full h-full object-contain" alt="Immagine Attività" />
                           </div>
-
                           <p className="text-lg md:text-xl font-black text-slate-800 leading-tight text-center px-2">{currentActivity.question}</p>
-
                           <div className="grid grid-cols-1 gap-1.5 flex-1">
                               {currentActivity.options.map((opt, idx) => (
                                   <button 
@@ -749,7 +740,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                                   </button>
                               ))}
                           </div>
-
                           <div className="min-h-[60px] flex items-center justify-center">
                               {showActivityFeedback && (
                                   <div className="w-full p-2 rounded-2xl bg-orange-50 border-2 border-orange-200 text-center animate-in zoom-in">
@@ -773,7 +763,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300 flex items-center justify-center">
                   <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-0 w-full max-w-[240px] md:max-w-[320px] max-h-[75vh] text-center shadow-2xl relative overflow-hidden animate-in zoom-in duration-300 flex items-center justify-center">
                       <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-black hover:scale-110 active:scale-95 transition-all z-20 shadow-lg"><X size={18} strokeWidth={4} /></button>
-                      
                       <div className="w-full h-full flex flex-col items-center justify-center">
                           <img 
                               src={
@@ -800,7 +789,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           )}
 
-          {/* --- MODALE ZOOM IMMAGINE LEZIONE --- */}
           {zoomedLessonImage && (
               <div 
                 className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300"
@@ -812,7 +800,6 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   >
                       <X size={24} strokeWidth={4} />
                   </button>
-
                   <div 
                     className="relative max-w-full max-h-[75vh] bg-white p-2 md:p-4 rounded-[2rem] md:rounded-[3rem] border-8 border-yellow-400 shadow-[0_0_50px_rgba(255,255,255,0.2)] overflow-hidden flex items-center justify-center"
                     onClick={e => e.stopPropagation()}

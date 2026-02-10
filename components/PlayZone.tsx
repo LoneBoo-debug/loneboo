@@ -1,9 +1,10 @@
 
-import React, { useState, Suspense, useEffect, useRef } from 'react';
+import React, { useState, Suspense, useEffect, useRef, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getProgress, addTokens } from '../services/tokens';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
+import { getWeatherForDate } from '../services/weatherService';
 
 // Lazy Load Games
 const QuizGame = React.lazy(() => import('./QuizGame'));
@@ -23,8 +24,12 @@ const WordGuessGame = React.lazy(() => import('./WordGuessGame'));
 const ArcadeConsole = React.lazy(() => import('./ArcadeConsole'));
 const BingoGame = React.lazy(() => import('./BingoGame'));
 
-const PARK_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
-const PARK_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newparcogiochimape3rfcxxs.webp';
+const PARK_BG_SUN_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
+const PARK_BG_SUN_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newparcogiochimape3rfcxxs.webp';
+
+const PARK_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochibneveeso.webp';
+const PARK_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochipiaggieso.webp';
+const PARK_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochiventoeso.webp';
 
 // Asset Audio e Video
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parcogiochispeechboo6tr64.mp3';
@@ -163,14 +168,34 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+
+  const currentBgMobile = useMemo(() => {
+    switch (todayWeather) {
+        case 'SNOW': return PARK_BG_SNOW;
+        case 'RAIN': return PARK_BG_RAIN;
+        case 'WIND': return PARK_BG_WIND;
+        default: return PARK_BG_SUN_MOBILE;
+    }
+  }, [todayWeather]);
+
+  const currentBgDesktop = useMemo(() => {
+    switch (todayWeather) {
+        case 'SNOW': return PARK_BG_SNOW;
+        case 'RAIN': return PARK_BG_RAIN;
+        case 'WIND': return PARK_BG_WIND;
+        default: return PARK_BG_SUN_DESKTOP;
+    }
+  }, [todayWeather]);
+
   useEffect(() => {
     const handleProgressUpdate = () => {
       setTokenBalance(getProgress().tokens);
     };
     window.addEventListener('progressUpdated', handleProgressUpdate);
     
-    const imgM = new Image(); imgM.src = PARK_BG_MOBILE;
-    const imgD = new Image(); imgD.src = PARK_BG_DESKTOP;
+    const imgM = new Image(); imgM.src = currentBgMobile;
+    const imgD = new Image(); imgD.src = currentBgDesktop;
     const checkLoaded = () => setIsLoaded(true);
     imgM.onload = checkLoaded;
     imgD.onload = checkLoaded;
@@ -208,7 +233,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         ambientAudioRef.current.currentTime = 0;
       }
     };
-  }, [activeGame, isAudioOn]);
+  }, [activeGame, isAudioOn, currentBgMobile, currentBgDesktop]);
 
   const getClipPath = (points: Point[]) => {
       if (!points || points.length < 3) return 'none';
@@ -263,6 +288,10 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
             <span className="text-white font-black tracking-widest uppercase">Preparo il gioco...</span>
           </div>
         }>
+          {/* 
+            FIX: Replaced 'Type.NONE' with 'GameType.NONE' in all onBack callbacks 
+            to match the enum defined in this file. 
+          */}
           {activeGame === GameType.QUIZ && <QuizGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
           {activeGame === GameType.MEMORY && <MemoryGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
           {activeGame === GameType.TICTACTOE && <TicTacToeGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
@@ -305,8 +334,8 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         className="absolute inset-0 z-0"
       >
         <picture>
-          <source media="(max-width: 768px)" srcSet={PARK_BG_MOBILE} />
-          <img src={PARK_BG_DESKTOP} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+          <source media="(max-width: 768px)" srcSet={currentBgMobile} />
+          <img src={currentBgDesktop} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
         </picture>
         
         {/* BOX SALDO GETTONI - STILE COERENTE CON I GIOCHI - Abbassato al 74% */}

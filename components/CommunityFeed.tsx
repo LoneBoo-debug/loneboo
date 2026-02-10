@@ -1,13 +1,18 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppNotification, AppView, CommunityPost } from '../types';
 import { fetchAppNotifications, markNotificationsAsRead } from '../services/notificationService';
 import { getLatestVideos } from '../services/api';
 import { getCommunityPosts } from '../services/data';
 import { OFFICIAL_LOGO } from '../constants';
 import { Bell, ExternalLink, PlayCircle } from 'lucide-react';
+import { getWeatherForDate } from '../services/weatherService';
 
-const PIAZZA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp';
+const PIAZZA_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp';
+const PIAZZA_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaneveeso.webp';
+const PIAZZA_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzapioggiaeso.webp';
+const PIAZZA_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaventoeso.webp';
+
 const FACEBOOK_GROUP_URL = 'https://www.facebook.com/groups/2648776785470151/';
 const NOTIF_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/notif-piazza.webp';
 const NEWS_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/news-piazza.webp';
@@ -20,7 +25,6 @@ const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzp
 
 type Point = { x: number; y: number };
 
-// --- COORDINATE DEFINITIVE CALIBRATE ---
 const INITIAL_ZONES: Record<string, Point[]> = {
   "museo": [
     { "x": 81.82, "y": 61 },
@@ -91,9 +95,20 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+
+  const currentBg = useMemo(() => {
+    switch (todayWeather) {
+        case 'SNOW': return PIAZZA_BG_SNOW;
+        case 'RAIN': return PIAZZA_BG_RAIN;
+        case 'WIND': return PIAZZA_BG_WIND;
+        default: return PIAZZA_BG_SUN;
+    }
+  }, [todayWeather]);
+
   useEffect(() => {
     const img = new Image();
-    img.src = PIAZZA_BG;
+    img.src = currentBg;
     img.onload = () => setBgLoaded(true);
     
     // Inizializza Audio
@@ -114,8 +129,9 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
     const handleGlobalAudioChange = () => {
         const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
         setIsAudioOn(enabled);
-        if (enabled) audioRef.current?.play().catch(() => {});
-        else {
+        if (enabled) {
+            audioRef.current?.play().catch(() => {});
+        } else {
             audioRef.current?.pause();
             if (audioRef.current) audioRef.current.currentTime = 0;
         }
@@ -149,7 +165,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
             audioRef.current.currentTime = 0;
         }
     };
-  }, []);
+  }, [currentBg]);
 
   const handleExternalClick = (e: React.MouseEvent, url: string) => {
     const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
@@ -271,7 +287,18 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
         {bgLoaded && isAudioOn && isPlaying && (
             <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
                 <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
-                    <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
+                    <video 
+                        src={BOO_TALK_VIDEO}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                        style={{ 
+                            mixBlendMode: 'screen',
+                            filter: 'contrast(1.1) brightness(1.1)'
+                        }}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                 </div>
             </div>
@@ -280,7 +307,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
         {/* MAIN INTERACTIVE CONTAINER */}
         <div className="absolute inset-0 z-0">
             <img 
-                src={PIAZZA_BG} 
+                src={currentBg} 
                 alt="Piazza" 
                 className={`w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 draggable={false} 

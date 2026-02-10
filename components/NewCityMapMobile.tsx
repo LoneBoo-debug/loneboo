@@ -3,14 +3,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import DailyRewardsModal from './DailyRewardsModal';
+import { monthNames } from '../services/calendarDatabase';
+import { getWeatherForDate } from '../services/weatherService';
 
 const MOBILE_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/defnewsdesd.webp';
-const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/calendardaily77ye32.webp';
+const WIND_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgventomaps.webp';
+const RAIN_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgpioggiamaps.webp';
+const SNOW_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgnevemaps.webp';
 
-// Asset Audio e Video
+const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/477401351381209093.webp';
+
 const CITY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mappa+citt%C3%A0loneboovoice4re.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
-
 const SECOND_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/95391cac-6d62-412c-8e04-680ccb610133.mp3';
 const SECOND_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpxynksh6c.mp4';
 
@@ -43,13 +47,29 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
-    const [dialogueStep, setDialogueStep] = useState(0); // 0: Primo audio/video, 1: Secondo audio/video
+    const [dialogueStep, setDialogueStep] = useState(0); 
     const [showDailyModal, setShowDailyModal] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = monthNames[today.getMonth()].slice(0, 3);
+    
+    // Normalizziamo il meteo una volta sola per l'intero componente
+    const weather = getWeatherForDate(today);
+
+    const getBackgroundUrl = () => {
+        switch (weather) {
+            case 'WIND': return WIND_MAP_URL;
+            case 'RAIN': return RAIN_MAP_URL;
+            case 'SNOW': return SNOW_MAP_URL;
+            default: return MOBILE_MAP_URL;
+        }
+    };
+
     useEffect(() => {
         const img = new Image();
-        img.src = MOBILE_MAP_URL;
+        img.src = getBackgroundUrl();
         img.onload = () => setIsLoaded(true);
         
         if (!audioRef.current) {
@@ -61,10 +81,8 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             audioRef.current.addEventListener('ended', () => {
                 setDialogueStep(prev => {
                     if (prev === 0) {
-                        // Passa immediatamente al secondo audio
                         if (audioRef.current) {
                             audioRef.current.src = SECOND_VOICE_URL;
-                            // Controlliamo che l'audio sia ancora attivo globalmente prima di proseguire
                             if (localStorage.getItem('loneboo_music_enabled') === 'true') {
                                 audioRef.current.play().catch(e => console.log("Second audio blocked", e));
                             }
@@ -84,7 +102,6 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
             setIsAudioOn(enabled);
             if (enabled) {
-                // Se riabilitiamo l'audio, ripartiamo dal primo step per coerenza o proseguiamo
                 if (audioRef.current?.paused) {
                     audioRef.current.play().catch(() => {});
                 }
@@ -117,7 +134,6 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* Mini TV di Boo - Step 0: SINISTRA */}
             {isLoaded && isAudioOn && isPlaying && dialogueStep === 0 && (
                 <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -127,7 +143,6 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* Mini TV di Boo - Step 1: DESTRA sotto il calendario */}
             {isLoaded && isAudioOn && isPlaying && dialogueStep === 1 && (
                 <div className="absolute top-[160px] md:top-[240px] right-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -137,17 +152,22 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* TASTO CALENDARIO GIORNALIERO - Fix Mobile: Cambiato in onClick */}
             {isLoaded && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
                     className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
                 >
-                    <img src={CALENDAR_ICON_URL} alt="Calendario Giornaliero" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
+                    <div className="relative w-16 h-16 md:w-28 flex items-center justify-center">
+                        <img src={CALENDAR_ICON_URL} alt="Calendario" className="w-full h-full object-contain drop-shadow-2xl" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-3 md:pt-6">
+                            <span className="text-[10px] md:text-lg text-yellow-400 font-luckiest leading-none uppercase tracking-tighter mt-1" style={{ WebkitTextStroke: '1px black' }}>{currentMonth}</span>
+                            <span className="text-red-600 font-black text-2xl md:text-5xl leading-none relative -top-1">{currentDay}</span>
+                        </div>
+                    </div>
                 </button>
             )}
             
-            <img src={MOBILE_MAP_URL} alt="Nuova Mappa Mobile" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
+            <img src={getBackgroundUrl()} alt="Mappa Mobile" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
 
             {isLoaded && Object.entries(MAP_AREAS).map(([viewKey, pts]) => (
                 <div 

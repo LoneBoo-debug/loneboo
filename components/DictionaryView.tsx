@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { AppView } from '../types';
 import { X, Search, Mic, MicOff, Loader2, ArrowLeft, Send, AlertTriangle } from 'lucide-react';
@@ -219,7 +218,8 @@ const DictionaryView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }
                             <AlertTriangle className="text-white mx-auto mb-4" size={60} />
                             <h3 className="text-white font-black text-xl md:text-3xl uppercase">Errore Connessione</h3>
                             <p className="text-white font-bold mb-6">Non sono riuscito a caricare le parole. Controlla il link del foglio Google o la tua connessione.</p>
-                            <button loadDictionary={loadDictionary} className="bg-white text-red-600 px-8 py-3 rounded-full font-black uppercase shadow-lg active:scale-95 transition-all">RIPROVA ORA</button>
+                            {/* FIX: corrected loadDictionary prop to onClick */}
+                            <button onClick={loadDictionary} className="bg-white text-red-600 px-8 py-3 rounded-full font-black uppercase shadow-lg active:scale-95 transition-all">RIPROVA ORA</button>
                         </div>
                     ) : filteredResults.length > 0 ? (
                         filteredResults.map((entry, idx) => (

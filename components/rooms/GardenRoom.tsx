@@ -3,10 +3,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 import DailyRewardsModal from '../DailyRewardsModal';
+import { monthNames } from '../../services/calendarDatabase';
+import { getWeatherForDate } from '../../services/weatherService';
+
+const GARDEN_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousemobiledefnewmao776gbs11.webp';
+const GARDEN_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casaventobg.webp';
+const GARDEN_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cadapigoggisbg.webp';
+const GARDEN_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanevebge.webp';
 
 const BTN_CITY_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartelvaicitygardenboo77y6t+(1).webp';
 const WELCOME_SIGN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/benveniduuej33+(1)+(1).webp';
-const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/calendardaily77ye32.webp';
+const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/477401351381209093.webp';
 
 // Asset Audio
 const GARDEN_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giardinoboovoice66.mp3';
@@ -28,8 +35,26 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     const [showDailyModal, setShowDailyModal] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = monthNames[today.getMonth()].slice(0, 3);
+    const todayWeather = getWeatherForDate(today);
+
+    const getGardenBackground = () => {
+        switch (todayWeather) {
+            case 'WIND': return GARDEN_BG_WIND;
+            case 'RAIN': return GARDEN_BG_RAIN;
+            case 'SNOW': return GARDEN_BG_SNOW;
+            default: return GARDEN_BG_SUN;
+        }
+    };
+
     useEffect(() => {
-        setIsLoaded(true);
+        const bgUrl = getGardenBackground();
+        const img = new Image();
+        img.src = bgUrl;
+        img.onload = () => setIsLoaded(true);
+
         if (!audioRef.current) {
             audioRef.current = new Audio(GARDEN_MUSIC_URL);
             audioRef.current.loop = false;
@@ -42,7 +67,6 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
             });
         }
 
-        // Forza l'avvio se l'audio è attivo
         if (isAudioOn && audioRef.current) {
             audioRef.current.play().catch(e => console.log("Audio play blocked", e));
         }
@@ -65,13 +89,18 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                 audioRef.current.currentTime = 0;
             }
         };
-    }, [isLoaded, isAudioOn]);
+    }, []);
 
     const getPolygonPath = (pts: Point[]) => `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
         <RoomLayout roomType={AppView.BOO_GARDEN} setView={setView} disableHint={true}>
             <div className="w-full h-full relative overflow-hidden">
+                {/* Override background image dynamicamente */}
+                <div className="absolute inset-0 z-0">
+                    <img src={getGardenBackground()} alt="Garden" className="w-full h-full object-fill" />
+                </div>
+                
                 {isAudioOn && isPlaying && (
                     <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
                         <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -81,12 +110,18 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                     </div>
                 )}
 
-                {/* TASTO CALENDARIO GIORNALIERO (Stessa posizione della mappa città) */}
+                {/* TASTO CALENDARIO GIORNALIERO */}
                 <button 
                     onClick={() => setShowDailyModal(true)}
                     className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
                 >
-                    <img src={CALENDAR_ICON_URL} alt="Calendario Giornaliero" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
+                    <div className="relative w-16 h-16 md:w-28 flex items-center justify-center">
+                        <img src={CALENDAR_ICON_URL} alt="Calendario" className="w-full h-full object-contain drop-shadow-2xl" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-3 md:pt-6">
+                            <span className="text-[10px] md:text-lg text-yellow-400 font-luckiest leading-none uppercase tracking-tighter mt-1" style={{ WebkitTextStroke: '1px black' }}>{currentMonth}</span>
+                            <span className="text-red-600 font-black text-2xl md:text-5xl leading-none relative -top-1">{currentDay}</span>
+                        </div>
+                    </div>
                 </button>
 
                 <div className="absolute left-6 top-[60%] -translate-y-1/2 z-20 pointer-events-none animate-in slide-in-from-left duration-1000">

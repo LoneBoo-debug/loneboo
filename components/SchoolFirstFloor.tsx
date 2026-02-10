@@ -107,18 +107,6 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* Pulsante per riaprire il disclaimer - IN ALTO A DESTRA */}
-            {isLoaded && !showDisclaimer && (
-                <div className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-500">
-                    <button 
-                        onClick={() => setShowDisclaimer(true)}
-                        className="hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_REOPEN_DISCLAIMER_IMG} alt="Avviso Didattico" className="w-16 h-16 md:w-24 md:h-24 drop-shadow-xl" />
-                    </button>
-                </div>
-            )}
-
             {/* Mini TV di Boo - Posizionato a SINISTRA */}
             {isLoaded && !showDisclaimer && isAudioOn && isPlaying && (
                 <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
@@ -142,11 +130,26 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
 
             {isLoaded && (
                 <>
-                    <div className="absolute bottom-[4%] left-[4%] z-50">
-                        <button onClick={() => !showDisclaimer && setView(AppView.SCHOOL)} className={`transition-all w-[18vw] md:w-[10vw] max-w-[150px] outline-none ${showDisclaimer ? 'opacity-50 grayscale' : 'hover:scale-110 active:scale-95'}`}>
+                    {/* TASTI IN BASSO A SINISTRA */}
+                    <div className="absolute bottom-[4%] left-[4%] z-50 flex items-end gap-3 pointer-events-none">
+                        <button 
+                            onClick={() => !showDisclaimer && setView(AppView.SCHOOL)} 
+                            className={`transition-all w-[18vw] md:w-[10vw] max-w-[150px] outline-none pointer-events-auto ${showDisclaimer ? 'opacity-50 grayscale' : 'hover:scale-110 active:scale-95'}`}
+                        >
                             <img src={BTN_OUT_SCHOOL_IMG} alt="Esci dalla scuola" className="w-full h-auto drop-shadow-2xl" />
                         </button>
+
+                        {/* TASTO AVVISO DIDATTICO - ORA ACCANTO AL TASTO ESCI */}
+                        {!showDisclaimer && (
+                            <button 
+                                onClick={() => setShowDisclaimer(true)}
+                                className="hover:scale-110 active:scale-95 transition-all outline-none w-[18vw] md:w-[10vw] max-w-[150px] pointer-events-auto animate-in slide-in-from-left duration-700"
+                            >
+                                <img src={BTN_REOPEN_DISCLAIMER_IMG} alt="Avviso Didattico" className="w-full h-auto drop-shadow-2xl" />
+                            </button>
+                        )}
                     </div>
+
                     {!showDisclaimer && (
                         <div className="absolute bottom-[6%] right-[5%] z-20 pointer-events-none animate-in fade-in duration-500">
                             <div className="bg-white/90 border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl"><span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase text-center block leading-tight">Scegli un'aula <br className="md:hidden" /> o sali le scale!</span></div>
