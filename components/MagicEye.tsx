@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
 import StoryDice from './StoryDice';
@@ -7,9 +7,11 @@ import MagicHunt from './MagicHunt';
 import GhostPassport from './GhostPassport';
 import MagicHat from './MagicHat';
 import RobotHint from './RobotHint'; 
+import { isNightTime } from '../services/weatherService';
 
-const TOWER_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-mobile.webp';
-const TOWER_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tower-desktop.webp';
+const TOWER_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremoagicagiornides.webp';
+const TOWER_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicanottemnb.webp';
+
 const BTN_BACK_TOWER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-tower.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/waeedwed+(2)+(1)+(1).webp';
 
@@ -25,13 +27,14 @@ const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzp
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 
-const ZONES_MOBILE: ZoneConfig[] = [
+const ZONES_DATA: ZoneConfig[] = [
   { "id": "dice", "points": [ { "x": 14.66, "y": 62.63 }, { "x": 6.66, "y": 76.09 }, { "x": 26.39, "y": 78.79 }, { "x": 31.72, "y": 68.38 } ] },
   { "id": "hunt", "points": [ { "x": 67.96, "y": 12.56 }, { "x": 57.3, "y": 28.54 }, { "x": 78.09, "y": 33.56 }, { "x": 85.55, "y": 15.61 } ] },
   { "id": "passport", "points": [ { "x": 27.99, "y": 54.74 }, { "x": 41.04, "y": 62.1 }, { "x": 62.63, "y": 60.84 }, { "x": 58.37, "y": 49.35 } ] },
   { "id": "hat", "points": [ { "x": 77.56, "y": 57.97 }, { "x": 78.09, "y": 71.61 }, { "x": 95.42, "y": 74.66 }, { "x": 95.68, "y": 57.79 } ] }
 ];
 
+// Note: Le coordinate sono ora unificate per il nuovo sfondo
 const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "dice", "points": [ { "x": 32.88, "y": 64.58 }, { "x": 32.18, "y": 78.08 }, { "x": 42.3, "y": 79.66 }, { "x": 42.4, "y": 65.48 } ] },
   { "id": "hunt", "points": [ { "x": 54.53, "y": 16.2 }, { "x": 54.33, "y": 30.38 }, { "x": 63.85, "y": 31.05 }, { "x": 63.35, "y": 11.25 } ] },
@@ -44,6 +47,7 @@ interface MagicEyeProps {
 }
 
 const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
+  const [now, setNow] = useState(new Date());
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -52,16 +56,17 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-      const imgM = new Image(); imgM.src = TOWER_BG_MOBILE;
-      const imgD = new Image(); imgD.src = TOWER_BG_DESKTOP;
-      
-      const checkLoaded = () => {
-          setIsLoaded(true);
-      };
+  const currentBg = useMemo(() => {
+    return isNightTime(now) ? TOWER_BG_NIGHT : TOWER_BG_DAY;
+  }, [now]);
 
-      imgM.onload = checkLoaded;
-      imgD.onload = checkLoaded;
+  useEffect(() => {
+      // Monitoraggio orario per cambio sfondo
+      const timeInterval = setInterval(() => setNow(new Date()), 60000);
+
+      const img = new Image(); 
+      img.src = currentBg;
+      img.onload = () => setIsLoaded(true);
 
       // Inizializzazione Audio Ambientale
       if (!ambientAudioRef.current) {
@@ -97,6 +102,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       const timer = setTimeout(() => setIsLoaded(true), 2500);
       
       return () => {
+          clearInterval(timeInterval);
           clearTimeout(timer);
           window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
           if (ambientAudioRef.current) {
@@ -104,7 +110,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
               ambientAudioRef.current.currentTime = 0;
           }
       };
-  }, [activeGame]);
+  }, [activeGame, currentBg]);
 
   // Interrompe ambient quando si entra in un gioco
   useEffect(() => {
@@ -204,12 +210,12 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
             {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
                 <img 
-                    src={TOWER_BG_MOBILE} 
+                    src={currentBg} 
                     alt="Torre Magica" 
                     className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                     draggable={false} 
                 />
-                {isLoaded && ZONES_MOBILE.map((zone, i) => (
+                {isLoaded && ZONES_DATA.map((zone, i) => (
                     <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>
@@ -217,7 +223,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
             {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
             <div className="hidden md:block w-full h-full relative overflow-hidden">
                 <img 
-                    src={TOWER_BG_DESKTOP} 
+                    src={currentBg} 
                     alt="Torre Magica Desktop" 
                     className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                     draggable={false} 

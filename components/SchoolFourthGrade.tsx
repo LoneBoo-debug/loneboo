@@ -133,7 +133,6 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
                 </div>
             )}
 
-            {/* Mini TV di Ornella - Posizionato a DESTRA */}
             {isLoaded && !isFetching && !activeSubject && isAudioOn && isPlaying && (
                 <div className="absolute top-20 md:top-28 right-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -158,7 +157,7 @@ const SchoolFourthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
             )}
 
             {activeSubject && <CurriculumView data={dynamicData} initialSubject={activeSubject} onExit={() => setActiveSubject(null)} bgUrl={BG_URL} setView={setView} />}
-            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} grade={4} setView={setView} />}
         </div>
     );
 };

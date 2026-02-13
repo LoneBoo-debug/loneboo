@@ -1,10 +1,12 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import { Check } from 'lucide-react';
+import { isNightTime } from '../services/weatherService';
 
 const SCHOOL_FF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pianischoolslsmnetray66tr+(2).webp';
+const SCHOOL_FF_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/primopianoscuolanotte.webp';
 const BTN_OUT_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ecifuorischool99saxwq123.webp';
 const DISCLAIMER_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tgf65rfdxzaq10oo0o.webp';
 const BTN_REOPEN_DISCLAIMER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/avvisodidatti55r3eco.webp';
@@ -20,6 +22,7 @@ interface SchoolFirstFloorProps {
 type Point = { x: number; y: number };
 
 const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
@@ -28,6 +31,10 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
     const [showDisclaimer, setShowDisclaimer] = useState(() => {
         return localStorage.getItem('school_disclaimer_accepted') !== 'true';
     });
+
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? SCHOOL_FF_NIGHT_BG : SCHOOL_FF_BG;
+    }, [now]);
 
     const SAVED_ZONES: Record<string, Point[]> = {
         "1": [{"x":3.2,"y":20.98},{"x":3.73,"y":84.83},{"x":20.52,"y":76.59},{"x":21.32,"y":23.08}], 
@@ -38,14 +45,18 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
     const SECOND_FLOOR_ZONE: Point[] = [{"x": 61.3, "y": 20.08}, {"x": 62.37, "y": 57.4}, {"x": 95.42, "y": 57.55}, {"x": 94.88, "y": 20.68}];
 
     useEffect(() => {
+        // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+        const timeTimer = setInterval(() => setNow(new Date()), 60000);
+
         const img = new Image();
-        img.src = SCHOOL_FF_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
+        img.onerror = () => setIsLoaded(true); 
         
         if (!audioRef.current) {
             audioRef.current = new Audio(SCHOOL_FLOOR_VOICE_URL);
             audioRef.current.loop = false;
-            audioRef.current.volume = 0.5;
+            audioRef.current.volume = 1.0; 
             audioRef.current.addEventListener('play', () => setIsPlaying(true));
             audioRef.current.addEventListener('pause', () => setIsPlaying(false));
             audioRef.current.addEventListener('ended', () => {
@@ -54,23 +65,27 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
             });
         }
 
-        if (isAudioOn && !showDisclaimer) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
-
         const handleGlobalAudioChange = () => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
             setIsAudioOn(enabled);
-            if (enabled && !showDisclaimer) audioRef.current?.play().catch(() => {});
-            else {
+            if (enabled && !showDisclaimer && isLoaded) {
+                if (audioRef.current) {
+                    audioRef.current.load();
+                    audioRef.current.play()
+                        .catch(e => console.log("Audio blocked", e));
+                }
+            } else {
                 audioRef.current?.pause();
                 if (audioRef.current) audioRef.current.currentTime = 0;
             }
         };
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-        const timer = setTimeout(() => setIsLoaded(true), 2500);
+        const timer = setTimeout(() => setIsLoaded(true), 1500);
         window.scrollTo(0, 0);
         
         return () => {
+            clearInterval(timeTimer);
             clearTimeout(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
@@ -78,7 +93,16 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                 audioRef.current.currentTime = 0;
             }
         };
-    }, [showDisclaimer]);
+    }, [currentBg, showDisclaimer]);
+
+    // Tentativo di avvio automatico al montaggio - Rimosso sessionStorage
+    useEffect(() => {
+        if (isLoaded && isAudioOn && !showDisclaimer && audioRef.current) {
+            audioRef.current.load();
+            audioRef.current.play()
+                .catch(e => console.log("Floor audio blocked", e));
+        }
+    }, [isLoaded, isAudioOn, showDisclaimer]);
 
     const getClipPath = (pts: Point[]) => {
         if (pts.length < 3) return 'none';
@@ -95,7 +119,6 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
     const handleAcceptDisclaimer = () => {
         localStorage.setItem('school_disclaimer_accepted', 'true');
         setShowDisclaimer(false);
-        if (isAudioOn && audioRef.current) audioRef.current.play().catch(e => console.log(e));
     };
 
     return (
@@ -117,7 +140,7 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                 </div>
             )}
 
-            <div className="absolute inset-0 z-0"><img src={SCHOOL_FF_BG} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} /></div>
+            <div className="absolute inset-0 z-0"><img src={currentBg} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} /></div>
 
             {isLoaded && (
                 <>
@@ -174,11 +197,11 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                             </div>
                         </div>
                         
-                        {/* Area Testo Scrollabile con formattazione seria ma accattivante */}
+                        {/* Area Testo Scrollabile */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                             <section className="bg-slate-50 p-4 rounded-2xl border-l-8 border-blue-500">
                                 <p className="text-slate-800 font-bold text-base md:text-lg leading-relaxed text-justify">
-                                    Le lezioni proposte all’interno di Scuola Arcobaleno sono progettate con l’obiettivo di favorire una <span className="text-blue-700 font-black">comprensione profonda e consapevole</span> dei concetti fondamentali, piuttosto che la semplice <span className="text-red-600 font-black">memorizzazione meccanica</span> di nozioni, elenchi o procedure.
+                                    Le lezioni proposte all’interno di Scuola Arcobaleno sono progettate con l’obiettivo di favorive una <span className="text-blue-700 font-black">comprensione profonda e consapevole</span> dei concetti fondamentali, piuttosto che la semplice <span className="text-red-600 font-black">memorizzazione meccanica</span> di nozioni, elenchi o procedure.
                                 </p>
                             </section>
 

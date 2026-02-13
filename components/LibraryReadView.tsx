@@ -1,22 +1,34 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppView } from '../types';
 import { READING_DATABASE, BookReading } from '../services/readingDatabase';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
+import { isNightTime } from '../services/weatherService';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfliberlecturesolo.webp';
+const BG_URL_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salaletturanottesxa.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
 const LibraryReadView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [selectedBook, setSelectedBook] = useState<BookReading | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
 
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? BG_URL_NIGHT : BG_URL;
+    }, [now]);
+
     useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
+        
         const img = new Image();
-        img.src = BG_URL;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
-    }, []);
+
+        return () => clearInterval(timer);
+    }, [currentBg]);
 
     const openBook = (book: BookReading) => {
         setSelectedBook(book);
@@ -59,7 +71,7 @@ const LibraryReadView: React.FC<{ setView: (view: AppView) => void }> = ({ setVi
 
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <img 
-                    src={BG_URL} 
+                    src={currentBg} 
                     alt="Sfondo" 
                     className={`w-full h-full object-fill transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />

@@ -1,6 +1,6 @@
+
 /**
- * Image Preloader Service Potenziato
- * Carica le immagini nella cache del browser prima che vengano visualizzate.
+ * Image Preloader Service Potenziato V2
  */
 
 const PRELOADED_CACHE = new Set<string>();
@@ -11,7 +11,6 @@ export const preloadImages = (urls: (string | undefined)[], priority: 'HIGH' | '
     if (uniqueUrls.length === 0) return;
 
     const runPreload = () => {
-        // Se la priorità è alta, carichiamo tutto subito, altrimenti procediamo a piccoli lotti
         if (priority === 'HIGH') {
             uniqueUrls.forEach(url => {
                 const img = new Image();
@@ -19,8 +18,7 @@ export const preloadImages = (urls: (string | undefined)[], priority: 'HIGH' | '
                 PRELOADED_CACHE.add(url);
             });
         } else {
-            // Caricamento a lotti per non intasare la banda
-            const batchSize = 3;
+            const batchSize = 2;
             const processBatch = (startIndex: number) => {
                 const batch = uniqueUrls.slice(startIndex, startIndex + batchSize);
                 if (batch.length === 0) return;
@@ -31,16 +29,32 @@ export const preloadImages = (urls: (string | undefined)[], priority: 'HIGH' | '
                     PRELOADED_CACHE.add(url);
                 });
 
-                setTimeout(() => processBatch(startIndex + batchSize), 500);
+                if (startIndex + batchSize < uniqueUrls.length) {
+                    setTimeout(() => processBatch(startIndex + batchSize), 1000);
+                }
             };
             processBatch(0);
         }
     };
 
     if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => runPreload(), { timeout: priority === 'HIGH' ? 500 : 3000 });
+        (window as any).requestIdleCallback(() => runPreload(), { timeout: 2000 });
     } else {
-        setTimeout(runPreload, priority === 'HIGH' ? 100 : 2000);
+        setTimeout(runPreload, priority === 'HIGH' ? 100 : 1000);
+    }
+};
+
+/**
+ * Precarica i componenti lazy-loaded
+ */
+export const preloadComponent = (factory: () => Promise<any>) => {
+    const runPreload = () => {
+        factory().catch(() => {});
+    };
+    if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(runPreload);
+    } else {
+        setTimeout(runPreload, 2000);
     }
 };
 

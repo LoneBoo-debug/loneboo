@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
+import { isNightTime } from '../services/weatherService';
 
 const GYM_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newgymoalester554re32.webp';
+const GYM_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/palestra+nottess.webp';
 const BTN_EXIT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ecifuorischool99saxwq123.webp';
 
 // Asset Audio e Video
@@ -48,14 +50,19 @@ interface SchoolGymProps {
 }
 
 const SchoolGym: React.FC<SchoolGymProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const currentBg = useMemo(() => isNightTime(now) ? GYM_NIGHT_BG : GYM_BG, [now]);
+
     useEffect(() => {
+        const timeTimer = setInterval(() => setNow(new Date()), 60000);
+        
         const img = new Image();
-        img.src = GYM_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
         
         if (!audioRef.current) {
@@ -84,13 +91,14 @@ const SchoolGym: React.FC<SchoolGymProps> = ({ setView }) => {
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
         return () => {
+            clearInterval(timeTimer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
             }
         };
-    }, []);
+    }, [currentBg]);
 
     const getClipPath = (pts: Point[]) => {
         if (!pts || pts.length < 3) return 'none';
@@ -134,7 +142,7 @@ const SchoolGym: React.FC<SchoolGymProps> = ({ setView }) => {
             <div className="absolute inset-0 z-0">
                 {/* BACKGROUND */}
                 <img 
-                    src={GYM_BG} 
+                    src={currentBg} 
                     alt="Palestra della Scuola" 
                     className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                     draggable={false} 

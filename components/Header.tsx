@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy, ChevronDown, TrainFront, Volume2, VolumeX } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
 import { CHANNEL_LOGO, OFFICIAL_LOGO } from '../constants';
@@ -9,12 +9,25 @@ import ParentalGate from './ParentalGate';
 import ParentalArea from './ParentalArea';
 
 // Immagini pure stringhe
-const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/citydh+sg4453+(1).webp';
-const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/homrefgdsa+(1).webp';
+const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icocitycytyrye.webp';
+const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icocasasasa.webp';
 const HEADER_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-title.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const HOME_HEADER_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 const HOME_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/headlogheadrilo.webp';
+
+// Asset Menu Pulsante
+const BTN_PLUS_MENU = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/plusiconsa.webp';
+const BTN_MINUS_MENU = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/minoriconsa.webp';
+
+// Loghi Stagionali
+const LOGO_CHRISTMAS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logonatalexxx.webp';
+const LOGO_NEWYEAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logocapodannoeee.webp';
+const LOGO_HALLOWEEN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logohalloweenn.webp';
+const LOGO_VALENTINE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lofosvalentinodd.webp';
+const LOGO_BACKTOSCHOOL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logobacktoscholl99.webp';
+const LOGO_EASTER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logopasquasaa.webp';
+const LOGO_CARNIVAL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logocarnevaleddd.webp';
 
 const ICON_NOTIF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
 const ICON_INFO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-info.webp';
@@ -71,7 +84,37 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         AppView.LAKE_CITY
     ].includes(currentView);
     
-    const titleImage = HOME_HEADER_TITLE;
+    // Calcolo del logo stagionale dinamico
+    const titleImage = useMemo(() => {
+        const now = new Date();
+        const month = now.getMonth() + 1; // 1-12
+        const day = now.getDate();
+        const md = month * 100 + day; // Formato MMDD per confronti rapidi
+
+        // 1. Capodanno: 29/12 al 02/01
+        if (md >= 1229 || md <= 102) return LOGO_NEWYEAR;
+        
+        // 2. Natale: 01/12 al 28/12
+        if (md >= 1201 && md <= 1228) return LOGO_CHRISTMAS;
+        
+        // 3. Halloween: 10/10 al 01/11
+        if (md >= 1010 && md <= 1101) return LOGO_HALLOWEEN;
+        
+        // 4. San Valentino: 07/02 al 14/02
+        if (md >= 207 && md <= 214) return LOGO_VALENTINE;
+        
+        // 5. Carnevale: 15/02 al 28/02 (Modificato per evitare sovrapposizione con San Valentino)
+        if (md >= 215 && md <= 228) return LOGO_CARNIVAL;
+        
+        // 6. Pasqua: 20/03 al 15/04
+        if (md >= 320 && md <= 415) return LOGO_EASTER;
+        
+        // 7. Back to School: 30/08 al 15/09
+        if (md >= 830 && md <= 915) return LOGO_BACKTOSCHOOL;
+
+        // Default
+        return HOME_HEADER_TITLE;
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -174,12 +217,16 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                             <div className="relative">
                                 <button 
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className={`relative bg-yellow-400 hover:bg-yellow-300 active:scale-95 transition-all w-[11.5vw] h-[11.5vw] md:w-[6vw] md:h-[6vw] lg:w-[5.5vw] lg:h-[5.5vw] rounded-full border-[0.8vw] md:border-4 border-black shadow-[0.6vw_0.6vw_0_rgba(0,0,0,0.6)] md:shadow-[3px_3px_0_rgba(0,0,0,0.6)] flex items-center justify-center z-50 ${isMenuOpen ? 'rotate-45 bg-red-400 border-red-800' : ''}`}
+                                    className="relative active:scale-95 transition-all w-[11.5vw] h-[11.5vw] md:w-[6vw] md:h-[6vw] lg:w-[5.5vw] lg:h-[5.5vw] flex items-center justify-center z-50 bg-transparent"
                                 >
                                     {hasNew && !isMenuOpen && (
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-white animate-pulse z-20"></span>
+                                        <span className="absolute top-[10%] right-[10%] w-4 h-4 bg-red-600 rounded-full border-2 border-white animate-pulse z-20"></span>
                                     )}
-                                    <Plus className="text-black w-[7vw] h-[7vw] md:w-[3.5vw] md:h-[3.5vw]" strokeWidth={3} />
+                                    <img 
+                                        src={isMenuOpen ? BTN_MINUS_MENU : BTN_PLUS_MENU} 
+                                        alt="Menu" 
+                                        className="w-full h-full object-contain drop-shadow-lg" 
+                                    />
                                 </button>
 
                                 {isMenuOpen && (
@@ -187,7 +234,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                         <button onClick={handleOpenNotifications} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                             <div className="relative w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
                                                 <img src={ICON_NOTIF} alt="Notifiche" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" />
-                                                {hasNew && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white animate-pulse"></span>}
+                                                {hasNew && <span className="absolute -top-1 -right-1 w-3 i-3 bg-red-500 rounded-full border border-white animate-pulse"></span>}
                                             </div>
                                             <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Notifiche</span>
                                         </button>
@@ -211,11 +258,13 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
 
                     {!isHome && (
                         <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
-                            <img 
-                                src={titleImage} 
-                                alt="Lone Boo" 
-                                className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" 
-                            />
+                            <div className="relative h-full flex items-center">
+                                <img 
+                                    src={titleImage} 
+                                    alt="Lone Boo" 
+                                    className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" 
+                                />
+                            </div>
                         </div>
                     )}
 
@@ -313,7 +362,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                     <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
                         <div className="bg-yellow-400 p-4 flex justify-between items-center border-b-4 border-yellow-500">
                             <h3 className="font-black text-black text-xl uppercase flex items-center gap-2"><img src={ICON_NOTIF} alt="" className="w-12 h-12 object-contain" />Notifiche</h3>
-                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain pointer-events-auto" /></button>
+                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain drop-shadow-sm pointer-events-auto" /></button>
                         </div>
                         <div className="max-h-[65vh] overflow-y-auto p-2 bg-yellow-50">
                             {notifications.length === 0 ? (

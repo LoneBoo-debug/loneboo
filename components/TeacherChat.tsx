@@ -1,28 +1,32 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Mic, MicOff, Volume2, VolumeX, X, Loader2, ArrowLeft, Clock } from 'lucide-react';
+import { Send, Mic, MicOff, Volume2, VolumeX, X, Loader2, ArrowLeft, Clock, MapPin } from 'lucide-react';
 import { getTeacherResponse } from '../services/ai';
-import { ChatMessage } from '../types';
+import { ChatMessage, AppView } from '../types';
 
 const TEACHER_AVATAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/dffdfdfdfds+(1)9870.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const PUNISHMENT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/presid7763ybd3.webp';
+const BTN_MARAGNO_NAV = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indicainfopoinrne22.webp';
 
 const INSULT_LIMIT = 3;
 const BAN_DURATION_MS = 5 * 60 * 1000;
 
 interface TeacherChatProps {
     onClose: () => void;
+    grade: number;
+    setView?: (view: AppView) => void;
 }
 
-const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
+const TeacherChat: React.FC<TeacherChatProps> = ({ onClose, grade, setView }) => {
     const [history, setHistory] = useState<ChatMessage[]>([
-        { role: 'model', text: 'Ciao tesoro! Sono la tua maestra Ornella. Hai qualche domanda per me oggi? 🍎' }
+        { role: 'model', text: `Ciao tesoro! Cosa vuoi chiedermi?` }
     ]);
     const [inputText, setInputText] = useState('');
     const [isThinking, setIsThinking] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [audioEnabled, setAudioEnabled] = useState(false);
+    const [pendingNav, setPendingNav] = useState<AppView | null>(null);
     
     // Safety & Punishment Logic
     const [insultCount, setInsultCount] = useState(() => Number(localStorage.getItem('teacher_insults') || 0));
@@ -35,16 +39,17 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.lang = 'it-IT';
-            recognitionRef.current.onresult = (event: any) => {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'it-IT';
+            recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
                 setInputText(transcript);
                 setIsListening(false);
             };
-            recognitionRef.current.onerror = () => setIsListening(false);
-            recognitionRef.current.onend = () => setIsListening(false);
+            recognition.onerror = () => setIsListening(false);
+            recognition.onend = () => setIsListening(false);
+            recognitionRef.current = recognition;
         }
     }, []);
 
@@ -69,14 +74,14 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [history, isThinking]);
+    }, [history, isThinking, pendingNav]);
 
     const speakText = (text: string) => {
         if (!audioEnabled || !window.speechSynthesis) return;
         
-        // Rimuove le emoji prima della sintesi vocale usando un regex completo
         let cleanText = text
             .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/gu, '')
+            .replace(/\[.*?\]/g, '')
             .trim();
 
         window.speechSynthesis.cancel();
@@ -94,12 +99,17 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
         setHistory(prev => [...prev, userMsg]);
         setInputText('');
         setIsThinking(true);
+        setPendingNav(null);
 
         try {
-            const response = await getTeacherResponse(history, userMsg.text);
+            const response = await getTeacherResponse(history, userMsg.text, grade);
+            const navMatch = response.match(/\[ACTION:NAV:(\w+)\]/);
             const isOffense = response.includes('[OFFENSE_DETECTED]');
             
-            let cleanResponse = response.replace(/\[OFFENSE_DETECTED\]/g, '').trim();
+            let cleanResponse = response
+                .replace(/\[ACTION:NAV:\w+\]/g, '')
+                .replace(/\[OFFENSE_DETECTED\]/g, '')
+                .trim();
 
             if (isOffense) {
                 const newCount = insultCount + 1;
@@ -121,6 +131,11 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
             const modelMsg: ChatMessage = { role: 'model', text: cleanResponse };
             setHistory(prev => [...prev, modelMsg]);
             speakText(cleanResponse);
+
+            if (navMatch && !isOffense) {
+                const targetView = navMatch[1] as AppView;
+                setPendingNav(targetView);
+            }
         } catch (e) {
             setHistory(prev => [...prev, { role: 'model', text: "Scusami caro, non ho sentito bene. Ripeti?" }]);
         } finally {
@@ -132,6 +147,13 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
         if (!recognitionRef.current) return;
         if (isListening) recognitionRef.current.stop();
         else { setIsListening(true); recognitionRef.current.start(); }
+    };
+
+    const handleNavClick = () => {
+        if (pendingNav && setView) {
+            onClose(); // Chiudiamo la chat
+            setView(pendingNav); // Navighiamo
+        }
     };
 
     return (
@@ -174,7 +196,7 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
                 <div className="flex-1">
                     <h3 className="text-white font-black text-lg md:text-2xl uppercase leading-none">Chiedi alla Maestra</h3>
                     <span className="text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                        {isThinking ? 'La maestra riflette...' : 'In linea 👩‍🏫'}
+                        {isThinking ? 'La maestra riflette...' : `Classe ${grade}ª 👩‍🏫`}
                     </span>
                 </div>
                 <button 
@@ -200,6 +222,21 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose }) => {
                             <Loader2 className="animate-spin text-blue-500" size={18} />
                             <span className="text-slate-400 font-black text-xs uppercase">La maestra scrive...</span>
                         </div>
+                    </div>
+                )}
+
+                {pendingNav && !isThinking && (
+                    <div className="flex flex-col items-center py-6 animate-in zoom-in duration-500">
+                        <button 
+                            onClick={handleNavClick}
+                            className="hover:scale-110 active:scale-95 transition-all outline-none border-none bg-transparent"
+                        >
+                            <img 
+                                src={BTN_MARAGNO_NAV} 
+                                alt="Vai da Maragno" 
+                                className="w-56 md:w-80 h-auto drop-shadow-2xl" 
+                            />
+                        </button>
                     </div>
                 )}
                 <div ref={chatEndRef} />

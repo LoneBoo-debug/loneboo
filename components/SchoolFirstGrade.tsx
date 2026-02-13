@@ -56,7 +56,6 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
 
             const remoteData = await fetchGradeCurriculum(1);
             if (remoteData) {
-                // Sostituiamo completamente i dati per usare solo quelli del foglio Google
                 setDynamicData(remoteData);
             }
             setIsFetching(false);
@@ -66,7 +65,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         if (!audioRef.current) {
             audioRef.current = new Audio(TEACHER_VOICE_URL);
             audioRef.current.loop = false;
-            audioRef.current.volume = 0.5;
+            audioRef.current.volume = 1.0; 
             audioRef.current.addEventListener('play', () => setIsPlaying(true));
             audioRef.current.addEventListener('pause', () => setIsPlaying(false));
             audioRef.current.addEventListener('ended', () => {
@@ -85,22 +84,15 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         };
     }, []);
 
-    useEffect(() => {
-        if (isLoaded && !isFetching && isAudioOn && audioRef.current) {
-            const alreadyHeard = sessionStorage.getItem('heard_audio_school_grade_1') === 'true';
-            if (!alreadyHeard) {
-                audioRef.current.play().catch(e => console.log("Audio play blocked", e));
-                sessionStorage.setItem('heard_audio_school_grade_1', 'true');
-            }
-        }
-    }, [isLoaded, isFetching, isAudioOn]);
-
     const handleGlobalAudioChange = () => {
         const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
         setIsAudioOn(enabled);
-        if (enabled && isLoaded && !isFetching) {
-            audioRef.current?.play().catch(() => {});
-            sessionStorage.setItem('heard_audio_school_grade_1', 'true');
+        if (enabled && isLoaded && !isFetching && !activeSubject) {
+            if (audioRef.current) {
+                audioRef.current.load();
+                audioRef.current.play()
+                    .catch(e => console.log("Audio blocked", e));
+            }
         } else {
             audioRef.current?.pause();
             if (audioRef.current) audioRef.current.currentTime = 0;
@@ -110,14 +102,23 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
     useEffect(() => {
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
         return () => window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-    }, [isLoaded, isFetching]);
+    }, [isLoaded, isFetching, activeSubject]);
+
+    // Tentativo di avvio automatico al montaggio - Rimosso sessionStorage
+    useEffect(() => {
+        if (isLoaded && !isFetching && isAudioOn && !activeSubject && audioRef.current) {
+            audioRef.current.load();
+            audioRef.current.play()
+                .catch(e => console.log("Initial audio blocked", e));
+        }
+    }, [isLoaded, isFetching, isAudioOn, activeSubject]);
 
     const getClipPath = (points: Point[]) => {
         if (points.length < 3) return 'none';
         return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
     };
 
-    const handleZoneClick = (zoneId: string) => {
+    const handleZoneInteraction = (zoneId: string) => {
         if (zoneId === 'TEACHER_CHAT') setShowTeacherChat(true);
         else {
             const subject = SchoolSubject[zoneId as keyof typeof SchoolSubject];
@@ -146,7 +147,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             <div className="absolute inset-0 z-0">
                 <img src={BG_URL} alt="1ª Elementare" className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
                 {isLoaded && !isFetching && !activeSubject && Object.entries(CLICKABLE_ZONES).map(([id, pts]) => (
-                    <div key={id} onClick={() => handleZoneClick(id)} className="absolute inset-0 z-20 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(pts) }} title={id.replace('_', ' ')} />
+                    <div key={id} onClick={() => handleZoneInteraction(id)} className="absolute inset-0 z-20 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(pts) }} title={id.replace('_', ' ')} />
                 ))}
             </div>
 
@@ -158,7 +159,7 @@ const SchoolFirstGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             )}
 
             {activeSubject && <CurriculumView data={dynamicData} initialSubject={activeSubject} onExit={() => setActiveSubject(null)} bgUrl={BG_URL} setView={setView} />}
-            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} grade={1} setView={setView} />}
         </div>
     );
 };

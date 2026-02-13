@@ -1,10 +1,21 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView, ChatMessage } from '../types';
 import { Sparkles, MessageCircle, Send, X, Loader2, ArrowLeft, Mic, MicOff, MapPin } from 'lucide-react';
 import { getGrufoResponse } from '../services/ai';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
-const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfgirdinfeemoxion55f4300.webp';
+const BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozzzionisole.webp';
+const BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozzzionipioggia.webp';
+const BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozzzionivento.webp';
+const BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozzzionineve.webp';
+
+// Nuovi Asset Notturni
+const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozioninttesolexsa.webp';
+const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozioninottepioggiaxsa.webp';
+const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozioninotteventoytr.webp';
+const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emozioninttenevesd.webp';
+
 const BTN_BACK_GARDEN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torndagiargardes332+(2).webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacuty55frxxw21+(1).webp';
 
@@ -195,6 +206,27 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
     const sequenceTimerRef = useRef<number | null>(null);
     const fadeIntervalRef = useRef<number | null>(null);
 
+    // DETERMINAZIONE METEO E SFONDO
+    const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+    const currentBg = useMemo(() => {
+        const isNight = isNightTime(new Date());
+        if (isNight) {
+            switch (todayWeather) {
+                case 'SNOW': return NIGHT_SNOW;
+                case 'RAIN': return NIGHT_RAIN;
+                case 'WIND': return NIGHT_WIND;
+                default: return NIGHT_SUN;
+            }
+        } else {
+            switch (todayWeather) {
+                case 'SNOW': return BG_SNOW;
+                case 'RAIN': return BG_RAIN;
+                case 'WIND': return BG_WIND;
+                default: return BG_SUN;
+            }
+        }
+    }, [todayWeather]);
+
     useEffect(() => {
         window.scrollTo(0, 0);
 
@@ -349,7 +381,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
     };
 
     return (
-        <div className="fixed inset-0 z-10 bg-[#e0f2fe] flex flex-col overflow-hidden pt-[64px] md:pt-[96px] select-none">
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-10 bg-[#e0f2fe] flex flex-col overflow-hidden pt-[64px] md:pt-[96px] select-none">
             <style>{`
                 @keyframes flower-breath {
                     0%, 100% { transform: scale(1); }
@@ -375,7 +407,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             `}</style>
 
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <img src={BG_URL} alt="" className="w-full h-full object-fill" />
+                <img src={currentBg} alt="" className="w-full h-full object-fill animate-in fade-in duration-1000" />
             </div>
 
             {/* MINI TV PER LA SEQUENZA DIALOGO */}
@@ -435,23 +467,46 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             <div className="relative z-10 flex-1 w-full flex flex-col items-center justify-start pt-2 md:pt-4 p-4 overflow-hidden">
                 {!selectedCategory && (
                     <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-start">
-                        <div className="grid grid-cols-2 gap-x-12 md:gap-x-72 gap-y-4 md:gap-y-12 mb-4 md:mb-8 shrink-0 relative z-20 border-none">
-                            <button onClick={() => handleFlowerClick('FELICE')} className="group outline-none border-none bg-transparent relative z-30">
-                                <img src={FLOWER_FELICE} className="w-44 h-44 md:w-[26rem] md:h-[26rem] object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" alt="Felice" />
-                            </button>
-                            <button onClick={() => handleFlowerClick('TRISTE')} className="group outline-none border-none bg-transparent relative z-30">
-                                <img src={FLOWER_TRISTE} className="w-44 h-44 md:w-[26rem] md:h-[26rem] object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" alt="Triste" />
-                            </button>
-                            <button onClick={() => handleFlowerClick('ARRABBIATO')} className="group outline-none border-none bg-transparent relative z-30">
-                                <img src={FLOWER_ARRABBIATO} className="w-44 h-44 md:w-[26rem] md:h-[26rem] object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" alt="Arrabbiato" />
-                            </button>
-                            <button onClick={() => handleFlowerClick('PREOCCUPATO')} className="group outline-none border-none bg-transparent relative z-30">
-                                <img src={FLOWER_PREOCCUPATO} className="w-44 h-44 md:w-[26rem] md:h-[26rem] object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" alt="Preoccupato" />
-                            </button>
-                        </div>
-                        <div className="mt-4 flex flex-col items-center gap-2">
+                        {/* TITOLO SPOSTATO PIU IN BASSO */}
+                        <div className="flex flex-col items-center gap-2 mb-8 mt-16 md:mt-32 animate-in slide-in-from-top duration-700">
                             <h2 className="text-white text-3xl md:text-7xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl">Come ti senti oggi?...</h2>
                             <p className="text-white text-xl md:text-4xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl opacity-90">Grufo il Saggio ti spiega le emozioni</p>
+                        </div>
+
+                        {/* FIORI SPOSTATI PIU IN BASSO */}
+                        <div className="flex flex-row flex-wrap justify-center items-center gap-4 md:gap-12 relative z-20 border-none animate-in slide-in-from-bottom duration-1000 mt-4 md:mt-8">
+                            <button onClick={() => handleFlowerClick('FELICE')} className="group outline-none border-none bg-transparent relative z-30">
+                                <img 
+                                    src={FLOWER_FELICE} 
+                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    style={{ animationDelay: '0s' }}
+                                    alt="Felice" 
+                                />
+                            </button>
+                            <button onClick={() => handleFlowerClick('TRISTE')} className="group outline-none border-none bg-transparent relative z-30">
+                                <img 
+                                    src={FLOWER_TRISTE} 
+                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    style={{ animationDelay: '1.2s' }}
+                                    alt="Triste" 
+                                />
+                            </button>
+                            <button onClick={() => handleFlowerClick('ARRABBIATO')} className="group outline-none border-none bg-transparent relative z-30">
+                                <img 
+                                    src={FLOWER_ARRABBIATO} 
+                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    style={{ animationDelay: '0.6s' }}
+                                    alt="Arrabbiato" 
+                                />
+                            </button>
+                            <button onClick={() => handleFlowerClick('PREOCCUPATO')} className="group outline-none border-none bg-transparent relative z-30">
+                                <img 
+                                    src={FLOWER_PREOCCUPATO} 
+                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    style={{ animationDelay: '1.8s' }}
+                                    alt="Preoccupato" 
+                                />
+                            </button>
                         </div>
                     </div>
                 )}
@@ -515,16 +570,18 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.lang = 'it-IT';
-            recognitionRef.current.onresult = (event: any) => {
+            // FIX: Defined 'recognition' locally before assigning to the ref to fix 'Cannot find name recognition' error
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'it-IT';
+            recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
                 setInputText(transcript);
                 setIsListening(false);
             };
-            recognitionRef.current.onerror = () => setIsListening(false);
-            recognitionRef.current.onend = () => setIsListening(false);
+            recognition.onerror = () => setIsListening(false);
+            recognition.onend = () => setIsListening(false);
+            recognitionRef.current = recognition;
         }
     }, []);
 

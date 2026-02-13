@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
+import { isNightTime } from '../services/weatherService';
 
 const SCHOOL_SF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfsecondfloorschool567990er.webp';
+const SCHOOL_SF_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/secondopianoscuolanotte.webp';
 
 // Asset Audio e Video
 const SCHOOL_FLOOR_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/e6201c78-2a97-40a8-9bf4-29fbce108801.mp3';
@@ -44,6 +46,7 @@ const ZONES: Record<string, Point[]> = {
 };
 
 const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [currentStep, setCurrentStep] = useState(0); // 0: pronto, 1: audio1, 2: audio2, 3: finito
@@ -51,10 +54,14 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
     const audio1Ref = useRef<HTMLAudioElement | null>(null);
     const audio2Ref = useRef<HTMLAudioElement | null>(null);
 
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? SCHOOL_SF_NIGHT_BG : SCHOOL_SF_BG;
+    }, [now]);
+
     // Inizializzazione Audio Objects
     useEffect(() => {
         const img = new Image();
-        img.src = SCHOOL_SF_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
 
         if (!audio1Ref.current) {
@@ -86,6 +93,12 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
             if (audio1Ref.current) audio1Ref.current.onended = null;
             if (audio2Ref.current) audio2Ref.current.onended = null;
         };
+    }, [currentBg]);
+
+    // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+    useEffect(() => {
+        const timeTimer = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(timeTimer);
     }, []);
 
     // Gestore della riproduzione basato sullo stato isAudioOn e currentStep
@@ -160,7 +173,7 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
 
             <div className="absolute inset-0 z-0">
                 <img 
-                    src={SCHOOL_SF_BG} 
+                    src={currentBg} 
                     alt="" 
                     className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 />

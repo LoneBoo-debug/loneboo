@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView, SchoolLesson } from '../types';
 import { SCHOOL_DATA_CSV_URL, OFFICIAL_LOGO } from '../constants';
@@ -138,7 +137,6 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const recognitionRef = useRef<any>(null);
 
-    // CRITICO: Ref per bypassare la closure del SpeechRecognition
     const lessonsRef = useRef<SchoolLesson[]>([]);
 
     const loadData = async () => {
@@ -156,13 +154,12 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     setDbError(true); 
                 } else { 
                     setAllLessons(data);
-                    lessonsRef.current = data; // Sincronizziamo il ref
+                    lessonsRef.current = data; 
                 }
             } else { setDbError(true); }
         } catch (e) { setDbError(true); } finally { setIsLoading(false); }
     };
 
-    // Funzione di ricerca riutilizzabile che usa il ref se necessario
     const performSearch = (searchText: string) => {
         const cleanQuery = superNormalize(searchText);
         if (!cleanQuery) { 
@@ -175,8 +172,11 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
         setQuery(searchText);
 
         setTimeout(() => {
+            // Estraiamo le parole della ricerca, filtrando quelle troppo corte (congiunzioni, articoli)
+            // se la ricerca è una frase (più parole).
             const words = cleanQuery.split(" ").filter(w => w.length > 0);
-            // Usiamo il ref per essere sicuri di avere i dati più recenti nel callback vocale
+            const significantWords = words.length > 1 ? words.filter(w => w.length > 3) : words;
+            
             const sourceData = lessonsRef.current.length > 0 ? lessonsRef.current : allLessons;
 
             const results = sourceData
@@ -184,9 +184,28 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     const normalizedTitle = superNormalize(lesson.title);
                     const normalizedText = superNormalize(lesson.text);
                     let score = 0;
-                    if (words.every(w => normalizedTitle.includes(w))) score = 100;
-                    else if (words.every(w => normalizedText.includes(w))) score = 50;
-                    else if (words.some(w => normalizedTitle.includes(w))) score = 25;
+
+                    // 1. Priorità Massima: Corrispondenza frase esatta nel titolo
+                    if (normalizedTitle.includes(cleanQuery)) {
+                        score = 300;
+                    } 
+                    // 2. Priorità Alta: Corrispondenza frase esatta nel testo
+                    else if (normalizedText.includes(cleanQuery)) {
+                        score = 200;
+                    }
+                    // 3. Priorità Media: Tutte le parole significative presenti nel titolo
+                    else if (significantWords.length > 0 && significantWords.every(w => normalizedTitle.includes(w))) {
+                        score = 100;
+                    }
+                    // 4. Priorità Bassa: Tutte le parole significative presenti nel testo
+                    else if (significantWords.length > 0 && significantWords.every(w => normalizedText.includes(w))) {
+                        score = 50;
+                    }
+                    // 5. Fallback: Almeno una parola significativa nel titolo (solo se la query è corta)
+                    else if (words.length <= 2 && significantWords.some(w => normalizedTitle.includes(w))) {
+                        score = 25;
+                    }
+
                     return { lesson, score };
                 })
                 .filter(item => item.score > 0)
@@ -239,7 +258,6 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
             recognition.onstart = () => setIsListening(true);
             recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
-                // Chiamiamo performSearch invece di handleSearch per evitare closures stale
                 performSearch(transcript);
             };
             recognition.onerror = (e: any) => {
@@ -311,64 +329,24 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 </div>
             )}
 
-            {/* HEADER - OTTIMIZZATO PER SPAZIO ORIZZONTALE */}
+            {/* HEADER */}
             <div className="relative z-50 w-full pt-20 md:pt-28 px-4 md:px-12 flex justify-between items-start pointer-events-none">
-                
-                {/* SINISTRA: I TRE LIBRI */}
                 <div className="flex flex-row items-end gap-1.5 md:gap-3 pointer-events-auto shrink-0">
-                    {/* 1. LIBRO ESERCIZI MATEMATICA */}
-                    <button 
-                        onClick={() => setView(AppView.SCHOOL_MATH_EXERCISES)} 
-                        className="hover:scale-110 active:scale-95 transition-all outline-none relative"
-                    >
-                        <img src={MATH_EXERCISES_ICON} alt="Esercizi Matematica" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
-                    </button>
-
-                    {/* 2. DIZIONARIO */}
-                    <button 
-                        onClick={() => setView(AppView.SCHOOL_DICTIONARY)} 
-                        className="hover:scale-110 active:scale-95 transition-all outline-none relative"
-                    >
-                        <img src={DICTIONARY_ICON} alt="Dizionario" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
-                    </button>
-
-                    {/* 3. LIBRO EXTRA */}
-                    <button 
-                        onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} 
-                        className="hover:scale-110 active:scale-95 transition-all outline-none relative group"
-                    >
-                        <img src={BOOK_EXTRA_ICON} alt="Extra" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" />
-                    </button>
+                    <button onClick={() => setView(AppView.SCHOOL_MATH_EXERCISES)} className="hover:scale-110 active:scale-95 transition-all outline-none relative"><img src={MATH_EXERCISES_ICON} alt="Esercizi Matematica" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" /></button>
+                    <button onClick={() => setView(AppView.SCHOOL_DICTIONARY)} className="hover:scale-110 active:scale-95 transition-all outline-none relative"><img src={DICTIONARY_ICON} alt="Dizionario" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" /></button>
+                    <button onClick={() => { sessionStorage.removeItem('pending_lesson_id'); setShowExtraView(true); }} className="hover:scale-110 active:scale-95 transition-all outline-none relative group"><img src={BOOK_EXTRA_ICON} alt="Extra" className="w-18 h-24 md:w-40 md:h-52 object-fill drop-shadow-[0_0_25px_rgba(255,255,255,0.9)]" /></button>
                 </div>
-
-                {/* DESTRA: TASTO ESCI (TITOLO RIMOSSO) */}
                 <div className="flex flex-col items-end gap-3 shrink-0 pointer-events-none">
-                    <button 
-                        onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} 
-                        className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto mr-4 md:mr-8"
-                    >
-                        <img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" />
-                    </button>
+                    <button onClick={() => setView(AppView.SCHOOL_SECOND_FLOOR)} className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto mr-4 md:mr-8"><img src={BTN_EXIT_IMG} alt="Esci" className="w-16 h-16 md:w-28 drop-shadow-2xl" /></button>
                 </div>
             </div>
 
-            {/* AREA RISULTATI RICERCA - CENTRATA E SU UNA RIGA */}
+            {/* AREA RISULTATI RICERCA */}
             {query && filteredResults.length > 0 && !isSearching && (
                 <div className="relative z-[60] w-full mt-2 flex justify-center animate-in slide-in-from-top-4 duration-500 px-4">
                     <div className="bg-white/10 backdrop-blur-xl px-6 py-2 rounded-full border-2 border-white/20 shadow-2xl flex items-center gap-4 pointer-events-auto">
-                        <p 
-                            className="font-luckiest text-yellow-400 uppercase text-lg md:text-4xl whitespace-nowrap leading-none"
-                            style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
-                        >
-                            Ho trovato questo...
-                        </p>
-                        <button 
-                            onClick={clearSearch}
-                            className="bg-red-500 text-white p-1 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all"
-                            title="Cancella ricerca"
-                        >
-                            <X size={14} strokeWidth={4} />
-                        </button>
+                        <p className="font-luckiest text-yellow-400 uppercase text-lg md:text-4xl whitespace-nowrap leading-none" style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}>Ho trovato questo...</p>
+                        <button onClick={clearSearch} className="bg-red-500 text-white p-1 rounded-full border-2 border-white shadow-lg hover:scale-110 active:scale-95 transition-all" title="Cancella ricerca"><X size={14} strokeWidth={4} /></button>
                     </div>
                 </div>
             )}
@@ -377,22 +355,11 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
             <div className="relative z-10 flex-1 overflow-y-auto custom-scroll p-2 md:p-6 pt-2 md:pt-4 pb-48">
                 <div className="max-w-4xl mx-auto flex flex-col gap-6">
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20">
-                            <Loader2 className="animate-spin text-white mb-4" size={48} />
-                            <span className="text-white font-black uppercase">Caricamento Archivio...</span>
-                        </div>
+                        <div className="flex flex-col items-center justify-center py-20"><Loader2 className="animate-spin text-white mb-4" size={48} /><span className="text-white font-black uppercase">Caricamento Archivio...</span></div>
                     ) : dbError ? (
-                        <div className="bg-red-500/80 backdrop-blur-md p-8 rounded-[3rem] border-4 border-white text-center animate-in zoom-in shadow-2xl">
-                            <AlertTriangle className="text-white mx-auto mb-4" size={60} />
-                            <h3 className="text-white font-black text-xl md:text-3xl uppercase">Errore Database</h3>
-                            <p className="text-white font-bold mb-4">Impossibile leggere i dati. Controlla la connessione o prova a ricaricare la pagina.</p>
-                            <button onClick={loadData} className="bg-white text-red-600 px-8 py-3 rounded-full font-black uppercase shadow-lg active:scale-95 transition-all">RIPROVA ORA</button>
-                        </div>
+                        <div className="bg-red-500/80 backdrop-blur-md p-8 rounded-[3rem] border-4 border-white text-center animate-in zoom-in shadow-2xl"><AlertTriangle className="text-white mx-auto mb-4" size={60} /><h3 className="text-white font-black text-xl md:text-3xl uppercase">Errore Database</h3><p className="text-white font-bold mb-4">Impossibile leggere i dati. Controlla la connessione o prova a ricaricare la pagina.</p><button onClick={loadData} className="bg-white text-red-600 px-8 py-3 rounded-full font-black uppercase shadow-lg active:scale-95 transition-all">RIPROVA ORA</button></div>
                     ) : isSearching ? (
-                        <div className="flex flex-col items-center justify-center py-20">
-                            <Loader2 className="animate-spin text-white mb-4" size={48} />
-                            <span className="text-white font-black uppercase">Consulto l'enciclopedia...</span>
-                        </div>
+                        <div className="flex flex-col items-center justify-center py-20"><Loader2 className="animate-spin text-white mb-4" size={48} /><span className="text-white font-black uppercase">Consulto l'enciclopedia...</span></div>
                     ) : filteredResults.length > 0 ? (
                         <div className="grid grid-cols-2 gap-3 md:gap-6 animate-in fade-in duration-500">
                             {filteredResults.map((lesson) => {
@@ -413,13 +380,7 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     ) : query ? (
                         <div className="flex flex-col items-center justify-center animate-in zoom-in duration-500 pt-1 pb-10">
                             <div className="bg-white/10 backdrop-blur-md p-3 rounded-[3rem] border-4 border-white/20 shadow-2xl max-sm md:max-w-lg overflow-hidden relative">
-                                <button 
-                                    onClick={clearSearch}
-                                    className="absolute top-4 right-4 z-50 bg-red-500 text-white p-2 rounded-full border-2 border-white shadow-xl hover:scale-110 active:scale-95 transition-all"
-                                    title="Chiudi"
-                                >
-                                    <X size={20} strokeWidth={4} />
-                                </button>
+                                <button onClick={clearSearch} className="absolute top-4 right-4 z-50 bg-red-500 text-white p-2 rounded-full border-2 border-white shadow-xl hover:scale-110 active:scale-95 transition-all" title="Chiudi"><X size={20} strokeWidth={4} /></button>
                                 <img src={IMG_NOT_FOUND} alt="Argomento non trovato" className="w-full h-auto rounded-[2rem] shadow-inner" />
                             </div>
                         </div>
@@ -428,12 +389,8 @@ const SchoolArchive: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
             </div>
             <div className="fixed bottom-6 left-6 z-[70] flex items-end gap-3 w-[90%] max-w-2xl animate-in slide-in-from-bottom duration-500">
                 <div className="flex flex-col items-center shrink-0">
-                    {isListening && (
-                        <div className="bg-red-600 text-white px-4 py-1 rounded-full font-black uppercase text-[10px] animate-pulse border-2 border-white shadow-xl mb-2">Ti ascolto...</div>
-                    )}
-                    <button onClick={startListening} className={`hover:scale-110 active:scale-95 transition-all outline-none ${isListening ? 'animate-pulse' : ''}`}>
-                        <img src={BTN_ASK_IMG} alt="Chiedi" className="w-20 md:w-36 h-auto drop-shadow-2xl" />
-                    </button>
+                    {isListening && <div className="bg-red-600 text-white px-4 py-1 rounded-full font-black uppercase text-[10px] animate-pulse border-2 border-white shadow-xl mb-2">Ti ascolto...</div>}
+                    <button onClick={startListening} className={`hover:scale-110 active:scale-95 transition-all outline-none ${isListening ? 'animate-pulse' : ''}`}><img src={BTN_ASK_IMG} alt="Chiedi" className="w-20 md:w-36 h-auto drop-shadow-2xl" /></button>
                 </div>
                 <div className="flex-1 flex gap-2 bg-white/30 backdrop-blur-xl p-2 rounded-2xl border-2 border-white/30 shadow-2xl mb-2 items-center">
                     <input type="text" value={manualInput} onChange={(e) => setManualInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()} placeholder="Cerca argomento..." className="flex-1 bg-white/80 rounded-xl px-4 py-2 text-blue-900 font-bold outline-none focus:ring-4 ring-blue-500/20 text-xs md:text-base placeholder-blue-300 h-10 md:h-12" />

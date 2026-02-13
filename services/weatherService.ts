@@ -16,6 +16,21 @@ const MODAL_ICONS = {
 };
 
 /**
+ * Controlla se l'orario fornito ricade nella fascia notturna (20:15 - 06:45)
+ */
+export const isNightTime = (date: Date): boolean => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const totalMinutes = hours * 60 + minutes;
+
+    const nightStart = 20 * 60 + 15; // 1215 min
+    const nightEnd = 6 * 60 + 45;   // 405 min
+
+    // È notte se siamo oltre le 20:15 O prima delle 06:45
+    return totalMinutes >= nightStart || totalMinutes < nightEnd;
+};
+
+/**
  * Calcola il meteo per una data specifica in modo deterministico e coerente.
  * Normalizza la data a mezzanotte per evitare sbalzi tra componenti.
  */

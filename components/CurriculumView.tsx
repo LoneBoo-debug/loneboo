@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square, ZoomIn } from 'lucide-react';
@@ -70,7 +71,6 @@ const HISTORY_GRADE_HOTSPOTS = {
   "ASK_TEACHER": [{"x": 86.43, "y": 11.09}, {"x": 86.97, "y": 17.39}, {"x": 97.37, "y": 17.39}, {"x": 96.57, "y": 10.94}],
   "EXERCISES": [{"x": 4.27, "y": 88.76}, {"x": 4.27, "y": 93.71}, {"x": 25.88, "y": 93.86}, {"x": 25.08, "y": 88.61}],
   "VISUAL_ACTIVITY": [{"x": 28.54, "y": 88.46}, {"x": 28.81, "y": 93.71}, {"x": 49.62, "y": 94.16}, {"x": 48.55, "y": 88.46}],
-  // FIX: Corrected syntax error in coordinates array for GAMES property
   "GAMES": [{"x": 52.29, "y": 88.61}, {"x": 52.82, "y": 93.86}, {"x": 73.63, "y": 94.01}, {"x": 73.09, "y": 88.91}],
   "YOUTUBE": [{"x": 76.3, "y": 88.61}, {"x": 77.1, "y": 93.86}, {"x": 97.1, "y": 93.56}, {"x": 97.1, "y": 88.61}]
 };
@@ -138,10 +138,11 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
   const [zoomedLessonImage, setZoomedLessonImage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Helper per riprodurre i suoni di feedback
+  // Helper per riprodurre i suoni di feedback aggiornato
   const playFeedbackSfx = (success: boolean) => {
     try {
-      const sfx = new Audio(success ? SFX_WIN_URL : SFX_FAIL_URL);
+      const sfxUrl = success ? SFX_WIN_URL : SFX_FAIL_URL;
+      const sfx = new Audio(sfxUrl);
       sfx.volume = 0.6;
       sfx.play().catch(e => console.warn("Audio sfx blocked", e));
     } catch (err) {
@@ -796,7 +797,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               >
                   <button 
                     onClick={() => setZoomedLessonImage(null)}
-                    className="absolute top-20 md:top-28 right-6 z-[510] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 transition-all active:scale-95"
+                    className="absolute top-20 md:top-28 right-6 z-[510] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 active:scale-95 transition-all"
                   >
                       <X size={24} strokeWidth={4} />
                   </button>
@@ -806,14 +807,20 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                   >
                       <img 
                         src={zoomedLessonImage} 
-                        alt="Ingrandimento" 
-                        className="max-w-full max-h-[70vh] object-contain rounded-2xl" 
+                        alt="Zoom" 
+                        className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-xl" 
                       />
                   </div>
               </div>
           )}
 
-          {showTeacherChat && (!selectedLesson.isPremium || isPremiumActive) && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+          {showTeacherChat && (!selectedLesson.isPremium || isPremiumActive) && (
+              <TeacherChat 
+                  grade={data.grade} 
+                  onClose={() => setShowTeacherChat(false)} 
+                  setView={setView}
+              />
+          )}
       </div>
   );
 };

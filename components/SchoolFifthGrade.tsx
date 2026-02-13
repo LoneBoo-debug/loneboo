@@ -157,7 +157,7 @@ const SchoolFifthGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             )}
 
             {activeSubject && <CurriculumView data={dynamicData} initialSubject={activeSubject} onExit={() => setActiveSubject(null)} bgUrl={BG_URL} setView={setView} />}
-            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} grade={5} setView={setView} />}
         </div>
     );
 };

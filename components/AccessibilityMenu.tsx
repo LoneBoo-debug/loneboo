@@ -97,15 +97,15 @@ const AccessibilityMenu: React.FC<AccessibilityMenuProps> = ({ isOpen, onClose }
                         {dyslexicFont && <div className="bg-blue-500 text-white p-1 rounded-full"><Check size={20} strokeWidth={4} /></div>}
                     </button>
 
-                    {/* HIGH CONTRAST */}
+                    {/* VIBRANT COLORS (Ex High Contrast) */}
                     <button 
                         onClick={toggleContrast}
                         className={`flex items-center gap-4 p-4 rounded-2xl border-4 transition-all active:scale-95 ${highContrast ? 'bg-yellow-100 border-yellow-500 shadow-inner' : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm'}`}
                     >
                         <img src={IMG_SUPER_COLORI} alt="" className="w-12 h-12 object-contain shrink-0" />
                         <div className="text-left flex-1">
-                            <span className="block font-black text-gray-800 text-lg">Super Colori</span>
-                            <span className="text-xs text-gray-500 font-bold">Contrasto elevato</span>
+                            <span className="block font-black text-gray-800 text-lg">Colori Vivaci ✨</span>
+                            <span className="text-xs text-gray-500 font-bold">Rendi tutto più acceso e pop!</span>
                         </div>
                         {highContrast && <div className="bg-yellow-500 text-black p-1 rounded-full"><Check size={20} strokeWidth={4} /></div>}
                     </button>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Sparkles, MessageCircle, Gamepad2, Clock, Star, Info } from 'lucide-react';
 import { AppView, PlayerProgress } from '../types';
@@ -48,6 +47,35 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
     const forecast = useMemo(() => getForecast(now), [now]);
 
+    // LOGICA MESSAGGIO METEO DINAMICO
+    const weatherNarrative = useMemo(() => {
+        if (!forecast || forecast.length < 3) return "";
+
+        const today = forecast[0];
+        const tomorrow = forecast[1];
+        const dayAfter = forecast[2];
+
+        let weatherDesc = "";
+        switch (today.type) {
+            case 'WIND': weatherDesc = "c'è vento"; break;
+            case 'RAIN': weatherDesc = "piove"; break;
+            case 'SNOW': weatherDesc = "nevica"; break;
+            case 'SUN': default: weatherDesc = "c'è un bel sole"; break;
+        }
+
+        let phrase = `Oggi ${weatherDesc} a Città Colorata`;
+
+        if (today.type === tomorrow.type && today.type === dayAfter.type) {
+            phrase += " e la situazione non cambierà tanto presto!";
+        } else if (today.type === tomorrow.type) {
+            phrase += " e continuerà così anche domani!";
+        } else {
+            phrase += ". Goditi questa giornata!";
+        }
+
+        return phrase;
+    }, [forecast]);
+
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000);
         const todayStr = new Date().toISOString().split('T')[0];
@@ -76,28 +104,9 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
     useEffect(() => {
         if (!holidayInfo) return;
-        // Alternanza ogni 10 secondi per permettere una lettura più rilassata
         const interval = setInterval(() => setDisplayMode(prev => prev === 'BOO' ? 'EVENT' : 'BOO'), 10000);
         return () => clearInterval(interval);
     }, [holidayInfo]);
-
-    const seasonData = useMemo(() => {
-        const springStart = new Date(now.getFullYear(), 2, 20);
-        const summerStart = new Date(now.getFullYear(), 5, 21);
-        const autumnStart = new Date(now.getFullYear(), 8, 22);
-        const winterStart = new Date(now.getFullYear(), 11, 21);
-        let label, nextLabel, nextDate;
-        if (now < springStart) { label = "Inverno"; nextLabel = "Primavera"; nextDate = springStart; }
-        else if (now < summerStart) { label = "Primavera"; nextLabel = "Estate"; nextDate = summerStart; }
-        else if (now < autumnStart) { label = "Estate"; nextLabel = "Autunno"; nextDate = autumnStart; }
-        else if (now < winterStart) { label = "Autunno"; nextLabel = "Inverno"; nextDate = winterStart; }
-        else { label = "Inverno"; nextLabel = "Primavera"; nextDate = new Date(now.getFullYear() + 1, 2, 20); }
-        const diffDays = Math.ceil(Math.abs(nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        const preposition = (nextLabel === 'Estate' || nextLabel === 'Autunno' || nextLabel === 'Inverno') ? "all'" : "alla ";
-        let message = `Siamo in ${label}. Mancano ${diffDays} giorni ${preposition}${nextLabel}.`;
-        if (diffDays <= 7) message = `Manca solo una settimana ${preposition}${nextLabel}! 🤩`;
-        return { message };
-    }, [now]);
 
     const currentBooImage = useMemo(() => {
         const look = progress.equippedClothing;
@@ -139,7 +148,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
         if (totalMinutes < 1020) return { text: "pomeriggio intenso, hai già studiato oggi?", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boofelice4ed22s1qa+(1).webp" };
         if (totalMinutes < 1080) return { text: "momento relax, ottimo per il parco giochi", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boosuperfelice4ed3e3ws.webp", action: { label: "Al Parco", view: AppView.PLAY, icon: Gamepad2 } };
         if (totalMinutes < 1200) return { text: "a me sta venendo fame, ci prepariamo per la cena?", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boofame4e3ws2w+(1).webp" };
-        if (totalMinutes < 1260) return { text: "comincio ad essere stanco, sarebbe ora della nanna", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boostupito44r3e3e+(1).webp" };
+        if (totalMinutes < 1260) return { text: "comincio ad essere stanco, Sarebbe ora della nanna", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boostupito44r3e3e+(1).webp" };
         if (totalMinutes < 1320) return { text: "sto crollando, è il momento di chiudere tutto e dormire", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/boodormes2232qws+(1).webp" };
         return { text: "sei ancora qui? guarda l'orario è tardi, spegniamo su...", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/booarrabbiato4r33e+(1).webp" };
     };
@@ -148,7 +157,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
     const handleNavigate = (target: AppView, originKey?: string) => { if (currentView) { if (originKey) sessionStorage.setItem(originKey, currentView); if (target === AppView.SCHOOL) sessionStorage.setItem('school_origin', currentView); if (target === AppView.PLAY) sessionStorage.setItem('play_origin', currentView); } onClose(); setView(target); };
 
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    const dateStr = `${now.getDate()} ${monthNames[now.getMonth()].slice(0, 3)} ${now.getFullYear()}`;
     const timeData = getTimeBasedData();
 
     return (
@@ -177,24 +186,20 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                 </div>
 
                 <div className="p-4 space-y-4 overflow-y-auto no-scrollbar flex-1 relative z-10">
-                    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-col gap-4 w-full shadow-xl">
+                    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-col gap-3 w-full shadow-xl">
                         
-                        {/* RIGA 1: ORARIO */}
-                        <div className="flex flex-row items-center gap-4 w-full">
-                            <img src={ICON_CLOCK} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md shrink-0" alt="" />
-                            <div className="flex flex-col">
-                                <span className="font-black text-3xl md:text-5xl tracking-widest text-yellow-300 drop-shadow-sm leading-none">{timeStr}</span>
+                        <div className="flex flex-row items-center justify-between w-full gap-2">
+                            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                                <img src={ICON_CLOCK} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
+                                <span className="font-black text-2xl md:text-4xl tracking-widest text-yellow-300 drop-shadow-sm leading-none">{timeStr}</span>
+                            </div>
+                            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                                <img src={ICON_CALENDAR} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
+                                <p className="text-white font-black text-2xl md:text-4xl uppercase opacity-90 leading-tight">{dateStr}</p>
                             </div>
                         </div>
-
-                        {/* RIGA 2: DATA */}
-                        <div className="flex flex-row items-center gap-3 w-full border-t border-white/10 pt-3">
-                            <img src={ICON_CALENDAR} className="w-8 h-8 md:w-11 md:h-11 object-contain drop-shadow-md shrink-0" alt="" />
-                            <p className="text-white font-black text-sm md:text-xl uppercase opacity-90">{dateStr}</p>
-                        </div>
                         
-                        {/* NUOVA RIGA 3: METEO CITTÀ COLORATA */}
-                        <div className="grid grid-cols-3 gap-2 w-full pt-1 border-t border-white/10 pt-3">
+                        <div className="grid grid-cols-3 gap-2 w-full border-t border-white/10 pt-3">
                             {forecast.map((f, i) => (
                                 <div 
                                     key={i} 
@@ -211,7 +216,12 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                             ))}
                         </div>
 
-                        <p className="text-green-300 font-black text-[9px] md:text-sm uppercase tracking-tight opacity-90 border-t border-white/10 pt-2 w-full text-center">{seasonData.message}</p>
+                        {/* MESSAGGIO METEO NARRATIVO IN STILE LUCKY GUY GIALLO */}
+                        <div className="border-t border-white/10 pt-2 w-full text-center">
+                            <p className="font-luckiest text-yellow-400 text-sm md:text-xl uppercase tracking-tighter text-stroke-lucky-small leading-tight">
+                                {weatherNarrative}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex flex-col justify-center relative overflow-hidden transition-all duration-500 shadow-lg min-h-[120px]">

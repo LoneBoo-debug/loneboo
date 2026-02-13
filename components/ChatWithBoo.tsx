@@ -1,16 +1,18 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView, ChatMessage } from '../types';
 import { Loader2, Send, Volume2, VolumeX, ArrowLeft, Clock, Mic, MicOff, X } from 'lucide-react';
 import { getMaragnoChatResponse } from '../services/ai';
 import { OFFICIAL_LOGO } from '../constants';
+import { isNightTime } from '../services/weatherService';
 
 const INFO_POINT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/info-point.webp';
+const INFO_POINT_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/infopointnottesxa.webp';
 const MARAGNO_FULL_BODY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/maragno-full.webp';
 const MARAGNO_OFFENDED = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/offended.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bkcitmaraginfpo.webp';
 const BTN_CHAT_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/askmaragncart.webp';
-const MARLO_TAXI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlo-taxi.webp';
+const ZUCCO_TAXI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newtaximaragno9988.webp';
 
 // Asset Audio e Video
 const INFO_POINT_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/infpointmaragnoboovoice4ees.mp3';
@@ -20,6 +22,7 @@ const INSULT_LIMIT = 5;
 const BAN_DURATION_MS = 5 * 60 * 1000;
 
 const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [history, setHistory] = useState<ChatMessage[]>([
@@ -44,6 +47,10 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     const chatEndRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
 
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? INFO_POINT_BG_NIGHT : INFO_POINT_BG;
+    }, [now]);
+
     const speakText = (text: string) => {
         if (!audioEnabled || !window.speechSynthesis) return;
         let cleanText = text
@@ -62,8 +69,10 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     };
 
     useEffect(() => {
+        const timeInterval = setInterval(() => setNow(new Date()), 60000);
+
         const img = new Image();
-        img.src = INFO_POINT_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
         
         // Inizializza Audio specifico per l'Info Point
@@ -119,6 +128,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         }
 
         return () => {
+            clearInterval(timeInterval);
             clearTimeout(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (ambientAudioRef.current) {
@@ -126,13 +136,13 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 ambientAudioRef.current.currentTime = 0;
             }
         };
-    }, []);
+    }, [currentBg]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const now = Date.now();
-            if (banUntil > now) {
-                setTimeLeft(Math.ceil((banUntil - now) / 1000));
+            const nowTime = Date.now();
+            if (banUntil > nowTime) {
+                setTimeLeft(Math.ceil((banUntil - nowTime) / 1000));
             } else {
                 setTimeLeft(0);
                 if (banUntil > 0) {
@@ -256,7 +266,7 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         <div className="fixed inset-0 z-0 bg-sky-200 overflow-hidden touch-none overscroll-none select-none">
             <div className="absolute inset-0 z-0">
                 <img 
-                    src={INFO_POINT_BG} 
+                    src={currentBg} 
                     alt="Info Point Maragno" 
                     className={`w-full h-full object-fill transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                     draggable={false}
@@ -374,8 +384,8 @@ const ChatWithBoo: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                                     className="group transition-transform hover:scale-105 active:scale-95 outline-none"
                                 >
                                     <img 
-                                        src={MARLO_TAXI_IMG} 
-                                        alt="Taxi di Marlo" 
+                                        src={ZUCCO_TAXI_IMG} 
+                                        alt="Maragno Taxi" 
                                         className="w-72 md:w-[750px] h-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]" 
                                     />
                                 </button>

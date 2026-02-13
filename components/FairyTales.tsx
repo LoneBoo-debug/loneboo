@@ -1,13 +1,23 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { FAIRY_TALES } from '../services/talesDatabase';
 import { Play, Pause, Clock, Loader2, RotateCcw, X, BookOpen } from 'lucide-react';
 import { LOCAL_ASSET_MAP } from '../services/LocalAssets';
 import { AppView } from '../types';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
-const FOREST_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tales-mobile.webp';
-const FOREST_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tales-desktop.webp';
+const BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/florasolexxx.webp';
+const BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floraventoxxxx.webp';
+const BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/florapioggiaxsaaz.webp';
+const BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floranevesaxxx.webp';
+
+// Nuovi Asset Notturni
+const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floranottesoledsa.webp';
+const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floranottepioggiadsx.webp';
+const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floranotteventodes.webp';
+const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/floranottnevesas.webp';
+
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const TALES_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tales-header.webp';
 const MARAGNO_EASTER_EGG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mrarafilo+(1).webp';
@@ -24,6 +34,7 @@ const ZONES_MOBILE: ZoneConfig[] = [ { id: "Fata", points: [ { x: 62.63, y: 24.2
 const ZONES_DESKTOP: ZoneConfig[] = [ { id: "Fata", points: [ { "x": 53.62, "y": 29.38 }, { "x": 49.9, "y": 65.05 }, { "x": 63.33, "y": 70.82 }, { "x": 65.7, "y": 29.38 } ] } ];
 
 const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
+  const [now, setNow] = useState(new Date());
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const [currentAudio, setCurrentAudio] = useState<string | null>(null);
@@ -40,14 +51,36 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // DETERMINAZIONE METEO E SFONDO
+  const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
+  const currentBg = useMemo(() => {
+    const isNight = isNightTime(now);
+    if (isNight) {
+        switch (todayWeather) {
+            case 'SNOW': return NIGHT_SNOW;
+            case 'RAIN': return NIGHT_RAIN;
+            case 'WIND': return NIGHT_WIND;
+            default: return NIGHT_SUN;
+        }
+    } else {
+        switch (todayWeather) {
+            case 'SNOW': return BG_SNOW;
+            case 'RAIN': return BG_RAIN;
+            case 'WIND': return BG_WIND;
+            default: return BG_SUN;
+        }
+    }
+  }, [now, todayWeather]);
+
   useEffect(() => {
-      const imgMobile = new Image(); imgMobile.src = FOREST_BG_MOBILE;
-      const imgDesktop = new Image(); imgDesktop.src = FOREST_BG_DESKTOP;
-      let loadedCount = 0;
-      const checkLoad = () => { loadedCount++; if (loadedCount >= 1) setIsLoaded(true); };
-      imgMobile.onload = checkLoad; imgDesktop.onload = checkLoad;
+      // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
+
+      const img = new Image(); 
+      img.src = currentBg;
+      img.onload = () => setIsLoaded(true);
       
-      const timer = setTimeout(() => setIsLoaded(true), 2000);
+      const loadTimer = setTimeout(() => setIsLoaded(true), 2000);
       
       // Easter Egg Maragno Timer
       const spiderTimer = setTimeout(() => {
@@ -87,7 +120,8 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
 
       window.scrollTo(0, 0);
       return () => {
-          clearTimeout(timer);
+          clearInterval(timeTimer);
+          clearTimeout(loadTimer);
           clearTimeout(spiderTimer);
           window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
           if (ambientAudioRef.current) {
@@ -95,7 +129,7 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
               ambientAudioRef.current.currentTime = 0;
           }
       };
-  }, []); 
+  }, [currentBg]); 
 
   // Gestione interruzione ambient quando si apre una fiaba
   useEffect(() => {
@@ -233,11 +267,11 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
 
         <div className="relative flex-1 w-full h-full overflow-hidden">
             <div className="block md:hidden w-full h-full relative">
-                <img src={FOREST_BG_MOBILE} alt="Fiabe Mobile" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+                <img src={currentBg} alt="Fiabe Mobile" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
                 {isLoaded && ZONES_MOBILE.map((zone, i) => (<div key={i} className="absolute inset-0 cursor-pointer pointer-events-auto" style={{ clipPath: getClipPath(zone.points) }} onClick={(e) => { e.stopPropagation(); setIsMenuOpen(true); }}></div>))}
             </div>
             <div className="hidden md:block w-full h-full relative">
-                <img src={FOREST_BG_DESKTOP} alt="Fiabe Desktop" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+                <img src={currentBg} alt="Fiabe Desktop" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
                 {isLoaded && ZONES_DESKTOP.map((zone, i) => (
                     <div key={i} className="absolute inset-0 cursor-pointer pointer-events-auto" style={{ clipPath: getClipPath(zone.points) }} onClick={(e) => { e.stopPropagation(); setIsMenuOpen(true); }}></div>
                 ))}

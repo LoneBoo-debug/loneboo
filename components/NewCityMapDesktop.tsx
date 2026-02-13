@@ -4,12 +4,18 @@ import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import DailyRewardsModal from './DailyRewardsModal';
 import { monthNames } from '../services/calendarDatabase';
-import { getWeatherForDate } from '../services/weatherService';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
 const DESKTOP_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mapdewsdsktp99i.webp';
 const WIND_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgventomaps.webp';
 const RAIN_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgpioggiamaps.webp';
 const SNOW_MAP_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgnevemaps.webp';
+
+// Nuovi Asset Notturni
+const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottesoleaa.webp';
+const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottepioggia.webp';
+const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanotteventoxxs.webp';
+const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottenevexx.webp';
 
 const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/477401351381209093.webp';
 
@@ -59,15 +65,24 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
     const currentDay = today.getDate();
     const currentMonth = monthNames[today.getMonth()].slice(0, 3);
     
-    // Normalizziamo il meteo una volta sola
     const weather = getWeatherForDate(today);
+    const isNight = isNightTime(today);
 
     const getBackgroundUrl = () => {
-        switch (weather) {
-            case 'WIND': return WIND_MAP_URL;
-            case 'RAIN': return RAIN_MAP_URL;
-            case 'SNOW': return SNOW_MAP_URL;
-            default: return DESKTOP_MAP_URL;
+        if (isNight) {
+            switch (weather) {
+                case 'WIND': return NIGHT_WIND;
+                case 'RAIN': return NIGHT_RAIN;
+                case 'SNOW': return NIGHT_SNOW;
+                default: return NIGHT_SUN;
+            }
+        } else {
+            switch (weather) {
+                case 'WIND': return WIND_MAP_URL;
+                case 'RAIN': return RAIN_MAP_URL;
+                case 'SNOW': return SNOW_MAP_URL;
+                default: return DESKTOP_MAP_URL;
+            }
         }
     };
 

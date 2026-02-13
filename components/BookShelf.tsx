@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { OFFICIAL_LOGO } from '../constants';
 import { BOOKS_DATABASE } from '../services/booksDatabase';
 import { X } from 'lucide-react';
 import { Book, AppView } from '../types';
+import { isNightTime } from '../services/weatherService';
 
 const LIBRARY_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/library.webp';
+const LIBRARY_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bibliononttevista.webp';
 const AMAZON_STORE_URL = 'https://www.amazon.it/stores/Lone-Boo/author/B0G3JTJSTB';
 const BTN_LIBRERIA_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-library-shelf.webp';
 const BTN_SEE_AMAZON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-amazon.webp';
@@ -30,6 +32,7 @@ interface BookShelfProps {
 }
 
 const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
@@ -38,9 +41,16 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? LIBRARY_BG_NIGHT : LIBRARY_BG_MOBILE;
+    }, [now]);
+
     useEffect(() => {
+        // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+        const timeInterval = setInterval(() => setNow(new Date()), 60000);
+
         const img = new Image(); 
-        img.src = LIBRARY_BG_MOBILE;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
 
         // Inizializzazione Audio specifico per la Biblioteca
@@ -79,6 +89,7 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
         window.scrollTo(0, 0);
 
         return () => {
+            clearInterval(timeInterval);
             clearTimeout(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
@@ -86,7 +97,7 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
                 audioRef.current.currentTime = 0;
             }
         };
-    }, []);
+    }, [currentBg]);
 
     const handleExternalClick = (url: string) => {
         if (localStorage.getItem('disable_external_links') === 'true') {
@@ -155,7 +166,7 @@ const BookShelf: React.FC<BookShelfProps> = ({ setView }) => {
             )}
 
             <div className="absolute inset-0 z-0 w-full h-full cursor-default">
-                <img src={LIBRARY_BG_MOBILE} alt="Biblioteca" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
+                <img src={currentBg} alt="Biblioteca" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
                 {isLoaded && ZONES_DATA.map(zone => {
                     const book = zone.id.startsWith('book') ? BOOKS_DATABASE.find(b => b.id === zone.id) : null;
                     const box = getBoundingBox(zone.points);

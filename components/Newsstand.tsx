@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, ShoppingBag, Check, Lock, Star, Download, Settings, Move, ArrowRight, Upload, Camera, ScanLine, Copy, RotateCcw, Trash2, Smile, BookOpen, LogOut, Image as ImageIcon, User, HelpCircle, Share, AlertCircle, CheckCircle2, Calendar, ArrowLeftRight, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
 import { getProgress, openPack, spendTokens, getPassportCode, restorePassport, saveSticker, addDuplicate, tradeDuplicates, setPlayerName, decodePassport, saveProgress, addTokens, upgradeToNextAlbum } from '../services/tokens';
 import { PlayerProgress, Sticker, AppView } from '../types';
+import { isNightTime } from '../services/weatherService';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
@@ -53,6 +54,7 @@ const playFanfare = () => {
 
 const CARD_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/card-passport.webp'; 
 const NEWSSTAND_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/edicolenwesw3300ijfnd3.webp';
+const NEWSSTAND_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/edicolanottesdaa.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const CITY_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fdre66yhg7y80opipoi+(1).webp';
 
@@ -82,6 +84,7 @@ const StickerCard: React.FC<{ sticker: Sticker, isOwned: boolean, showDetails?: 
 };
 
 const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [activeTab, setActiveTab] = useState<'SHOP' | 'ALBUM' | 'PASSPORT'>('SHOP');
     const [progress, setProgress] = useState<PlayerProgress>(getProgress());
     const [packOpening, setPackOpening] = useState(false);
@@ -95,10 +98,23 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
 
     const packCost = viewingAlbum === 2 ? 100 : 50;
 
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? NEWSSTAND_NIGHT_BG : NEWSSTAND_BG;
+    }, [now]);
+
     useEffect(() => {
         const update = () => setProgress(getProgress());
         window.addEventListener('progressUpdated', update);
-        return () => window.removeEventListener('progressUpdated', update);
+        
+        // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+        const timeInterval = setInterval(() => {
+            setNow(new Date());
+        }, 60000);
+
+        return () => {
+            window.removeEventListener('progressUpdated', update);
+            clearInterval(timeInterval);
+        };
     }, []);
 
     const scrollShop = (direction: 'left' | 'right') => {
@@ -292,7 +308,7 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
 
     return (
         <div className="fixed inset-0 z-0 bg-white flex flex-col animate-in fade-in pt-[64px] md:pt-[96px] overflow-hidden">
-            <img src={NEWSSTAND_BG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0" />
+            <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0" />
 
             {/* HEADER */}
             <div className="relative z-20 p-3 md:p-4 flex justify-between items-center shrink-0">

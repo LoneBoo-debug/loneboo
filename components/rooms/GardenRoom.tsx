@@ -1,15 +1,21 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 import DailyRewardsModal from '../DailyRewardsModal';
 import { monthNames } from '../../services/calendarDatabase';
-import { getWeatherForDate } from '../../services/weatherService';
+import { getWeatherForDate, isNightTime } from '../../services/weatherService';
 
 const GARDEN_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousemobiledefnewmao776gbs11.webp';
 const GARDEN_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casaventobg.webp';
 const GARDEN_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cadapigoggisbg.webp';
 const GARDEN_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanevebge.webp';
+
+// Nuovi Asset Notturni
+const GARDEN_NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanottesolexx.webp';
+const GARDEN_NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanottepioggiaxxs.webp';
+const GARDEN_NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanotteventoxxs.webp';
+const GARDEN_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/casanottenevexs.webp';
 
 const BTN_CITY_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartelvaicitygardenboo77y6t+(1).webp';
 const WELCOME_SIGN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/benveniduuej33+(1)+(1).webp';
@@ -29,27 +35,40 @@ const HOUSE_ENTRANCE_AREA: Point[] = [
 ];
 
 const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showDailyModal, setShowDailyModal] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const today = new Date();
-    const currentDay = today.getDate();
-    const currentMonth = monthNames[today.getMonth()].slice(0, 3);
-    const todayWeather = getWeatherForDate(today);
+    const currentDay = now.getDate();
+    const currentMonth = monthNames[now.getMonth()].slice(0, 3);
+    const todayWeather = getWeatherForDate(now);
 
     const getGardenBackground = () => {
-        switch (todayWeather) {
-            case 'WIND': return GARDEN_BG_WIND;
-            case 'RAIN': return GARDEN_BG_RAIN;
-            case 'SNOW': return GARDEN_BG_SNOW;
-            default: return GARDEN_BG_SUN;
+        const isNight = isNightTime(now);
+        
+        if (isNight) {
+            switch (todayWeather) {
+                case 'WIND': return GARDEN_NIGHT_WIND;
+                case 'RAIN': return GARDEN_NIGHT_RAIN;
+                case 'SNOW': return GARDEN_NIGHT_SNOW;
+                default: return GARDEN_NIGHT_SUN;
+            }
+        } else {
+            switch (todayWeather) {
+                case 'WIND': return GARDEN_BG_WIND;
+                case 'RAIN': return GARDEN_BG_RAIN;
+                case 'SNOW': return GARDEN_BG_SNOW;
+                default: return GARDEN_BG_SUN;
+            }
         }
     };
 
     useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000); // Aggiorna ogni minuto per gestire il cambio giorno/notte
+
         const bgUrl = getGardenBackground();
         const img = new Image();
         img.src = bgUrl;
@@ -83,6 +102,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
         return () => {
+            clearInterval(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -98,7 +118,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
             <div className="w-full h-full relative overflow-hidden">
                 {/* Override background image dynamicamente */}
                 <div className="absolute inset-0 z-0">
-                    <img src={getGardenBackground()} alt="Garden" className="w-full h-full object-fill" />
+                    <img src={getGardenBackground()} alt="Garden" className="w-full h-full object-fill animate-in fade-in duration-1000" />
                 </div>
                 
                 {isAudioOn && isPlaying && (

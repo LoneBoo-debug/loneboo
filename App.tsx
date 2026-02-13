@@ -7,7 +7,9 @@ import { OFFICIAL_LOGO } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
 import { addTokens } from './services/tokens';
+import { preloadImages, preloadComponent } from './services/imagePreloader';
 
+// Importazioni Lazy
 const TTSStudio = lazy(() => import('./components/TTSStudio'));
 const InstallPWA = lazy(() => import('./components/InstallPWA')); 
 const BedtimeOverlay = lazy(() => import('./components/BedtimeOverlay'));
@@ -90,7 +92,28 @@ const App: React.FC = () => {
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
 
   useEffect(() => {
-    // Bonus gettoni per i test dell'Atelier
+    // 1. Precaricamento Asset Critici (Backgrounds)
+    const criticalAssets = [
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/defnewsdesd.webp', // Mappa Mobile
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/mapdewsdsktp99i.webp', // Mappa Desktop
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp', // Parco
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp', // Scuola
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgdfre554de32.webp', // Casa Map
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp' // Piazza
+    ];
+    preloadImages(criticalAssets, 'HIGH');
+
+    // 2. Precaricamento Componenti Principali
+    const mainComponents = [
+        () => import('./components/NewCityMap'),
+        () => import('./components/PlayZone'),
+        () => import('./components/SchoolSection'),
+        () => import('./components/CommunityFeed'),
+        () => import('./components/RoomView')
+    ];
+    mainComponents.forEach(preloadComponent);
+
+    // Bonus gettoni per i test
     const bonusKey = 'loneboo_test_bonus_300_v1';
     if (localStorage.getItem(bonusKey) !== 'true') {
         addTokens(300);
@@ -109,20 +132,14 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // Richiesta Wake Lock iniziale
     requestWakeLock();
-
-    // I browser spesso bloccano il Wake Lock se non c'è stata un'interazione.
-    // Lo richiediamo nuovamente al primo tocco o click dell'utente.
     const handleFirstInteraction = () => {
       requestWakeLock();
       window.removeEventListener('touchstart', handleFirstInteraction);
       window.removeEventListener('mousedown', handleFirstInteraction);
     };
-
     window.addEventListener('touchstart', handleFirstInteraction);
     window.addEventListener('mousedown', handleFirstInteraction);
-
     return () => {
       releaseWakeLock();
       window.removeEventListener('touchstart', handleFirstInteraction);

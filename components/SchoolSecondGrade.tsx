@@ -116,7 +116,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
         return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
     };
 
-    const handleZoneClick = (zoneId: string) => {
+    const handleZoneInteraction = (zoneId: string) => {
         if (zoneId === 'TEACHER_CHAT') setShowTeacherChat(true);
         else {
             const subject = SchoolSubject[zoneId as keyof typeof SchoolSubject];
@@ -145,7 +145,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
             <div className="absolute inset-0 z-0">
                 <img src={BG_URL} alt="2ª Elementare" className={`w-full h-full object-fill ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
                 {isLoaded && !isFetching && !activeSubject && Object.entries(INITIAL_ZONES).map(([id, pts]) => (
-                    <div key={id} onClick={() => handleZoneClick(id)} className="absolute inset-0 z-20 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(pts) }} />
+                    <div key={id} onClick={() => handleZoneInteraction(id)} className="absolute inset-0 z-20 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(pts) }} />
                 ))}
             </div>
 
@@ -157,7 +157,7 @@ const SchoolSecondGrade: React.FC<{ setView: (view: AppView) => void }> = ({ set
             )}
 
             {activeSubject && <CurriculumView data={dynamicData} initialSubject={activeSubject} onExit={() => setActiveSubject(null)} bgUrl={BG_URL} setView={setView} />}
-            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} grade={2} setView={setView} />}
         </div>
     );
 };

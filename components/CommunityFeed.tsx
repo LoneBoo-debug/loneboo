@@ -6,12 +6,18 @@ import { getLatestVideos } from '../services/api';
 import { getCommunityPosts } from '../services/data';
 import { OFFICIAL_LOGO } from '../constants';
 import { Bell, ExternalLink, PlayCircle } from 'lucide-react';
-import { getWeatherForDate } from '../services/weatherService';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
 const PIAZZA_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp';
 const PIAZZA_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaneveeso.webp';
 const PIAZZA_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzapioggiaeso.webp';
 const PIAZZA_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaventoeso.webp';
+
+// Nuovi Asset Notturni
+const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanottesolexxs%C3%B9.webp';
+const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanottepioggiaxza.webp';
+const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanotteventoxsa.webp';
+const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanttenevexsa.webp';
 
 const FACEBOOK_GROUP_URL = 'https://www.facebook.com/groups/2648776785470151/';
 const NOTIF_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/notif-piazza.webp';
@@ -84,6 +90,7 @@ const INITIAL_ZONES: Record<string, Point[]> = {
 };
 
 const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
+  const [now, setNow] = useState(new Date());
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [bgLoaded, setBgLoaded] = useState(false);
@@ -95,18 +102,31 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+  const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
 
   const currentBg = useMemo(() => {
-    switch (todayWeather) {
-        case 'SNOW': return PIAZZA_BG_SNOW;
-        case 'RAIN': return PIAZZA_BG_RAIN;
-        case 'WIND': return PIAZZA_BG_WIND;
-        default: return PIAZZA_BG_SUN;
+    const isNight = isNightTime(now);
+    if (isNight) {
+        switch (todayWeather) {
+            case 'SNOW': return NIGHT_SNOW;
+            case 'RAIN': return NIGHT_RAIN;
+            case 'WIND': return NIGHT_WIND;
+            default: return NIGHT_SUN;
+        }
+    } else {
+        switch (todayWeather) {
+            case 'SNOW': return PIAZZA_BG_SNOW;
+            case 'RAIN': return PIAZZA_BG_RAIN;
+            case 'WIND': return PIAZZA_BG_WIND;
+            default: return PIAZZA_BG_SUN;
+        }
     }
-  }, [todayWeather]);
+  }, [now, todayWeather]);
 
   useEffect(() => {
+    // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+    const timeTimer = setInterval(() => setNow(new Date()), 60000);
+
     const img = new Image();
     img.src = currentBg;
     img.onload = () => setBgLoaded(true);
@@ -159,6 +179,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
     window.scrollTo(0, 0);
 
     return () => {
+        clearInterval(timeTimer);
         window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
         if (audioRef.current) {
             audioRef.current.pause();

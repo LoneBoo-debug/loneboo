@@ -2,18 +2,22 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
-import { getWeatherForDate } from '../services/weatherService';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
 const SCHOOL_SPLASH_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp';
 const SCHOOL_SPLASH_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolapiggoaera.webp';
 const SCHOOL_SPLASH_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolaventoerssa.webp';
 const SCHOOL_SPLASH_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolaneveaaoseoa.webp';
 
+const SCHOOL_NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolanottesolexaz.webp';
+const SCHOOL_NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolanottepioggiaes.webp';
+const SCHOOL_NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolanotteventoxsa.webp';
+const SCHOOL_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolanottenevexxz.webp';
+
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vai+icitt%C3%A0schollong877webswq.webp';
 const BTN_GYM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/viainpalestrschoolnwespng55r4.webp';
 
-// Asset Audio e Video
-const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo3w3w.mp3';
+const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo6tr4.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 interface SchoolSectionProps {
@@ -23,24 +27,33 @@ interface SchoolSectionProps {
 type Point = { x: number; y: number };
 
 const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     
-    // Determiniamo il meteo coerente per la giornata
-    const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+    const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
 
     const currentBg = useMemo(() => {
-        switch (todayWeather) {
-            case 'RAIN': return SCHOOL_SPLASH_RAIN;
-            case 'WIND': return SCHOOL_SPLASH_WIND;
-            case 'SNOW': return SCHOOL_SPLASH_SNOW;
-            default: return SCHOOL_SPLASH_SUN;
+        const isNight = isNightTime(now);
+        if (isNight) {
+            switch (todayWeather) {
+                case 'RAIN': return SCHOOL_NIGHT_RAIN;
+                case 'WIND': return SCHOOL_NIGHT_WIND;
+                case 'SNOW': return SCHOOL_NIGHT_SNOW;
+                default: return SCHOOL_NIGHT_SUN;
+            }
+        } else {
+            switch (todayWeather) {
+                case 'RAIN': return SCHOOL_SPLASH_RAIN;
+                case 'WIND': return SCHOOL_SPLASH_WIND;
+                case 'SNOW': return SCHOOL_SPLASH_SNOW;
+                default: return SCHOOL_SPLASH_SUN;
+            }
         }
-    }, [todayWeather]);
+    }, [todayWeather, now]);
 
-    // --- AREAS DEFINITION ---
     const FIRST_FLOOR_ZONE: Point[] = [
         { "x": 29.85, "y": 31.77 },
         { "x": 28.25, "y": 67.15 },
@@ -48,51 +61,81 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
         { "x": 72.23, "y": 31.32 }
     ];
 
+    // Inizializzazione Audio al montaggio
     useEffect(() => {
-        const img = new Image();
-        img.src = currentBg;
-        img.onload = () => setIsLoaded(true);
-        img.onerror = () => setIsLoaded(true); 
-        
         if (!audioRef.current) {
-            audioRef.current = new Audio(SCHOOL_VOICE_URL);
-            audioRef.current.loop = false;
-            audioRef.current.volume = 0.5;
-            audioRef.current.addEventListener('play', () => setIsPlaying(true));
-            audioRef.current.addEventListener('pause', () => setIsPlaying(false));
-            audioRef.current.addEventListener('ended', () => {
+            const audio = new Audio(SCHOOL_VOICE_URL);
+            audio.loop = false;
+            audio.volume = 1.0;
+            audio.preload = "auto";
+            
+            audio.addEventListener('play', () => setIsPlaying(true));
+            audio.addEventListener('pause', () => setIsPlaying(false));
+            audio.addEventListener('ended', () => {
                 setIsPlaying(false);
                 if (audioRef.current) audioRef.current.currentTime = 0;
             });
+            audioRef.current = audio;
         }
 
-        if (isAudioOn) {
-            audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
-        }
-
-        const handleGlobalAudioChange = () => {
-            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
-            setIsAudioOn(enabled);
-            if (enabled) audioRef.current?.play().catch(() => {});
-            else {
-                audioRef.current?.pause();
-                if (audioRef.current) audioRef.current.currentTime = 0;
-            }
-        };
-        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-
-        const timer = setTimeout(() => setIsLoaded(true), 2500);
-        window.scrollTo(0, 0);
+        const timeTimer = setInterval(() => setNow(new Date()), 60000);
         
         return () => {
-            clearTimeout(timer);
-            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            clearInterval(timeTimer);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
             }
         };
+    }, []);
+
+    // Gestione tentativi di riproduzione - Rimosso il blocco sessionStorage
+    const tryPlayAudio = () => {
+        const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+        if (enabled && audioRef.current) {
+            // Proviamo a ricaricare e riprodurre ogni volta
+            audioRef.current.load();
+            audioRef.current.play()
+                .catch(e => {
+                    console.warn("Audio intro blocked by browser. Interaction needed.", e);
+                });
+        }
+    };
+
+    // Effetto per il caricamento dell'immagine e trigger audio
+    useEffect(() => {
+        const img = new Image();
+        img.src = currentBg;
+        img.onload = () => {
+            setIsLoaded(true);
+            tryPlayAudio();
+        };
+        img.onerror = () => {
+            setIsLoaded(true);
+            tryPlayAudio();
+        };
+
+        const handleGlobalAudioChange = () => {
+            const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
+            setIsAudioOn(enabled);
+            if (enabled) {
+                tryPlayAudio();
+            } else {
+                audioRef.current?.pause();
+            }
+        };
+        window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        
+        return () => {
+            window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+        };
     }, [currentBg]);
+
+    const handleScreenTouch = () => {
+        if (isAudioOn && !isPlaying) {
+            tryPlayAudio();
+        }
+    };
 
     const getClipPath = (pts: Point[]) => {
         if (pts.length < 3) return 'none';
@@ -115,7 +158,10 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
     };
 
     return (
-        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none">
+        <div 
+            className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none"
+            onClick={handleScreenTouch}
+        >
             {!isLoaded && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
                     <img src={OFFICIAL_LOGO} alt="Caricamento..." className="w-32 h-32 object-contain animate-spin-horizontal mb-6" />
@@ -123,7 +169,6 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* Mini TV di Boo - Posizionato a SINISTRA */}
             {isLoaded && isAudioOn && isPlaying && (
                 <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -153,7 +198,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                             <img src={BTN_GYM_IMG} alt="Vai in Palestra" className="w-full h-auto drop-shadow-2xl" />
                         </button>
                     </div>
-                    <div className="absolute bottom-[18%] right-[5%] z-20 pointer-events-none">
+                    <div className="absolute top-[18%] right-[5%] z-20 pointer-events-none">
                         <div className="bg-white/90 backdrop-blur-sm border-4 border-yellow-400 px-6 py-2 rounded-full shadow-2xl">
                             <span className="font-luckiest text-blue-900 text-xl md:text-3xl uppercase tracking-tighter">Entra a Scuola!</span>
                         </div>

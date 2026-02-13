@@ -1,9 +1,11 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import SoundLayout from './SoundLayout';
 import { DRUM_SOUNDS } from '../../constants';
+import { isNightTime } from '../../services/weatherService';
 
 const DRUM_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfbattera.webp';
+const DRUM_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/batteriastadionote.webp';
 const DRUM_KIT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/drum-kit.webp';
 
 // Asset per i tasti con le basi rock associate
@@ -69,9 +71,17 @@ const FINAL_AREAS: Record<string, Point[]> = {
 };
 
 const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const [now, setNow] = useState(new Date());
     const imgRef = useRef<HTMLImageElement>(null);
     const baseAudioRef = useRef<HTMLAudioElement | null>(null);
     const [activeBaseId, setActiveBaseId] = useState<number | null>(null);
+
+    const currentBg = useMemo(() => isNightTime(now) ? DRUM_NIGHT_BG : DRUM_BG, [now]);
+
+    useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(timer);
+    }, []);
 
     const playSound = (id: string) => {
         const sound = DRUM_SOUNDS.find(s => s.id === id);
@@ -128,7 +138,7 @@ const DrumKit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     return (
-        <SoundLayout onBack={onBack} backgroundImage={DRUM_BG}>
+        <SoundLayout onBack={onBack} backgroundImage={currentBg}>
             
             {/* TASTI EXTRA IN ALTO A DESTRA - Dimensioni aumentate e abbassati per allineamento */}
             <div className="fixed top-24 md:top-32 right-4 z-50 flex items-center gap-1.5 md:gap-3">

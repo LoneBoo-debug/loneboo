@@ -1,28 +1,27 @@
 
-import React, { useState, Suspense, useEffect, useRef, useMemo } from 'react';
+import React, { useState, Suspense, useEffect, useRef, useMemo, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getProgress, addTokens } from '../services/tokens';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
-import { getWeatherForDate } from '../services/weatherService';
+import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
-// Lazy Load Games
-const QuizGame = React.lazy(() => import('./QuizGame'));
-const MemoryGame = React.lazy(() => import('./MemoryGame'));
-const TicTacToeGame = React.lazy(() => import('./TicTacToeGame'));
-const WhackGhostGame = React.lazy(() => import('./WhackGhostGame'));
-const RPSGame = React.lazy(() => import('./RPSGame'));
-const SimonGame = React.lazy(() => import('./SimonGame'));
-const MathGame = React.lazy(() => import('./MathGame'));
-const ColorMatchGame = React.lazy(() => import('./ColorMatchGame'));
-const OddOneOutGame = React.lazy(() => import('./OddOneOutGame'));
-const GuessNumberGame = React.lazy(() => import('./GuessNumberGame'));
-const CheckersGame = React.lazy(() => import('./CheckersGame'));
-const ChessGame = React.lazy(() => import('./ChessGame'));
-const ConnectFourGame = React.lazy(() => import('./ConnectFourGame'));
-const WordGuessGame = React.lazy(() => import('./WordGuessGame'));
-const ArcadeConsole = React.lazy(() => import('./ArcadeConsole'));
-const BingoGame = React.lazy(() => import('./BingoGame'));
+// --- LAZY LOADED GAMES ---
+const QuizGame = lazy(() => import('./QuizGame'));
+const MemoryGame = lazy(() => import('./MemoryGame'));
+const TicTacToeGame = lazy(() => import('./TicTacToeGame'));
+const WhackGhostGame = lazy(() => import('./WhackGhostGame'));
+const RPSGame = lazy(() => import('./RPSGame'));
+const SimonGame = lazy(() => import('./SimonGame'));
+const MathGame = lazy(() => import('./MathGame'));
+const OddOneOutGame = lazy(() => import('./OddOneOutGame'));
+const GuessNumberGame = lazy(() => import('./GuessNumberGame'));
+const CheckersGame = lazy(() => import('./CheckersGame'));
+const ChessGame = lazy(() => import('./ChessGame'));
+const ConnectFourGame = lazy(() => import('./ConnectFourGame'));
+const WordGuessGame = lazy(() => import('./WordGuessGame'));
+const ArcadeConsole = lazy(() => import('./ArcadeConsole'));
+const BingoGame = lazy(() => import('./BingoGame'));
 
 const PARK_BG_SUN_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
 const PARK_BG_SUN_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newparcogiochimape3rfcxxs.webp';
@@ -30,6 +29,12 @@ const PARK_BG_SUN_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/
 const PARK_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochibneveeso.webp';
 const PARK_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochipiaggieso.webp';
 const PARK_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochiventoeso.webp';
+
+// Nuovi Asset Notturni
+const PLAY_NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconottesoledsa.webp';
+const PLAY_NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconottepioggiadsx.webp';
+const PLAY_NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconotteventores.webp';
+const PLAY_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconottenevexxz.webp';
 
 // Asset Audio e Video
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parcogiochispeechboo6tr64.mp3';
@@ -56,7 +61,6 @@ enum GameType {
 
 type Point = { x: number; y: number };
 
-// --- COORDINATE DEFINITIVE CALIBRATE ---
 const INITIAL_MAP_DATA: Record<string, Point[]> = {
   "QUIZ": [
     { "x": 57.3, "y": 24.28 },
@@ -161,6 +165,7 @@ interface PlayZoneProps {
 }
 
 const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
+  const [now, setNow] = useState(new Date());
   const [activeGame, setActiveGame] = useState<GameType>(GameType.NONE);
   const [isLoaded, setIsLoaded] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(() => getProgress().tokens);
@@ -168,37 +173,58 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const todayWeather = useMemo(() => getWeatherForDate(new Date()), []);
+  const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
 
   const currentBgMobile = useMemo(() => {
-    switch (todayWeather) {
+    const isNight = isNightTime(now);
+    if (isNight) {
+      switch (todayWeather) {
+        case 'SNOW': return PLAY_NIGHT_SNOW;
+        case 'RAIN': return PLAY_NIGHT_RAIN;
+        case 'WIND': return PLAY_NIGHT_WIND;
+        default: return PLAY_NIGHT_SUN;
+      }
+    } else {
+      switch (todayWeather) {
         case 'SNOW': return PARK_BG_SNOW;
         case 'RAIN': return PARK_BG_RAIN;
         case 'WIND': return PARK_BG_WIND;
         default: return PARK_BG_SUN_MOBILE;
+      }
     }
-  }, [todayWeather]);
+  }, [todayWeather, now]);
 
   const currentBgDesktop = useMemo(() => {
-    switch (todayWeather) {
+    const isNight = isNightTime(now);
+    if (isNight) {
+      switch (todayWeather) {
+        case 'SNOW': return PLAY_NIGHT_SNOW;
+        case 'RAIN': return PLAY_NIGHT_RAIN;
+        case 'WIND': return PLAY_NIGHT_WIND;
+        default: return PLAY_NIGHT_SUN;
+      }
+    } else {
+      switch (todayWeather) {
         case 'SNOW': return PARK_BG_SNOW;
         case 'RAIN': return PARK_BG_RAIN;
         case 'WIND': return PARK_BG_WIND;
         default: return PARK_BG_SUN_DESKTOP;
+      }
     }
-  }, [todayWeather]);
+  }, [todayWeather, now]);
 
   useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+
     const handleProgressUpdate = () => {
       setTokenBalance(getProgress().tokens);
     };
     window.addEventListener('progressUpdated', handleProgressUpdate);
     
-    const imgM = new Image(); imgM.src = currentBgMobile;
-    const imgD = new Image(); imgD.src = currentBgDesktop;
-    const checkLoaded = () => setIsLoaded(true);
-    imgM.onload = checkLoaded;
-    imgD.onload = checkLoaded;
+    const bgUrl = window.innerWidth < 768 ? currentBgMobile : currentBgDesktop;
+    const img = new Image(); 
+    img.src = bgUrl;
+    img.onload = () => setIsLoaded(true);
 
     if (!ambientAudioRef.current) {
       ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
@@ -224,8 +250,11 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
     };
     window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-    setTimeout(() => setIsLoaded(true), 2500);
+    // Ridotto il timeout di sicurezza a 400ms
+    const safetyTimer = setTimeout(() => setIsLoaded(true), 400);
     return () => {
+      clearInterval(timer);
+      clearTimeout(safetyTimer);
       window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
       window.removeEventListener('progressUpdated', handleProgressUpdate);
       if (ambientAudioRef.current) {
@@ -288,10 +317,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
             <span className="text-white font-black tracking-widest uppercase">Preparo il gioco...</span>
           </div>
         }>
-          {/* 
-            FIX: Replaced 'Type.NONE' with 'GameType.NONE' in all onBack callbacks 
-            to match the enum defined in this file. 
-          */}
           {activeGame === GameType.QUIZ && <QuizGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
           {activeGame === GameType.MEMORY && <MemoryGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
           {activeGame === GameType.TICTACTOE && <TicTacToeGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
@@ -338,7 +363,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
           <img src={currentBgDesktop} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
         </picture>
         
-        {/* BOX SALDO GETTONI - STILE COERENTE CON I GIOCHI - Abbassato al 74% */}
         {isLoaded && (
           <div className="absolute top-[74%] right-[4%] z-[60] animate-in slide-in-from-bottom-2 duration-700 pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl transition-transform hover:scale-105">

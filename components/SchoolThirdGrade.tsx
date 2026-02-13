@@ -111,9 +111,9 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         return () => window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
     }, [isLoaded, isFetching]);
 
-    const getClipPath = (pts: Point[]) => {
-        if (pts.length < 3) return 'none';
-        return `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    const getClipPath = (points: Point[]) => {
+        if (points.length < 3) return 'none';
+        return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
     };
 
     const handleZoneInteraction = (key: string) => {
@@ -157,7 +157,7 @@ const SchoolThirdGrade: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             )}
 
             {activeSubject && <CurriculumView data={dynamicData} initialSubject={activeSubject} onExit={() => setActiveSubject(null)} bgUrl={BG_URL} setView={setView} />}
-            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} />}
+            {showTeacherChat && <TeacherChat onClose={() => setShowTeacherChat(false)} grade={3} setView={setView} />}
         </div>
     );
 };

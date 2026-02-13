@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { COLORING_DATABASE } from '../services/coloringDatabase';
 import { ColoringCategory, AppView } from '../types';
 import { Download, ZoomIn, X, Construction } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
+import { isNightTime } from '../services/weatherService';
 
 const SCHOOL_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/academy-mobile.webp';
+const SCHOOL_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/accademianottesa.webp';
 const LIST_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scaricaimngasedcolorarede33e3.webp';
+const LIST_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/accademiasfondnottedisegni.webp';
 const BTN_BACK_ACCADEMIA_IMG = 'https://i.postimg.cc/sDLjTmQX/TORNACCADEMIA-(1)-(1).png';
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaia+scuola.png';
@@ -52,6 +56,7 @@ const INITIAL_ZONES: ZoneConfig[] = [
 ];
 
 const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
+  const [now, setNow] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState<ColoringCategory | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -60,9 +65,22 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const zones = INITIAL_ZONES;
 
+  const isNight = useMemo(() => isNightTime(now), [now]);
+
+  const currentBg = useMemo(() => {
+    return isNight ? SCHOOL_BG_NIGHT : SCHOOL_BG_MOBILE;
+  }, [isNight]);
+
+  const currentListBg = useMemo(() => {
+    return isNight ? LIST_BG_NIGHT : LIST_BG;
+  }, [isNight]);
+
   useEffect(() => {
+      // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+      const timeInterval = setInterval(() => setNow(new Date()), 60000);
+
       const img = new Image();
-      img.src = SCHOOL_BG_MOBILE;
+      img.src = currentBg;
       img.onload = () => setIsLoaded(true);
       
       if (!audioRef.current) {
@@ -77,14 +95,14 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
           });
       }
 
-      if (isAudioOn) {
+      if (isAudioOn && !selectedCategory) {
           audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
       }
 
       const handleGlobalAudioChange = () => {
           const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
           setIsAudioOn(enabled);
-          if (enabled && isLoaded) audioRef.current?.play().catch(() => {});
+          if (enabled && isLoaded && !selectedCategory) audioRef.current?.play().catch(() => {});
           else {
               audioRef.current?.pause();
               if (audioRef.current) audioRef.current.currentTime = 0;
@@ -96,6 +114,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
       window.scrollTo(0, 0);
       
       return () => {
+          clearInterval(timeInterval);
           clearTimeout(timer);
           window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
           if (audioRef.current) {
@@ -103,7 +122,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
               audioRef.current.currentTime = 0;
           }
       };
-  }, [isLoaded]);
+  }, [isLoaded, currentBg, selectedCategory]);
 
   const handleZoneClick = (zoneId: string) => {
       const cat = COLORING_DATABASE.find(c => c.id === zoneId);
@@ -121,7 +140,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] bg-purple-900 overflow-y-auto animate-in slide-in-from-right duration-300">
             {/* SFONDO GALLERIA A TUTTO SCHERMO */}
             <img 
-                src={LIST_BG} 
+                src={currentListBg} 
                 alt="" 
                 className="fixed inset-0 w-full h-full object-fill z-0 pointer-events-none" 
             />
@@ -229,7 +248,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
         {/* --- BACKGROUND IMAGE (FULL SCREEN) --- */}
         <div className="absolute inset-0 w-full h-full">
             <img 
-                src={SCHOOL_BG_MOBILE} 
+                src={currentBg} 
                 alt="Accademia" 
                 className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
                 draggable={false}

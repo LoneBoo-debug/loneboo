@@ -114,12 +114,15 @@
         align-items: center;
       }
 
+      /* FILTRO VIVIDITÀ DI DEFAULT PER UN LOOK CARTOON */
       #root {
         width: 100%;
         height: 100dvh;
         background-color: #8B5CF6;
         position: relative;
         overflow: hidden;
+        filter: saturate(135%) contrast(115%); /* Baseline vivace */
+        transition: filter 0.5s ease-in-out;
       }
 
       @media (min-width: 1024px) {
@@ -138,8 +141,9 @@
         letter-spacing: 0.05em !important;
       }
 
-      body.a11y-high-contrast {
-        filter: contrast(140%) saturate(140%) brightness(105%) !important;
+      /* FILTRO VIVIDITÀ MAGICA POTENZIATO (Sovrascrive la base quando attivo) */
+      body.a11y-high-contrast #root {
+        filter: saturate(180%) contrast(115%) brightness(105%) !important;
       }
       
       body.a11y-high-contrast input[type="text"],

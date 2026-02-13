@@ -4,9 +4,12 @@ import { AppView } from '../types';
 import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight, Sun, Cloud, CloudRain } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 import { getProgress, spendTokens } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 
 const MAP_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietteriadovevai887xs32.webp';
-const TRAVEL_VIDEO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinasewsq.mp4';
+const MAP_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietterinotteasx.webp';
+const TRAVEL_VIDEO_DAY_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinasewsq.mp4';
+const TRAVEL_VIDEO_NIGHT_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/viaggio+notte.mp4';
 const TRAVEL_CENTER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinviagibimbd45f42.webp';
 const TRAIN_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freesound_community-train-yokosuka-79155.mp3';
 const CHIME_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/subway-station-chime-100558.mp3';
@@ -246,6 +249,7 @@ const MapImageModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 };
 
 const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [userTokens, setUserTokens] = useState(0);
     const [selectedZone, setSelectedZone] = useState<ZoneInfo | null>(null);
@@ -265,6 +269,14 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
     const [isReturnTrip, setIsReturnTrip] = useState(false);
+
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? MAP_BG_NIGHT : MAP_BG;
+    }, [now]);
+
+    const travelVideoUrl = useMemo(() => {
+        return isNightTime(now) ? TRAVEL_VIDEO_NIGHT_URL : TRAVEL_VIDEO_DAY_URL;
+    }, [now]);
 
     // --- CALCOLO METEO ---
     const weatherData = useMemo(() => {
@@ -341,8 +353,11 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         }
 
         const img = new Image(); 
-        img.src = MAP_BG;
+        img.src = currentBg;
         img.onload = () => setIsLoaded(true);
+
+        // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
+        const timeInterval = setInterval(() => setNow(new Date()), 60000);
         
         const handleGlobalAudioChange = () => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
@@ -353,6 +368,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         const timer = setTimeout(() => setIsLoaded(true), 2000);
         return () => {
             clearTimeout(timer);
+            clearInterval(timeInterval);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
             if (trainAudioRef.current) {
@@ -364,7 +380,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 marloVoiceRef.current = null;
             }
         };
-    }, []);
+    }, [currentBg]);
 
     useEffect(() => {
         if (isAudioOn && isLoaded && !isTraveling) {
@@ -495,7 +511,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden bg-black">
                     <video 
                         ref={videoRef}
-                        src={TRAVEL_VIDEO_URL}
+                        src={travelVideoUrl}
                         autoPlay
                         loop
                         muted
@@ -576,7 +592,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             <div className={`absolute inset-0 z-0 ${isTraveling ? 'hidden' : 'block'}`}>
-                <img src={MAP_BG} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+                <img src={currentBg} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
 
                 {isLoaded && (
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 items-center">

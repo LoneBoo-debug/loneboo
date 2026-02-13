@@ -1,10 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import SoundLayout from './SoundLayout';
 import { ANIMAL_SOUNDS } from '../../constants';
 import { Music } from 'lucide-react';
+import { isNightTime } from '../../services/weatherService';
 
 const ANIMAL_ORCHESTRA_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sforches.jpg';
+const ANIMAL_ORCHESTRA_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orcheanimalnotte.webp';
 
 const ANIMAL_BASES = [
     { id: 'base1', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/base1+(1).webp', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/a-little-quirky-167769.mp3' },
@@ -14,8 +16,11 @@ const ANIMAL_BASES = [
 ];
 
 const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const [now, setNow] = useState(new Date());
     const [activeBaseId, setActiveBaseId] = useState<string | null>(null);
     const baseAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    const currentBg = useMemo(() => isNightTime(now) ? ANIMAL_ORCHESTRA_NIGHT_BG : ANIMAL_ORCHESTRA_BG, [now]);
 
     const playAnimalSound = (src: string) => { 
         const a = new Audio(src); 
@@ -45,9 +50,11 @@ const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    // Cleanup alla chiusura della sezione
+    // Cleanup alla chiusura della sezione e gestione timer orario
     useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
         return () => {
+            clearInterval(timer);
             if (baseAudioRef.current) {
                 baseAudioRef.current.pause();
                 baseAudioRef.current = null;
@@ -56,7 +63,7 @@ const AnimalOrchestra: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }, []);
     
     return (
-        <SoundLayout onBack={onBack} backgroundImage={ANIMAL_ORCHESTRA_BG}>
+        <SoundLayout onBack={onBack} backgroundImage={currentBg}>
             {/* Contenitore principale senza scroll (overflow-hidden) e con layout flessibile */}
             <div className="w-full h-full max-w-4xl px-4 pt-20 md:pt-32 pb-6 mx-auto flex flex-col gap-4 md:gap-8 overflow-hidden">
                 

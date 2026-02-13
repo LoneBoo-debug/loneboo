@@ -4,8 +4,10 @@ import { AppView, PlayerProgress } from '../types';
 import { getProgress, equipClothing, purchaseClothing } from '../services/tokens';
 import { ATELIER_COMBO_CSV_URL } from '../constants';
 import { ChevronLeft, ChevronRight, Check, Sparkles, AlertCircle, ShoppingCart, Volume2, VolumeX } from 'lucide-react';
+import { isNightTime } from '../services/weatherService';
 
 const BG_ATELIER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfatelieradjncnd77en3h32ws.webp';
+const BG_ATELIER_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ateliernottessxa.webp';
 const BOO_BASE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boonudoede32ws34r.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 
@@ -110,6 +112,7 @@ interface ActionFeedback {
 }
 
 const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [openMenu, setOpenMenu] = useState<MenuType>(null);
     const [progress, setProgress] = useState<PlayerProgress>(getProgress());
@@ -127,6 +130,10 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     
     const menuRef = useRef<HTMLDivElement>(null);
     const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? BG_ATELIER_NIGHT : BG_ATELIER;
+    }, [now]);
 
     useEffect(() => {
         const fetchMap = async () => {
@@ -184,10 +191,16 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         };
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
         
+        // Aggiorna l'orario ogni minuto per gestire il ciclo giorno/notte
+        const timeInterval = setInterval(() => {
+            setNow(new Date());
+        }, 60000);
+
         setTimeout(() => setIsLoaded(true), 800);
         return () => {
             window.removeEventListener('progressUpdated', syncProgress);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
+            clearInterval(timeInterval);
             if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -199,7 +212,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     // Logica intelligente per l'avvio automatico
     useEffect(() => {
         if (isLoaded && isAudioOn && audioRef.current) {
-            const alreadyHeard = sessionStorage.getItem('heard_audio_atelier') === 'true';
+            const alreadyHeard = sessionStorage.getItem('heard_audio_station') === 'true' || sessionStorage.getItem('heard_audio_atelier') === 'true';
             if (!alreadyHeard) {
                 audioRef.current.play().catch(e => console.log("Audio play blocked", e));
                 sessionStorage.setItem('heard_audio_atelier', 'true');
@@ -569,7 +582,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             `}</style>
 
             <div className="absolute inset-0 z-0">
-                <img src={BG_ATELIER} alt="" className="w-full h-full object-fill" />
+                <img src={currentBg} alt="" className="w-full h-full object-fill" />
             </div>
 
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
