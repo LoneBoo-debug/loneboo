@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { MEMORY_ICONS } from '../constants';
 import { MemoryCard } from '../types';
 import { RotateCcw, Trophy, Timer, Play, Lock } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
-const MEMORY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/memory-bg.webp';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
+const MEMORY_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/emmoetydays.webp';
+const MEMORY_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mempruynights.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
 const CARD_BACK_IMG = 'https://i.postimg.cc/tCZGcq9V/official.png';
@@ -29,6 +32,7 @@ type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 type GameState = 'MENU' | 'PLAYING' | 'WON' | 'GAME_OVER';
 
 const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [cards, setCards] = useState<MemoryCard[]>([]);
   const [turns, setTurns] = useState(0);
   const [choiceOne, setChoiceOne] = useState<MemoryCard | null>(null);
@@ -43,12 +47,18 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [currentTokens, setCurrentTokens] = useState(0);
 
+  // Background dinamico basato sull'orario richiesto (20:15 - 06:45)
+  const currentBg = useMemo(() => isNightTime(now) ? MEMORY_BG_NIGHT : MEMORY_BG_DAY, [now]);
+
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
       setCurrentTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
+      return () => clearInterval(timeTimer);
   }, []);
 
   useEffect(() => { 
@@ -164,7 +174,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
   }, [cards, gameState]);
 
   useEffect(() => {
-      if (gameState === 'WON' && !rewardGiven && onEarnTokens && difficulty) {
+      if (gameState === 'WON' && !rewardGiven && onEarnTokens) {
           let reward = 0; 
           if (difficulty === 'EASY') reward = 5; 
           else if (difficulty === 'MEDIUM') reward = 10; 
@@ -182,11 +192,38 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
 
   return (
     <div className={wrapperStyle}>
-      {/* BACKGROUND IMAGE - FULL SCREEN & UNDER HEADER */}
+      <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+
+            .perspective-1000 { perspective: 1000px; } 
+            .transform-style-3d { transform-style: preserve-3d; } 
+            .backface-hidden { backface-visibility: hidden; } 
+            .rotate-y-180 { transform: rotateY(180deg); }
+        `}</style>
+
+      {/* BACKGROUND IMAGE - DINAMICA GIORNO/NOTTE */}
       <img 
-          src={MEMORY_BG} 
+          src={currentBg} 
           alt="" 
-          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" 
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" 
           draggable={false}
       />
 
@@ -213,21 +250,30 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
 
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
-      {/* MAIN CONTAINER */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-44 md:pt-56 px-4">
+      {/* MAIN CONTAINER: pt aumentato per abbassare il blocco menu */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-40 md:pt-56 px-4">
           {gameState === 'MENU' && (
               <div className="flex flex-col items-center w-full animate-fade-in">
-                  {/* AIRPLANE BOX BEHIND LEVELS */}
-                  <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-10 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[240px] md:max-w-[320px]">
-                      <button onClick={() => initGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                          <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+                  
+                  {/* ISTRUZIONI SU UN'UNICA RIGA SENZA BOX */}
+                  <h2 
+                    className="mb-8 font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm sm:text-lg md:text-3xl whitespace-nowrap animate-in slide-in-from-top-4" 
+                    style={{ WebkitTextStroke: '1px black' }}
+                  >
+                      Scegli un livello e sfida la tua memoria!
+                  </h2>
+
+                  {/* CONTENITORE PULSANTI - Sollevati di conseguenza */}
+                  <div className="flex flex-col gap-4 items-center w-full max-w-[200px] md:max-w-[280px]">
+                      <button onClick={() => initGame('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                          <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto" />
                       </button>
-                      <button onClick={() => initGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                          <img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto drop-shadow-md" />
+                      <button onClick={() => initGame('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                          <img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto" />
                       </button>
-                      <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                          <button onClick={() => initGame('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
-                              <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                      <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
+                          <button onClick={() => initGame('HARD')} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                              <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto" />
                           </button>
                           {!isHardUnlocked && (
                               <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
@@ -235,12 +281,6 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
                               </div>
                           )}
                       </div>
-                  </div>
-
-                  <div className="mt-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
-                      <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
-                          Scegli un livello e sfida la tua memoria!
-                      </p>
                   </div>
               </div>
           )}
@@ -317,10 +357,10 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
                                         </div>
                                         <p className="font-bold text-gray-600 text-sm mb-6">Non sei stato abbastanza veloce!</p>
                                         <div className="flex flex-row gap-4 justify-center items-center w-full">
-                                            <button onClick={() => initGame(difficulty!)} className="hover:scale-105 active:scale-95 transition-transform w-32">
+                                            <button onClick={() => initGame(difficulty!)} className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[128px]">
                                                 <img src={BTN_RETRY_IMG} alt="Riprova" className="w-full h-auto drop-shadow-xl" />
                                             </button>
-                                            <button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-transform w-32">
+                                            <button onClick={returnToMenu} className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[128px]">
                                                 <img src={BTN_EXIT_GAME_IMG} alt="Esci" className="w-full h-auto drop-shadow-xl" />
                                             </button>
                                         </div>
@@ -333,12 +373,6 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
             </div>
           )}
       </div>
-      <style>{`
-          .perspective-1000 { perspective: 1000px; } 
-          .transform-style-3d { transform-style: preserve-3d; } 
-          .backface-hidden { backface-visibility: hidden; } 
-          .rotate-y-180 { transform: rotateY(180deg); }
-      `}</style>
     </div>
   );
 };

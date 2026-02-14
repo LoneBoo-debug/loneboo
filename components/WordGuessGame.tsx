@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Trophy, ArrowLeft, ArrowBigDown } from 'lucide-react';
 import SaveReminder from './SaveReminder';
 import { getProgress } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 
 const NEW_WORD_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoa-parola-buuton-(1).webp';
-const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfoparolmagdsse.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+
+const WORD_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ndovinaparoladayyyes.webp';
+const WORD_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ndovinaparolanightss.webp';
 
 const WORDS = [
     'FANTASMA', 'ZUCCA', 'CASTELLO', 'MAGIA', 'AMICI', 'NOTTE', 'STELLA', 'LUNA', 'DRAGO', 'FORESTA',
@@ -42,6 +46,7 @@ interface WordGuessProps {
 }
 
 const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [targetWord, setTargetWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
   const [lives, setLives] = useState(5);
@@ -51,12 +56,18 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
   const [currentTokens, setCurrentTokens] = useState(0);
   const [rewardGivenForThisWord, setRewardGivenForThisWord] = useState(false);
 
+  // Background dinamico basato sull'orario (20:15 - 06:45)
+  const currentBg = useMemo(() => isNightTime(now) ? WORD_BG_NIGHT : WORD_BG_DAY, [now]);
+
   useEffect(() => {
       startNewGame();
       try {
           const p = getProgress();
           setCurrentTokens(p ? p.tokens : 0);
       } catch (e) { console.error(e); }
+
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
+      return () => clearInterval(timeTimer);
   }, []);
 
   const startNewGame = () => {
@@ -119,7 +130,7 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
 
   return (
     <div className={wrapperStyle}>
-        <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" draggable={false} />
+        <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" draggable={false} />
 
         {/* HUD FISSA: TASTO ESCI E SALDO GETTONI */}
         <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
@@ -263,8 +274,8 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
                 )}
             </div>
 
-            {/* BOTTOM INFO HUD - Mantiene la posizione fissa a bottom-24 */}
-            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl z-50">
+            {/* BOTTOM INFO HUD - Alzato a bottom-40 per renderlo più visibile */}
+            <div className="absolute bottom-40 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl z-50">
                 <div className="bg-white/40 backdrop-blur-md p-2 rounded-[30px] border-4 border-white/50 shadow-xl flex items-center justify-between h-24">
                     
                     {/* LEFT: RULES */}

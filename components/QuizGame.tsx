@@ -10,9 +10,9 @@ import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
 const NEW_HEADER_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/header-quiz.webp';
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
 const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
@@ -171,6 +171,28 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
 
   return (
     <div className={wrapperStyle}>
+        <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+        `}</style>
+
         {/* SFONDO A TUTTO SCHERMO */}
         <img 
             src={QUIZ_BG} 
@@ -198,7 +220,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
             </div>
 
             <div className="pointer-events-auto">
-                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/40 shadow-xl flex items-center gap-2 text-white font-black text-sm md:text-lg">
+                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg">
                     <span>{userTokens}</span> <span className="text-xl">🪙</span>
                 </div>
             </div>
@@ -210,16 +232,16 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4 mt-10 md:mt-20">
-                    <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
-                        <button onClick={() => initGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                            <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                        <button onClick={() => initGame('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                            <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-xl" />
                         </button>
-                        <button onClick={() => initGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                            <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" />
+                        <button onClick={() => initGame('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                            <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-xl" />
                         </button>
-                        <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                            <button onClick={() => initGame('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
-                                <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                        <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
+                            <button onClick={() => initGame('HARD')} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                                <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-xl" />
                             </button>
                             {!isHardUnlocked && (
                                 <div className="absolute right-[-8px] top-[-8px] pointer-events-none z-20">

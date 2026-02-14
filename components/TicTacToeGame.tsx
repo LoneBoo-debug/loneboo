@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trophy, Loader2, Lock } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
-const TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-tris.webp';
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const TITLE_IMG = 'https://i.postimg.cc/02djnLBy/acchiam-(1).png';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
 const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp'; 
-const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tribhggroudd.webp';
+const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
+
+// Asset Sfondi
+const BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tribhggroudd.webp';
+const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocotrisnotte.webp';
 
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
 const WITCH_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/witch-thinking.webp';
 const PLAYER_AVATAR_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/girlthinkticerd.webp';
 const VICTORY_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/triswingirl.webp';
+
+// Musica di sottofondo
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hitslab-comedy-cartoon-funny-background-music-365347.mp3';
 
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -27,6 +36,7 @@ interface TicTacToeProps {
 }
 
 const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [winner, setWinner] = useState<string | null>(null);
@@ -37,13 +47,45 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  // Sfondo dinamico basato sull'orario (20:15 - 06:45)
+  const currentBg = useMemo(() => isNightTime(now) ? BG_NIGHT : BG_DAY, [now]);
 
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+
+      // Inizializza Audio
+      bgMusicRef.current = new Audio(BG_MUSIC_URL);
+      bgMusicRef.current.loop = true;
+      bgMusicRef.current.volume = 0.4;
+
+      // Timer per l'aggiornamento dell'orario
+      const timeInterval = setInterval(() => setNow(new Date()), 60000);
+      return () => {
+          clearInterval(timeInterval);
+          if (bgMusicRef.current) {
+              bgMusicRef.current.pause();
+              bgMusicRef.current = null;
+          }
+      };
   }, []);
+
+  // Gestione musica basata sullo stato del gioco e del toggle
+  useEffect(() => {
+      if (bgMusicRef.current) {
+          if (musicEnabled && difficulty && !winner) {
+              bgMusicRef.current.play().catch(() => console.log("Musica bloccata dal browser"));
+          } else {
+              bgMusicRef.current.pause();
+          }
+      }
+  }, [musicEnabled, difficulty, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -177,15 +219,10 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
     const levelLabel = difficulty === 'EASY' ? 'LIVELLO FACILE' : (difficulty === 'MEDIUM' ? 'LIVELLO MEDIO' : 'SFIDA DIFFICILE');
 
     return (
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 flex flex-col items-center z-50 pointer-events-none px-4 animate-in fade-in slide-in-from-top-4 duration-500">
-            <img 
-                src={TITLE_IMG} 
-                alt="Tris Spettrale" 
-                className="h-14 md:h-28 w-auto object-contain drop-shadow-xl mb-0 translate-x-6 md:translate-x-12" 
-            />
-            <div className={`bg-white/20 backdrop-blur-md px-4 py-1 rounded-[20px] border-2 border-white/40 shadow-xl mt-3 ${difficulty ? 'rounded-full' : 'rounded-[20px]'}`}>
+        <div className="absolute top-[160px] md:top-[220px] left-0 right-0 flex flex-col items-center z-50 pointer-events-none px-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className={`bg-white/20 backdrop-blur-md px-4 rounded-[20px] border-2 border-white/40 shadow-xl mt-3 ${difficulty ? 'rounded-full pt-0.5 pb-1.5' : 'rounded-[20px] py-1'}`}>
                 <h1 
-                    className={`font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] ${difficulty ? 'text-xs md:text-xl whitespace-nowrap' : 'text-lg md:text-4xl'}`}
+                    className={`font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] ${difficulty ? 'text-sm md:text-2xl whitespace-nowrap' : 'text-lg md:text-4xl'}`}
                     style={{ WebkitTextStroke: '1.2px black', lineHeight: '1.1' }}
                 >
                     {difficulty ? levelLabel : "GIOCA CONTRO LA STREGA"}
@@ -199,25 +236,56 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
 
   return (
     <div className={fullScreenWrapper}>
-      <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" />
+      <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+        `}</style>
+
+      <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" />
 
       {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA E SALDO GETTONI IN ALTO A DESTRA */}
       <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-          <div className="flex flex-col items-start gap-2 pointer-events-auto">
+          <div className="flex flex-col items-start pointer-events-auto">
               <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
                   <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
               </button>
               {difficulty && (
-                <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                <button onClick={backToMenu} className="mt-2 hover:scale-105 active:scale-95 transition-transform cursor-pointer">
                     <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto drop-shadow-md" />
                 </button>
               )}
           </div>
 
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex flex-col items-end gap-3">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
                   <span>{userTokens}</span> <span className="text-xl">🪙</span>
               </div>
+              
+              {/* Tasto Audio sotto i gettoni */}
+              <button 
+                  onClick={() => setMusicEnabled(!musicEnabled)}
+                  className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                  title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+              >
+                  <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
+              </button>
           </div>
       </div>
 
@@ -227,17 +295,17 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
       
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-64 md:pt-80 pb-4">
         {difficulty === null ? (
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
-                <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] mt-24 md:mt-32">
-                    <button onClick={() => setDifficulty('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                      <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+            <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4">
+                <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] mt-24 md:mt-32">
+                    <button onClick={() => setDifficulty('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                      <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto" />
                     </button>
-                    <button onClick={() => setDifficulty('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                      <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" />
+                    <button onClick={() => setDifficulty('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                      <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto" />
                     </button>
-                    <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                        <button onClick={() => isHardUnlocked ? setDifficulty('HARD') : setShowUnlockModal(true)} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
-                          <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                    <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
+                        <button onClick={() => isHardUnlocked ? setDifficulty('HARD') : setShowUnlockModal(true)} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                          <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto" />
                         </button>
                         {!isHardUnlocked && (
                             <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
@@ -302,13 +370,13 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
                 ) : winner === 'X' ? (
                     <>
                         <img src={WITCH_THINKING_IMG} alt="La Strega Vince" className="w-48 h-auto mb-4 drop-shadow-xl" />
-                        <h2 className="text-3xl md:text-4xl font-black text-red-600 mb-2 uppercase text-center leading-none">HA VINTO LA STREGA!</h2>
+                        <h2 className="text-3xl font-black text-red-600 mb-2 uppercase text-center leading-none">HA VINTO LA STREGA!</h2>
                         <p className="text-gray-600 font-bold mb-8 text-center">Riprova, non farti battere!</p>
                     </>
                 ) : (
                     <>
                         <div className="text-8xl mb-4">🤝</div>
-                        <h2 className="text-3xl md:text-4xl font-black text-blue-600 mb-2 uppercase text-center leading-none">PAREGGIO!</h2>
+                        <h2 className="text-3xl font-black text-blue-600 mb-2 uppercase text-center leading-none">PAREGGIO!</h2>
                         <p className="text-gray-600 font-bold mb-8 text-center">Siete stati bravissimi entrambi!</p>
                     </>
                 )}

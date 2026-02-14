@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 
+const BTN_EXIT_GARDEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/escicasagiardi77jy5tr.webp';
+
 const ZONES_MOBILE = [
   { "id": "tv", "points": [ { "x": 21.06, "y": 41.21 }, { "x": 20.52, "y": 57.05 }, { "x": 40.51, "y": 54.33 }, { "x": 39.98, "y": 41.04 } ] },
   { "id": "radio", "points": [ { "x": 0.8, "y": 19.41 }, { "x": 0.27, "y": 29.12 }, { "x": 16.52, "y": 29.12 }, { "x": 16.52, "y": 20.78 } ] },
@@ -78,8 +80,26 @@ const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
 
     const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
+    function handleZoneClick(id: string) {
+        if (id === 'tv') setView(AppView.VIDEOS);
+        else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
+        else if (id === 'chi_sono') setView(AppView.INTRO);
+        else if (id === 'amici') setView(AppView.CHARACTERS);
+        else if (id === 'libri') setView(AppView.BOOKS_LIST);
+    }
+
     return (
         <RoomLayout roomType={AppView.BOO_LIVING_ROOM} setView={setView} disableHint={true}>
+            {/* Tasto Esci verso Giardino al centro dei tasti di navigazione */}
+            <div className="absolute top-28 md:top-40 left-1/2 -translate-x-1/2 z-50">
+                <button 
+                    onClick={() => setView(AppView.BOO_GARDEN)} 
+                    className="hover:scale-110 active:scale-95 transition-all outline-none"
+                >
+                    <img src={BTN_EXIT_GARDEN_IMG} alt="Torna in Giardino" className="h-12 md:h-16 w-auto drop-shadow-xl" />
+                </button>
+            </div>
+
             {isAudioOn && isPlaying && (
                 <div className="absolute top-48 md:top-64 left-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -92,14 +112,6 @@ const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
             <div className="absolute inset-0 z-10 hidden md:block">{ZONES_DESKTOP.map(z => (<div key={z.id} onClick={() => handleZoneClick(z.id)} className="absolute inset-0 cursor-pointer hover:bg-white/10" style={{ clipPath: getClipPath(z.points) }}></div>))}</div>
         </RoomLayout>
     );
-
-    function handleZoneClick(id: string) {
-        if (id === 'tv') setView(AppView.VIDEOS);
-        else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
-        else if (id === 'chi_sono') setView(AppView.INTRO);
-        else if (id === 'amici') setView(AppView.CHARACTERS);
-        else if (id === 'libri') setView(AppView.BOOKS_LIST);
-    }
 };
 
 export default LivingRoom;

@@ -1,20 +1,27 @@
+
 import { getProgress, unlockHardMode } from '../services/tokens';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
+import { isNightTime } from '../services/weatherService';
 
 const NEW_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/connect4.webp';
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
 const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp'; 
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
-const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfforsa34ee.webp';
+const BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/forza4daysuna.webp';
+const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/forza4nighteere.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
 const ZUCCOTTO_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccotto-thinking.webp';
 const ZUCCOTTO_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccotto-wins.webp';
 const PLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-hug.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
+
+// Musica di sottofondo
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/backgroundmusicforvideos-cartoon-funny-music-452420.mp3';
 
 const ROWS = 6;
 const COLS = 7;
@@ -29,6 +36,7 @@ interface ConnectFourProps {
 }
 
 const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [board, setBoard] = useState<CellValue[][]>(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
   const [turn, setTurn] = useState<'RED' | 'YELLOW'>('RED');
   const [winner, setWinner] = useState<'RED' | 'YELLOW' | 'DRAW' | null>(null);
@@ -40,13 +48,44 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  // Background dinamico basato sull'orario richiesto (20:15 - 06:45)
+  const currentBg = useMemo(() => isNightTime(now) ? BG_NIGHT : BG_DAY, [now]);
 
   useEffect(() => {
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
       const progress = getProgress();
       setUserTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+
+      // Inizializza Audio
+      bgMusicRef.current = new Audio(BG_MUSIC_URL);
+      bgMusicRef.current.loop = true;
+      bgMusicRef.current.volume = 0.4;
+
+      return () => {
+          clearInterval(timeTimer);
+          if (bgMusicRef.current) {
+              bgMusicRef.current.pause();
+              bgMusicRef.current = null;
+          }
+      };
   }, []);
+
+  // Gestione musica basata sullo stato del gioco e del toggle
+  useEffect(() => {
+      if (bgMusicRef.current) {
+          if (musicEnabled && difficulty && !winner) {
+              bgMusicRef.current.play().catch(() => console.log("Musica bloccata dal browser"));
+          } else {
+              bgMusicRef.current.pause();
+          }
+      }
+  }, [musicEnabled, difficulty, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -181,21 +220,31 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
 
   const fullScreenWrapper = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
-  const renderTitle = () => {
-    return (
-        <div className="absolute top-[85px] md:top-[130px] left-0 right-0 flex flex-col items-center z-50 pointer-events-none px-4 animate-in fade-in slide-in-from-top-4 duration-500">
-            <img 
-                src={NEW_TITLE_IMG} 
-                alt="Forza 4" 
-                className="h-12 md:h-20 w-auto object-contain drop-shadow-xl mb-0 translate-x-4 md:translate-x-8" 
-            />
-        </div>
-    );
-  };
-
   return (
     <div className={fullScreenWrapper}>
-        <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" />
+        <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+        `}</style>
+
+        <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA E SALDO GETTONI IN ALTO A DESTRA */}
         <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
@@ -210,29 +259,47 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                 )}
             </div>
 
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto flex flex-col items-end gap-3">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
                     <span>{userTokens}</span> <span className="text-xl">🪙</span>
                 </div>
+                
+                {/* Tasto Audio sotto i gettoni */}
+                <button 
+                    onClick={() => setMusicEnabled(!musicEnabled)}
+                    className={`hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                >
+                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
+                </button>
             </div>
         </div>
-
-        {renderTitle()}
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
         {!difficulty ? (
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
-                <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] mt-24 md:mt-32">
-                    <button onClick={() => setDifficulty('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                        <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+            <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-36 md:pt-48">
+                {/* ISTRUZIONE SU DUE RIGHE IN UN BOX TRASLUCIDO - INGRANDITA */}
+                <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-[40px] border-4 border-white/40 shadow-2xl mb-10 animate-in slide-in-from-top-4 duration-500 max-w-[95%] md:max-w-xl">
+                    <h2 
+                        className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[3px_3px_0_black] text-xl sm:text-4xl md:text-[46px] leading-tight" 
+                        style={{ WebkitTextStroke: '1.5px black' }}
+                    >
+                        Sfida <span className="text-yellow-300">Zuccotto</span><br />
+                        e metti <span className="text-red-400">4 gettoni</span> in fila!
+                    </h2>
+                </div>
+
+                <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                    <button onClick={() => setDifficulty('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                        <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto" />
                     </button>
-                    <button onClick={() => setDifficulty('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
-                        <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" />
+                    <button onClick={() => setDifficulty('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                        <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto" />
                     </button>
-                    <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                        <button onClick={() => isHardUnlocked ? setDifficulty('HARD') : setShowUnlockModal(true)} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
-                            <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                    <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
+                        <button onClick={() => isHardUnlocked ? setDifficulty('HARD') : setShowUnlockModal(true)} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                            <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto" />
                         </button>
                         {!isHardUnlocked && (
                             <div className="absolute right-[-8px] top-[-8px] pointer-events-none z-20">
@@ -247,7 +314,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
               {/* Tabellone */}
               <div className="bg-blue-600 p-2 md:p-4 rounded-[30px] border-4 md:border-8 border-blue-800 shadow-2xl relative">
                   {isThinking && (
-                      <div className="absolute z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none" style={{ top: '-120px', left: '160px' }}>
+                      <div className="absolute z-[100] animate-in zoom-in slide-in-from-bottom-10 duration-500 pointer-events-none" style={{ top: '-120px', left: '50%', transform: 'translateX(-50%)' }}>
                           <img src={ZUCCOTTO_THINKING_IMG} alt="Zuccotto pensa" className="h-auto drop-shadow-2xl" style={{ width: '162px' }} />
                       </div>
                   )}

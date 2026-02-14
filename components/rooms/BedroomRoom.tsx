@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
 import StarMap from '../StarMap';
+import ReactPlayer from 'react-player';
 import ScratchCardGame from '../ScratchCardGame';
 import SlingShotGame from '../SlingShotGame';
 import GooseGame from '../GooseGame';
@@ -14,6 +15,7 @@ const BAULE_BG_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tru
 const BTN_CLOSE_IMG = 'https://i.postimg.cc/0NdtYdcJ/tasto-chiudi-(1)-(1).png';
 const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 const IMG_LOCKED_GAMES = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/yesnoi.webp';
+const BTN_EXIT_GARDEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/escicasagiardi77jy5tr.webp';
 
 // Asset Audio e Video
 const BEDROOM_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/camerettabboovoice4e.mp3';
@@ -144,6 +146,16 @@ const BedroomRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
 
     return (
         <RoomLayout roomType={AppView.BOO_BEDROOM} setView={setView} disableHint={true}>
+            {/* Tasto Esci verso Giardino al centro dei tasti di navigazione - Dimensioni ridotte e posizionato leggermente più in basso */}
+            <div className="absolute top-28 md:top-40 left-1/2 -translate-x-1/2 z-50">
+                <button 
+                    onClick={() => setView(AppView.BOO_GARDEN)} 
+                    className="hover:scale-110 active:scale-95 transition-all outline-none"
+                >
+                    <img src={BTN_EXIT_GARDEN_IMG} alt="Torna in Giardino" className="h-12 md:h-16 w-auto drop-shadow-xl" />
+                </button>
+            </div>
+
             {/* Mini TV di Boo - Posizionato a SINISTRA */}
             {isAudioOn && isPlaying && (
                 <div className="absolute top-48 md:top-64 left-4 z-50 animate-in zoom-in duration-500">

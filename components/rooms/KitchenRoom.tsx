@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
@@ -7,11 +8,13 @@ import RecyclingGame from '../RecyclingGame';
 import TetrisGame from '../TetrisGame';
 import PopcornGame from '../PopcornGame';
 
+const BTN_EXIT_GARDEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/escicasagiardi77jy5tr.webp';
+
 const ZONES_MOBILE = [
   { id: "spazzatura", label: "Riciclo", points: [{ x: 11.46, y: 54.16 }, { x: 19.19, y: 65.22 }, { x: 1.87, y: 79.36 }, { x: 0, y: 60.29 }] },
   { id: "microonde", label: "Microonde", points: [{ x: 16.26, y: 43.43 }, { x: 15.72, y: 49.22 }, { x: 29.85, y: 49.39 }, { x: 30.92, y: 42.75 }] },
   { id: "frutta", label: "Cesta Frutta", points: [{ x: 41.58, y: 49.39 }, { x: 42.64, y: 59.78 }, { x: 58.37, y: 60.29 }, { x: 60.5, y: 49.39 }] },
-  { id: "frigorifero", label: "Frigorifero", points: [{ x: 87.69, y: 36.96 }, { x: 86.09, y: 76.12 }, { x: 98.61, y: 84.13 }, { "x": 98.08, "y": 36.61 }] }
+  { id: "frigorifero", label: "Frigorifero", points: [{ x: 87.69, y: 36.96 }, { x: 86.09, y: 76.12 }, { "x": 98.61, "y": 84.13 }, { "x": 98.08, "y": 36.61 }] }
 ];
 
 const ZONES_DESKTOP = [
@@ -145,6 +148,16 @@ const KitchenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
             hintMessage="Tocca gli oggetti!" 
             hintVariant="YELLOW"
         >
+            {/* Tasto Esci verso Giardino al centro dei tasti di navigazione */}
+            <div className="absolute top-28 md:top-40 left-1/2 -translate-x-1/2 z-50">
+                <button 
+                    onClick={() => setView(AppView.BOO_GARDEN)} 
+                    className="hover:scale-110 active:scale-95 transition-all outline-none"
+                >
+                    <img src={BTN_EXIT_GARDEN_IMG} alt="Torna in Giardino" className="h-12 md:h-16 w-auto drop-shadow-xl" />
+                </button>
+            </div>
+
             {isAudioOn && isPlaying && (
                 <div className="absolute top-48 md:top-64 left-4 z-50 animate-in zoom-in duration-500">
                     <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">

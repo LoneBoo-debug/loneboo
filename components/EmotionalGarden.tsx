@@ -467,14 +467,8 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             <div className="relative z-10 flex-1 w-full flex flex-col items-center justify-start pt-2 md:pt-4 p-4 overflow-hidden">
                 {!selectedCategory && (
                     <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-start">
-                        {/* TITOLO SPOSTATO PIU IN BASSO */}
-                        <div className="flex flex-col items-center gap-2 mb-8 mt-16 md:mt-32 animate-in slide-in-from-top duration-700">
-                            <h2 className="text-white text-3xl md:text-7xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl">Come ti senti oggi?...</h2>
-                            <p className="text-white text-xl md:text-4xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl opacity-90">Grufo il Saggio ti spiega le emozioni</p>
-                        </div>
-
-                        {/* FIORI SPOSTATI PIU IN BASSO */}
-                        <div className="flex flex-row flex-wrap justify-center items-center gap-4 md:gap-12 relative z-20 border-none animate-in slide-in-from-bottom duration-1000 mt-4 md:mt-8">
+                        {/* FIORI SPOSTATI PIÙ IN BASSO */}
+                        <div className="flex flex-row flex-wrap justify-center items-center gap-4 md:gap-12 relative z-20 border-none animate-in slide-in-from-bottom duration-1000 mt-24 md:mt-40">
                             <button onClick={() => handleFlowerClick('FELICE')} className="group outline-none border-none bg-transparent relative z-30">
                                 <img 
                                     src={FLOWER_FELICE} 
@@ -507,6 +501,12 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                                     alt="Preoccupato" 
                                 />
                             </button>
+                        </div>
+
+                        {/* TITOLO SPOSTATO PIÙ IN BASSO */}
+                        <div className="flex flex-col items-center gap-2 mb-8 mt-16 md:mt-28 animate-in slide-in-from-top duration-700">
+                            <h2 className="text-white text-3xl md:text-7xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl">Come ti senti oggi?...</h2>
+                            <p className="text-white text-xl md:text-4xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl opacity-90">Grufo il Saggio ti spiega le emozioni</p>
                         </div>
                     </div>
                 )}

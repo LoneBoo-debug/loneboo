@@ -18,7 +18,7 @@ const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/waeedw
 const BG_PASSPORT_GHOST = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfghtpasswde.webp';
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
 const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflancdadersdd.webp';
-const BG_MAGIC_HAT = 'https://i.postimg.cc/X7VBMLG9/gfffsrr.jpg';
+const BG_MAGIC_HAT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfomagihaatdfeb432ws.webp';
 
 // Asset Audio e Video Ambientali
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicaspeechboo4e4e4.mp3';

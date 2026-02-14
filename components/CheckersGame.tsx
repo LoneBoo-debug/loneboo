@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const TITLE_IMG = 'https://i.postimg.cc/nrFpH8Q/dmana-(1).png';
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
 const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp'; 
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
-const BG_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/checkers-bg.webp';
+
+// Nuovi Asset Sfondi
+const BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/damadayesa.webp';
+const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/damanghtsa.webp';
+
 const GRANDFATHER_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grandpa-thinking.webp';
 const VICTORY_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-checkers.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
+const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
+
+// Musica di sottofondo
+const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfredsmusicalsfonbg.MP3';
 
 type PieceColor = 'RED' | 'BLACK';
 type PieceType = 'MAN' | 'KING';
@@ -28,6 +38,7 @@ interface CheckersGameProps {
 }
 
 const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [board, setBoard] = useState<Piece[]>(Array(64).fill(null));
   const [turn, setTurn] = useState<PieceColor>('RED'); 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -41,13 +52,45 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [jumpingPieceIdx, setJumpingPieceIdx] = useState<number | null>(null);
   const [aiMoving, setAiMoving] = useState<{ from: number, to: number } | null>(null);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  // Background dinamico basato sull'orario (20:15 - 06:45)
+  const currentBg = useMemo(() => isNightTime(now) ? BG_NIGHT : BG_DAY, [now]);
 
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+
+      // Inizializza Audio
+      bgMusicRef.current = new Audio(BG_MUSIC_URL);
+      bgMusicRef.current.loop = true;
+      bgMusicRef.current.volume = 0.4;
+
+      // Timer per l'aggiornamento dell'orario
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
+      return () => {
+          clearInterval(timeTimer);
+          if (bgMusicRef.current) {
+              bgMusicRef.current.pause();
+              bgMusicRef.current = null;
+          }
+      };
   }, []);
+
+  // Gestione musica basata sullo stato del gioco e del toggle
+  useEffect(() => {
+      if (bgMusicRef.current) {
+          if (musicEnabled && difficulty && !winner) {
+              bgMusicRef.current.play().catch(() => console.log("Musica bloccata dal browser"));
+          } else {
+              bgMusicRef.current.pause();
+          }
+      }
+  }, [musicEnabled, difficulty, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -235,13 +278,41 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       setDifficulty(level);
   };
 
-  const backToMenu = () => { setDifficulty(null); setBoard(Array(64).fill(null)); setJumpingPieceIdx(null); setAiMoving(null); };
+  const backToMenu = () => { setDifficulty(null); initBoard(); };
 
-  const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
+  const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 overflow-hidden touch-none overscroll-none select-none";
 
   return (
     <div className={wrapperStyle}>
-        <img src={BG_IMG} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" draggable={false} />
+        <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+        `}</style>
+
+        {/* SFONDO A TUTTO SCHERMO DINAMICO */}
+        <img 
+            src={currentBg} 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" 
+            draggable={false}
+        />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA */}
         <div className="absolute top-[80px] md:top-[120px] left-4 z-[300] flex flex-col items-start gap-2 pointer-events-auto">
@@ -255,11 +326,22 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
             )}
         </div>
 
-        {/* SALDO GETTONI GLASSMORPHISM (COERENTE CON SCACCHI) */}
-        <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none">
+        {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
+        <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                 <span>{userTokens}</span> <span className="text-xl">🪙</span>
             </div>
+            
+            {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
+            {difficulty && !winner && (
+                <button 
+                    onClick={() => setMusicEnabled(!musicEnabled)}
+                    className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                >
+                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
+                </button>
+            )}
         </div>
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
@@ -268,12 +350,22 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
-                    <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-8 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
-                        <button onClick={() => handleLevelSelect('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full"><img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" /></button>
-                        <button onClick={() => handleLevelSelect('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full"><img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" /></button>
-                        <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                            <button onClick={() => handleLevelSelect('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}><img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" /></button>
-                            {!isHardUnlocked && <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20"><img src={LOCK_IMG} alt="Bloccato" className="w-10 h-10 drop-shadow-lg rotate-12" /></div>}
+                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                        <button onClick={() => handleLevelSelect('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                            <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
+                        </button>
+                        <button onClick={() => handleLevelSelect('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                            <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto drop-shadow-md" />
+                        </button>
+                        <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
+                            <button onClick={() => handleLevelSelect('HARD')} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                                <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-md" />
+                            </button>
+                            {!isHardUnlocked && (
+                                <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
+                                    <img src={LOCK_IMG} alt="Bloccato" className="w-10 h-10 drop-shadow-lg rotate-12" />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="mt-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
@@ -283,7 +375,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                     </div>
                 </div>
             ) : (
-                <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-0">
+                <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-8 md:pt-14 px-2">
                     <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex justify-center mb-2">
                         <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
                             <div className={`w-4 h-4 rounded-full ${turn === 'RED' ? 'bg-red-600 animate-pulse' : 'bg-slate-800'}`}></div>

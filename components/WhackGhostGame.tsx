@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { RotateCcw, LogOut, Music, Music2 } from 'lucide-react';
 import { getProgress, unlockHardMode } from '../services/tokens';
+import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
@@ -9,11 +10,16 @@ const BOO_POP_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/acchiapp
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-levels-menu.webp';
 const TITLE_IMG = 'https://i.postimg.cc/02djnLBy/acchiam-(1).png';
-const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-easy.webp';
-const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-medium.webp';
-const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lvl-hard.webp';
+
+const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
+const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
+const BTN_HARD_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/difficielrnfjn4edj.webp';
 const LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp'; 
-const WHACK_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/acchiasfbgvoo.webp';
+const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
+
+const WHACK_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/colpisciboodaysun.webp';
+const WHACK_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/colpisciboonights.webp';
+
 const DEFEAT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/time-out.webp';
 const VICTORY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-hug.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
@@ -28,6 +34,7 @@ interface WhackGhostProps {
 }
 
 const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpenNewsstand }) => {
+  const [now, setNow] = useState(new Date());
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60); 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -48,6 +55,10 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   const isPlayingRef = useRef(false);
   const difficultyRef = useRef<Difficulty | null>(null);
   const bgMusic = useRef<HTMLAudioElement | null>(null);
+  const ghostIndexRef = useRef<number | null>(null); // Ref per accesso sincrono durante il colpo
+
+  // Background dinamico basato sull'orario
+  const currentBg = useMemo(() => isNightTime(now) ? WHACK_BG_NIGHT : WHACK_BG_DAY, [now]);
 
   useEffect(() => {
       const progress = getProgress();
@@ -60,7 +71,11 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       bgMusic.current.loop = true;
       bgMusic.current.volume = 0.4;
 
+      // Timer orario per cambio sfondo
+      const timeTimer = setInterval(() => setNow(new Date()), 60000);
+
       return () => {
+          clearInterval(timeTimer);
           if (bgMusic.current) {
               bgMusic.current.pause();
               bgMusic.current = null;
@@ -92,12 +107,14 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       if (!isPlayingRef.current) return;
       const nextIndex = Math.floor(Math.random() * 9);
       setGhostIndex(nextIndex);
+      ghostIndexRef.current = nextIndex; // Aggiorna il ref per colpi precisi
       let stayDuration = 1500; 
       if (difficultyRef.current === 'MEDIUM') stayDuration = 1000;
       if (difficultyRef.current === 'HARD') stayDuration = 600;
       ghostStayTimer.current = setTimeout(() => {
           if (!isPlayingRef.current) return;
           setGhostIndex(null); 
+          ghostIndexRef.current = null;
           scheduleNextGhost(); 
       }, stayDuration);
   }, []);
@@ -116,7 +133,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
     clearAllTimers();
     setDifficulty(selectedDifficulty); difficultyRef.current = selectedDifficulty;
     setScore(0); setTimeLeft(60); setIsPlaying(true); isPlayingRef.current = true;
-    setRewardGiven(false); setEarnedTokens(0); setGameResult(null); setGhostIndex(null); setHitFeedback(null);
+    setRewardGiven(false); setEarnedTokens(0); setGameResult(null); setGhostIndex(null); ghostIndexRef.current = null; setHitFeedback(null);
     scheduleNextGhost();
     timerRef.current = setInterval(() => {
         setTimeLeft((prev) => { if (prev <= 1) { endGame(); return 0; } return prev - 1; });
@@ -124,7 +141,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   };
 
   const endGame = () => {
-      setIsPlaying(false); isPlayingRef.current = false; clearAllTimers(); setGhostIndex(null);
+      setIsPlaying(false); isPlayingRef.current = false; clearAllTimers(); setGhostIndex(null); ghostIndexRef.current = null;
       setScore(currentScore => {
           if (currentScore >= 25) {
               setGameResult('WIN');
@@ -155,13 +172,15 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       setEarnedTokens(0); 
       setGameResult(null); 
       setHitFeedback(null); 
+      ghostIndexRef.current = null;
   };
   
   useEffect(() => { return () => clearAllTimers(); }, []);
   
   const handleHoleTouch = (index: number) => { 
     if (!isPlaying) return; 
-    if (index === ghostIndex) { 
+    // Usiamo il ref per il controllo sincrono ed evitare lag di stato
+    if (index === ghostIndexRef.current) { 
         setScore((prev) => prev + 1); 
         const feedbackId = Date.now();
         setHitFeedback({ index, id: feedbackId }); 
@@ -172,6 +191,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
         }, 800);
 
         setGhostIndex(null); 
+        ghostIndexRef.current = null;
         if (ghostStayTimer.current) clearTimeout(ghostStayTimer.current); 
         scheduleNextGhost(); 
     } 
@@ -181,66 +201,80 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
   return (
     <div className={wrapperStyle}>
-      {/* SFONDO A TUTTO SCHERMO FISSO */}
+      {/* SFONDO DINAMICO FISSO A TUTTO SCHERMO */}
       <img 
-          src={WHACK_BG} 
+          src={currentBg} 
           alt="" 
-          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" 
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" 
           draggable={false}
       />
 
-      {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
+      {/* UI FISSA: TASTO ESCI E SALDO GETTONI */}
+      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
+          <div className="pointer-events-auto">
+              {difficulty ? (
+                <button onClick={resetMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
+                  <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 w-auto drop-shadow-md" />
+                </button>
+              ) : (
+                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
+                  <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto drop-shadow-md" />
+                </button>
+              )}
+          </div>
 
-      {/* CONTROLLI HUD LATERALE */}
-      <div className="fixed top-[110px] md:top-[160px] left-4 z-[200] flex flex-col items-start gap-2 pointer-events-auto">
-          {difficulty && (
-              <button 
-                  onClick={resetMenu} 
-                  className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl cursor-pointer touch-manipulation"
-                  title="Torna alla scelta del livello"
-              >
-                  <img src={BTN_BACK_MENU_IMG} alt="Cambia Livello" className="h-16 md:h-22 w-auto" />
-              </button>
-          )}
+          <div className="pointer-events-auto">
+              <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+                  <span>{userTokens}</span> <span className="text-xl">🪙</span>
+              </div>
+          </div>
       </div>
+
+      {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
       {/* TASTO MUSICA (ALTO A DESTRA, SOTTO IL CONTATORE GLOBALE) */}
       <div className="absolute top-[130px] md:top-[170px] right-4 z-[300] flex flex-col items-end gap-3 pointer-events-none">
           <button 
               onClick={() => setMusicEnabled(!musicEnabled)}
-              className="bg-black/40 backdrop-blur-md p-2.5 rounded-full border-2 border-white/50 text-white shadow-xl pointer-events-auto hover:scale-110 active:scale-95 transition-all"
+              className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
               title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
           >
-              {musicEnabled ? <Music2 size={20} /> : <Music size={20} className="opacity-50" />}
+              <img src={AUDIO_ICON_IMG} alt="Audio" className="w-14 h-14 md:w-20 h-auto drop-shadow-xl" />
           </button>
       </div>
 
       {/* AREA DI GIOCO */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-52 md:pt-64 p-4">
           {!isPlaying && !gameResult && (
-              <div className="flex flex-col items-center animate-in fade-in z-20">
+              <div className="flex flex-col items-center animate-in fade-in z-20 w-full px-4">
                 
-                {/* BOX OBIETTIVO */}
-                <div className="bg-white/20 backdrop-blur-[20px] p-4 md:p-6 rounded-[30px] border-4 border-white/40 shadow-2xl mb-4 w-full max-w-[240px] md:max-w-[320px] text-center">
-                    <p className="text-sm md:text-xl text-white font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight" style={{ textShadow: "2px 2px 0 black" }}>
-                        Acchiappa almeno <br/> <span className="text-yellow-300 text-lg md:text-2xl">25 Boo</span> in 1 minuto!
+                {/* OBIETTIVO SENZA BOX */}
+                <div className="mb-10 w-full text-center">
+                    <p 
+                        className="font-luckiest text-white text-xl md:text-4xl whitespace-nowrap drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase tracking-wide" 
+                        style={{ WebkitTextStroke: '1.5px black' }}
+                    >
+                        Colpisci almeno <span className="text-yellow-400">25 Boo</span> in 1 minuto!
                     </p>
                 </div>
 
-                {/* BOX LIVELLI */}
-                <div className="bg-white/20 backdrop-blur-[20px] p-6 md:p-10 rounded-[40px] border-4 border-white/40 shadow-2xl flex flex-col gap-4 items-center w-full max-w-[240px] md:max-w-[320px]">
-                    <button onClick={() => startGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full">
+                {/* PULSANTI LIVELLO SENZA BOX */}
+                <div className="flex flex-col gap-4 items-center w-full max-w-[200px] md:max-w-[280px]">
+                    <button onClick={() => startGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full outline-none">
                         <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-xl" />
                     </button>
-                    <button onClick={() => startGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full">
+                    <button onClick={() => startGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full outline-none">
                         <img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto drop-shadow-xl" />
                     </button>
                     <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
-                        <button onClick={() => startGame('HARD')} className={`w-full ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                        <button 
+                            onClick={() => startGame('HARD')} 
+                            className={`w-full outline-none ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}
+                        >
                             <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-xl" />
                         </button>
                         {!isHardUnlocked && (
-                            <div className="absolute right-[-10px] top-[-10px] pointer-events-none z-20">
+                            <div className="absolute right-[-15px] top-[-15px] pointer-events-none z-20">
                                 <img src={LOCK_IMG} alt="Bloccato" className="w-12 h-12 drop-shadow-lg rotate-12" />
                             </div>
                         )}

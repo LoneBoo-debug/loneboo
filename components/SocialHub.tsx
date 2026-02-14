@@ -2,18 +2,16 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { getChannelStatistics } from '../services/api';
-import { getSocialStatsFromCSV } from '../services/data';
+import { getSocialStatsFromCSV } from '../services/socials';
 import { SOCIALS, SUPPORT_LINKS, OFFICIAL_LOGO } from '../constants';
 import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
 // --- ASSET DINAMICI STAZIONE ---
-// Diurni
 const STATION_DAY_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionegiornosole+(1).webp';
 const STATION_DAY_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionegiornopioggia.webp';
 const STATION_DAY_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionegiornovento.webp';
 const STATION_DAY_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionegiornoneve.webp';
 
-// Notturni
 const STATION_NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionenottesole.webp';
 const STATION_NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionenottepioggia.webp';
 const STATION_NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stazionenottevento.webp';
@@ -22,13 +20,11 @@ const STATION_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/s
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cityfrfwfed+(1).webp';
 const BTN_PARTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/paymentfwe5f5c5er+(1).webp';
 
-// Loghi Social
 const LOGO_FB = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tgtgfr.webp';
 const LOGO_IG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fbdredredre.webp';
 const LOGO_YT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ytgfrdetu+(1).webp';
 const LOGO_TK = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_creami+in+stila+cartoon+non+tr_47773941384jj8jh178690.webp';
 
-// Asset Audio e Video
 const STATION_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/30dd817e-ad8c-4ae6-a5b3-d491075b6725.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
@@ -39,15 +35,15 @@ interface ItemConfig {
   rotate: number;
 }
 
-const FIXED_COORDINATES: Record<string, ItemConfig> = {
-  "logo_fb": { "x": 80, "y": 22.5, "scale": 0.45, "rotate": -3 },
-  "logo_yt": { "x": 55, "y": 17, "scale": 0.45, "rotate": -4 },
-  "logo_tk": { "x": 55, "y": 23, "scale": 0.5, "rotate": -3 },
-  "logo_ig": { "x": 79, "y": 16, "scale": 0.4, "rotate": -3 },
-  "stat_yt": { "x": 62.5, "y": 16.5, "scale": 1, "rotate": -4 },
-  "stat_ig": { "x": 63, "y": 23, "scale": 1, "rotate": -4 },
-  "stat_tk": { "x": 86.5, "y": 22, "scale": 1, "rotate": -2 },
-  "stat_fb": { "x": 88.5, "y": 16, "scale": 1, "rotate": -3 }
+const INITIAL_COORDINATES: Record<string, ItemConfig> = {
+  "logo_fb": { "x": 80, "y": 22.5, "scale": 0.55, "rotate": -5 },
+  "logo_yt": { "x": 57, "y": 17, "scale": 0.55, "rotate": -5 },
+  "logo_tk": { "x": 57, "y": 23, "scale": 0.55, "rotate": -5 },
+  "logo_ig": { "x": 79, "y": 16, "scale": 0.55, "rotate": -5 },
+  "stat_yt": { "x": 69, "y": 16.5, "scale": 1.3, "rotate": -5 },
+  "stat_ig": { "x": 69, "y": 23, "scale": 1.3, "rotate": -5 },
+  "stat_tk": { "x": 90.5, "y": 22, "scale": 1.3, "rotate": -5 },
+  "stat_fb": { "x": 92.5, "y": 15.4, "scale": 1.3, "rotate": -6 }
 };
 
 const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
@@ -79,22 +75,13 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
     }
   }, [now, todayWeather]);
 
-  // Gestione caricamento sfondo e ticker orario
   useEffect(() => {
     const timeTimer = setInterval(() => setNow(new Date()), 60000);
-    
-    // Al cambio di currentBg, mostriamo il caricamento finché la nuova immagine non è pronta
     setBgLoaded(false);
     const img = new Image();
     img.src = currentBg;
     img.onload = () => setBgLoaded(true);
-    // Fallback di sicurezza per il caricamento
-    const safetyTimeout = setTimeout(() => setBgLoaded(true), 3000);
-
-    return () => {
-        clearInterval(timeTimer);
-        clearTimeout(safetyTimeout);
-    };
+    return () => clearInterval(timeTimer);
   }, [currentBg]);
 
   useEffect(() => {
@@ -138,7 +125,9 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
 
     return () => {
       window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-      if (audioRef.current) audioRef.current.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     };
   }, []);
 
@@ -152,18 +141,19 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
     if (social) window.open(social.url, '_blank');
   };
 
-  const renderFixedItem = (id: string, content: React.ReactNode, onClick?: () => void) => {
-    const config = FIXED_COORDINATES[id];
+  const renderItem = (id: string, content: React.ReactNode, onClick?: () => void) => {
+    const config = INITIAL_COORDINATES[id];
     if (!config) return null;
+    
     return (
       <div
         key={id}
         onClick={onClick}
-        className={`absolute z-30 transition-all duration-300 ${onClick ? 'cursor-pointer hover:scale-[1.05] active:scale-95' : 'pointer-events-none'}`}
+        className={`absolute z-30 transition-all duration-300 ${onClick ? 'cursor-pointer active:scale-95' : 'pointer-events-none'}`}
         style={{
           left: `${config.x}%`,
           top: `${config.y}%`,
-          transform: `translate(-50%, -50%) scale(${config.scale}) rotate(${config.rotate}deg)`
+          transform: `translate(-50%, -50%) scale(${config.scale}) rotate(${config.rotate}deg)`,
         }}
       >
         {content}
@@ -173,7 +163,6 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
 
   return (
     <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-10 bg-[#0f172a] overflow-hidden touch-none overscroll-none select-none">
-      {/* Schermata di caricamento solida per gestire il cambio sfondo */}
       {!bgLoaded && (
         <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-indigo-950 backdrop-blur-md">
           <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 animate-spin-horizontal mb-4" />
@@ -182,30 +171,25 @@ const SocialHub: React.FC<{ setView?: (view: AppView) => void }> = ({ setView })
       )}
 
       <div className="relative w-full h-full overflow-hidden">
-        {/* BACKGROUND DINAMICO */}
         <img src={currentBg} alt="" className={`w-full h-full object-fill transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
 
-        {/* LOGHI SOCIAL CLICCABILI */}
-        {bgLoaded && (
-          <>
-            {renderFixedItem("logo_yt", <img src={LOGO_YT} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="YT" />, () => handleExternalClick("youtube"))}
-            {renderFixedItem("logo_ig", <img src={LOGO_IG} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="IG" />, () => handleExternalClick("instagram"))}
-            {renderFixedItem("logo_tk", <img src={LOGO_TK} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="TK" />, () => handleExternalClick("tiktok"))}
-            {renderFixedItem("logo_fb", <img src={LOGO_FB} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="FB" />, () => handleExternalClick("facebook"))}
+        {/* LOGHI E STATISTICHE CON RENDERING FISSO */}
+        {renderItem("logo_yt", <img src={LOGO_YT} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="YT" />, () => handleExternalClick("youtube"))}
+        {renderItem("logo_ig", <img src={LOGO_IG} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="IG" />, () => handleExternalClick("instagram"))}
+        {renderItem("logo_tk", <img src={LOGO_TK} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="TK" />, () => handleExternalClick("tiktok"))}
+        {renderItem("logo_fb", <img src={LOGO_FB} className="w-20 md:w-32 h-auto drop-shadow-xl" alt="FB" />, () => handleExternalClick("facebook"))}
 
-            {/* STATISTICHE STATICHE */}
-            {renderFixedItem("stat_yt", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.youtube}</span>)}
-            {renderFixedItem("stat_ig", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.instagram}</span>)}
-            {renderFixedItem("stat_tk", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.tiktok}</span>)}
-            {renderFixedItem("stat_fb", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.facebook}</span>)}
-          </>
-        )}
+        {renderItem("stat_yt", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.youtube}</span>)}
+        {renderItem("stat_ig", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.instagram}</span>)}
+        {renderItem("stat_tk", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.tiktok}</span>)}
+        {renderItem("stat_fb", <span className="font-mono font-black text-yellow-500 text-sm md:text-2xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">{stats.facebook}</span>)}
 
         {/* MINI TV BOO */}
         {isAudioOn && isPlaying && (
-          <div className="absolute top-20 md:top-28 left-4 z-110 animate-in zoom-in duration-500">
+          <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
             <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
               <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
             </div>
           </div>
         )}

@@ -234,6 +234,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
       ambientAudioRef.current.addEventListener('pause', () => setIsPlaying(false));
       ambientAudioRef.current.addEventListener('ended', () => {
         setIsPlaying(false);
+        // Fixed: Changed 'audioRef' to 'ambientAudioRef' to fix 'Cannot find name' error
         if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
       });
     }
@@ -250,7 +251,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
     };
     window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-    // Ridotto il timeout di sicurezza a 400ms
     const safetyTimer = setTimeout(() => setIsLoaded(true), 400);
     return () => {
       clearInterval(timer);
@@ -303,14 +303,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   if (activeGame !== GameType.NONE) {
     return (
       <div className="fixed inset-0 z-0 bg-slate-900 flex flex-col animate-in fade-in duration-300 pt-[64px] md:pt-[96px]">
-        <div className="w-full p-3 flex items-center justify-between shrink-0 bg-transparent z-40">
-          <button onPointerDown={() => setActiveGame(GameType.NONE)} className="hover:scale-105 active:scale-95 transition-transform outline-none">
-            <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp" alt="Back" className="h-10 md:h-14 w-auto" />
-          </button>
-          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black">
-            <span>{tokenBalance}</span> 🪙
-          </div>
-        </div>
+        {/* Rimosso il div della barra duplicata qui */}
         <Suspense fallback={
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-800">
             <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
