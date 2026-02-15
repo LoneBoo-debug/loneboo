@@ -84,35 +84,16 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         AppView.LAKE_CITY
     ].includes(currentView);
     
-    // Calcolo del logo stagionale dinamico
     const titleImage = useMemo(() => {
         const now = new Date();
-        const month = now.getMonth() + 1; // 1-12
-        const day = now.getDate();
-        const md = month * 100 + day; // Formato MMDD per confronti rapidi
-
-        // 1. Capodanno: 29/12 al 02/01
+        const md = (now.getMonth() + 1) * 100 + now.getDate();
         if (md >= 1229 || md <= 102) return LOGO_NEWYEAR;
-        
-        // 2. Natale: 01/12 al 28/12
         if (md >= 1201 && md <= 1228) return LOGO_CHRISTMAS;
-        
-        // 3. Halloween: 10/10 al 01/11
         if (md >= 1010 && md <= 1101) return LOGO_HALLOWEEN;
-        
-        // 4. San Valentino: 07/02 al 14/02
         if (md >= 207 && md <= 214) return LOGO_VALENTINE;
-        
-        // 5. Carnevale: 15/02 al 28/02 (Modificato per evitare sovrapposizione con San Valentino)
         if (md >= 215 && md <= 228) return LOGO_CARNIVAL;
-        
-        // 6. Pasqua: 20/03 al 15/04
         if (md >= 320 && md <= 415) return LOGO_EASTER;
-        
-        // 7. Back to School: 30/08 al 15/09
         if (md >= 830 && md <= 915) return LOGO_BACKTOSCHOOL;
-
-        // Default
         return HOME_HEADER_TITLE;
     }, []);
 
@@ -133,9 +114,15 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             setHasNew(isNew);
         };
         loadNotifs();
+
+        const handleTriggerGate = () => {
+            setIsMenuOpen(false);
+            setShowParentalGate(true);
+        };
+        window.addEventListener('triggerParentalGate', handleTriggerGate);
+        return () => window.removeEventListener('triggerParentalGate', handleTriggerGate);
     }, []);
 
-    // Sincronizzazione con cambiamenti esterni dell'audio (es. dalla HomePage)
     useEffect(() => {
         const handleSyncAudio = () => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
@@ -164,7 +151,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     
     const handleOpenInfo = () => { 
         setIsMenuOpen(false); 
-        // Salviamo la pagina corrente prima di andare al Centro Info
         sessionStorage.setItem('info_menu_origin', currentView);
         setView(AppView.INFO_MENU); 
     };
@@ -180,9 +166,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             setView(AppView.TTS_STUDIO);
         } else {
             setLogoClicks(nextClicks);
-            logoTimerRef.current = setTimeout(() => {
-                setLogoClicks(0);
-            }, 3000);
+            logoTimerRef.current = setTimeout(() => setLogoClicks(0), 3000);
         }
     };
 
@@ -198,9 +182,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
         setView(AppView.TRAIN_JOURNEY);
     };
 
-    const handleExploreCity = () => {
-        window.dispatchEvent(new CustomEvent('toggleCityExploration'));
-    };
+    const handleExploreCity = () => window.dispatchEvent(new CustomEvent('toggleCityExploration'));
 
     return (
         <>
@@ -211,7 +193,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {/* MENU PLUS - NASCOSTO IN HOME E DURANTE IL VIAGGIO */}
                     {!isHome && !isExternalCity && !isJourney && (
                         <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
@@ -222,11 +203,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                     {hasNew && !isMenuOpen && (
                                         <span className="absolute top-[10%] right-[10%] w-4 h-4 bg-red-600 rounded-full border-2 border-white animate-pulse z-20"></span>
                                     )}
-                                    <img 
-                                        src={isMenuOpen ? BTN_MINUS_MENU : BTN_PLUS_MENU} 
-                                        alt="Menu" 
-                                        className="w-full h-full object-contain drop-shadow-lg" 
-                                    />
+                                    <img src={isMenuOpen ? BTN_MINUS_MENU : BTN_PLUS_MENU} alt="Menu" className="w-full h-full object-contain drop-shadow-lg" />
                                 </button>
 
                                 {isMenuOpen && (
@@ -259,20 +236,14 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                     {!isHome && (
                         <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
                             <div className="relative h-full flex items-center">
-                                <img 
-                                    src={titleImage} 
-                                    alt="Lone Boo" 
-                                    className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" 
-                                />
+                                <img src={titleImage} alt="Lone Boo" className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                             </div>
                         </div>
                     )}
 
-                    {/* TASTI DESTRA - NASCOSTI IN HOME */}
                     {!isHome && (
                         <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
                             {isJourney ? (
-                                /* DURANTE IL VIAGGIO: SOLO TASTO AUDIO */
                                 <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
                                     <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
                                         <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
@@ -299,25 +270,18 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                                     <img src={BTN_RETURN_TO_COLOR_CITY} alt="" className="w-12 h-12 object-contain" />
                                                     <span className="text-red-600 font-black text-xs uppercase tracking-widest">DESTINAZIONI</span>
                                                 </div>
-                                                {STATION_DESTINATIONS
-                                                    .filter(dest => dest.id !== currentView)
-                                                    .map(dest => (
-                                                        <button
-                                                            key={dest.id}
-                                                            onClick={() => handleTravelTo(dest.id, dest.isHome || false)}
-                                                            className={`flex items-center justify-between p-3 rounded-xl transition-all active:scale-95 border-b-4 ${dest.isHome ? 'bg-blue-600 border-blue-800 text-white shadow-lg' : 'bg-white/40 border-black/5 text-slate-900 hover:bg-white/60'}`}
-                                                        >
-                                                            <div className="flex flex-col items-start text-left">
-                                                                <span className="font-black text-xs uppercase leading-tight">{dest.name}</span>
-                                                                <span className={`text-[10px] font-bold uppercase ${dest.isHome ? 'text-white/70' : 'text-slate-500'}`}>{dest.isHome ? 'Ritorno a casa' : 'Viaggio diretto'}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
-                                                                <span className="font-black text-xs">{dest.cost}</span>
-                                                                <span className="text-xs">🪙</span>
-                                                            </div>
-                                                        </button>
-                                                    ))
-                                                }
+                                                {STATION_DESTINATIONS.filter(dest => dest.id !== currentView).map(dest => (
+                                                    <button key={dest.id} onClick={() => handleTravelTo(dest.id, dest.isHome || false)} className={`flex items-center justify-between p-3 rounded-xl transition-all active:scale-95 border-b-4 ${dest.isHome ? 'bg-blue-600 border-blue-800 text-white shadow-lg' : 'bg-white/40 border-black/5 text-slate-900 hover:bg-white/60'}`}>
+                                                        <div className="flex flex-col items-start text-left">
+                                                            <span className="font-black text-xs uppercase leading-tight">{dest.name}</span>
+                                                            <span className={`text-[10px] font-bold uppercase ${dest.isHome ? 'text-white/70' : 'text-slate-500'}`}>{dest.isHome ? 'Ritorno a casa' : 'Viaggio diretto'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
+                                                            <span className="font-black text-xs">{dest.cost}</span>
+                                                            <span className="text-xs">🪙</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
@@ -337,8 +301,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                         <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
                                     </div>
 
-                                    <div className={`flex flex-col items-center ${isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95'} transition-transform`}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#60A5FA]`} onClick={handleCityClick}>
+                                    <div className={`flex flex-col items-center ${isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95'} transition-transform`} onClick={isCityMap ? undefined : handleCityClick}>
+                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#60A5FA]`}>
                                             <img src={CITY_BTN_IMAGE} alt="Città" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
                                         <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>

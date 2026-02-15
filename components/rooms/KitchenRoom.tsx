@@ -145,8 +145,7 @@ const KitchenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
         <RoomLayout 
             roomType={AppView.BOO_KITCHEN} 
             setView={setView} 
-            hintMessage="Tocca gli oggetti!" 
-            hintVariant="YELLOW"
+            disableHint={true}
         >
             {/* Tasto Esci verso Giardino al centro dei tasti di navigazione */}
             <div className="absolute top-28 md:top-40 left-1/2 -translate-x-1/2 z-50">
@@ -182,7 +181,7 @@ const KitchenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =
                         key={z.id} 
                         onClick={() => setActivePageId(z.id)} 
                         className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
-                        style={{ clipPath: getClipPath(z.points) }}
+                        style={{ clipPath: getClipPath(z.points) }} 
                     ></div>
                 ))}
             </div>

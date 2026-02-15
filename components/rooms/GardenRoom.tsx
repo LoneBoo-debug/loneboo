@@ -19,7 +19,7 @@ const GARDEN_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ca
 
 const BTN_CITY_GO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartelvaicitygardenboo77y6t+(1).webp';
 const WELCOME_SIGN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/benveniduuej33+(1)+(1).webp';
-const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/477401351381209093.webp';
+const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
 // Asset Audio
 const GARDEN_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giardinoboovoice66.mp3';
@@ -34,21 +34,38 @@ const HOUSE_ENTRANCE_AREA: Point[] = [
     { "x": 52.24, "y": 37.62 }
 ];
 
+// Parametri sveglia consolidati
+const CLOCK_STYLE = {
+    top: 56,
+    right: 4,
+    iconSize: 82,
+    timeSize: 23,
+    dateSize: 13,
+    paddingTop: 0,
+    iconScaleY: 0.74
+};
+
 const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
     const [now, setNow] = useState(new Date());
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showDailyModal, setShowDailyModal] = useState(false);
+    
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    // Formattazione data e ora per lo schermo
+    const dayNamesShort = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
     const currentDay = now.getDate();
-    const currentMonth = monthNames[now.getMonth()].slice(0, 3);
+    const currentDayName = dayNamesShort[now.getDay()];
+    const currentMonthShort = monthNames[now.getMonth()].slice(0, 3).toUpperCase();
+    const currentTimeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const currentDateStr = `${currentDayName} ${currentDay} ${currentMonthShort}`;
+    
     const todayWeather = getWeatherForDate(now);
 
     const getGardenBackground = () => {
         const isNight = isNightTime(now);
-        
         if (isNight) {
             switch (todayWeather) {
                 case 'WIND': return GARDEN_NIGHT_WIND;
@@ -67,7 +84,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     };
 
     useEffect(() => {
-        const timer = setInterval(() => setNow(new Date()), 60000); // Aggiorna ogni minuto per gestire il cambio giorno/notte
+        const timer = setInterval(() => setNow(new Date()), 1000);
 
         const bgUrl = getGardenBackground();
         const img = new Image();
@@ -116,9 +133,8 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     return (
         <RoomLayout roomType={AppView.BOO_GARDEN} setView={setView} disableHint={true}>
             <div className="w-full h-full relative overflow-hidden">
-                {/* Override background image dynamicamente */}
                 <div className="absolute inset-0 z-0">
-                    <img src={getGardenBackground()} alt="Garden" className="w-full h-full object-fill animate-in fade-in duration-1000" />
+                    <img src={getBackgroundUrl()} alt="Garden" className="w-full h-full object-fill animate-in fade-in duration-1000" />
                 </div>
                 
                 {isAudioOn && isPlaying && (
@@ -130,16 +146,50 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                     </div>
                 )}
 
-                {/* TASTO CALENDARIO GIORNALIERO */}
+                {/* SVEGLIA - LA TUA GIORNATA */}
                 <button 
                     onClick={() => setShowDailyModal(true)}
-                    className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
+                    className="absolute z-50 transition-transform outline-none group hover:scale-105 active:scale-95"
+                    style={{ 
+                        top: `${CLOCK_STYLE.top}px`, 
+                        right: `${CLOCK_STYLE.right}px`
+                    }}
                 >
-                    <div className="relative w-16 h-16 md:w-28 flex items-center justify-center">
-                        <img src={CALENDAR_ICON_URL} alt="Calendario" className="w-full h-full object-contain drop-shadow-2xl" />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-3 md:pt-6">
-                            <span className="text-[10px] md:text-lg text-yellow-400 font-luckiest leading-none uppercase tracking-tighter mt-1" style={{ WebkitTextStroke: '1px black' }}>{currentMonth}</span>
-                            <span className="text-red-600 font-black text-2xl md:text-5xl leading-none relative -top-1">{currentDay}</span>
+                    <div 
+                        className="relative flex items-center justify-center"
+                        style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
+                    >
+                        <img 
+                            src={CLOCK_SCREEN_IMG} 
+                            alt="Sveglia" 
+                            className="w-full h-full object-contain drop-shadow-2xl" 
+                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
+                        />
+                        
+                        <div 
+                            className="absolute inset-0 flex flex-col items-center justify-center"
+                            style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
+                        >
+                            <div className="flex flex-col items-center justify-center">
+                                <span 
+                                    className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
+                                    style={{ 
+                                        WebkitTextStroke: '0.5px #431407',
+                                        fontSize: `${CLOCK_STYLE.timeSize}px`
+                                    }}
+                                >
+                                    {currentTimeStr}
+                                </span>
+                                <span 
+                                    className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
+                                    style={{ 
+                                        WebkitTextStroke: '0.3px #431407',
+                                        fontSize: `${CLOCK_STYLE.dateSize}px`
+                                    }}
+                                >
+                                    {currentDateStr}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </button>
@@ -160,6 +210,25 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
             </div>
         </RoomLayout>
     );
+    
+    function getBackgroundUrl() {
+        const isNight = isNightTime(now);
+        if (isNight) {
+            switch (todayWeather) {
+                case 'WIND': return GARDEN_NIGHT_WIND;
+                case 'RAIN': return GARDEN_NIGHT_RAIN;
+                case 'SNOW': return GARDEN_NIGHT_SNOW;
+                default: return GARDEN_NIGHT_SUN;
+            }
+        } else {
+            switch (todayWeather) {
+                case 'WIND': return GARDEN_BG_WIND;
+                case 'RAIN': return GARDEN_BG_RAIN;
+                case 'SNOW': return GARDEN_BG_SNOW;
+                default: return GARDEN_BG_SUN;
+            }
+        }
+    }
 };
 
 export default GardenRoom;

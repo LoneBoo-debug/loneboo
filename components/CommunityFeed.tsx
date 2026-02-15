@@ -5,15 +5,16 @@ import { fetchAppNotifications, markNotificationsAsRead } from '../services/noti
 import { getLatestVideos } from '../services/api';
 import { getCommunityPosts } from '../services/data';
 import { OFFICIAL_LOGO } from '../constants';
-import { Bell, ExternalLink, PlayCircle } from 'lucide-react';
+import { Bell, ExternalLink, PlayCircle, X } from 'lucide-react';
 import { getWeatherForDate, isNightTime } from '../services/weatherService';
+import { monthNames } from '../services/calendarDatabase';
+import DailyRewardsModal from './DailyRewardsModal';
 
 const PIAZZA_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp';
 const PIAZZA_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaneveeso.webp';
 const PIAZZA_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzapioggiaeso.webp';
 const PIAZZA_BG_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzaventoeso.webp';
 
-// Nuovi Asset Notturni
 const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanottesolexxs%C3%B9.webp';
 const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanottepioggiaxza.webp';
 const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/piazzanotteventoxsa.webp';
@@ -24,8 +25,8 @@ const NOTIF_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/not
 const NEWS_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/news-piazza.webp';
 const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-close.webp';
 const NOTIF_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-notif.webp';
+const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
-// Asset Audio e Video
 const PIAZZA_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/placespeechboo44rf.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
@@ -33,76 +34,62 @@ type Point = { x: number; y: number };
 
 const INITIAL_ZONES: Record<string, Point[]> = {
   "museo": [
-    { "x": 81.82, "y": 61 },
-    { "x": 77.56, "y": 75.84 },
-    { "x": 93.55, "y": 77.79 },
-    { "x": 97.28, "y": 62.05 }
+    { "x": 81.82, "y": 61 }, { "x": 77.56, "y": 75.84 }, { "x": 93.55, "y": 77.79 }, { "x": 97.28, "y": 62.05 }
   ],
   "facebook": [
-    { "x": 75.69, "y": 44.21 },
-    { "x": 72.76, "y": 59.2 },
-    { "x": 94.62, "y": 58.45 },
-    { "x": 91.95, "y": 45.26 }
+    { "x": 75.69, "y": 44.21 }, { "x": 72.76, "y": 59.2 }, { "x": 94.62, "y": 58.45 }, { "x": 91.95, "y": 45.26 }
   ],
   "notizie": [
-    { "x": 50.11, "y": 11.24 },
-    { "x": 49.84, "y": 17.54 },
-    { "x": 70.1, "y": 18.29 },
-    { "x": 70.36, "y": 12.44 }
+    { "x": 50.11, "y": 11.24 }, { "x": 49.84, "y": 17.54 }, { "x": 70.1, "y": 18.29 }, { "x": 70.36, "y": 12.44 }
   ],
   "avvisi": [
-    { "x": 40.51, "y": 24.13 },
-    { "x": 30.65, "y": 43.17 },
-    { "x": 56.24, "y": 45.86 },
-    { "x": 76.23, "y": 34.32 },
-    { "x": 73.03, "y": 25.63 }
+    { "x": 40.51, "y": 24.13 }, { "x": 30.65, "y": 43.17 }, { "x": 56.24, "y": 45.86 }, { "x": 76.23, "y": 34.32 }, { "x": 73.03, "y": 25.63 }
   ],
   "scuola": [
-    { "x": 4, "y": 48.26 },
-    { "x": 4, "y": 53.81 },
-    { "x": 25.32, "y": 56.5 },
-    { "x": 25.32, "y": 50.81 }
+    { "x": 4, "y": 48.26 }, { "x": 4, "y": 53.81 }, { "x": 25.32, "y": 56.5 }, { "x": 25.32, "y": 50.81 }
   ],
   "accademia": [
-    { "x": 4, "y": 56.5 },
-    { "x": 4, "y": 62.2 },
-    { "x": 25.32, "y": 65.8 },
-    { "x": 25.85, "y": 59.2 }
+    { "x": 4, "y": 56.5 }, { "x": 4, "y": 62.2 }, { "x": 25.32, "y": 65.8 }, { "x": 25.85, "y": 59.2 }
   ],
   "libreria": [
-    { "x": 31.72, "y": 52.01 },
-    { "x": 31.72, "y": 57.4 },
-    { "x": 54.1, "y": 60.55 },
-    { "x": 54.1, "y": 54.71 }
+    { "x": 31.72, "y": 52.01 }, { "x": 31.72, "y": 57.4 }, { "x": 54.1, "y": 60.55 }, { "x": 54.1, "y": 54.71 }
   ],
   "emozioni": [
-    { "x": 31.72, "y": 60.55 },
-    { "x": 31.98, "y": 66.25 },
-    { "x": 53.84, "y": 69.84 },
-    { "x": 54.37, "y": 63.85 }
+    { "x": 31.72, "y": 60.55 }, { "x": 31.98, "y": 66.25 }, { "x": 53.84, "y": 69.84 }, { "x": 54.37, "y": 63.85 }
   ],
   "cinema": [
-    { "x": 31.72, "y": 69.54 },
-    { "x": 31.72, "y": 74.94 },
-    { "x": 53.57, "y": 78.99 },
-    { "x": 53.57, "y": 73.29 }
+    { "x": 31.72, "y": 69.54 }, { "x": 31.72, "y": 74.94 }, { "x": 53.57, "y": 78.99 }, { "x": 53.57, "y": 73.29 }
   ]
+};
+
+const CLOCK_STYLE = {
+    top: 56,
+    right: 4,
+    iconSize: 82,
+    timeSize: 23,
+    dateSize: 13,
+    paddingTop: 0,
+    iconScaleY: 0.74
 };
 
 const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setView }) => {
   const [now, setNow] = useState(new Date());
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [bgLoaded, setBgLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isFullFeedOpen, setIsFullFeedOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  const [showDailyModal, setShowDailyModal] = useState(false);
   
-  // Gestione Audio Ambientale
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
+
+  const dayNamesShort = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
+  const currentTimeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const currentDateStr = `${dayNamesShort[now.getDay()]} ${now.getDate()} ${monthNames[now.getMonth()].slice(0, 3).toUpperCase()}`;
 
   const currentBg = useMemo(() => {
     const isNight = isNightTime(now);
@@ -124,14 +111,12 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
   }, [now, todayWeather]);
 
   useEffect(() => {
-    // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
-    const timeTimer = setInterval(() => setNow(new Date()), 60000);
-
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    
     const img = new Image();
     img.src = currentBg;
-    img.onload = () => setBgLoaded(true);
-    
-    // Inizializza Audio
+    img.onload = () => setIsLoaded(true);
+
     if (!audioRef.current) {
         audioRef.current = new Audio(PIAZZA_VOICE_URL);
         audioRef.current.loop = false;
@@ -144,17 +129,13 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
         });
     }
 
-    if (isAudioOn) audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+    if (isAudioOn) audioRef.current.play().catch(() => {});
 
     const handleGlobalAudioChange = () => {
         const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
         setIsAudioOn(enabled);
-        if (enabled) {
-            audioRef.current?.play().catch(() => {});
-        } else {
-            audioRef.current?.pause();
-            if (audioRef.current) audioRef.current.currentTime = 0;
-        }
+        if (enabled) audioRef.current?.play().catch(() => {});
+        else audioRef.current?.pause();
     };
     window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
@@ -165,7 +146,6 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
               getLatestVideos(),
               fetchAppNotifications()
           ]);
-          
           const mappedVideos: CommunityPost[] = latestVideos.map(v => ({
               id: v.id, type: 'IMAGE', content: v.title, image: v.thumbnail,
               date: v.publishedAt ? new Date(v.publishedAt).toLocaleDateString('it-IT') : "Novità",
@@ -176,41 +156,21 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
       } catch (err) { console.error(err); }
     };
     loadData();
-    window.scrollTo(0, 0);
 
     return () => {
-        clearInterval(timeTimer);
+        clearInterval(timer);
         window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
+        if (audioRef.current) audioRef.current.pause();
     };
   }, [currentBg]);
 
-  const handleExternalClick = (e: React.MouseEvent, url: string) => {
-    const linksDisabled = localStorage.getItem('disable_external_links') === 'true';
-    if (linksDisabled) {
-        e.preventDefault();
-        alert("Navigazione esterna bloccata dai genitori! 🔒");
-        return;
-    }
-    window.open(url, '_blank');
-  };
-
-  const handleBooClick = async () => {
-    setIsNotifModalOpen(true);
-    await markNotificationsAsRead();
-  };
-
   const handleZoneInteraction = (zoneKey: string) => {
     if (!setView) return;
-
     switch(zoneKey) {
         case 'museo': setView(AppView.FANART); break;
         case 'facebook': window.open(FACEBOOK_GROUP_URL, '_blank'); break;
         case 'notizie': setIsFullFeedOpen(true); break;
-        case 'avvisi': handleBooClick(); break;
+        case 'avvisi': setIsNotifModalOpen(true); markNotificationsAsRead(); break;
         case 'scuola': setView(AppView.SCHOOL); break;
         case 'accademia': setView(AppView.COLORING); break;
         case 'libreria': setView(AppView.BOOKS_LIST); break;
@@ -219,84 +179,67 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
     }
   };
 
-  const getClipPath = (pts: Point[]) => {
-    if (!pts || pts.length < 3) return 'none';
-    return `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
-  };
-
-  const renderNotificationsModal = () => (
-      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in">
-          <div className="relative w-full max-w-lg bg-white rounded-[30px] border-4 border-purple-500 shadow-[0_0_40px_rgba(168,85,247,0.5)] overflow-hidden h-[75vh] flex flex-col animate-in zoom-in duration-300">
-              <div className="bg-purple-600 p-2 md:p-3 flex items-center justify-between border-b-4 border-purple-800 shrink-0">
-                  <div className="flex-1 flex justify-start pl-2 md:pl-4"><img src={NOTIF_HEADER_IMG} alt="Avvisi" className="h-12 md:h-18 w-auto object-contain drop-shadow-lg" /></div>
-                  <button onClick={() => setIsNotifModalOpen(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-md" /></button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 bg-purple-50 custom-scrollbar">
-                  {notifications.length > 0 ? (
-                      notifications.map((notif) => (
-                          <div key={notif.id} className="bg-white p-4 rounded-3xl shadow-md border-2 border-purple-100 mb-4 flex flex-col gap-3">
-                              <div className="flex items-start gap-3">
-                                  <img src={NOTIF_ICON_IMG} alt="" className="w-10 h-10 md:w-12 md:h-12 object-contain shrink-0 drop-shadow-sm" />
-                                  <div className="flex-1"><p className="text-gray-800 font-black text-base md:text-xl leading-snug">{notif.message}</p></div>
-                              </div>
-                              {notif.image && (
-                                  <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-purple-200 shadow-inner group">
-                                      <img src={notif.image} alt="Preview" className="w-full h-full object-cover" />
-                                      {notif.link?.includes('youtube.com') || notif.link?.includes('youtu.be') ? (
-                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                              <PlayCircle size={60} className="text-white drop-shadow-lg opacity-80 group-hover:scale-110 transition-transform" />
-                                          </div>
-                                      ) : null}
-                                  </div>
-                              )}
-                              {notif.link && (
-                                  <button onClick={(e) => handleExternalClick(e, notif.link!)} className="bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-b-6 border-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-lg md:text-xl shadow-lg uppercase tracking-wider outline-none">
-                                    {notif.linkText || "VAI"} <ExternalLink size={20} />
-                                  </button>
-                              )}
-                          </div>
-                      ))
-                  ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8 text-center"><Bell size={48} className="mb-2 opacity-50" /><p className="font-bold">Nessun avviso al momento.</p></div>
-                  )}
-              </div>
-          </div>
-      </div>
-  );
+  const getClipPath = (pts: Point[]) => `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
   return (
-    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#0f172a] overflow-hidden touch-none overscroll-none select-none">
-        <style>{`
-            .no-scrollbar::-webkit-scrollbar { display: none; }
-            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `}</style>
+    <div className="fixed inset-0 z-0 bg-[#0f172a] overflow-hidden touch-none overscroll-none select-none">
+        {!isLoaded && (
+            <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-indigo-950">
+                <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 animate-spin-horizontal mb-4" />
+                <span className="text-white font-black text-lg tracking-widest animate-pulse uppercase">Entro in Piazza...</span>
+            </div>
+        )}
 
-        {isNotifModalOpen && renderNotificationsModal()}
-        
-        {isFullFeedOpen && (
-            <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in">
-                <div className="relative w-full max-w-2xl bg-white rounded-[30px] border-4 border-yellow-400 shadow-2xl overflow-hidden h-[75vh] flex flex-col animate-in zoom-in duration-300">
-                    <div className="bg-yellow-400 p-2 md:p-3 flex items-center justify-between border-b-4 border-yellow-500 shrink-0">
-                        <div className="flex-1 flex justify-start pl-2 md:pl-4"><img src={NEWS_HEADER_IMG} alt="News" className="h-12 md:h-18 w-auto object-contain drop-shadow-lg" /></div>
-                        <button onClick={() => setIsFullFeedOpen(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-md" /></button>
+        {isLoaded && isAudioOn && isPlaying && (
+            <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                    <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
+        )}
+
+        {/* SVEGLIA - LA TUA GIORNATA */}
+        {isLoaded && (
+            <button 
+                onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
+                className="absolute z-[70] transition-transform outline-none group hover:scale-105 active:scale-95"
+                style={{ top: `${CLOCK_STYLE.top}px`, right: `${CLOCK_STYLE.right}px` }}
+            >
+                <div className="relative flex items-center justify-center" style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}>
+                    <img src={CLOCK_SCREEN_IMG} alt="Sveglia" className="w-full h-full object-contain drop-shadow-2xl" style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }} />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="font-luckiest text-orange-500 leading-none" style={{ WebkitTextStroke: '0.5px #431407', fontSize: `${CLOCK_STYLE.timeSize}px` }}>{currentTimeStr}</span>
+                        <span className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5" style={{ WebkitTextStroke: '0.3px #431407', fontSize: `${CLOCK_STYLE.dateSize}px` }}>{currentDateStr}</span>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4 bg-gray-100 custom-scrollbar space-y-6">
-                        {posts.map((post) => (
-                            <div key={post.id} className="bg-[#fdfbf7] p-5 rounded-sm shadow-[2px_2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 border-l-4 border-gray-300 relative overflow-hidden group">
-                                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]"></div>
-                                <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-gray-200/50 relative z-10">
-                                    <img src={OFFICIAL_LOGO} alt="Lone Boo" className="w-12 h-12 rounded-full border-2 border-gray-300 object-contain bg-white p-0.5" />
-                                    <div className="flex flex-col">
-                                        <span className="font-black text-gray-800 text-lg uppercase tracking-tight">Lone Boo News</span>
-                                        <span className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-widest">{post.date}</span>
-                                    </div>
+                </div>
+            </button>
+        )}
+
+        <div className="absolute inset-0 z-0">
+            <img src={currentBg} alt="Piazza" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
+            {isLoaded && Object.entries(INITIAL_ZONES).map(([key, pts]) => (
+                <div key={key} onClick={() => handleZoneInteraction(key)} className="absolute inset-0 z-10 cursor-pointer active:bg-white/10" style={{ clipPath: getClipPath(pts) }} />
+            ))}
+        </div>
+
+        {/* MODALE NEWS */}
+        {isFullFeedOpen && (
+            <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                <div className="bg-white rounded-[30px] border-4 border-yellow-400 w-full max-w-2xl h-[75vh] flex flex-col overflow-hidden animate-in zoom-in">
+                    <div className="bg-yellow-400 p-3 flex justify-between items-center border-b-4 border-yellow-500">
+                        <img src={NEWS_HEADER_IMG} alt="News" className="h-10 md:h-14 object-contain" />
+                        <button onClick={() => setIsFullFeedOpen(false)}><img src={BTN_CLOSE_IMG} alt="X" className="w-12 h-12" /></button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 bg-gray-100 space-y-4">
+                        {posts.map(post => (
+                            <div key={post.id} className="bg-white p-4 rounded-2xl shadow-md border-l-4 border-yellow-400">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <img src={OFFICIAL_LOGO} className="w-8 h-8 rounded-full" alt="" />
+                                    <span className="font-black text-sm text-gray-800 uppercase">{post.date}</span>
                                 </div>
-                                <p className="text-gray-800 font-bold text-base md:text-xl mb-4 leading-relaxed relative z-10 font-sans">{post.content}</p>
-                                {post.type === 'IMAGE' && post.image && (
-                                    <div className="mb-2 rounded-lg overflow-hidden aspect-video bg-gray-200 border-2 border-gray-300 relative z-10">
-                                        <img src={post.image} alt="Post" className="w-full h-full object-cover" />
-                                    </div>
-                                )}
+                                <p className="font-bold text-gray-700 leading-tight">{post.content}</p>
+                                {post.image && <img src={post.image} className="mt-2 rounded-lg w-full aspect-video object-cover" alt="" />}
                             </div>
                         ))}
                     </div>
@@ -304,46 +247,32 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
             </div>
         )}
 
-        {/* Mini TV di Boo - Posizionato a SINISTRA */}
-        {bgLoaded && isAudioOn && isPlaying && (
-            <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
-                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
-                    <video 
-                        src={BOO_TALK_VIDEO}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                        style={{ 
-                            mixBlendMode: 'screen',
-                            filter: 'contrast(1.1) brightness(1.1)'
-                        }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
+        {/* MODALE AVVISI */}
+        {isNotifModalOpen && (
+            <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                <div className="bg-white rounded-[30px] border-4 border-purple-500 w-full max-w-lg h-[75vh] flex flex-col overflow-hidden animate-in zoom-in">
+                    <div className="bg-purple-600 p-3 flex justify-between items-center border-b-4 border-purple-800">
+                        <img src={NOTIF_HEADER_IMG} alt="Avvisi" className="h-10 md:h-14 object-contain" />
+                        <button onClick={() => setIsNotifModalOpen(false)}><img src={BTN_CLOSE_IMG} alt="X" className="w-12 h-12" /></button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 bg-purple-50 space-y-4">
+                        {notifications.length > 0 ? notifications.map(notif => (
+                            <div key={notif.id} className="bg-white p-4 rounded-2xl shadow-md border-2 border-purple-100">
+                                <div className="flex gap-3 items-start">
+                                    <img src={NOTIF_ICON_IMG} className="w-10 h-10 object-contain" alt="" />
+                                    <p className="font-black text-gray-800 leading-tight">{notif.message}</p>
+                                </div>
+                                {notif.link && (
+                                    <button onClick={() => window.open(notif.link, '_blank')} className="mt-3 w-full bg-blue-500 text-white font-black py-2 rounded-xl border-b-4 border-blue-700 uppercase">VAI <ExternalLink size={14} className="inline ml-1" /></button>
+                                )}
+                            </div>
+                        )) : <p className="text-center text-gray-400 font-bold py-10">Nessun avviso.</p>}
+                    </div>
                 </div>
             </div>
         )}
 
-        {/* MAIN INTERACTIVE CONTAINER */}
-        <div className="absolute inset-0 z-0">
-            <img 
-                src={currentBg} 
-                alt="Piazza" 
-                className={`w-full h-full object-fill transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
-                draggable={false} 
-            />
-
-            {/* AREAS VISUALIZER */}
-            {bgLoaded && Object.entries(INITIAL_ZONES).map(([key, pts]) => (
-                <div 
-                    key={key} 
-                    onClick={() => handleZoneInteraction(key)}
-                    className="absolute inset-0 z-10 cursor-pointer pointer-events-auto active:bg-white/10"
-                    style={{ clipPath: getClipPath(pts) }}
-                />
-            ))}
-        </div>
+        {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView || (() => {})} currentView={AppView.COMMUNITY} />}
     </div>
   );
 };

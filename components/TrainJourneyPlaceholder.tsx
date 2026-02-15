@@ -5,6 +5,8 @@ import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight,
 import { OFFICIAL_LOGO } from '../constants';
 import { getProgress, spendTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import DailyRewardsModal from './DailyRewardsModal';
+import { monthNames } from '../services/calendarDatabase';
 
 const MAP_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietteriadovevai887xs32.webp';
 const MAP_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietterinotteasx.webp';
@@ -18,6 +20,7 @@ const BTN_SECRET_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/5t4rf
 const IMG_ZOOMABLE_MAP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/caricsfondcittaaltre55tf4.webp';
 const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacuty55frxxw21+(1).webp';
 const BTN_RETURN_TO_CITY_GRAF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp';
+const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
 // Asset Marlo Capostazione
 const MARLO_STATION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlocapostatione443.mp4';
@@ -27,6 +30,17 @@ const MARLO_STATION_AUDIO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/
 const ICON_WEATHER_SUNNY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/soleggiatoviaggio43ed23edc.webp';
 const ICON_WEATHER_CLOUDY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolosoviaggio883ujws.webp';
 const ICON_WEATHER_RAINY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tempestaviaggio88.webp';
+
+// Parametri sveglia consolidati
+const CLOCK_STYLE = {
+    top: 56,
+    right: 4,
+    iconSize: 82,
+    timeSize: 23,
+    dateSize: 13,
+    paddingTop: 0,
+    iconScaleY: 0.74
+};
 
 interface TrainJourneyPlaceholderProps {
     setView: (view: AppView) => void;
@@ -254,6 +268,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const [userTokens, setUserTokens] = useState(0);
     const [selectedZone, setSelectedZone] = useState<ZoneInfo | null>(null);
     const [showMapModal, setShowMapModal] = useState(false);
+    const [showDailyModal, setShowDailyModal] = useState(false);
     
     const [isTraveling, setIsTraveling] = useState(false);
     const [travelKm, setTravelKm] = useState(0);
@@ -277,6 +292,14 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const travelVideoUrl = useMemo(() => {
         return isNightTime(now) ? TRAVEL_VIDEO_NIGHT_URL : TRAVEL_VIDEO_DAY_URL;
     }, [now]);
+
+    // Formattazione data e ora per lo schermo della sveglia
+    const dayNamesShort = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
+    const currentDay = now.getDate();
+    const currentDayName = dayNamesShort[now.getDay()];
+    const currentMonthShort = monthNames[now.getMonth()].slice(0, 3).toUpperCase();
+    const currentTimeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const currentDateStr = `${currentDayName} ${currentDay} ${currentMonthShort}`;
 
     // --- CALCOLO METEO ---
     const weatherData = useMemo(() => {
@@ -356,8 +379,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         img.src = currentBg;
         img.onload = () => setIsLoaded(true);
 
-        // Aggiorna l'orario ogni minuto per gestire il cambio giorno/notte
-        const timeInterval = setInterval(() => setNow(new Date()), 60000);
+        // Aggiorna l'orario ogni secondo per gestire il cambio giorno/notte e la sveglia
+        const timeInterval = setInterval(() => setNow(new Date()), 1000);
         
         const handleGlobalAudioChange = () => {
             const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
@@ -475,6 +498,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
     return (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center overflow-hidden bg-sky-900">
+            <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
             
             {!isLoaded && !isTraveling && (
                 <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-sky-900 backdrop-blur-md">
@@ -505,6 +529,65 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
+            )}
+
+            {/* HUD SALDO GETTONI - Spostato a sinistra */}
+            {!isTraveling && isLoaded && (
+                <div className="fixed top-24 md:top-32 left-0 right-0 px-4 flex justify-start items-center z-50 pointer-events-none">
+                    <div className="pointer-events-auto bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl shadow-black/50">
+                        <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                    </div>
+                </div>
+            )}
+
+            {/* SVEGLIA - LA TUA GIORNATA (IDENTICA AL GIARDINO) */}
+            {isLoaded && !isTraveling && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
+                    className="absolute z-[70] transition-transform outline-none group hover:scale-105 active:scale-95"
+                    style={{ 
+                        top: `${CLOCK_STYLE.top}px`, 
+                        right: `${CLOCK_STYLE.right}px`
+                    }}
+                >
+                    <div 
+                        className="relative flex items-center justify-center"
+                        style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
+                    >
+                        <img 
+                            src={CLOCK_SCREEN_IMG} 
+                            alt="Sveglia" 
+                            className="w-full h-full object-contain drop-shadow-2xl" 
+                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
+                        />
+                        
+                        <div 
+                            className="absolute inset-0 flex flex-col items-center justify-center"
+                            style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
+                        >
+                            <div className="flex flex-col items-center justify-center">
+                                <span 
+                                    className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
+                                    style={{ 
+                                        WebkitTextStroke: '0.5px #431407',
+                                        fontSize: `${CLOCK_STYLE.timeSize}px`
+                                    }}
+                                >
+                                    {currentTimeStr}
+                                </span>
+                                <span 
+                                    className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
+                                    style={{ 
+                                        WebkitTextStroke: '0.3px #431407',
+                                        fontSize: `${CLOCK_STYLE.dateSize}px`
+                                    }}
+                                >
+                                    {currentDateStr}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
             )}
 
             {isTraveling && selectedZone && (
@@ -619,14 +702,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     </React.Fragment>
                 ))}
             </div>
-            
-            {!isTraveling && (
-                <div className="fixed top-24 md:top-32 left-0 right-0 px-4 flex justify-end items-center z-50 pointer-events-none">
-                    <div className="pointer-events-auto bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl shadow-black/50">
-                        <span>{userTokens}</span> <span className="text-xl">🪙</span>
-                    </div>
-                </div>
-            )}
 
             {selectedZone && !isTraveling && (
                 <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={handleCancel}>
@@ -663,6 +738,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             {showMapModal && <MapImageModal onClose={() => setShowMapModal(false)} />}
+            {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.TRAIN_JOURNEY} />}
         </div>
     );
 };

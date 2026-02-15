@@ -52,6 +52,7 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(true);
+  const [isMounting, setIsMounting] = useState(true);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -71,8 +72,13 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
 
       // Timer per l'aggiornamento dinamico dello sfondo
       const timeInterval = setInterval(() => setNow(new Date()), 60000);
+      
+      // Ritardo di sicurezza per prevenire ghost clicks
+      const mountTimer = setTimeout(() => setIsMounting(false), 200);
+
       return () => {
           clearInterval(timeInterval);
+          clearTimeout(mountTimer);
           if (bgMusicRef.current) {
               bgMusicRef.current.pause();
               bgMusicRef.current = null;
@@ -138,6 +144,7 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
   };
 
   const startGame = (diff: Difficulty, forceStart = false) => {
+      if (isMounting) return;
       if (diff === 'HARD' && !isHardUnlocked && !forceStart) { setShowUnlockModal(true); return; }
       setDifficulty(diff); 
       setLevel(1); 

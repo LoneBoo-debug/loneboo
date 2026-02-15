@@ -145,9 +145,26 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
             {isLoaded && (
                 <>
                     {Object.entries(SAVED_ZONES).map(([id, pts]) => pts.length > 0 && (
-                        <div key={id} onClick={(e) => { e.stopPropagation(); handleZoneInteraction(id); }} className={`absolute inset-0 z-10 ${showDisclaimer ? 'cursor-default' : 'cursor-pointer active:bg-white/10'}`} style={{ clipPath: getClipPath(pts) }} />
+                        <div 
+                            key={id} 
+                            onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation(); 
+                                handleZoneInteraction(id); 
+                            }} 
+                            className={`absolute inset-0 z-10 ${showDisclaimer ? 'cursor-default' : 'cursor-pointer active:bg-white/10'}`} 
+                            style={{ clipPath: getClipPath(pts) }} 
+                        />
                     ))}
-                    <div onClick={(e) => { e.stopPropagation(); if(!showDisclaimer) setView(AppView.SCHOOL_SECOND_FLOOR); }} className={`absolute inset-0 z-10 ${showDisclaimer ? 'cursor-default' : 'cursor-pointer active:bg-white/10'}`} style={{ clipPath: getClipPath(SECOND_FLOOR_ZONE) }} />
+                    <div 
+                        onClick={(e) => { 
+                            e.preventDefault();
+                            e.stopPropagation(); 
+                            if(!showDisclaimer) setView(AppView.SCHOOL_SECOND_FLOOR); 
+                        }} 
+                        className={`absolute inset-0 z-10 ${showDisclaimer ? 'cursor-default' : 'cursor-pointer active:bg-white/10'}`} 
+                        style={{ clipPath: getClipPath(SECOND_FLOOR_ZONE) }} 
+                    />
                 </>
             )}
 
@@ -201,7 +218,7 @@ const SchoolFirstFloor: React.FC<SchoolFirstFloorProps> = ({ setView }) => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                             <section className="bg-slate-50 p-4 rounded-2xl border-l-8 border-blue-500">
                                 <p className="text-slate-800 font-bold text-base md:text-lg leading-relaxed text-justify">
-                                    Le lezioni proposte all’interno di Scuola Arcobaleno sono progettate con l’obiettivo di favorive una <span className="text-blue-700 font-black">comprensione profonda e consapevole</span> dei concetti fondamentali, piuttosto che la semplice <span className="text-red-600 font-black">memorizzazione meccanica</span> di nozioni, elenchi o procedure.
+                                    Le lezioni proposte all’interno di Scuola Arcobaleno sono progettate con l’obiettivo di favorire una <span className="text-blue-700 font-black">comprensione profonda e consapevole</span> dei concetti fondamentali, piuttosto che la semplice <span className="text-red-600 font-black">memorizzazione meccanica</span> di nozioni, elenchi o procedure.
                                 </p>
                             </section>
 

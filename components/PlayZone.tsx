@@ -5,6 +5,8 @@ import { getProgress, addTokens } from '../services/tokens';
 import { OFFICIAL_LOGO } from '../constants';
 import { AppView } from '../types';
 import { getWeatherForDate, isNightTime } from '../services/weatherService';
+import DailyRewardsModal from './DailyRewardsModal';
+import { monthNames } from '../services/calendarDatabase';
 
 // --- LAZY LOADED GAMES ---
 const QuizGame = lazy(() => import('./QuizGame'));
@@ -35,6 +37,8 @@ const PLAY_NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parco
 const PLAY_NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconottepioggiadsx.webp';
 const PLAY_NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconotteventores.webp';
 const PLAY_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parconottenevexxz.webp';
+
+const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
 // Asset Audio e Video
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parcogiochispeechboo6tr64.mp3';
@@ -160,6 +164,17 @@ const INITIAL_MAP_DATA: Record<string, Point[]> = {
   ]
 };
 
+// Parametri sveglia consolidati
+const CLOCK_STYLE = {
+    top: 56,
+    right: 4,
+    iconSize: 82,
+    timeSize: 23,
+    dateSize: 13,
+    paddingTop: 0,
+    iconScaleY: 0.74
+};
+
 interface PlayZoneProps {
   setView: (view: AppView) => void;
 }
@@ -171,9 +186,17 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [tokenBalance, setTokenBalance] = useState(() => getProgress().tokens);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showDailyModal, setShowDailyModal] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const todayWeather = useMemo(() => getWeatherForDate(now), [now]);
+
+  const dayNamesShort = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
+  const currentDay = now.getDate();
+  const currentDayName = dayNamesShort[now.getDay()];
+  const currentMonthShort = monthNames[now.getMonth()].slice(0, 3).toUpperCase();
+  const currentTimeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const currentDateStr = `${currentDayName} ${currentDay} ${currentMonthShort}`;
 
   const currentBgMobile = useMemo(() => {
     const isNight = isNightTime(now);
@@ -214,7 +237,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   }, [todayWeather, now]);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60000);
+    const timer = setInterval(() => setNow(new Date()), 1000);
 
     const handleProgressUpdate = () => {
       setTokenBalance(getProgress().tokens);
@@ -234,7 +257,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
       ambientAudioRef.current.addEventListener('pause', () => setIsPlaying(false));
       ambientAudioRef.current.addEventListener('ended', () => {
         setIsPlaying(false);
-        // Fixed: Changed 'audioRef' to 'ambientAudioRef' to fix 'Cannot find name' error
         if (ambientAudioRef.current) ambientAudioRef.current.currentTime = 0;
       });
     }
@@ -303,7 +325,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   if (activeGame !== GameType.NONE) {
     return (
       <div className="fixed inset-0 z-0 bg-slate-900 flex flex-col animate-in fade-in duration-300 pt-[64px] md:pt-[96px]">
-        {/* Rimosso il div della barra duplicata qui */}
         <Suspense fallback={
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-800">
             <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
@@ -348,6 +369,56 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         </div>
       )}
 
+      {/* SVEGLIA - LA TUA GIORNATA (SPOSTATA DA GIARDINO) */}
+      {isLoaded && activeGame === GameType.NONE && (
+        <button 
+            onClick={() => setShowDailyModal(true)}
+            className="absolute z-[70] transition-transform outline-none group hover:scale-105 active:scale-95"
+            style={{ 
+                top: `${CLOCK_STYLE.top}px`, 
+                right: `${CLOCK_STYLE.right}px`
+            }}
+        >
+            <div 
+                className="relative flex items-center justify-center"
+                style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
+            >
+                <img 
+                    src={CLOCK_SCREEN_IMG} 
+                    alt="Sveglia" 
+                    className="w-full h-full object-contain drop-shadow-2xl" 
+                    style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
+                />
+                
+                <div 
+                    className="absolute inset-0 flex flex-col items-center justify-center"
+                    style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
+                >
+                    <div className="flex flex-col items-center justify-center">
+                        <span 
+                            className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
+                            style={{ 
+                                WebkitTextStroke: '0.5px #431407',
+                                fontSize: `${CLOCK_STYLE.timeSize}px`
+                            }}
+                        >
+                            {currentTimeStr}
+                        </span>
+                        <span 
+                            className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
+                            style={{ 
+                                WebkitTextStroke: '0.3px #431407',
+                                fontSize: `${CLOCK_STYLE.dateSize}px`
+                            }}
+                        >
+                            {currentDateStr}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </button>
+      )}
+
       <div 
         className="absolute inset-0 z-0"
       >
@@ -368,7 +439,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
           return (
             <div
               key={key}
-              onPointerDown={(e) => { 
+              onClick={(e) => { 
                 e.preventDefault();
                 e.stopPropagation(); 
                 handleZoneClick(key); 
@@ -379,6 +450,8 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
           );
         })}
       </div>
+
+      {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.PLAY} />}
     </div>
   );
 };

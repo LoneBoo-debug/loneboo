@@ -48,6 +48,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(true);
+  const [isMounting, setIsMounting] = useState(true);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -67,8 +68,13 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
 
       // Timer per l'aggiornamento dell'orario
       const timeInterval = setInterval(() => setNow(new Date()), 60000);
+      
+      // Ritardo di sicurezza per prevenire ghost clicks
+      const mountTimer = setTimeout(() => setIsMounting(false), 200);
+
       return () => {
           clearInterval(timeInterval);
+          clearTimeout(mountTimer);
           if (bgMusicRef.current) {
               bgMusicRef.current.pause();
               bgMusicRef.current = null;
@@ -210,6 +216,16 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
     setRewardGiven(false);
   };
 
+  const handleLevelSelect = (diff: Difficulty) => {
+    if (isMounting) return;
+    if (diff === 'HARD' && !isHardUnlocked) {
+        setShowUnlockModal(true);
+        return;
+    }
+    setDifficulty(diff);
+    resetGame();
+  };
+
   const backToMenu = () => {
       setDifficulty(null);
       resetGame();
@@ -297,14 +313,14 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
         {difficulty === null ? (
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4">
                 <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] mt-24 md:mt-32">
-                    <button onClick={() => setDifficulty('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                    <button onClick={() => handleLevelSelect('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
                       <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto" />
                     </button>
-                    <button onClick={() => setDifficulty('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                    <button onClick={() => handleLevelSelect('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
                       <img src={BTN_MEDIUM_IMG} alt="Intermedio" className="w-full h-auto" />
                     </button>
                     <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
-                        <button onClick={() => isHardUnlocked ? setDifficulty('HARD') : setShowUnlockModal(true)} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
+                        <button onClick={() => handleLevelSelect('HARD')} className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}>
                           <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto" />
                         </button>
                         {!isHardUnlocked && (

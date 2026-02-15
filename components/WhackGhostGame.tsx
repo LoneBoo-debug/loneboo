@@ -55,9 +55,8 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   const isPlayingRef = useRef(false);
   const difficultyRef = useRef<Difficulty | null>(null);
   const bgMusic = useRef<HTMLAudioElement | null>(null);
-  const ghostIndexRef = useRef<number | null>(null); // Ref per accesso sincrono durante il colpo
+  const ghostIndexRef = useRef<number | null>(null);
 
-  // Background dinamico basato sull'orario
   const currentBg = useMemo(() => isNightTime(now) ? WHACK_BG_NIGHT : WHACK_BG_DAY, [now]);
 
   useEffect(() => {
@@ -66,12 +65,10 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
-      // Initialize Background Music
       bgMusic.current = new Audio(BG_MUSIC_URL);
       bgMusic.current.loop = true;
       bgMusic.current.volume = 0.4;
 
-      // Timer orario per cambio sfondo
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
 
       return () => {
@@ -83,13 +80,10 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       };
   }, []);
 
-  // Handle Music Playback based on game state
   useEffect(() => {
       if (bgMusic.current) {
           if (musicEnabled && isPlaying && !gameResult) {
-              bgMusic.current.play().catch(() => {
-                  console.log("Interaction required for music playback");
-              });
+              bgMusic.current.play().catch(() => {});
           } else {
               bgMusic.current.pause();
           }
@@ -107,7 +101,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
       if (!isPlayingRef.current) return;
       const nextIndex = Math.floor(Math.random() * 9);
       setGhostIndex(nextIndex);
-      ghostIndexRef.current = nextIndex; // Aggiorna il ref per colpi precisi
+      ghostIndexRef.current = nextIndex;
       let stayDuration = 1500; 
       if (difficultyRef.current === 'MEDIUM') stayDuration = 1000;
       if (difficultyRef.current === 'HARD') stayDuration = 600;
@@ -179,13 +173,11 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   
   const handleHoleTouch = (index: number) => { 
     if (!isPlaying) return; 
-    // Usiamo il ref per il controllo sincrono ed evitare lag di stato
     if (index === ghostIndexRef.current) { 
         setScore((prev) => prev + 1); 
         const feedbackId = Date.now();
         setHitFeedback({ index, id: feedbackId }); 
         
-        // Rimuove il feedback dopo l'animazione (800ms)
         setTimeout(() => {
             setHitFeedback(prev => (prev?.id === feedbackId ? null : prev));
         }, 800);
@@ -201,7 +193,28 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
   return (
     <div className={wrapperStyle}>
-      {/* SFONDO DINAMICO FISSO A TUTTO SCHERMO */}
+        <style>{`
+            /* Effetto Sticker Cartoon */
+            .sticker-btn {
+                filter: 
+                    drop-shadow(2px 2px 0px white) 
+                    drop-shadow(-2px -2px 0px white) 
+                    drop-shadow(2px -2px 0px white) 
+                    drop-shadow(-2px 2px 0px white)
+                    drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .sticker-btn:active {
+                transform: scale(0.92);
+            }
+            
+            @keyframes float-btn {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-float-btn { animation: float-btn 3s ease-in-out infinite; }
+        `}</style>
+
       <img 
           src={currentBg} 
           alt="" 
@@ -209,7 +222,6 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
           draggable={false}
       />
 
-      {/* UI FISSA: TASTO ESCI E SALDO GETTONI */}
       <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
           <div className="pointer-events-auto">
               {difficulty ? (
@@ -232,7 +244,6 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
-      {/* TASTO MUSICA (ALTO A DESTRA, SOTTO IL CONTATORE GLOBALE) */}
       <div className="absolute top-[130px] md:top-[170px] right-4 z-[300] flex flex-col items-end gap-3 pointer-events-none">
           <button 
               onClick={() => setMusicEnabled(!musicEnabled)}
@@ -243,12 +254,10 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
           </button>
       </div>
 
-      {/* AREA DI GIOCO */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-52 md:pt-64 p-4">
           {!isPlaying && !gameResult && (
               <div className="flex flex-col items-center animate-in fade-in z-20 w-full px-4">
                 
-                {/* OBIETTIVO SENZA BOX */}
                 <div className="mb-10 w-full text-center">
                     <p 
                         className="font-luckiest text-white text-xl md:text-4xl whitespace-nowrap drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase tracking-wide" 
@@ -258,20 +267,19 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
                     </p>
                 </div>
 
-                {/* PULSANTI LIVELLO SENZA BOX */}
                 <div className="flex flex-col gap-4 items-center w-full max-w-[200px] md:max-w-[280px]">
-                    <button onClick={() => startGame('EASY')} className="hover:scale-105 active:scale-95 transition-transform w-full outline-none">
-                        <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-xl" />
+                    <button onClick={() => startGame('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
+                        <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto" />
                     </button>
-                    <button onClick={() => startGame('MEDIUM')} className="hover:scale-105 active:scale-95 transition-transform w-full outline-none">
-                        <img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto drop-shadow-xl" />
+                    <button onClick={() => startGame('MEDIUM')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent" style={{ animationDelay: '0.5s' }}>
+                        <img src={BTN_MEDIUM_IMG} alt="Medio" className="w-full h-auto" />
                     </button>
-                    <div className="relative hover:scale-105 active:scale-95 transition-transform w-full">
+                    <div className="relative sticker-btn animate-float-btn w-full" style={{ animationDelay: '1s' }}>
                         <button 
                             onClick={() => startGame('HARD')} 
-                            className={`w-full outline-none ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}
+                            className={`w-full outline-none border-none bg-transparent ${!isHardUnlocked ? 'filter grayscale brightness-75 cursor-pointer' : ''}`}
                         >
-                            <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto drop-shadow-xl" />
+                            <img src={BTN_HARD_IMG} alt="Difficile" className="w-full h-auto" />
                         </button>
                         {!isHardUnlocked && (
                             <div className="absolute right-[-15px] top-[-15px] pointer-events-none z-20">
@@ -284,7 +292,6 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
           )}
           {isPlaying && (
               <div className="w-full max-w-lg flex flex-col items-center animate-in fade-in z-20">
-                  {/* BOX PUNTI E TEMPO */}
                   <div className="flex justify-between w-full -mb-6 md:-mb-8 px-6 relative z-30">
                       <div className="bg-yellow-400 border-2 border-black rounded-xl px-2 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] transform -rotate-2 flex items-center gap-2">
                           <span className="text-xl md:text-2xl filter drop-shadow-sm">👻</span>
@@ -318,7 +325,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
                                 key={idx} 
                                 onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleHoleTouch(idx); }} 
                                 className="relative overflow-hidden cursor-pointer active:scale-95 transition-transform touch-none select-none aspect-square group" 
-                                style={{ touchAction: 'manipulation' }}
+                                style={{ touchAction: 'none' }}
                             >
                                 <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 w-[98%] h-[52%] bg-stone-900 rounded-[100%] shadow-[inset_0_10px_20px_rgba(0,0,0,1)] border-t-2 border-stone-800/50 pointer-events-none group-active:brightness-110"></div>
                                 <div 

@@ -46,6 +46,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(true);
+  const [isMounting, setIsMounting] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -54,6 +55,10 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
       setUserTokens(progress.tokens);
       const albumComplete = progress.unlockedStickers.length >= 30; 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
+      
+      // Ritardo di sicurezza per prevenire ghost clicks
+      const timer = setTimeout(() => setIsMounting(false), 200);
+      return () => clearTimeout(timer);
   }, []);
 
   // Gestione Musica di Sottofondo
@@ -97,6 +102,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
   };
 
   const initGame = (selectedDiff: Difficulty, forceStart = false) => {
+      if (isMounting) return;
       if (selectedDiff === 'HARD' && !isHardUnlocked && !forceStart) { setShowUnlockModal(true); return; }
       setDifficulty(selectedDiff);
       

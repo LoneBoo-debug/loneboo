@@ -46,6 +46,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [currentTokens, setCurrentTokens] = useState(0);
+  const [isMounting, setIsMounting] = useState(true);
 
   // Background dinamico basato sull'orario richiesto (20:15 - 06:45)
   const currentBg = useMemo(() => isNightTime(now) ? MEMORY_BG_NIGHT : MEMORY_BG_DAY, [now]);
@@ -58,7 +59,14 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
-      return () => clearInterval(timeTimer);
+      
+      // Ritardo di sicurezza per prevenire ghost clicks
+      const timer = setTimeout(() => setIsMounting(false), 200);
+      
+      return () => {
+          clearInterval(timeTimer);
+          clearTimeout(timer);
+      };
   }, []);
 
   useEffect(() => { 
@@ -108,6 +116,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
   };
 
   const initGame = (diff: Difficulty) => {
+      if (isMounting) return;
       if (diff === 'HARD' && !isHardUnlocked) { 
           setShowUnlockModal(true); 
           return; 

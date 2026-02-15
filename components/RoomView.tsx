@@ -1,42 +1,60 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
-import RobotHint from './RobotHint';
+import { isNightTime } from '../services/weatherService';
 
-// --- ASSET MAPPA E AUDIO ---
-const HOUSE_MAP_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgdfre554de32.webp';
+// --- ASSET MAPPA ---
+const HOUSE_MAP_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newmapscasaboonews445re3.webp';
+const HOUSE_MAP_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newmapcasaboonughtsaqw.webp';
+
 const HOUSE_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mappacasaboovoice44es.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
 type Point = { x: number; y: number };
 
-const ZONES_MOBILE = [
-  { "id": AppView.BOO_GARDEN, "points": [ { "x": 6.13, "y": 78.43 }, { "x": 6.13, "y": 88.48 }, { "x": 32.78, "y": 88.12 }, { "x": 32.52, "y": 77.35 } ] },
-  { "id": AppView.BOO_BEDROOM, "points": [ { "x": 9.86, "y": 45.41 }, { "x": 9.86, "y": 68.56 }, { "x": 36.51, "y": 68.74 }, { "x": 36.78, "y": 44.87 } ] },
-  { "id": AppView.BOO_LIVING_ROOM, "points": [ { "x": 46.11, "y": 13.64 }, { "x": 48.77, "y": 45.76 }, { "x": 90.09, "y": 44.87 }, { "x": 88.49, "y": 16.15 } ] },
-  { "id": AppView.BOO_BATHROOM, "points": [ { "x": 65.03, "y": 51.69 }, { "x": 64.5, "y": 68.74 }, { "x": 86.35, "y": 69.1 }, { "x": 88.22, "y": 51.51 } ] },
-  { "id": AppView.BOO_KITCHEN, "points": [ { "x": 9.59, "y": 14.9 }, { "x": 8.53, "y": 38.94 }, { "x": 36.51, "y": 39.12 }, { "x": 37.58, "y": 15.61 } ] }
-];
-
-const ZONES_DESKTOP = [
-  { "id": AppView.BOO_KITCHEN, "points": [ { "x": 26.96, "y": 13.73 }, { "x": 26.76, "y": 41.85 }, { "x": 44.11, "y": 42.53 }, { "x": 44.51, "y": 13.73 } ] },
-  { "id": AppView.BOO_LIVING_ROOM, "points": [ { "x": 49.72, "y": 16.43 }, { "x": 49.72, "y": 47.48 }, { "x": 72.47, "y": 47.93 }, { "x": 72.77, "y": 14.63 } ] },
-  { "id": AppView.BOO_BEDROOM, "points": [ { "x": 26.96, "y": 46.8 }, { "x": 27.27, "y": 72.46 }, { "x": 43.7, "y": 72.23 }, { "x": 43.7, "y": 46.35 } ] },
-  { "id": AppView.BOO_BATHROOM, "points": [ { "x": 57.34, "y": 53.11 }, { "x": 57.34, "y": 72.46 }, { "x": 72.07, "y": 72.46 }, { "x": 72.57, "y": 52.66 } ] },
-  { "id": AppView.BOO_GARDEN, "points": [ { "x": 58.44, "y": 78.53 }, { "x": 58.74, "y": 92.26 }, { "x": 97.43, "y": 92.03 }, { "x": 97.73, "y": 24.53 }, { "x": 76.88, "y": 22.28 }, { "x": 75.28, "y": 75.61 } ] }
+// Aree cliccabili calibrate definitive
+const HOUSE_ZONES: { id: AppView; points: Point[] }[] = [
+    {
+        id: AppView.BOO_KITCHEN,
+        points: [{ "x": 3.2, "y": 14.99 }, { "x": 2.4, "y": 48.58 }, { "x": 43.73, "y": 48.43 }, { "x": 42.4, "y": 14.54 }]
+    },
+    {
+        id: AppView.BOO_BEDROOM,
+        points: [{ "x": 2.93, "y": 53.22 }, { "x": 2.67, "y": 81.86 }, { "x": 42.93, "y": 82.46 }, { "x": 42.93, "y": 53.22 }]
+    },
+    {
+        id: AppView.BOO_LIVING_ROOM,
+        points: [{ "x": 50.67, "y": 14.84 }, { "x": 51.2, "y": 50.82 }, { "x": 96.53, "y": 50.52 }, { "x": 96.27, "y": 15.59 }]
+    },
+    {
+        id: AppView.BOO_BATHROOM,
+        points: [{ "x": 69.07, "y": 56.37 }, { "x": 68.27, "y": 82.31 }, { "x": 96.8, "y": 82.16 }, { "x": 97.33, "y": 56.37 }]
+    },
+    {
+        id: AppView.BOO_GARDEN,
+        points: [{ "x": 3.73, "y": 90.4 }, { "x": 3.47, "y": 97.9 }, { "x": 40.8, "y": 98.65 }, { "x": 40.27, "y": 88.91 }]
+    },
+    {
+        id: AppView.BOO_GARDEN,
+        points: [{ "x": 69.6, "y": 89.51 }, { "x": 69.07, "y": 98.95 }, { "x": 97.07, "y": 98.35 }, { "x": 96.27, "y": 89.36 }]
+    }
 ];
 
 const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
-    const [showHint, setShowHint] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const currentMapImage = useMemo(() => isNightTime(now) ? HOUSE_MAP_NIGHT : HOUSE_MAP_DAY, [now]);
+
     useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
+        
         const img = new Image();
-        img.src = HOUSE_MAP_IMAGE;
+        img.src = currentMapImage;
         img.onload = () => setIsLoaded(true);
         
         if (!audioRef.current) {
@@ -51,7 +69,6 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
             });
         }
 
-        // Avvio immediato se attivo
         if (isAudioOn && audioRef.current) {
             audioRef.current.play().catch(e => console.log("Audio play blocked", e));
         }
@@ -67,21 +84,20 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
         };
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-        const timer = setTimeout(() => setIsLoaded(true), 1500);
-        const hintTimer = setTimeout(() => setShowHint(true), 3000);
-        
         return () => {
-            clearTimeout(timer);
-            clearTimeout(hintTimer);
+            clearInterval(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
             }
         };
-    }, [isLoaded, isAudioOn]);
+    }, [currentMapImage]);
 
-    const getClipPath = (points: {x: number, y: number}[]) => `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    const getClipPath = (points: Point[]) => {
+        if (!points || points.length < 3) return 'none';
+        return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
+    };
 
     return (
         <div className="fixed inset-0 z-0 bg-black overflow-hidden select-none touch-none animate-in fade-in duration-700">
@@ -102,38 +118,22 @@ const RoomView: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                 </div>
             )}
 
-            <RobotHint show={showHint && isLoaded} message="Tocca una stanza per entrare!" variant="GHOST" />
-
             <div className="absolute inset-0 w-full h-full overflow-hidden">
-                <img src={HOUSE_MAP_IMAGE} alt="Casa di Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
-                <div className="hidden md:block absolute inset-0 z-10">
-                    {ZONES_DESKTOP.map(z => (
-                        <div 
-                            key={z.id} 
-                            onPointerDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setView(z.id);
-                            }} 
-                            className="absolute inset-0 cursor-pointer hover:bg-white/10 transition-colors" 
-                            style={{ clipPath: getClipPath(z.points) }} 
-                        />
-                    ))}
-                </div>
-                <div className="block md:hidden absolute inset-0 z-10">
-                    {ZONES_MOBILE.map(z => (
-                        <div 
-                            key={z.id} 
-                            onPointerDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setView(z.id);
-                            }} 
-                            className="absolute inset-0 cursor-pointer active:bg-white/10" 
-                            style={{ clipPath: getClipPath(z.points) }} 
-                        />
-                    ))}
-                </div>
+                <img src={currentMapImage} alt="Casa di Boo" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} draggable={false} />
+                
+                {/* ZONE CLICCABILI CALIBRATE */}
+                {isLoaded && HOUSE_ZONES.map((zone, idx) => (
+                    <div 
+                        key={`${zone.id}-${idx}`} 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setView(zone.id);
+                        }} 
+                        className="absolute inset-0 cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors z-10" 
+                        style={{ clipPath: getClipPath(zone.points) }} 
+                    />
+                ))}
             </div>
         </div>
     );

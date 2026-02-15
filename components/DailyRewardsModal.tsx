@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Sparkles, MessageCircle, Gamepad2, Clock, Star, Info } from 'lucide-react';
 import { AppView, PlayerProgress } from '../types';
@@ -17,7 +18,7 @@ const ICON_CALENDAR = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/claenx
 const IMG_CLAIM_TOKENS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gettonoprex4r3e2waa.webp';
 const BTN_ATELIER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/personaliboo90i87y6.webp';
 const IMG_GO_SCHOOL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/andiamoascuolamodaleewerfgr4rf.webp';
-const IMG_GO_EXTRA = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exextraaasqq12q.webp';
+const IMG_GO_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiedibuttonmara66gno9.webp';
 const IMG_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tonjournee5r4e3.webp';
 
 const IMG_SUCCESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riscuotigettonirewards44f55tfre.webp';
@@ -260,8 +261,8 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                         <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
                             <img src={IMG_GO_SCHOOL} alt="Vai a Scuola" className="w-full h-auto drop-shadow-xl" />
                         </button>
-                        <button onClick={() => { sessionStorage.setItem('show_extra_immediately', 'true'); handleNavigate(AppView.SCHOOL_ARCHIVE); }} className="w-[21%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
-                            <img src={IMG_GO_EXTRA} alt="Contenuti Extra" className="w-full h-auto drop-shadow-xl" />
+                        <button onClick={() => handleNavigate(AppView.CHAT)} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
+                            <img src={IMG_GO_MARAGNO} alt="Chiedi a Maragno" className="w-full h-auto drop-shadow-xl" />
                         </button>
                     </div>
                 </div>

@@ -17,7 +17,7 @@ const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanott
 const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanotteventoxxs.webp';
 const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottenevexx.webp';
 
-const CALENDAR_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/477401351381209093.webp';
+const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
 const CITY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mappa+citt%C3%A0loneboovoice4re.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
@@ -49,11 +49,23 @@ const AREA_MAPPING: Record<string, AppView> = {
     "PLAY": AppView.PLAY, "AI_MAGIC": AppView.AI_MAGIC, "BOOKS": AppView.BOOKS, "TALES": AppView.TALES, "FANART": AppView.FANART, "BOOKS_LIST": AppView.BOOKS_LIST, "EMOTIONAL_GARDEN": AppView.EMOTIONAL_GARDEN, "COMMUNITY": AppView.COMMUNITY, "SCHOOL": AppView.SCHOOL, "COLORING": AppView.COLORING, "VIDEOS": AppView.VIDEOS, "SOUNDS": AppView.SOUNDS, "CHAT": AppView.CHAT, "SOCIALS": AppView.SOCIALS, "BOO_GARDEN": AppView.BOO_GARDEN, "NEWSSTAND": AppView.NEWSSTAND
 };
 
+// Parametri sveglia consolidati dal giardino
+const CLOCK_STYLE = {
+    top: 56,
+    right: 4,
+    iconSize: 82,
+    timeSize: 23,
+    dateSize: 13,
+    paddingTop: 0,
+    iconScaleY: 0.74
+};
+
 interface NewCityMapDesktopProps {
     setView: (view: AppView) => void;
 }
 
 const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
+    const [now, setNow] = useState(new Date());
     const [isLoaded, setIsLoaded] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
     const [isPlaying, setIsPlaying] = useState(false);
@@ -61,9 +73,13 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
     const [showDailyModal, setShowDailyModal] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const today = new Date();
+    const today = now;
+    const dayNamesShort = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
     const currentDay = today.getDate();
-    const currentMonth = monthNames[today.getMonth()].slice(0, 3);
+    const currentDayName = dayNamesShort[today.getDay()];
+    const currentMonthShort = monthNames[today.getMonth()].slice(0, 3).toUpperCase();
+    const currentTimeStr = today.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const currentDateStr = `${currentDayName} ${currentDay} ${currentMonthShort}`;
     
     const weather = getWeatherForDate(today);
     const isNight = isNightTime(today);
@@ -87,6 +103,8 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
     };
 
     useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 1000);
+
         const img = new Image();
         img.src = getBackgroundUrl();
         img.onload = () => setIsLoaded(true);
@@ -130,10 +148,8 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
         };
         window.addEventListener('loneboo_audio_changed', handleGlobalAudioChange);
 
-        const timer = setTimeout(() => setIsLoaded(true), 2000);
-        
         return () => {
-            clearTimeout(timer);
+            clearInterval(timer);
             window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -171,16 +187,51 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                 </div>
             )}
 
+            {/* SVEGLIA IN ALTO A DESTRA */}
             {isLoaded && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
-                    className="absolute top-20 md:top-28 right-4 z-50 animate-in slide-in-from-right duration-700 hover:scale-110 active:scale-95 transition-transform outline-none"
+                    className="absolute z-50 transition-transform outline-none group hover:scale-105 active:scale-95"
+                    style={{ 
+                        top: `${CLOCK_STYLE.top}px`, 
+                        right: `${CLOCK_STYLE.right}px`
+                    }}
                 >
-                    <div className="relative w-16 h-16 md:w-28 flex items-center justify-center">
-                        <img src={CALENDAR_ICON_URL} alt="Calendario" className="w-full h-full object-contain drop-shadow-2xl" />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-3 md:pt-6">
-                            <span className="text-[10px] md:text-lg text-yellow-400 font-luckiest leading-none uppercase tracking-tighter mt-1" style={{ WebkitTextStroke: '1px black' }}>{currentMonth}</span>
-                            <span className="text-red-600 font-black text-2xl md:text-5xl leading-none relative -top-1">{currentDay}</span>
+                    <div 
+                        className="relative flex items-center justify-center"
+                        style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
+                    >
+                        <img 
+                            src={CLOCK_SCREEN_IMG} 
+                            alt="Sveglia" 
+                            className="w-full h-full object-contain drop-shadow-2xl" 
+                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
+                        />
+                        
+                        <div 
+                            className="absolute inset-0 flex flex-col items-center justify-center"
+                            style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
+                        >
+                            <div className="flex flex-col items-center justify-center">
+                                <span 
+                                    className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
+                                    style={{ 
+                                        WebkitTextStroke: '0.5px #431407',
+                                        fontSize: `${CLOCK_STYLE.timeSize}px`
+                                    }}
+                                >
+                                    {currentTimeStr}
+                                </span>
+                                <span 
+                                    className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
+                                    style={{ 
+                                        WebkitTextStroke: '0.3px #431407',
+                                        fontSize: `${CLOCK_STYLE.dateSize}px`
+                                    }}
+                                >
+                                    {currentDateStr}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </button>
@@ -193,7 +244,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                     if (!targetView) return null;
                     return <div 
                         key={key} 
-                        onPointerDown={(e) => {
+                        onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             setView(targetView);

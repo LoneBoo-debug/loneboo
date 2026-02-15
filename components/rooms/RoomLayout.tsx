@@ -1,17 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AppView } from '../../types';
 import { HOUSE_ROOMS } from '../../constants';
 import RobotHint from '../RobotHint';
 import { preloadImages } from '../../services/imagePreloader';
+import { isNightTime } from '../../services/weatherService';
 
 // --- ASSET FISSI LAYOUT ---
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const ROOM_DECOR_IMG = 'https://i.postimg.cc/Y9wfF76h/arreddder.png';
 const RETURN_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/wsqqa33.webp';
 
-// TASTI NAVIGAZIONE SPECIFICI (AGGIORNATI CON AWS S3)
+// TASTI NAVIGAZIONE SPECIFICI
 const NAV_KITCHEN_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-living-sx.webp';
 const NAV_KITCHEN_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-bedroom-dx.webp';
 const NAV_LIVING_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-kitchen-sx.webp';
@@ -22,19 +23,33 @@ const NAV_BEDROOM_LEFT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com
 const NAV_BEDROOM_RIGHT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-kitchen-dx.webp';
 
 const ROOM_IMAGES_MOBILE: Record<string, string> = {
-    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/kitchen-mobile.webp',
-    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-mobile.webp',
-    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-mobile.webp',
-    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-mobile.webp',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cucinadaytre.webp',
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salottosundaytrew.webp',
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lettocadaytre.webp',
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bagnoboogiornodie.webp',
     [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousemobiledefnewmao776gbs11.webp',
 };
 
 const ROOM_IMAGES_DESKTOP: Record<string, string> = {
-    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/kitchen-desktop.webp', 
-    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/living-desktop.webp', 
-    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bedroom-desktop.webp',
-    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bathroom-desktop.webp',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cucinadaytre.webp', 
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salottosundaytrew.webp', 
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lettocadaytre.webp',
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bagnoboogiornodie.webp',
     [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boohousnewdesktopmversi87y33.webp',
+};
+
+const ROOM_NIGHT_IMAGES_MOBILE: Record<string, string> = {
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bagnoboonottenighte.webp',
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salottonightrewq.webp',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cucinanightrew.webp',
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lettocanightre.webp',
+};
+
+const ROOM_NIGHT_IMAGES_DESKTOP: Record<string, string> = {
+    [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bagnoboonottenighte.webp',
+    [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/salottonightrewq.webp',
+    [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cucinanightrew.webp',
+    [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lettocanightre.webp',
 };
 
 const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string }; right?: { view: AppView; label: string } }> = {
@@ -42,7 +57,7 @@ const ROOM_NAVIGATION: Record<string, { left?: { view: AppView; label: string };
     [AppView.BOO_BEDROOM]: { left: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" }, right: { view: AppView.BOO_KITCHEN, label: "CUCINA" } },
     [AppView.BOO_LIVING_ROOM]: { left: { view: AppView.BOO_KITCHEN, label: "CUCINA" }, right: { view: AppView.BOO_BATHROOM, label: "BAGNO" } },
     [AppView.BOO_BATHROOM]: { left: { view: AppView.BOO_GARDEN, label: "GIARDINO" }, right: { view: AppView.BOO_LIVING_ROOM, label: "SALOTTO" } },
-    [AppView.BOO_GARDEN]: {} // Rimosso il navigatore destro perché usiamo l'area cliccabile nel componente specifico
+    [AppView.BOO_GARDEN]: {} 
 };
 
 interface RoomLayoutProps {
@@ -55,12 +70,28 @@ interface RoomLayoutProps {
 }
 
 const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hintMessage, disableHint = false, hintVariant = 'GHOST' }) => {
+    const [now, setNow] = useState(new Date());
     const [showHint, setShowHint] = useState(false);
+    
+    const isNight = useMemo(() => isNightTime(now), [now]);
+
     const room = HOUSE_ROOMS.find(r => r.id === roomType);
     const navigation = ROOM_NAVIGATION[roomType];
 
+    const currentBgMobile = useMemo(() => {
+        if (isNight && ROOM_NIGHT_IMAGES_MOBILE[roomType]) return ROOM_NIGHT_IMAGES_MOBILE[roomType];
+        return ROOM_IMAGES_MOBILE[roomType];
+    }, [roomType, isNight]);
+
+    const currentBgDesktop = useMemo(() => {
+        if (isNight && ROOM_NIGHT_IMAGES_DESKTOP[roomType]) return ROOM_NIGHT_IMAGES_DESKTOP[roomType];
+        return ROOM_IMAGES_DESKTOP[roomType];
+    }, [roomType, isNight]);
+
     useEffect(() => {
         window.scrollTo(0, 0);
+        const timer = setInterval(() => setNow(new Date()), 60000);
+
         if (navigation) {
             preloadImages([
                 navigation.left ? ROOM_IMAGES_MOBILE[navigation.left.view] : undefined,
@@ -69,15 +100,16 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
         }
         
         if (!disableHint) {
-            const timer = setTimeout(() => setShowHint(true), 1500);
-            return () => clearTimeout(timer);
+            const hintTimer = setTimeout(() => setShowHint(true), 1500);
+            return () => {
+                clearInterval(timer);
+                clearTimeout(hintTimer);
+            };
         }
-    }, [roomType, disableHint]);
+        return () => clearInterval(timer);
+    }, [roomType, disableHint, navigation]);
 
     if (!room) return null;
-
-    const bgMobile = ROOM_IMAGES_MOBILE[roomType];
-    const bgDesktop = ROOM_IMAGES_DESKTOP[roomType];
 
     const getNavImg = (side: 'left' | 'right') => {
         if (side === 'left') {
@@ -106,8 +138,8 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
 
             {/* BACKGROUNDS */}
             <div className="absolute inset-0 z-0">
-                <img src={bgMobile} alt="" className="block md:hidden w-full h-full object-fill select-none" style={{ objectPosition: roomType === AppView.BOO_BATHROOM ? '70% center' : 'center' }} />
-                <img src={bgDesktop} alt="" className="hidden md:block w-full h-full object-fill object-center select-none" />
+                <img src={currentBgMobile} alt="" className="block md:hidden w-full h-full object-fill select-none" style={{ objectPosition: roomType === AppView.BOO_BATHROOM ? '70% center' : 'center' }} />
+                <img src={currentBgDesktop} alt="" className="hidden md:block w-full h-full object-fill object-center select-none" />
             </div>
 
             {/* INTERACTIVE CONTENT (STANZA SPECIFICA) */}

@@ -233,7 +233,7 @@ const MirrorGame: React.FC<MirrorGameProps> = ({ onBack }) => {
     const getClipPath = () => `polygon(${polygon.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
 
     return (
-        <div className="fixed inset-0 z-[160] bg-slate-950 flex flex-col overflow-hidden animate-in fade-in duration-700">
+        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[160] bg-slate-950 flex flex-col overflow-hidden animate-in fade-in duration-700">
             {/* SFONDO BAGNO */}
             <img src={MIRROR_BG} className="absolute inset-0 w-full h-full object-fill z-0 pointer-events-none" alt="" />
             
@@ -275,14 +275,14 @@ const MirrorGame: React.FC<MirrorGameProps> = ({ onBack }) => {
 
             {/* UI SUPERIORE - ALZATA AL MASSIMO (pt-1) */}
             <div className="relative z-50 flex justify-between items-start p-2 pt-1 md:pt-2 pointer-events-none">
-                <button onClick={onBack} className="pointer-events-auto hover:scale-110 active:scale-95 transition-transform outline-none">
+                <button onClick={onBack} className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none">
                     <img src={BTN_CLOSE_IMG} className="w-14 h-14 md:w-20 drop-shadow-xl" alt="Esci" />
                 </button>
 
                 <div className="flex flex-col items-center gap-2">
                     <div onClick={handleTitleClick} className="pointer-events-auto bg-white/90 backdrop-blur-md px-6 py-2 rounded-2xl border-4 border-blue-500 shadow-xl flex items-center gap-3 cursor-pointer">
-                        <span className="font-luckiest text-blue-600 text-lg md:text-2xl uppercase">
-                            {isCalibrating ? 'CALIBRAZIONE' : phase === 'SELECT' ? 'Chi è il birichino o la birichina?' : isCleaned ? 'Splendente! ✨' : 'Pulisci bene! 🧼'}
+                        <span className="font-luckiest text-blue-600 text-lg md:text-2xl uppercase text-center">
+                            {isCalibrating ? 'CALIBRAZIONE' : phase === 'SELECT' ? 'Oh no lo specchio è completamente sporco, ma chi sarà stato a fare uno scherzo del genere?' : isCleaned ? 'Splendente! ✨' : 'Pulisci bene! 🧼'}
                         </span>
                     </div>
                 </div>
@@ -294,7 +294,7 @@ const MirrorGame: React.FC<MirrorGameProps> = ({ onBack }) => {
             {phase === 'SELECT' && (
                 <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-white p-6 md:p-8 rounded-[3rem] border-8 border-blue-400 shadow-2xl max-w-2xl w-full animate-in zoom-in flex flex-col items-center">
-                        <h2 className="text-2xl md:text-5xl font-luckiest text-blue-600 mb-2 uppercase text-center leading-none">Chi è il sospettato? 🔍</h2>
+                        <h2 className="text-2xl md:text-5xl font-luckiest text-blue-600 mb-2 uppercase text-center leading-none">Oh no lo specchio è completamente sporco, ma chi sarà stato a fare uno scherzo del genere?</h2>
                         <p className="text-gray-600 font-bold mb-8 text-center text-base md:text-xl">Tocca un personaggio e pulisci quasi tutto lo specchio!</p>
                         
                         <div className="grid grid-cols-3 gap-x-4 gap-y-6 md:gap-x-10 md:gap-y-12 w-full max-h-[60vh] overflow-y-auto no-scrollbar">
