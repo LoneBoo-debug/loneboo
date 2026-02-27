@@ -1,12 +1,13 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import Header from './components/Header';
-import HomePage from './components/HomePage'; 
 import { AppView } from './types';
 import { OFFICIAL_LOGO } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
 import { addTokens } from './services/tokens';
 import { preloadImages, preloadComponent } from './services/imagePreloader';
+
+const Header = lazy(() => import('./components/Header'));
+const HomePage = lazy(() => import('./components/HomePage'));
 
 // Importazioni Lazy
 const TTSStudio = lazy(() => import('./components/TTSStudio'));
