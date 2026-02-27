@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     publicDir: 'public',
     plugins: [react()],
     resolve: {
-      dedupe: ['react', 'react-dom'] // <- fix principale per createContext undefined
+      dedupe: ['react', 'react-dom', 'motion']
     },
     define: {
       global: 'globalThis',
@@ -29,14 +29,18 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
+              if (id.includes('motion')) return 'vendor-motion';
               if (id.includes('@google/genai')) return 'vendor-ai';
               if (id.includes('lucide-react')) return 'vendor-icons';
-              return 'vendor-libs'; // React incluso qui
+              return 'vendor-libs';
             }
           }
         }
       }
     },
-    server: { host: true }
+    server: {
+      host: true
+    }
   }
 })
