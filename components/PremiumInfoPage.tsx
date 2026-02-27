@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { AppView } from '../types';
-import { BookOpen, GraduationCap, CheckCircle2, PlayCircle, Info, CreditCard, ShieldCheck, Heart } from 'lucide-react';
+import { BookOpen, GraduationCap, CheckCircle2, PlayCircle, ShieldCheck, Heart } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgroundloneboopremiumlogoassex22.webp';
@@ -102,24 +102,17 @@ const PremiumInfoPage: React.FC<PremiumInfoPageProps> = ({ setView, returnView }
                         </div>
                     </section>
 
-                    {/* BOX COSTO E GESTIONE (BENTO STYLE) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                        
-                        {/* Costo */}
-                        <div className="bg-yellow-400 rounded-[2.5rem] border-4 border-black p-8 shadow-xl flex flex-col items-center text-center">
-                            <CreditCard size={40} className="mb-4 text-black" />
-                            <h3 className="text-2xl font-black text-black uppercase mb-4">Costo Accessibile</h3>
-                            <div className="space-y-2 mb-6">
-                                <p className="text-3xl font-black text-blue-900">2,99 € <span className="text-sm uppercase opacity-60">/ mese</span></p>
-                                <div className="h-px bg-black/10 w-24 mx-auto"></div>
-                                <p className="text-3xl font-black text-blue-900">29,99 € <span className="text-sm uppercase opacity-60">/ anno</span></p>
-                            </div>
-                            <p className="text-xs font-bold text-black/70 leading-tight">
-                                👉 L’abbonamento può essere disdetto in qualsiasi momento, senza obbligo di rinnovo e senza penali.
-                            </p>
-                        </div>
+                    {/* Immagine Costo - Senza box, ingrandita leggermente */}
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <img 
+                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/costoaccessibile.webp" 
+                            alt="Costo Accessibile" 
+                            className="w-full max-w-xl h-auto drop-shadow-2xl transform scale-110"
+                        />
+                    </div>
 
-                        {/* Attivazione */}
+                    {/* BOX ATTIVAZIONE */}
+                    <div className="max-w-2xl mx-auto mt-12">
                         <div className="bg-blue-600 rounded-[2.5rem] border-4 border-black p-8 shadow-xl text-white">
                             <div className="flex items-center gap-3 mb-6">
                                 <ShieldCheck size={32} />
@@ -143,7 +136,6 @@ const PremiumInfoPage: React.FC<PremiumInfoPageProps> = ({ setView, returnView }
                                 <p className="text-[10px] uppercase font-black tracking-widest text-blue-200">Gestito tramite Google Play Store</p>
                             </div>
                         </div>
-
                     </div>
 
                     {/* Chiusura */}

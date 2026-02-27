@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, X, ExternalLink, Plus, Accessibility, Wand2, Shield, Lock, LifeBuoy, ChevronDown, TrainFront, Volume2, VolumeX } from 'lucide-react';
 import { AppView, AppNotification } from '../types';
-import { CHANNEL_LOGO, OFFICIAL_LOGO } from '../constants';
+import { CHANNEL_LOGO, OFFICIAL_LOGO, TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { fetchAppNotifications, markNotificationsAsRead, checkHasNewNotifications } from '../services/notificationService';
 import AccessibilityMenu from './AccessibilityMenu';
 import ParentalGate from './ParentalGate';
@@ -35,8 +36,8 @@ const ICON_MAGIC = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-magi
 const ICON_PARENTS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 
 // Asset Audio
-const BTN_AUDIO_ON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicatiicaggdg3edcde+(1).webp';
-const BTN_AUDIO_OFF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/musicadisattivusns6hsg2+(1).webp';
+const BTN_AUDIO_ON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audioonbootalksdsa.webp';
+const BTN_AUDIO_OFF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiofoobootalksde32.webp';
 
 // Nuovi pulsanti per le città esterne
 const BTN_RETURN_TO_COLOR_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trnsymgnfhd74h43wjs.webp';
@@ -278,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                                         </div>
                                                         <div className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
                                                             <span className="font-black text-xs">{dest.cost}</span>
-                                                            <span className="text-xs">🪙</span>
+                                                            <TokenIcon className="w-3 h-3" />
                                                         </div>
                                                     </button>
                                                 ))}

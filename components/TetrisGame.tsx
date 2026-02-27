@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { getProgress, addTokens } from '../services/tokens';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const TETRIS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frigsapert.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nav-to-kitchen-sx.webp';
@@ -381,7 +383,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ onBack }) => {
 
                 <div className="pointer-events-auto">
                     <div className="bg-white/90 backdrop-blur-md px-3 md:px-4 h-10 md:h-14 rounded-xl border-2 md:border-4 border-blue-600 font-black flex items-center gap-2 text-black shadow-xl">
-                        <span className="text-sm md:text-lg">{userTokens}</span> <span className="text-lg md:text-xl">🪙</span>
+                        <span className="text-sm md:text-lg">{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                 </div>
             </div>

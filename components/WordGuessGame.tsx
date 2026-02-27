@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Trophy, ArrowLeft, ArrowBigDown } from 'lucide-react';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import SaveReminder from './SaveReminder';
 import { getProgress } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
@@ -141,7 +143,7 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
             </div>
             <div className="pointer-events-auto">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>
         </div>
@@ -282,13 +284,13 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
                     <div className="flex flex-col gap-0.5 text-[10px] md:text-xs font-bold text-gray-800 pl-4 min-w-max leading-tight">
                         <p className="uppercase text-purple-800 font-black mb-1">Premi:</p>
                         <div className={`flex items-center gap-1 ${wordsWonCount >= 3 ? 'opacity-40' : ''}`}>
-                            <span>3 Parole =</span> <span className="text-green-800 font-black">+5 🪙</span>
+                            <span>3 Parole =</span> <span className="text-green-800 font-black flex items-center gap-0.5">+5 <TokenIcon className="w-3 h-3" /></span>
                         </div>
                         <div className={`flex items-center gap-1 ${wordsWonCount >= 6 ? 'opacity-40' : ''}`}>
-                            <span>6 Parole =</span> <span className="text-green-800 font-black">+10 🪙</span>
+                            <span>6 Parole =</span> <span className="text-green-800 font-black flex items-center gap-0.5">+10 <TokenIcon className="w-3 h-3" /></span>
                         </div>
                         <div className={`flex items-center gap-1 ${wordsWonCount >= 10 ? 'opacity-40' : ''}`}>
-                            <span>10 Parole =</span> <span className="text-green-800 font-black">+15 🪙</span>
+                            <span>10 Parole =</span> <span className="text-green-800 font-black flex items-center gap-0.5">+15 <TokenIcon className="w-3 h-3" /></span>
                         </div>
                     </div>
 

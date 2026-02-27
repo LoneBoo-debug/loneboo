@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Star, RotateCcw, Heart, CircleCheck, CircleX } from 'lucide-react';
-import { getProgress } from '../services/tokens';
+import { Star, RotateCcw, Heart, Sparkles, ArrowLeft } from 'lucide-react';
+import { getProgress, addTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const MATH_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/operamateredef55day.webp';
 const MATH_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/opraatenight.webp';
@@ -31,7 +33,8 @@ interface MathGameProps {
     onEarnTokens?: (amount: number) => void;
 }
 
-const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
+// Added export to MathGame to resolve the import error in PlayZone.tsx
+export const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
   const [now, setNow] = useState(new Date());
   const [selectedOp, setSelectedOp] = useState<OperationType | null>(null);
   const [question, setQuestion] = useState({ text: '', answer: 0 });
@@ -40,43 +43,37 @@ const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
   const [lives, setLives] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [rewardGiven, setRewardGiven] = useState(false);
+  const [sessionTokens, setSessionTokens] = useState(0); 
+  const [milestonesReached, setMilestonesReached] = useState<number[]>([]);
   const [currentTokens, setCurrentTokens] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
+  const [showRewardAnim, setShowRewardAnim] = useState<number | null>(null);
 
   const audioCorrect = useRef<HTMLAudioElement | null>(null);
   const audioWrong = useRef<HTMLAudioElement | null>(null);
 
-  // Background dinamico basato sull'orario richiesto (20:15 - 06:45)
   const currentBg = useMemo(() => isNightTime(now) ? MATH_BG_NIGHT : MATH_BG_DAY, [now]);
+
+  const refreshTokens = useCallback(() => {
+      const p = getProgress();
+      setCurrentTokens(p ? p.tokens : 0);
+  }, []);
 
   useEffect(() => {
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
-      
-      try {
-          const p = getProgress();
-          setCurrentTokens(p ? p.tokens : 0);
-      } catch (e) { console.error(e); }
+      refreshTokens();
+      window.addEventListener('progressUpdated', refreshTokens);
 
-      // Inizializza audio
       audioCorrect.current = new Audio(SFX_CORRECT);
       audioWrong.current = new Audio(SFX_WRONG);
 
       return () => {
           clearInterval(timeTimer);
+          window.removeEventListener('progressUpdated', refreshTokens);
           audioCorrect.current?.pause();
           audioWrong.current?.pause();
       };
-  }, []);
-
-  useEffect(() => {
-      if (rewardGiven) {
-          try {
-              const p = getProgress();
-              setCurrentTokens(p ? p.tokens : 0);
-          } catch (e) { console.error(e); }
-      }
-  }, [rewardGiven]);
+  }, [refreshTokens]);
 
   const generateQuestion = useCallback((clearFeedback = true) => {
     if (!selectedOp) return;
@@ -127,30 +124,41 @@ const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
     }
   }, [selectedOp, gameOver, generateQuestion]);
 
-  const endGame = useCallback(() => {
-      setFeedback(null);
-      setGameOver(true);
-      let earned = 0;
-      if (score >= 100) earned = 15; else if (score >= 50) earned = 10; else if (score >= 30) earned = 5;
-      if (earned > 0 && onEarnTokens && !rewardGiven) {
-          onEarnTokens(earned);
-          setCurrentTokens(prev => prev + earned);
-          setRewardGiven(true);
-      }
-  }, [score, onEarnTokens, rewardGiven]);
-
   const handleAnswer = (val: number) => {
     if (gameOver || isLocked) return;
-    
     setIsLocked(true);
 
     if (val === question.answer) {
-      setScore(s => s + 1);
+      const newScore = score + 1;
+      setScore(newScore);
       setFeedback('correct');
       if (audioCorrect.current) {
           audioCorrect.current.currentTime = 0;
           audioCorrect.current.play().catch(() => {});
       }
+
+      // --- LOGICA PREMI REAL-TIME ---
+      let rewardToGrant = 0;
+      if (newScore === 10 && !milestonesReached.includes(10)) {
+          rewardToGrant = 5;
+          setMilestonesReached(prev => [...prev, 10]);
+      } else if (newScore === 30 && !milestonesReached.includes(30)) {
+          rewardToGrant = 15; // +15 per arrivare a 20 totali (5+15)
+          setMilestonesReached(prev => [...prev, 30]);
+      } else if (newScore === 40 && !milestonesReached.includes(40)) {
+          rewardToGrant = 30; // +30 per arrivare a 50 totali (20+30)
+          setMilestonesReached(prev => [...prev, 40]);
+      } else if (newScore > 40 && (newScore - 40) % 2 === 0) {
+          rewardToGrant = 1;
+      }
+
+      if (rewardToGrant > 0) {
+          addTokens(rewardToGrant);
+          setSessionTokens(prev => prev + rewardToGrant);
+          setShowRewardAnim(rewardToGrant);
+          setTimeout(() => setShowRewardAnim(null), 1500);
+      }
+
       setTimeout(() => { 
         setFeedback(null);
         generateQuestion(false); 
@@ -165,7 +173,7 @@ const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
       }
       
       if (newLives === 0) {
-        setTimeout(() => endGame(), 2000);
+        setTimeout(() => setGameOver(true), 2000);
       } else {
         setTimeout(() => { 
           setFeedback(null);
@@ -176,136 +184,124 @@ const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
   };
 
   const handleSelectOp = (op: OperationType) => {
-      setScore(0); setLives(3); setGameOver(false); setRewardGiven(false); setSelectedOp(op);
+      setScore(0); setLives(3); setGameOver(false); setSessionTokens(0); setMilestonesReached([]); setSelectedOp(op);
   };
 
   const restartGame = () => { if (selectedOp) handleSelectOp(selectedOp); };
 
-  const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
-
-  const opColorClass = selectedOp === 'ADD' ? 'text-red-600' :
-                       selectedOp === 'SUB' ? 'text-blue-600' :
-                       selectedOp === 'MUL' ? 'text-yellow-400' :
-                       'text-green-600';
-
   const textStrokeStyle = { WebkitTextStroke: '1.2px black' };
 
   return (
-    <div className={wrapperStyle}>
-        <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" draggable={false} />
-
-        {/* HUD FISSA: TASTO ESCI E SALDO GETTONI */}
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-            <div className="pointer-events-auto">
-                <button onClick={selectedOp && !gameOver ? () => setSelectedOp(null) : onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                    <img 
-                        src={selectedOp && !gameOver ? BTN_BACK_MENU_IMG : EXIT_BTN_IMG} 
-                        alt="Indietro" 
-                        className={selectedOp && !gameOver ? "h-14 md:h-20 w-auto" : "h-12 md:h-16 w-auto"} 
-                    />
+    <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none">
+        <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" />
+        
+        {/* HUD SUPERIORE */}
+        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-start justify-between z-50 pointer-events-none">
+            <div className="flex flex-col items-start gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
                 </button>
+                {selectedOp && (
+                    <button onClick={() => setSelectedOp(null)} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                        <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 md:h-16 w-auto drop-shadow-md" />
+                    </button>
+                )}
             </div>
 
             <div className="pointer-events-auto">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>
         </div>
 
-        <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-52 md:pt-64">
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
             {!selectedOp ? (
-                <div className="flex flex-col items-center w-full animate-fade-in px-4">
-                    <div className="mb-8 md:mb-12 animate-in slide-in-from-bottom-4">
-                        <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-xl md:text-3xl" style={{ WebkitTextStroke: '1.5px black' }}>
-                            Scegli un'operazione e sfida i numeri!
-                        </p>
+                <div className="flex flex-col items-center w-full animate-fade-in">
+                    <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-[40px] border-4 border-white/40 shadow-2xl mb-10 animate-in slide-in-from-top-4 duration-500 max-w-xl">
+                        <h2 className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-2xl md:text-4xl" style={textStrokeStyle}>
+                            Allenati con la <span className="text-yellow-300">MATEMATICA MAGICA</span>!
+                        </h2>
                     </div>
 
-                    <div className="flex flex-col gap-4 items-center w-full max-w-[200px] md:max-w-[280px]">
-                        <div className="grid grid-cols-2 gap-4 md:gap-6 w-full">
-                            <button onClick={() => handleSelectOp('ADD')} className="hover:scale-105 active:scale-95 transition-transform drop-shadow-2xl outline-none">
-                                <img src={BTN_ADD_IMG} alt="Addizione" className="w-full h-auto" />
-                            </button>
-                            <button onClick={() => handleSelectOp('SUB')} className="hover:scale-105 active:scale-95 transition-transform drop-shadow-2xl outline-none">
-                                <img src={BTN_SUB_IMG} alt="Sottrazione" className="w-full h-auto" />
-                            </button>
-                            <button onClick={() => handleSelectOp('MUL')} className="hover:scale-105 active:scale-95 transition-transform drop-shadow-2xl outline-none">
-                                <img src={BTN_MUL_IMG} alt="Moltiplicazione" className="w-full h-auto" />
-                            </button>
-                            <button onClick={() => handleSelectOp('DIV')} className="hover:scale-105 active:scale-95 transition-transform drop-shadow-2xl outline-none">
-                                <img src={BTN_DIV_IMG} alt="Divisione" className="w-full h-auto" />
-                            </button>
-                        </div>
+                    <div className="grid grid-cols-2 gap-4 md:gap-6 max-w-[200px] md:max-w-sm w-full">
+                        <button onClick={() => handleSelectOp('ADD')} className="hover:scale-105 active:scale-95 transition-transform"><img src={BTN_ADD_IMG} alt="Addizione" className="w-full h-auto drop-shadow-lg" /></button>
+                        <button onClick={() => handleSelectOp('SUB')} className="hover:scale-105 active:scale-95 transition-transform"><img src={BTN_SUB_IMG} alt="Sottrazione" className="w-full h-auto drop-shadow-lg" /></button>
+                        <button onClick={() => handleSelectOp('MUL')} className="hover:scale-105 active:scale-95 transition-transform"><img src={BTN_MUL_IMG} alt="Moltiplicazione" className="w-full h-auto drop-shadow-lg" /></button>
+                        <button onClick={() => handleSelectOp('DIV')} className="hover:scale-105 active:scale-95 transition-transform"><img src={BTN_DIV_IMG} alt="Divisione" className="w-full h-auto drop-shadow-lg" /></button>
                     </div>
                 </div>
             ) : !gameOver ? (
-                <div className="w-full h-full flex flex-col items-center pt-0 px-4">
-                    {/* Box Domanda - Rimosso overflow-hidden per far uscire le icone */}
-                    <div className="bg-white/40 backdrop-blur-md w-full max-w-xl rounded-[40px] border-4 border-white/50 shadow-2xl p-4 md:p-6 text-center relative font-luckiest flex flex-col items-center min-h-[180px] md:min-h-[220px] justify-center">
-                        <h3 className={`text-lg md:text-2xl font-black ${opColorClass} mb-1 uppercase tracking-wide`} style={textStrokeStyle}>Qual è il risultato?</h3>
-                        <div className="mb-4 mt-1">
-                            <div className={`text-5xl md:text-7xl font-black ${opColorClass} tracking-wider whitespace-nowrap drop-shadow-sm`} style={textStrokeStyle}>{question.text}</div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 md:gap-4 w-full">
-                            {options.map((opt, idx) => (
-                                <button key={idx} onClick={() => handleAnswer(opt)} disabled={isLocked} className={`bg-white/80 hover:bg-white border-b-4 border-black/10 active:border-b-0 active:translate-y-1 text-3xl md:text-4xl font-black ${opColorClass} py-3 md:py-4 rounded-2xl transition-all shadow-md ${isLocked ? 'opacity-50 grayscale' : ''}`} style={textStrokeStyle}>{opt}</button>
+                <div className="w-full max-w-3xl flex flex-col items-center animate-in zoom-in duration-300">
+                    {/* STATS HUD */}
+                    <div className="flex justify-around w-full mt-4 mb-6 px-4 items-center bg-black/30 backdrop-blur-md rounded-2xl border-2 border-white/20 p-3 shadow-lg">
+                        <div className="flex gap-1.5">
+                            {[...Array(3)].map((_, i) => (
+                                <Heart key={i} size={22} className={`${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-500 opacity-50'} transition-all`} />
                             ))}
                         </div>
-                        
-                        {/* Overlay Feedback - Modificato per uscire dal box */}
-                        {feedback === 'correct' && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center z-50 pointer-events-none">
-                                <div className="animate-in zoom-in duration-300 scale-125 md:scale-150">
-                                    <img src={IMG_CORRECT} alt="Corretto" className="w-32 h-32 md:w-44 md:h-44 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]" />
-                                    <div className="bg-green-500 text-white px-4 py-1 rounded-full font-black text-xl md:text-2xl uppercase tracking-tighter border-2 border-white shadow-xl -mt-4 transform -rotate-3 text-center">ESATTO!</div>
-                                </div>
-                            </div>
-                        )}
-                        {feedback === 'wrong' && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center z-50 pointer-events-none">
-                                <div className="animate-in zoom-in duration-300 scale-125 md:scale-150">
-                                    <img src={IMG_WRONG} alt="Sbagliato" className="w-32 h-32 md:w-44 md:h-44 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]" />
-                                    <div className="bg-red-500 text-white px-4 py-1 rounded-full font-black text-xl md:text-2xl uppercase tracking-tighter border-2 border-white shadow-xl -mt-4 transform rotate-3 text-center">OPS!</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="mt-4 w-full max-w-xl">
-                        <div className="bg-white/40 backdrop-blur-md p-3 rounded-[30px] border-4 border-white/50 shadow-xl flex items-center justify-between">
-                            <div className="flex flex-col gap-0.5 text-[10px] md:text-sm font-black text-blue-900 pl-4 min-w-max">
-                                <div className={`flex items-center gap-1 ${score >= 30 ? 'opacity-40' : ''}`}><span>30 Pti =</span> <span className="text-green-700">+5 🪙</span></div>
-                                <div className={`flex items-center gap-1 ${score >= 50 ? 'opacity-40' : ''}`}><span>50 Pti =</span> <span className="text-green-700">+10 🪙</span></div>
-                                <div className={`flex items-center gap-1 ${score >= 100 ? 'opacity-40' : ''}`}><span>100 Pti =</span> <span className="text-green-700">+15 🪙</span></div>
-                            </div>
-                            <div className="w-0.5 h-10 md:h-12 bg-gray-400/30 rounded-full mx-2"></div>
-                            <div className="flex flex-col items-center justify-center">
-                                <span className="text-[10px] md:text-xs font-bold text-gray-700 uppercase mb-1">VITE</span>
-                                <div className="flex gap-1">
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="transition-colors">
-                                            <Star key={i} size={24} className={`${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-300 fill-gray-200'}`} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="w-0.5 h-10 md:h-12 bg-gray-400/30 rounded-full mx-2"></div>
-                            <div className="flex flex-col items-center pr-4">
-                                <span className="text-[10px] md:text-xs font-bold text-gray-700 uppercase">PUNTEGGIO</span>
-                                <span className="text-3xl md:text-4xl font-black text-purple-600 leading-none">{score}</span>
-                            </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-white font-black text-[10px] uppercase opacity-70">Punti</span>
+                            <span className="text-2xl font-black text-yellow-400 drop-shadow-sm leading-none">{score}</span>
                         </div>
+                    </div>
+
+                    {/* QUESTION AREA */}
+                    <div className="bg-white/90 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] border-8 border-blue-500 shadow-2xl text-center w-full relative mb-6">
+                        {feedback === 'correct' && <img src={IMG_CORRECT} className="absolute -top-8 -right-8 w-20 md:w-28 animate-in zoom-in" alt="Giusto!" />}
+                        {feedback === 'wrong' && <img src={IMG_WRONG} className="absolute -top-8 -right-8 w-20 md:w-28 animate-in zoom-in" alt="Sbagliato!" />}
+                        
+                        {showRewardAnim && (
+                            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                                <div className="bg-yellow-400 text-black px-6 py-2 rounded-2xl font-black text-2xl border-4 border-black animate-bounce shadow-xl flex items-center gap-2">
+                                    +{showRewardAnim} <TokenIcon className="w-8 h-8" />
+                                </div>
+                            </div>
+                        )}
+
+                        <h3 className="text-5xl md:text-8xl font-luckiest text-blue-900 uppercase tracking-tighter" style={textStrokeStyle}>
+                            {question.text}
+                        </h3>
+                    </div>
+
+                    {/* OPTIONS */}
+                    <div className="grid grid-cols-3 gap-4 md:gap-6 w-full">
+                        {options.map((opt, idx) => (
+                            <button 
+                                key={idx} 
+                                onClick={() => handleAnswer(opt)}
+                                disabled={isLocked}
+                                className={`
+                                    bg-white hover:bg-blue-50 py-4 md:py-5 rounded-[1.5rem] border-b-8 border-blue-200 
+                                    active:border-b-0 active:translate-y-2 transition-all shadow-xl
+                                    font-luckiest text-3xl md:text-6xl text-blue-600
+                                    ${isLocked && opt === question.answer && feedback === 'correct' ? 'bg-green-100 border-green-500 text-green-600 scale-105' : ''}
+                                    ${isLocked && opt !== question.answer && feedback === 'wrong' ? 'bg-red-100 border-red-500 text-red-600 opacity-50' : ''}
+                                `}
+                                style={textStrokeStyle}
+                            >
+                                {opt}
+                            </button>
+                        ))}
                     </div>
                 </div>
             ) : (
-                <div className="bg-white p-8 rounded-[40px] border-8 border-yellow-400 shadow-2xl text-center max-sm w-[90%] animate-in zoom-in flex flex-col items-center z-[100]">
-                    <h3 className="text-3xl font-black text-red-600 mb-4 uppercase">Gioco Finito!</h3>
-                    <p className="text-gray-700 font-bold mb-6 text-lg">Hai totalizzato {score} punti.</p>
-                    {score >= 30 && <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse">+ {score >= 100 ? 15 : score >= 50 ? 10 : 5} GETTONI! 🪙</div>}
+                <div className="bg-white p-8 md:p-12 rounded-[40px] border-8 border-yellow-400 shadow-2xl text-center max-w-md w-full animate-in zoom-in">
+                    <img src={score >= 10 ? IMG_CORRECT : IMG_WRONG} alt="" className="h-40 md:h-56 mx-auto mb-6 object-contain" />
+                    <h3 className="text-4xl font-black text-blue-900 mb-2 uppercase">GARA FINITA!</h3>
+                    <p className="text-xl font-bold text-gray-600 mb-4">Punteggio: <span className="text-3xl text-blue-600 font-black">{score}</span></p>
+                    
+                    <div className="bg-yellow-50 p-4 rounded-2xl border-2 border-yellow-200 mb-8">
+                        <p className="text-yellow-800 font-black uppercase text-sm mb-1">Gettoni vinti in questa sessione</p>
+                        <div className="flex items-center justify-center gap-2">
+                            <span className="text-4xl font-black text-black">{sessionTokens}</span>
+                            <TokenIcon className="w-8 h-8" />
+                        </div>
+                    </div>
+
                     <div className="flex gap-4 w-full">
-                        <button onClick={restartGame} className="flex-1 hover:scale-105 active:scale-95 transition-transform"><img src={BTN_RETRY_IMG} alt="Riprova" className="w-full h-auto" /></button>
-                        <button onClick={() => setSelectedOp(null)} className="flex-1 hover:scale-105 active:scale-95 transition-transform"><img src={BTN_EXIT_GAME_IMG} alt="Menu" className="w-full h-auto" /></button>
+                        <button onClick={restartGame} className="flex-1 hover:scale-105 active:scale-95 transition-transform"><img src={BTN_RETRY_IMG} alt="Riprova" className="w-full h-auto drop-shadow-xl" /></button>
+                        <button onClick={() => setSelectedOp(null)} className="flex-1 hover:scale-105 active:scale-95 transition-transform"><img src={BTN_EXIT_GAME_IMG} alt="Esci" className="w-full h-auto drop-shadow-xl" /></button>
                     </div>
                 </div>
             )}

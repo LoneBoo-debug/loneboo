@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -23,13 +22,13 @@ const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sch
 const SCHOOL_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolarcobalenovoiceboo6tr4.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
-// Parametri sveglia consolidati
+// Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 40,
+    right: 1,
+    iconSize: 90,
+    timeSize: 24,
+    dateSize: 14,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -200,7 +199,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* SVEGLIA - LA TUA GIORNATA (STESSA DEL GIARDINO) */}
+            {/* SVEGLIA - LA TUA GIORNATA (SOLO TESTO) */}
             {isLoaded && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
@@ -214,13 +213,6 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                         className="relative flex items-center justify-center"
                         style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
                     >
-                        <img 
-                            src={CLOCK_SCREEN_IMG} 
-                            alt="Sveglia" 
-                            className="w-full h-full object-contain drop-shadow-2xl" 
-                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
-                        />
-                        
                         <div 
                             className="absolute inset-0 flex flex-col items-center justify-center"
                             style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
@@ -229,7 +221,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                                 <span 
                                     className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
                                     style={{ 
-                                        WebkitTextStroke: '0.5px #431407',
+                                        WebkitTextStroke: '0.8px #431407',
                                         fontSize: `${CLOCK_STYLE.timeSize}px`
                                     }}
                                 >
@@ -238,7 +230,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({ setView }) => {
                                 <span 
                                     className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
                                     style={{ 
-                                        WebkitTextStroke: '0.3px #431407',
+                                        WebkitTextStroke: '0.5px #431407',
                                         fontSize: `${CLOCK_STYLE.dateSize}px`
                                     }}
                                 >

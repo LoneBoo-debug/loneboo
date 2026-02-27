@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Timer, Trophy, Heart, XCircle, AlertTriangle } from 'lucide-react';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import { INTRUSO_DATABASE, IntrusoItem } from '../services/dbIntruso';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
@@ -62,7 +64,7 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       // Inizializza Audio
@@ -244,7 +246,7 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
         {/* SALDO GETTONI E TASTO AUDIO (ALTO A DESTRA) */}
         <div className="absolute top-[80px] md:top-[120px] right-4 z-50 pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
-                <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             
             {/* Tasto Audio sotto i gettoni - Ingrandito leggermente */}
@@ -337,8 +339,8 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
                    </p>
 
                    {gameState === 'VICTORY' ? (
-                       <div className="bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black text-lg border-4 border-black mb-4 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">
-                           +5 GETTONI! 🪙
+                       <div className="bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black text-lg border-4 border-black mb-4 animate-pulse inline-flex items-center gap-2 whitespace-nowrap shadow-lg transform rotate-[-2deg]">
+                           +5 GETTONI! <TokenIcon className="w-5 h-5" />
                        </div>
                    ) : (
                        <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-lg font-bold text-xs mb-4 border-2 border-gray-200">

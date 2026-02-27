@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage'; 
@@ -19,6 +18,9 @@ const BookShelf = lazy(() => import('./components/BookShelf'));
 const BooksListView = lazy(() => import('./components/BooksListView'));
 const SocialHub = lazy(() => import('./components/SocialHub'));
 const MagicEye = lazy(() => import('./components/MagicEye'));
+const MagicTowerSub = lazy(() => import('./components/MagicTowerSub'));
+const SubEnigmasPage = lazy(() => import('./components/SubEnigmasPage'));
+const ExploreSubPage = lazy(() => import('./components/ExploreSubPage'));
 const PlayZone = lazy(() => import('./components/PlayZone'));
 const FanArtGallery = lazy(() => import('./components/FanArtGallery'));
 const DisclaimerPage = lazy(() => import('./components/DisclaimerPage'));
@@ -68,6 +70,11 @@ const VocalFxPage = lazy(() => import('./components/VocalFxPage'));
 const EmotionalGarden = lazy(() => import('./components/EmotionalGarden'));
 const CalendarView = lazy(() => import('./components/CalendarView'));
 const AtelierView = lazy(() => import('./components/AtelierView'));
+const SubAtelierOscuro = lazy(() => import('./components/SubAtelierOscuro'));
+const SubExploreDetail = lazy(() => import('./components/SubExploreDetail'));
+const SubOscurita = lazy(() => import('./components/SubOscurita'));
+const SubOscuritaSuperficie = lazy(() => import('./components/SubOscuritaSuperficie'));
+const SubMonsterBattle = lazy(() => import('./components/SubMonsterBattle'));
 
 const RainbowCity = lazy(() => import('./components/RainbowCity'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
@@ -80,6 +87,11 @@ const BedroomRoom = lazy(() => import('./components/rooms/BedroomRoom'));
 const BathroomRoom = lazy(() => import('./components/rooms/BathroomRoom'));
 const GardenRoom = lazy(() => import('./components/rooms/GardenRoom'));
 
+const CityDetailView = lazy(() => import('./components/CityDetailView'));
+
+// Asset per i sotterranei
+const SUB_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sotterraneitorremoacighca.webp';
+
 const PageLoader = () => (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-boo-purple/90 backdrop-blur-sm">
         <img src={OFFICIAL_LOGO} alt="Loading" className="w-32 h-32 animate-spin-horizontal mb-4" />
@@ -90,6 +102,7 @@ const PageLoader = () => (
 const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
+  const [subOscuritaInitialPhase, setSubOscuritaInitialPhase] = useState<'BLACK' | 'STATIC'>('BLACK');
 
   useEffect(() => {
     // 1. Precaricamento Asset Critici (Backgrounds)
@@ -113,13 +126,6 @@ const App: React.FC = () => {
     ];
     mainComponents.forEach(preloadComponent);
 
-    // Bonus gettoni per i test
-    const bonusKey = 'loneboo_test_bonus_300_v1';
-    if (localStorage.getItem(bonusKey) !== 'true') {
-        addTokens(300);
-        localStorage.setItem(bonusKey, 'true');
-    }
-
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
     if (viewParam && Object.values(AppView).includes(viewParam as AppView)) {
@@ -127,7 +133,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleSetView = (view: AppView) => {
+  const handleSetView = (view: AppView, skipAnim?: boolean) => {
+    if (view === AppView.SUB_OSCURITA) {
+        setSubOscuritaInitialPhase(skipAnim ? 'STATIC' : 'BLACK');
+    }
     setView(view);
   };
 
@@ -195,6 +204,10 @@ const App: React.FC = () => {
                 {currentView === AppView.SCHOOL_MATH_EXERCISES && <SchoolMathExercises setView={handleSetView} />}
                 {currentView === AppView.CHAT && <ChatWithBoo setView={handleSetView} />}
                 {currentView === AppView.AI_MAGIC && <MagicEye setView={handleSetView} />}
+                {currentView === AppView.MAGIC_TOWER_SUB && <MagicTowerSub setView={handleSetView} />}
+                {currentView === AppView.MAGIC_TOWER_SUB_EXPLORE && <ExploreSubPage setView={handleSetView} />}
+                {currentView === AppView.MAGIC_TOWER_SUB_ENIGMAS && <SubEnigmasPage setView={handleSetView} />}
+                {currentView === AppView.MAGIC_TOWER_SUB_GAMES && <CityDetailView title="Giochi dei Sotterranei" setView={() => handleSetView(AppView.MAGIC_TOWER_SUB)} bgImage={SUB_BG} />}
                 {currentView === AppView.SOUNDS && <SoundZone setView={handleSetView} />}
                 {currentView === AppView.COMMUNITY && <CommunityFeed setView={handleSetView} />}
                 {currentView === AppView.FANART && <FanArtGallery setView={handleSetView} />}
@@ -225,6 +238,13 @@ const App: React.FC = () => {
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
                 {currentView === AppView.CALENDAR && <CalendarView setView={handleSetView} />}
                 {currentView === AppView.ATELIER && <AtelierView setView={handleSetView} />}
+                {currentView === AppView.SUB_ATELIER_OSCURO && <SubAtelierOscuro setView={handleSetView} />}
+                {currentView === AppView.SUB_FIUME_SOTTERRANEO && <SubExploreDetail title="Fiume Sotterraneo" setView={handleSetView} />}
+                {currentView === AppView.SUB_ARTI_MAGICHE && <SubExploreDetail title="Arti Magiche" setView={handleSetView} />}
+                {currentView === AppView.SUB_OSCURITA && <SubOscurita setView={handleSetView} initialPhase={subOscuritaInitialPhase} />}
+                {currentView === AppView.SUB_OSCURITA_POTERE && <SubExploreDetail title="Potere Magico" setView={handleSetView} backView={AppView.SUB_OSCURITA} />}
+                {currentView === AppView.SUB_OSCURITA_MOSTRO && <SubMonsterBattle setView={handleSetView} />}
+                {currentView === AppView.SUB_OSCURITA_SUPERFICIE && <SubOscuritaSuperficie setView={handleSetView} />}
             </Suspense>
         </main>
     </div>

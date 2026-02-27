@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Heart, Recycle, RotateCcw, Sparkles, Check, Volume2, VolumeX, Zap, Store } from 'lucide-react';
 import { addTokens, getProgress } from '../services/tokens';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { RECYCLE_DATABASE, RecycleItem, BinType } from '../services/dbRecycle';
 
 const BG_KITCHEN = 'https://i.postimg.cc/tTtyjxgs/cuxdfr.jpg';
@@ -237,7 +239,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="w-px h-5 bg-gray-300"></div>
                         <div className="flex items-center gap-1 bg-yellow-400 px-2 py-0.5 rounded-lg border-2 border-yellow-600 shadow-sm">
                              <span className="font-black text-[10px] md:text-sm text-yellow-900">{totalTokens}</span>
-                             <span className="text-xs md:text-sm">🪙</span>
+                             <TokenIcon className="w-3 h-3 md:w-4 md:h-4" />
                         </div>
                     </div>
                 </div>
@@ -256,7 +258,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="bg-yellow-50 border-2 border-dashed border-yellow-400 p-3 rounded-2xl mb-8 flex items-center gap-3">
                             <div className="bg-yellow-400 p-2 rounded-full text-black shrink-0 shadow-sm"><Store size={18}/></div>
                             <p className="text-[10px] md:text-xs text-yellow-800 font-bold text-left leading-tight">
-                                Guadagna gettoni d'oro per comprare i pacchetti di figurine nell'<strong>Edicola in Città</strong>! 🪙
+                                Guadagna gettoni d'oro per comprare i pacchetti di figurine nell'<strong>Edicola in Città</strong>! <TokenIcon className="w-3 h-3 inline-block" />
                             </p>
                         </div>
 
@@ -406,7 +408,7 @@ const RecyclingGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <span className="text-[100px] mb-2 drop-shadow-2xl animate-float">{reward.icon}</span>
                             <span className={`text-2xl font-black uppercase ${reward.color}`}>{reward.name}</span>
                         </div>
-                        <div className="bg-yellow-400 text-black py-2.5 px-6 rounded-2xl font-black border-4 border-black mb-6 inline-block animate-pulse text-xl shadow-md">+3 🪙</div>
+                        <div className="bg-yellow-400 text-black py-2.5 px-6 rounded-2xl font-black border-4 border-black mb-6 inline-block animate-pulse text-xl shadow-md flex items-center gap-2">+3 <TokenIcon className="w-6 h-6" /></div>
                         <button onClick={() => setGameState('PLAYING')} className="w-full bg-green-500 text-white font-black py-4 rounded-full border-4 border-black shadow-[4px_4px_0_black] hover:scale-105 active:translate-y-1 transition-all text-xl uppercase">CONTINUA</button>
                     </div>
                 )}

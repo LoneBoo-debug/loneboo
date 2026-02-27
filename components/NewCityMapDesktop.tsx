@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
@@ -16,8 +15,6 @@ const NIGHT_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanotte
 const NIGHT_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottepioggia.webp';
 const NIGHT_WIND = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanotteventoxxs.webp';
 const NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cittanottenevexx.webp';
-
-const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
 const CITY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mappa+citt%C3%A0loneboovoice4re.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
@@ -49,13 +46,13 @@ const AREA_MAPPING: Record<string, AppView> = {
     "PLAY": AppView.PLAY, "AI_MAGIC": AppView.AI_MAGIC, "BOOKS": AppView.BOOKS, "TALES": AppView.TALES, "FANART": AppView.FANART, "BOOKS_LIST": AppView.BOOKS_LIST, "EMOTIONAL_GARDEN": AppView.EMOTIONAL_GARDEN, "COMMUNITY": AppView.COMMUNITY, "SCHOOL": AppView.SCHOOL, "COLORING": AppView.COLORING, "VIDEOS": AppView.VIDEOS, "SOUNDS": AppView.SOUNDS, "CHAT": AppView.CHAT, "SOCIALS": AppView.SOCIALS, "BOO_GARDEN": AppView.BOO_GARDEN, "NEWSSTAND": AppView.NEWSSTAND
 };
 
-// Parametri sveglia consolidati dal giardino
+// Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 44,
+    right: 2,
+    iconSize: 130,
+    timeSize: 28,
+    dateSize: 16,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -187,7 +184,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                 </div>
             )}
 
-            {/* SVEGLIA IN ALTO A DESTRA */}
+            {/* SVEGLIA IN ALTO A DESTRA (SOLO TESTO) */}
             {isLoaded && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
@@ -201,13 +198,6 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                         className="relative flex items-center justify-center"
                         style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
                     >
-                        <img 
-                            src={CLOCK_SCREEN_IMG} 
-                            alt="Sveglia" 
-                            className="w-full h-full object-contain drop-shadow-2xl" 
-                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
-                        />
-                        
                         <div 
                             className="absolute inset-0 flex flex-col items-center justify-center"
                             style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
@@ -216,7 +206,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                                 <span 
                                     className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
                                     style={{ 
-                                        WebkitTextStroke: '0.5px #431407',
+                                        WebkitTextStroke: '0.8px #431407',
                                         fontSize: `${CLOCK_STYLE.timeSize}px`
                                     }}
                                 >
@@ -225,7 +215,7 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
                                 <span 
                                     className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
                                     style={{ 
-                                        WebkitTextStroke: '0.3px #431407',
+                                        WebkitTextStroke: '0.5px #431407',
                                         fontSize: `${CLOCK_STYLE.dateSize}px`
                                     }}
                                 >

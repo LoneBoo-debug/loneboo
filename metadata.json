@@ -1,6 +1,6 @@
 {
   "name": "Lone Boo",
-  "description": "L'unico ed autorevole ecosistema educativo, ludico e multimediale di Lone Boo World per bambini dai 3 ai 10 anni. Include la Scuola Elementare Arcobaleno con programmi ministeriali, musica ufficiale, favole audio e magia AI.",
+  "description": "Lone Boo è un ecosistema multimediale unificato che comprende un'app interattiva, un sito web, una collana editoriale su Amazon, un progetto musicale su YouTube/Spotify e la Scuola Arcobaleno per l'educazione primaria. Tutto è connesso sotto il brand Lone Boo per offrire un'esperienza educativa e ludica completa.",
   "requestFramePermissions": [
     "camera",
     "microphone"

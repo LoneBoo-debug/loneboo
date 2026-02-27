@@ -30,8 +30,9 @@ const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzp
 type Point = { x: number; y: number };
 type ZoneConfig = { id: string; points: Point[]; };
 
-const ZONES_MOBILE: ZoneConfig[] = [ { id: "Fata", points: [ { x: 62.63, y: 24.23 }, { x: 50.11, y: 62.99 }, { x: 79.42, y: 66.4 }, { x: 80.76, y: 26.2 } ] } ];
-const ZONES_DESKTOP: ZoneConfig[] = [ { id: "Fata", points: [ { "x": 53.62, "y": 29.38 }, { "x": 49.9, "y": 65.05 }, { "x": 63.33, "y": 70.82 }, { "x": 65.7, "y": 29.38 } ] } ];
+const ZONES_MOBILE: ZoneConfig[] = [ { id: "Fata", points: [{"x":41.87,"y":36.28},{"x":37.33,"y":68.67},{"x":66.67,"y":69.72},{"x":82.13,"y":24.29}] } ];
+const ZONES_DESKTOP: ZoneConfig[] = [ { id: "Fata", points: [{"x":41.87,"y":36.28},{"x":37.33,"y":68.67},{"x":66.67,"y":69.72},{"x":82.13,"y":24.29}] } ];
+
 
 const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) => {
   const [now, setNow] = useState(new Date());
@@ -194,7 +195,7 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
         <audio 
             key={currentAudio || 'idle'}
             ref={audioRef} 
-            src={currentAudio || ''}
+            src={currentAudio || undefined}
             preload="auto"
             crossOrigin="anonymous"
             onEnded={() => setIsPlaying(false)} 
@@ -240,7 +241,7 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
         {showSpider && isLoaded && !isMenuOpen && !showPlayerModal && (
             <button 
                 onClick={() => setView(AppView.CHAT)}
-                className="fixed top-[-130px] md:top-[-260px] left-[-12%] md:left-[-10%] z-40 w-80 md:w-[560px] h-auto transition-transform hover:scale-105 active:scale-95 animate-maragno outline-none cursor-pointer"
+                className="fixed top-[-80px] md:top-[-160px] left-[-8%] md:left-[-6%] z-40 w-56 md:w-96 h-auto transition-transform hover:scale-105 active:scale-95 animate-maragno outline-none cursor-pointer"
             >
                 <img 
                     src={MARAGNO_EASTER_EGG} 
@@ -249,6 +250,7 @@ const FairyTales: React.FC<{ setView: (view: AppView) => void }> = ({ setView })
                 />
             </button>
         )}
+
 
         {/* TASTO TORNA IN CITTÀ */}
         {isLoaded && !isMenuOpen && !showPlayerModal && (

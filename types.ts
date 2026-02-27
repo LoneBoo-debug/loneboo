@@ -117,6 +117,10 @@ export enum AppView {
   BOOKS = 'BOOKS',
   BOOKS_LIST = 'BOOKS_LIST',
   AI_MAGIC = 'AI_MAGIC',
+  MAGIC_TOWER_SUB = 'MAGIC_TOWER_SUB',
+  MAGIC_TOWER_SUB_EXPLORE = 'MAGIC_TOWER_SUB_EXPLORE',
+  MAGIC_TOWER_SUB_ENIGMAS = 'MAGIC_TOWER_SUB_ENIGMAS',
+  MAGIC_TOWER_SUB_GAMES = 'MAGIC_TOWER_SUB_GAMES',
   SOUNDS = 'SOUNDS',
   TALES = 'TALES',
   COLORING = 'COLORING', 
@@ -146,7 +150,15 @@ export enum AppView {
   EMOTIONAL_GARDEN = 'EMOTIONAL_GARDEN',
   TTS_STUDIO = 'TTS_STUDIO',
   CALENDAR = 'CALENDAR',
-  ATELIER = 'ATELIER'
+  ATELIER = 'ATELIER',
+  SUB_ATELIER_OSCURO = 'SUB_ATELIER_OSCURO',
+  SUB_FIUME_SOTTERRANEO = 'SUB_FIUME_SOTTERRANEO',
+  SUB_ARTI_MAGICHE = 'SUB_ARTI_MAGICHE',
+  SUB_OSCURITA = 'SUB_OSCURITA',
+  SUB_OSCURITA_POTERE = 'SUB_OSCURITA_POTERE',
+  SUB_OSCURITA_MOSTRO = 'SUB_OSCURITA_MOSTRO',
+  SUB_OSCURITA_SUPERFICIE = 'SUB_OSCURITA_SUPERFICIE',
+  MAGIC_HAT_ALBUM = 'MAGIC_HAT_ALBUM'
 }
 
 export interface ChatMessage {
@@ -245,6 +257,13 @@ export interface AvatarConfig {
     bgIndex: number;
 }
 
+export interface TokenTransaction {
+    id: string;
+    amount: number; // positive for gain, negative for spend
+    description: string;
+    date: string;
+}
+
 export interface PlayerProgress {
     playerName?: string;
     avatar?: 'BOY' | 'GIRL';
@@ -254,12 +273,16 @@ export interface PlayerProgress {
     hardModeUnlocked?: boolean;
     duplicates?: number;
     duplicateStickers?: string[];
+    duplicatesVol2?: number;
+    duplicateStickersVol2?: string[];
     currentAlbum?: number;
     completedQuizzes?: Record<string, boolean[]>;
     completedActivities?: Record<string, boolean[]>;
     // Nuovi campi Atelier
     equippedClothing: { tshirt?: string; hat?: string; glasses?: string; special?: string; special2?: string; special3?: string; special4?: string; special5?: string };
     purchasedClothing: string[];
+    transactions?: TokenTransaction[];
+    magicHatStickers?: string[];
 }
 
 export interface SocialStats {

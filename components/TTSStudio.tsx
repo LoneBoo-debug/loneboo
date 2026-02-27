@@ -117,7 +117,7 @@ const TTSStudio: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => 
     const handleAiStreamSpeak = async () => {
         setIsGenerating(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
             
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });

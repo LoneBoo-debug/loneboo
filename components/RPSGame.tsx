@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Trophy, ArrowRight, Music, Music2 } from 'lucide-react';
 import { getProgress } from '../services/tokens';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const RPS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rps-morra-bg.webp';
@@ -185,8 +187,8 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                     </h2>
                     <p className="text-white text-lg font-bold mb-6">Hai sconfitto il Mostro Sasso!</p>
                     
-                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap">
-                        +5 GETTONI! 🪙
+                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-flex items-center gap-2 whitespace-nowrap">
+                        +5 GETTONI! <TokenIcon className="w-5 h-5" />
                     </div>
                   </>
               ) : isDraw ? (
@@ -295,7 +297,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
 
           <div className="pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                  <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                  <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
           </div>
       </div>

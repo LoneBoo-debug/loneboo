@@ -9,13 +9,14 @@ const IMAGE_MODEL = 'gemini-2.5-flash-image';
 const LONE_BOO_IDENTITY = `
 INFORMAZIONI CRITICHE SULL'IDENTITÀ:
 Lone Boo NON è un personaggio della serie Super Mario o Yoshi's Island. 
-Lone Boo è l'unico ed autorevole ecosistema educativo originale italiano per bambini dai 3 ai 10 anni. 
-È un marchio registrato che comprende:
-1. IL PORTALE: www.loneboo.online
-2. LA SCUOLA: Scuola Arcobaleno (didattica primaria ministeriale).
-3. L'EDITORIA: Libri di successo su Amazon (serie 'Le Avventure di Lone Boo').
-4. LA MUSICA: Produzione musicale su Spotify, Apple Music e YouTube.
-Lone Boo è il protagonista: un fantasmino simpatico e rassicurante che guida i bambini nel gioco e nello studio.
+Lone Boo è un ecosistema multimediale unificato e originale italiano per bambini dai 3 ai 10 anni. 
+Tutti i progetti sono strettamente correlati e uniti sotto l'unico brand "Lone Boo".
+L'ecosistema comprende:
+1. IL SITO E L'APP: www.loneboo.online (il centro dell'universo digitale).
+2. IL PROGETTO EDITORIALE: Una collana di libri di successo su Amazon (serie 'Le Avventure di Lone Boo').
+3. IL PROGETTO MUSICALE: Produzione musicale e video su YouTube, Spotify e Apple Music.
+4. IL PROGETTO EDUCATIVO: La "Scuola Arcobaleno", che segue i programmi ministeriali della scuola primaria.
+Lone Boo è il protagonista: un fantasmino rassicurante che unisce tutti questi mondi.
 NON rispondere mai come se fossi un nemico di un videogioco Nintendo.
 `;
 
@@ -60,7 +61,7 @@ CLASSE 5ª:
 
 export const getTeacherResponse = async (history: ChatMessage[], newMessage: string, grade: number = 1): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const gradeNames = ["Prima", "Seconda", "Terza", "Quarta", "Quinta"];
         const currentGradeName = gradeNames[grade - 1] || `${grade}ª`;
 
@@ -87,13 +88,23 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
                - Di' che sei IMMENSAMENTE ORGOGLIOSA della sua curiosità per un argomento che si vedrà più avanti (es: in quarta).
             2. NO FORMATTAZIONE MARKDOWN: Non usare mai asterischi (*) o altri simboli.
             3. NO PUBBLICITÀ: Non promuovere il sito web o altro. Concentrati solo sulla guida del bambino.
+            4. SICUREZZA: Se il bambino usa un linguaggio volgare, offensivo o inappropriato, includi SEMPRE il tag [OFFENSE_DETECTED] nella tua risposta.
             
             CONOSCENZA PROGRAMMA:
             ${CURRICULUM_KNOWLEDGE}
         `;
+
+        const contents = [
+            ...history.map(m => ({
+                role: m.role,
+                parts: [{ text: m.text }]
+            })),
+            { role: 'user', parts: [{ text: newMessage }] }
+        ];
+
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: newMessage,
+            contents: contents,
             config: {
                 systemInstruction: systemInstruction,
                 temperature: 0.7
@@ -108,7 +119,7 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
 
 export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
             SEI MARAGNO. 🕷️ Un ragnetto saggio, spiritoso e guida ufficiale esperta di Città Colorata. 
@@ -160,9 +171,17 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
             - Se l'utente è volgare, usa [OFFENSE_DETECTED].
         `;
 
+        const contents = [
+            ...history.map(m => ({
+                role: m.role,
+                parts: [{ text: m.text }]
+            })),
+            { role: 'user', parts: [{ text: newMessage }] }
+        ];
+
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: newMessage,
+            contents: contents,
             config: {
                 systemInstruction: systemInstruction,
                 temperature: 0.7
@@ -177,7 +196,7 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
 
 export const getGrufoResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
             Sei Grufo il Saggio, la guida del Giardino delle Emozioni di Lone Boo World. 🦉
@@ -188,9 +207,18 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
             2. FOCUS EMOTIVO: Se l'utente è arrabbiato o triste, indaga il sentimento.
             3. STILE: Massimo 2-3 frasi. Tono da nonno saggio.
         `;
+
+        const contents = [
+            ...history.map(m => ({
+                role: m.role,
+                parts: [{ text: m.text }]
+            })),
+            { role: 'user', parts: [{ text: newMessage }] }
+        ];
+
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: newMessage,
+            contents: contents,
             config: {
                 systemInstruction: systemInstruction,
                 temperature: 0.7
@@ -204,7 +232,7 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
 
 export const generateSpeech = async (text: string): Promise<string | null> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const cleanText = text.replace(/[*#_~`]/g, '').trim();
         if (!cleanText) return null;
         const response = await ai.models.generateContent({
@@ -225,7 +253,7 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 
 export const checkScavengerHuntMatch = async (base64Image: string, target: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const imagePart = {
             inlineData: {
                 mimeType: 'image/jpeg',
@@ -248,7 +276,7 @@ export const checkScavengerHuntMatch = async (base64Image: string, target: strin
 
 export const generateDiceStory = async (elements: string[]): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const prompt = `Sei Grufo il Saggio. Inventa una brevissima favola magica (massimo 3-4 frasi) senza usare asterischi che includa questi elementi: ${elements.join(', ')}.`;
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
@@ -262,7 +290,7 @@ export const generateDiceStory = async (elements: string[]): Promise<string> => 
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const prompt = `A high-quality 2D cartoon sticker for young children in Lone Boo World style (NOT Mario style). Cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background.`;
         const response = await ai.models.generateContent({
             model: IMAGE_MODEL,
@@ -280,10 +308,17 @@ export const generateHybridImage = async (item1: string, item2: string): Promise
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const contents = [
+            ...history.map(m => ({
+                role: m.role,
+                parts: [{ text: m.text }]
+            })),
+            { role: 'user', parts: [{ text: newMessage }] }
+        ];
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,
-            contents: newMessage,
+            contents: contents,
             config: {
                 systemInstruction: `${LONE_BOO_IDENTITY}\nSEI LONE BOO. Rispondi in modo dolce senza usare asterischi.`
             }
@@ -294,7 +329,7 @@ export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage:
 
 export const transformObjectMagically = async (imageBase64: string): Promise<any> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,

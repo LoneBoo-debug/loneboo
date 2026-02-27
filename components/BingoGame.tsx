@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Hash, Trophy, Play, RotateCcw, X as XIcon, Volume2, VolumeX, Star as LucideStar, Music, Music2 } from 'lucide-react';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { CHARACTERS } from '../services/databaseAmici';
 import { getAsset } from '../services/LocalAssets';
 
@@ -61,11 +63,10 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
   const [stars, setStars] = useState<StarEffect[]>([]);
   const [lastPlayerPrize, setLastPlayerPrize] = useState<string | null>(null);
   
-  const extractionInterval = useRef<any>(null);
   const audioCtx = useRef<AudioContext | null>(null);
   const bgMusic = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize Music
+  // Inizializza Musica
   useEffect(() => {
     bgMusic.current = new Audio(BG_MUSIC_URL);
     bgMusic.current.loop = true;
@@ -79,13 +80,11 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
     };
   }, []);
 
-  // Handle Music Playback
+  // Gestione riproduzione musica
   useEffect(() => {
     if (bgMusic.current) {
       if (musicEnabled && isPlaying && !isGameOver) {
-        bgMusic.current.play().catch(() => {
-          console.log("Interaction required for music playback");
-        });
+        bgMusic.current.play().catch(() => {});
       } else {
         bgMusic.current.pause();
       }
@@ -210,101 +209,16 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
     setLastPlayerPrize(null);
   };
 
-  const checkWins = useCallback((updatedPlayers: Player[]) => {
-    setPrizeHistory(prevPrizes => {
-        const newPrizes = [...prevPrizes];
-        let wonTokens = 0;
-        let claimedSomething = false;
-
-        PRIZES.forEach(prize => {
-          if (newPrizes.find(p => p.prizeId === prize.id)) return;
-
-          const currentWinners = updatedPlayers.filter(player => {
-            if (prize.id === 'TOMBOLA') {
-              return player.marked.flat().filter(Boolean).length === 15;
-            } else {
-              return player.marked.some(row => row.filter(Boolean).length === prize.count);
-            }
-          });
-
-          if (currentWinners.length > 0) {
-            const luckyWinner = currentWinners.find(w => w.id === 'player') || 
-                                currentWinners[Math.floor(Math.random() * currentWinners.length)];
-            
-            newPrizes.push({ prizeId: prize.id, winnerName: luckyWinner.name });
-            claimedSomething = true;
-
-            if (luckyWinner.id === 'player') {
-              wonTokens += prize.tokens;
-              playSfx('FANFARE');
-              triggerVictoryExplosion();
-              setLastPlayerPrize(prize.label);
-              
-              if (prize.id === 'TOMBOLA') {
-                  setTimeout(() => setIsGameOver(true), 4000);
-              } else {
-                  setIsPaused(true);
-                  setTimeout(() => {
-                    setLastPlayerPrize(null);
-                    setIsPaused(false);
-                  }, 3000);
-              }
-            } else {
-              playSfx('YEAH');
-              setWinningOpponentId(luckyWinner.id);
-              
-              if (prize.id === 'TOMBOLA') {
-                  setTimeout(() => setIsGameOver(true), 4000);
-              } else {
-                  setIsPaused(true);
-                  setTimeout(() => {
-                    setWinningOpponentId(null);
-                    setIsPaused(false);
-                  }, 3000);
-              }
-            }
-          }
-        });
-
-        if (wonTokens > 0) onEarnTokens(wonTokens);
-        return newPrizes;
-    });
-  }, [onEarnTokens, playSfx]);
-
-  const handleMarkNumber = (rowIdx: number, colIdx: number) => {
+  // LOGICA ESTRAZIONE SEMPLIFICATA
+  const performExtraction = useCallback(() => {
     if (!isPlaying || isGameOver || isPaused) return;
-    
-    setPlayers(currentPlayers => {
-        const player = currentPlayers.find(p => p.id === 'player');
-        if (!player) return currentPlayers;
-        
-        const num = player.card[rowIdx][colIdx];
-        if (num === 0 || player.marked[rowIdx][colIdx]) return currentPlayers;
-        
-        // Verifica se il numero è stato effettivamente estratto
-        if (extractedNumbers.includes(num)) {
-            playSfx('MARK');
-            const nextPlayers = currentPlayers.map(p => {
-                if (p.id === 'player') {
-                    const newMarked = p.marked.map((row, r) => 
-                        row.map((m, c) => (r === rowIdx && c === colIdx) ? true : m)
-                    );
-                    return { ...p, marked: newMarked };
-                }
-                return p;
-            });
-            checkWins(nextPlayers);
-            return nextPlayers;
-        }
-        return currentPlayers;
-    });
-  };
-
-  const extract = useCallback(() => {
-    if (isGameOver || isPaused) return;
 
     setExtractedNumbers(prev => {
-      if (prev.length >= 90) return prev;
+      if (prev.length >= 90) {
+        setIsGameOver(true);
+        return prev;
+      }
+
       let next;
       do {
         next = Math.floor(Math.random() * 90) + 1;
@@ -312,35 +226,124 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
 
       setCurrentNumber(next);
       playSfx('PLIN');
-      const newExtracted = [...prev, next];
+      return [...prev, next];
+    });
+  }, [isPlaying, isGameOver, isPaused, playSfx]);
 
-      setPlayers(currentPlayers => {
-        // Solo gli avversari segnano automaticamente
-        const nextPlayers = currentPlayers.map(p => {
-          if (p.id !== 'player') {
-              const newMarked = p.marked.map((row, r) => 
-                row.map((m, c) => m || p.card[r][c] === next)
-              );
-              return { ...p, marked: newMarked };
+  // Gestione Timer Estrazione
+  useEffect(() => {
+    let timer: any;
+    if (isPlaying && !isGameOver && !isPaused) {
+      timer = setInterval(performExtraction, 4000);
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying, isGameOver, isPaused, performExtraction]);
+
+  // EFFETTO: QUANDO VIENE ESTRATTO UN NUMERO
+  useEffect(() => {
+    if (!currentNumber || isGameOver) return;
+
+    // 1. Marcatura Automatica CPU
+    setPlayers(current => {
+      const next = current.map(p => {
+        if (p.id === 'player') return p;
+        
+        const newMarked = p.marked.map((row, r) => 
+          row.map((m, c) => m || p.card[r][c] === currentNumber)
+        );
+        return { ...p, marked: newMarked };
+      });
+
+      // 2. Controllo Vincite (solo dopo aver aggiornato la marcatura)
+      checkAllPrizes(next);
+      return next;
+    });
+
+  }, [currentNumber]);
+
+  const checkAllPrizes = (currentPlayers: Player[]) => {
+    setPrizeHistory(prevHistory => {
+      const newHistory = [...prevHistory];
+      let foundNewPrize = false;
+      let wonTokens = 0;
+
+      PRIZES.forEach(prize => {
+        // Salta premi già vinti
+        if (newHistory.some(h => h.prizeId === prize.id)) return;
+
+        // Trova chi ha fatto il premio
+        const winners = currentPlayers.filter(p => {
+          if (prize.id === 'TOMBOLA') {
+            return p.marked.flat().filter(Boolean).length === 15;
+          } else {
+            return p.marked.some(row => row.filter(Boolean).length >= prize.count);
+          }
+        });
+
+        if (winners.length > 0) {
+          // Priorità al giocatore se è tra i vincitori
+          const winner = winners.find(w => w.id === 'player') || winners[0];
+          newHistory.push({ prizeId: prize.id, winnerName: winner.name });
+          foundNewPrize = true;
+
+          // Gestione Feedback
+          if (winner.id === 'player') {
+            wonTokens += prize.tokens;
+            setLastPlayerPrize(prize.label);
+            playSfx('FANFARE');
+            triggerVictoryExplosion();
+          } else {
+            setWinningOpponentId(winner.id);
+            playSfx('YEAH');
+          }
+
+          // Se è Tombola, il gioco finisce
+          if (prize.id === 'TOMBOLA') {
+            setTimeout(() => setIsGameOver(true), 4000);
+          } else {
+            // Pausa temporanea per annunciare il premio
+            setIsPaused(true);
+            setTimeout(() => {
+              setIsPaused(false);
+              setWinningOpponentId(null);
+              setLastPlayerPrize(null);
+            }, 3000);
+          }
+        }
+      });
+
+      if (wonTokens > 0) onEarnTokens(wonTokens);
+      return newHistory;
+    });
+  };
+
+  const handleMarkNumber = (rowIdx: number, colIdx: number) => {
+    if (!isPlaying || isGameOver || isPaused) return;
+    
+    setPlayers(current => {
+      const player = current.find(p => p.id === 'player');
+      if (!player) return current;
+
+      const num = player.card[rowIdx][colIdx];
+      if (num === 0 || player.marked[rowIdx][colIdx]) return current;
+
+      if (extractedNumbers.includes(num)) {
+        playSfx('MARK');
+        const next = current.map(p => {
+          if (p.id === 'player') {
+            const newMarked = p.marked.map((r, ri) => 
+              r.map((m, ci) => (ri === rowIdx && ci === colIdx) ? true : m)
+            );
+            return { ...p, marked: newMarked };
           }
           return p;
         });
-        checkWins(nextPlayers);
-        return nextPlayers;
-      });
-
-      return newExtracted;
+        checkAllPrizes(next);
+        return next;
+      }
+      return current;
     });
-  }, [isGameOver, isPaused, checkWins, playSfx]);
-
-  useEffect(() => {
-    if (isPlaying && !isGameOver && !isPaused) {
-      extractionInterval.current = setInterval(extract, 3500);
-    } else {
-      clearInterval(extractionInterval.current);
-    }
-    return () => clearInterval(extractionInterval.current);
-  }, [isPlaying, isGameOver, isPaused, extract]);
+  };
 
   const currentPlayer = players.find(p => p.id === 'player');
   const penultimateNumber = extractedNumbers.length >= 2 ? extractedNumbers[extractedNumbers.length - 2] : null;
@@ -399,9 +402,9 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
       {/* MAIN CONTAINER CON HEADER HUD */}
       <div className="relative z-10 w-full h-full flex flex-col overflow-hidden">
         
-        {/* HEADER HUD - COMPLETAMENTE TRASPARENTE */}
-        <div className="w-full h-[150px] md:h-[200px] p-4 flex justify-between items-center bg-transparent pt-[70px] md:pt-[105px] border-b-2 border-white/0 shrink-0">
-          <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-transform outline-none">
+        {/* HEADER HUD */}
+        <div className="w-full h-[150px] md:h-[200px] p-4 flex justify-between items-center bg-transparent pt-[70px] md:pt-[105px] shrink-0">
+          <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none">
             <img src={EXIT_BTN_IMG} alt="Esci" className="h-20 md:h-32 w-auto" />
           </button>
           
@@ -412,13 +415,11 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                </div>
             ) : (
               <div className="flex items-center gap-4 md:gap-8 animate-in slide-in-from-right duration-500">
-                 {/* Penultimo Numero (N-1) */}
                  {penultimateNumber !== null && (
                    <div className="w-12 h-12 md:w-16 md:h-16 bg-white/40 rounded-full border-2 border-white/50 flex items-center justify-center opacity-70">
                      <span className="text-2xl md:text-3xl font-black text-white">{penultimateNumber}</span>
                    </div>
                  )}
-                 {/* Numero Corrente (N) */}
                  <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.6)] flex items-center justify-center animate-in zoom-in spin-in-90 duration-500">
                    <span className="text-4xl md:text-5xl font-black text-blue-900">{currentNumber || ""}</span>
                  </div>
@@ -462,12 +463,11 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
             </div>
           ) : (
             <>
-              {/* OPPONENTS PREVIEW - LAYOUT FISSO CON PERSONAGGI ABBASSATI */}
+              {/* OPPONENTS PREVIEW */}
               <div className="grid grid-cols-3 gap-3 w-full max-w-2xl shrink-0 items-end overflow-visible">
                  {players.filter(p => p.id !== 'player').map((p) => {
                    const isCelebrating = winningOpponentId === p.id;
                    const displayImg = isCelebrating ? OPPONENT_WIN_IMAGES[p.id] : (OPPONENT_TMB_IMAGES[p.id] || p.image);
-                   // Andrea e Raffa sono abbassati con translate-y-6
                    const isShifted = p.id === 'andrea' || p.id === 'raffa';
                    
                    return (
@@ -475,10 +475,6 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                         <img 
                           src={displayImg} 
                           className={`w-32 h-32 md:w-44 md:h-44 object-contain drop-shadow-lg transition-all duration-300 ${isCelebrating ? 'animate-rocking-base z-50' : ''}`} 
-                          style={{
-                              // @ts-ignore
-                              '--scale': '1.1'
-                          }}
                           alt="" 
                         />
                      </div>
@@ -486,11 +482,10 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                  })}
               </div>
 
-              {/* PLAYER CARD - DIMENSIONI VERTICALI AUMENTATE */}
+              {/* PLAYER CARD */}
               {currentPlayer && (
                 <div className="w-full max-w-3xl bg-orange-50 p-2 md:p-8 rounded-[2.5rem] border-4 md:border-[12px] border-orange-600 shadow-2xl animate-in slide-in-from-bottom mt-10 md:mt-24 relative">
                   
-                  {/* FEEDBACK VINCITA CARTOON */}
                   {lastPlayerPrize && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none animate-in zoom-in duration-300">
                       <span 
@@ -543,7 +538,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                      return (
                        <div key={p.id} className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl border-2 transition-all duration-500 min-w-0 ${winner ? 'bg-yellow-400 border-yellow-600 scale-105 shadow-lg' : 'bg-white/5 border-white/5 opacity-40'}`}>
                           <span className={`text-[8px] md:text-[10px] font-black uppercase leading-none mb-1 truncate w-full text-center ${winner ? 'text-yellow-900' : 'text-white/40'}`}>{p.label}</span>
-                          <span className={`text-[10px] md:text-sm font-black truncate w-full text-center ${winner ? 'text-black' : 'text-white'}`}>{winner ? winner.winnerName : `${p.tokens} 🪙`}</span>
+                          <span className={`text-[10px] md:text-sm font-black truncate w-full text-center flex items-center justify-center gap-0.5 ${winner ? 'text-black' : 'text-white'}`}>{winner ? winner.winnerName : <>{p.tokens} <TokenIcon className="w-3 h-3" /></>}</span>
                        </div>
                      );
                    })}
@@ -568,7 +563,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                      prizeHistory.filter(h => h.winnerName === 'Tu').map((h, i) => (
                        <div key={i} className="flex justify-between items-center px-4 py-2 bg-green-100 rounded-xl text-green-700 font-black border-2 border-green-200">
                          <span className="text-xs">{h.prizeId}</span>
-                         <span className="text-sm">+{PRIZES.find(p => p.id === h.prizeId)?.tokens} 🪙</span>
+                         <span className="text-sm flex items-center gap-1">+{PRIZES.find(p => p.id === h.prizeId)?.tokens} <TokenIcon className="w-4 h-4" /></span>
                        </div>
                      ))
                    ) : (

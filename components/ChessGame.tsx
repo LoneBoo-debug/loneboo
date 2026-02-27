@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RotateCcw, Loader2, Lock, Settings, ArrowLeft } from 'lucide-react';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
@@ -23,6 +25,7 @@ const BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scacchidaytr.
 const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scacchinightre.webp';
 
 const GRANDFATHER_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grandpa-thinking.webp';
+const VICTORY_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-checkers.webp';
 
 type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 type PieceColor = 'w' | 'b';
@@ -153,7 +156,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       // Inizializza Musica
@@ -496,7 +499,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
         <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
-                <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             
             {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
@@ -611,12 +614,19 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
                             <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-sm w-full shadow-2xl relative flex flex-col items-center transform translate-y-10">
                                 {winner === 'w' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                                
+                                {winner === 'w' && (
+                                    <div className="mb-4 flex flex-col items-center">
+                                        <img src={VICTORY_TITLE_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain" />
+                                    </div>
+                                )}
+
                                 <h2 className="text-3xl font-black mb-4 text-boo-purple leading-tight uppercase">
-                                    {winner === 'w' ? 'SCACCO MATTO! 🏆' : 'HAI PERSO! 🤖'}
+                                    {winner === 'w' ? 'SCACCO MATTO!' : 'HAI PERSO! 🤖'}
                                 </h2>
                                 {winner === 'w' && (
-                                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">
-                                        +{tokenReward} GETTONI! 🪙
+                                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-flex items-center gap-2 whitespace-nowrap shadow-lg transform rotate-[-2deg]">
+                                        +{tokenReward} GETTONI! <TokenIcon className="w-5 h-5" />
                                     </div>
                                 )}
                                 <div className="flex flex-row gap-4 w-full justify-center mt-2">

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AppView } from '../types';
 import CityExplorationModal from './CityExplorationModal';
 
-const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/montainscitybgs300de3.webp';
+const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mountaincufjr5tbgroudn66.webp';
 
 const EXPLORATION_ITEMS = [
     { image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mountain_city_explore_1.webp', text: 'Respira l\'aria fresca delle cime più alte!' },

@@ -156,7 +156,7 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
                             className={`z-30 hover:scale-105 active:scale-95 transition-transform absolute top-20 md:top-32 left-2 md:left-4`}
                         >
                             <img 
-                                src={getNavImg('left') || ''} 
+                                src={getNavImg('left') || undefined} 
                                 alt={navigation.left.label} 
                                 className={`h-28 md:h-40 drop-shadow-md w-auto`} 
                             />
@@ -172,7 +172,7 @@ const RoomLayout: React.FC<RoomLayoutProps> = ({ roomType, setView, children, hi
                             }`}
                         >
                             <img 
-                                src={getNavImg('right') || ''} 
+                                src={getNavImg('right') || undefined} 
                                 alt={navigation.right.label} 
                                 className={`${
                                     isGarden 

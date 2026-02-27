@@ -138,7 +138,7 @@ const GuessWhoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => 
         setCurrentMessage(""); 
         try {
             // FIX: Use named parameter for apiKey initialization
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
             const prompt = `Sei l'arbitro di 'Indovina Chi'. 
             Tratti disponibili: 
             - CAPPELLO, OCCHIALI, CAPELLI_LUNGHI, ORECCHINI, SORRISO, BARBA, BAFFI, SENZA_CAPELLI

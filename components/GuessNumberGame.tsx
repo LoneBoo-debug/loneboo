@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowUp, ArrowDown, RotateCcw, Trophy } from 'lucide-react';
 import { getProgress } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const GUESS_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indovinanumerodaysuna.webp';
 const GUESS_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indovinanu+eronighet53.webp';
@@ -141,7 +143,7 @@ const GuessNumberGame: React.FC<GuessNumberGameProps> = ({ onBack, onEarnTokens 
 
           <div className="pointer-events-auto">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
           </div>
       </div>

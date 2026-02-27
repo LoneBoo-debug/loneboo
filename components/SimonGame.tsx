@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Play, Trophy, LogOut, RotateCcw } from 'lucide-react';
 import { getProgress } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const SIMON_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/simonboobgdiejsj33w.webp';
 const SIMON_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/simonboonightvisoin.webp';
@@ -204,7 +206,7 @@ const SimonGame: React.FC<SimonGameProps> = ({ onBack, onEarnTokens }) => {
 
           <div className="pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                  <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                  <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
           </div>
       </div>
@@ -299,7 +301,7 @@ const SimonGame: React.FC<SimonGameProps> = ({ onBack, onEarnTokens }) => {
                                       <span className={`text-[7px] font-black uppercase mb-0.5 ${isReached ? 'text-green-100' : 'text-gray-400'}`}>Lvl {m.level}</span>
                                       <div className="flex items-center gap-1">
                                           <span className={`font-black text-sm ${isReached ? 'text-white' : 'text-gray-300'}`}>{m.reward}</span>
-                                          <span className="text-xs">🪙</span>
+                                          <TokenIcon className="w-3 h-3" />
                                       </div>
                                   </div>
                               );

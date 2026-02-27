@@ -631,8 +631,8 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
     };
 
     return (
-        <div className="fixed inset-0 z-[200] bg-[#0c1a2c]/95 flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-[#1a2e44] w-full max-w-2xl h-[85vh] rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col overflow-hidden relative">
+        <div className="fixed inset-0 z-[200] bg-[#0c1a2c]/95 flex items-start justify-center p-4 pt-24 md:pt-32 animate-in fade-in duration-300">
+            <div className="bg-[#1a2e44] w-full max-w-2xl h-[75vh] md:h-[80vh] rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col overflow-hidden relative">
                 
                 {/* Header Chat */}
                 <div className="bg-[#2c4a6b] p-4 flex items-center gap-3 border-b-4 border-[#0c1a2c] shrink-0">
@@ -698,7 +698,7 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
 
                 {/* Input Area */}
                 <div className="p-4 bg-[#0c1a2c] border-t-4 border-yellow-400/20 shrink-0">
-                    <div className="flex items-center gap-2 max-w-4xl mx-auto">
+                    <div className="flex items-center gap-2 w-full">
                         <button 
                             onClick={toggleListening} 
                             className={`shrink-0 p-3 md:p-4 rounded-full transition-all border-4 ${isListening ? 'bg-red-500 text-white border-red-700 animate-pulse' : 'bg-slate-800 text-yellow-400 border-slate-700 hover:border-yellow-400'}`}
@@ -711,12 +711,12 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
                             onChange={(e) => setInputText(e.target.value)} 
                             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Racconta a Grufo..." 
-                            className="flex-1 bg-slate-800 border-4 border-slate-700 rounded-[2rem] px-5 py-3 md:py-4 font-bold text-white text-sm md:text-lg focus:outline-none focus:border-yellow-400 transition-all placeholder-slate-500"
+                            className="flex-1 bg-slate-800 border-4 border-slate-700 rounded-[2rem] px-5 py-3 md:py-4 font-bold text-white text-sm md:text-lg focus:outline-none focus:border-yellow-400 transition-all placeholder-slate-500 min-w-0"
                         />
                         <button 
                             onClick={handleSendMessage} 
                             disabled={!inputText.trim() || isThinking}
-                            className="bg-yellow-400 text-blue-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all disabled:opacity-50 border-4 border-black"
+                            className="bg-yellow-400 text-blue-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all disabled:opacity-50 border-4 border-black shrink-0"
                         >
                             <Send size={24} strokeWidth={3} />
                         </button>

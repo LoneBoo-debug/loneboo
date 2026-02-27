@@ -5,6 +5,8 @@ import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stick
 import { getProgress, openPack, spendTokens, getPassportCode, restorePassport, saveSticker, addDuplicate, tradeDuplicates, setPlayerName, decodePassport, saveProgress, addTokens, upgradeToNextAlbum } from '../services/tokens';
 import { PlayerProgress, Sticker, AppView } from '../types';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
@@ -66,12 +68,25 @@ const IMG_CALENDAR_BANNER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/
 const BTN_ARROW_LEFT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freccia%20sibnistraedicoly87yt5.png';
 const BTN_ARROW_RIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frecciadestraedicolj97yht.png';
 
-const StickerCard: React.FC<{ sticker: Sticker, isOwned: boolean, showDetails?: boolean, isNew?: boolean }> = ({ sticker, isOwned, showDetails = false, isNew = false }) => {
+const StickerCard: React.FC<{ sticker: Sticker, isOwned: boolean, showDetails?: boolean, isNew?: boolean, onClick?: () => void }> = ({ sticker, isOwned, showDetails = false, isNew = false, onClick }) => {
     const isImage = sticker.image.startsWith('http') || sticker.image.startsWith('/');
     const rarityColor = { 'COMMON': 'border-gray-200', 'RARE': 'border-blue-400', 'EPIC': 'border-purple-500', 'LEGENDARY': 'border-yellow-400' }[sticker.rarity];
     const bgFallback = { 'COMMON': 'bg-gray-100', 'RARE': 'bg-blue-50', 'EPIC': 'bg-purple-50', 'LEGENDARY': 'bg-yellow-50' }[sticker.rarity];
+    const bannerColor = { 'COMMON': 'bg-gray-400', 'RARE': 'bg-blue-500', 'EPIC': 'bg-purple-600', 'LEGENDARY': 'bg-yellow-500' }[sticker.rarity];
+    const rarityLabel = { 'COMMON': 'Comune', 'RARE': 'Rara', 'EPIC': 'Epica', 'LEGENDARY': 'Leggendaria' }[sticker.rarity];
+
     return (
-        <div className={`relative bg-white rounded-xl shadow-md overflow-hidden flex flex-col transition-transform duration-300 aspect-[3/4.2] ${isOwned || showDetails ? `border-4 ${rarityColor}` : 'border-4 border-gray-300 opacity-60 grayscale'}`}>
+        <div 
+            onClick={onClick}
+            className={`relative bg-white rounded-xl shadow-md overflow-hidden flex flex-col transition-all duration-300 aspect-[3/4.2] cursor-pointer hover:scale-105 active:scale-95 ${isOwned || showDetails ? `border-4 ${rarityColor}` : 'border-4 border-gray-300 opacity-60 grayscale'}`}
+        >
+            {/* Rarity Banner */}
+            {(isOwned || showDetails) && (
+                <div className={`absolute top-0 right-0 ${bannerColor} text-white text-[8px] md:text-[10px] font-black px-2 py-0.5 rounded-bl-lg z-20 shadow-sm uppercase`}>
+                    {rarityLabel}
+                </div>
+            )}
+
             <div className={`flex-1 w-full relative flex items-center justify-center overflow-hidden ${bgFallback}`}>
                 {(isOwned || showDetails) ? (isImage ? <img src={sticker.image} alt={sticker.name} className="w-full h-full object-cover" /> : <span className="text-6xl">{sticker.image}</span>) : <Lock size={32} className="text-gray-400" />}
                 {isNew && <div className="absolute top-0 left-0 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-br-lg z-10 animate-pulse">NUOVA!</div>}
@@ -92,11 +107,10 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
     const [isDuplicate, setIsDuplicate] = useState(false);
     const [viewingAlbum, setViewingAlbum] = useState(progress.currentAlbum || 1);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-
-    const packCost = viewingAlbum === 2 ? 100 : 50;
 
     const currentBg = useMemo(() => {
         return isNightTime(now) ? NEWSSTAND_NIGHT_BG : NEWSSTAND_BG;
@@ -128,7 +142,7 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
             if (direction === 'left') {
                 // Se siamo all'inizio (o quasi), andiamo alla fine per simulare il loop
                 if (currentScroll <= 20) {
-                    container.scrollTo({ left: scrollWidth, behavior: 'smooth' });
+                    container.scrollTo({ left: scrollWidth - clientWidth, behavior: 'smooth' });
                 } else {
                     container.scrollBy({ left: -scrollStep, behavior: 'smooth' });
                 }
@@ -150,16 +164,23 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
         setTempSticker(sticker); setPackOpening(false); playFanfare();
     };
 
-    const handleBuyPack = () => {
-        if (progress.tokens >= packCost && !packOpening) {
-            if (spendTokens(packCost)) triggerPackAnimation(openPack(viewingAlbum));
+    const handleBuyPack = (version: number) => {
+        const cost = version === 2 ? 100 : 50;
+        if (progress.tokens >= cost && !packOpening) {
+            const isGold = version === 2;
+            if (spendTokens(cost, `Pacchetto Figurine ${isGold ? 'Gold' : 'Standard'}`)) {
+                triggerPackAnimation(openPack(version, isGold));
+            }
         }
     };
 
     const handleExchangePack = () => {
-        const dupCount = Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0);
+        const dupCount = viewingAlbum === 2 
+            ? Math.max(progress.duplicatesVol2 || 0, progress.duplicateStickersVol2?.length || 0)
+            : Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0);
+            
         if (dupCount >= 5 && !packOpening) {
-            if (tradeDuplicates()) triggerPackAnimation(openPack(viewingAlbum));
+            if (tradeDuplicates(viewingAlbum)) triggerPackAnimation(openPack(viewingAlbum, true));
         }
     };
 
@@ -317,7 +338,7 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                     <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-110 active:scale-95 transition-all"><img src={CITY_BACK_IMG} alt="Città" className="h-10 md:h-14" /></button>
                 </div>
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-white font-black text-sm border border-white/20 flex items-center gap-1 shadow-lg">
-                    <span>{progress.tokens}</span> <span className="text-lg">🪙</span>
+                    <span>{progress.tokens}</span> <TokenIcon className="w-4 h-4" />
                 </div>
             </div>
 
@@ -358,16 +379,20 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
 
                                 <div ref={scrollRef} className="w-full h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth items-center">
                                     <div className="flex-shrink-0 w-full h-full snap-center flex flex-col items-center justify-center p-4">
-                                        <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={viewingAlbum === 2 ? IMG_PACK_GOLD : IMG_PACK_STANDARD} className="h-full w-auto object-contain drop-shadow-2xl animate-float" alt="Pack" /></div>
-                                        <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Pacchetto {viewingAlbum === 2 ? 'Gold' : 'Standard'}</h3>
-                                        <button onClick={handleBuyPack} disabled={progress.tokens < packCost || packOpening} className="bg-green-500 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-green-800 shadow-xl active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50 text-xl">{packOpening ? 'APERTURA...' : `COMPRA ${packCost} 🪙`}</button>
+                                        <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_PACK_STANDARD} className="h-full w-auto object-contain drop-shadow-2xl animate-float" alt="Pack Standard" /></div>
+                                        <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Pacchetto Standard Edition</h3>
+                                        <button onClick={() => handleBuyPack(1)} disabled={progress.tokens < 50 || packOpening} className="bg-green-500 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-green-800 shadow-xl active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50 text-xl flex items-center gap-2">{packOpening ? 'APERTURA...' : <>COMPRA 50 <TokenIcon className="w-6 h-6" /></>}</button>
+                                    </div>
+                                    <div className="flex-shrink-0 w-full h-full snap-center flex flex-col items-center justify-center p-4">
+                                        <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_PACK_GOLD} className="h-full w-auto object-contain drop-shadow-2xl animate-float" alt="Pack Gold" /></div>
+                                        <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Pacchetto Gold Edition</h3>
+                                        <button onClick={() => handleBuyPack(2)} disabled={progress.tokens < 100 || packOpening} className="bg-green-500 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-green-800 shadow-xl active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50 text-xl flex items-center gap-2">{packOpening ? 'APERTURA...' : <>COMPRA 100 <TokenIcon className="w-6 h-6" /></>}</button>
                                     </div>
                                     <div className="flex-shrink-0 w-full h-full snap-center flex flex-col items-center justify-center p-4">
                                         <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_CALENDAR_BANNER} className="h-full w-auto object-contain drop-shadow-2xl" alt="Calendario" /></div>
                                         <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Calendario Magico</h3>
-                                        <button onClick={() => setView(AppView.CALENDAR)} className="bg-blue-600 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-blue-900 shadow-xl active:translate-y-1 active:border-b-0 transition-all text-xl">ENTRA 0 🪙</button>
+                                        <button onClick={() => setView(AppView.CALENDAR)} className="bg-blue-600 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-blue-900 shadow-xl active:translate-y-1 active:border-b-0 transition-all text-xl flex items-center gap-2">ENTRA 0 <TokenIcon className="w-6 h-6" /></button>
                                     </div>
-                                    <div className="flex-shrink-0 w-20"></div>
                                 </div>
                             </div>
                         )}
@@ -378,19 +403,49 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                     <div className="w-full h-full flex flex-col bg-transparent">
                         <div className="p-2 md:p-3 flex flex-wrap justify-center items-center gap-3 md:gap-6 bg-black/30 backdrop-blur-sm shrink-0 border-b border-white/10">
                             <div className="flex gap-2">
-                                <button onClick={() => setViewingAlbum(1)} className={`px-4 py-1.5 rounded-full font-black text-xs uppercase border-2 transition-all ${viewingAlbum === 1 ? 'bg-blue-500 border-white text-white shadow-lg scale-105' : 'bg-white/10 border-white/30 text-white/60 hover:bg-white/20'}`}>Vol. 1</button>
-                                <button onClick={() => setViewingAlbum(2)} disabled={progress.currentAlbum < 2} className={`px-4 py-1.5 rounded-full font-black text-xs uppercase border-2 transition-all ${viewingAlbum === 2 ? 'bg-yellow-500 border-white text-white shadow-lg scale-105' : 'bg-white/10 border-white/30 text-white/60 hover:bg-white/20'}`}>Vol. 2</button>
+                                <button onClick={() => setViewingAlbum(1)} className={`px-4 py-1.5 rounded-full font-black text-xs uppercase border-2 transition-all ${viewingAlbum === 1 ? 'bg-blue-500 border-white text-white shadow-lg scale-105' : 'bg-white/10 border-white/30 text-white/60 hover:bg-white/20'}`}>Standard</button>
+                                <button onClick={() => setViewingAlbum(2)} className={`px-4 py-1.5 rounded-full font-black text-xs uppercase border-2 transition-all ${viewingAlbum === 2 ? 'bg-yellow-500 border-white text-white shadow-lg scale-105' : 'bg-white/10 border-white/30 text-white/60 hover:bg-white/20'}`}>Gold</button>
                             </div>
                             <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-2xl border-2 border-orange-500/50 flex items-center gap-3 shadow-lg">
-                                <div className="text-left leading-none"><span className="block font-black text-orange-400 text-[8px] md:text-[9px] uppercase mb-0.5">Scambio Doppioni</span><span className="text-[10px] font-bold text-white/80">{Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0)}/5</span></div>
-                                <button onClick={handleExchangePack} disabled={(Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0) < 5) || packOpening} className="bg-orange-500 text-white font-black px-3 py-1 rounded-lg text-[9px] uppercase shadow-md active:scale-95 disabled:opacity-30 disabled:grayscale transition-all">{packOpening ? '...' : 'SCAMBIA'}</button>
+                                <div className="text-left leading-none">
+                                    <span className="block font-black text-orange-400 text-[8px] md:text-[9px] uppercase mb-0.5">Scambio Doppioni</span>
+                                    <span className="text-[10px] font-bold text-white/80">
+                                        {viewingAlbum === 2 
+                                            ? `${Math.max(progress.duplicatesVol2 || 0, progress.duplicateStickersVol2?.length || 0)}/5`
+                                            : `${Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0)}/5`
+                                        }
+                                    </span>
+                                </div>
+                                <button 
+                                    onClick={handleExchangePack} 
+                                    disabled={(viewingAlbum === 2 
+                                        ? Math.max(progress.duplicatesVol2 || 0, progress.duplicateStickersVol2?.length || 0) < 5
+                                        : Math.max(progress.duplicates || 0, progress.duplicateStickers?.length || 0) < 5
+                                    ) || packOpening} 
+                                    className="bg-orange-500 text-white font-black px-3 py-1 rounded-lg text-[9px] uppercase shadow-md active:scale-95 disabled:opacity-30 disabled:grayscale transition-all"
+                                >
+                                    {packOpening ? '...' : 'SCAMBIA'}
+                                </button>
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                             <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-20">
-                                {(viewingAlbum === 2 ? STICKERS_COLLECTION_VOL2 : STICKERS_COLLECTION).map(s => <div key={s.id}><StickerCard sticker={s} isOwned={progress.unlockedStickers.includes(s.id)} /></div>)}
+                                {(viewingAlbum === 2 ? STICKERS_COLLECTION_VOL2 : STICKERS_COLLECTION).map(s => (
+                                    <div key={s.id}>
+                                        <StickerCard 
+                                            sticker={s} 
+                                            isOwned={progress.unlockedStickers.includes(s.id)} 
+                                            onClick={() => {
+                                                if (progress.unlockedStickers.includes(s.id)) {
+                                                    setSelectedSticker(s);
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
+
                     </div>
                 )}
 
@@ -425,6 +480,46 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                     </div>
                 )}
             </div>
+
+            {/* FULL SCREEN STICKER VIEW - MOVED TO ROOT FOR Z-INDEX CONSISTENCY */}
+            {selectedSticker && (
+                <div 
+                    className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-2xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300"
+                    onClick={() => setSelectedSticker(null)}
+                >
+                    <button className="absolute top-28 right-6 md:top-40 md:right-10 text-white hover:scale-110 transition-transform z-[10000]">
+                        <X size={40} strokeWidth={3} />
+                    </button>
+                    
+                    <div className="relative max-w-[260px] md:max-w-xs w-full aspect-[3/4.2] flex items-center justify-center shadow-2xl">
+                        <div className={`w-full h-full bg-white rounded-3xl overflow-hidden border-8 relative ${
+                            { 'COMMON': 'border-gray-200', 'RARE': 'border-blue-400', 'EPIC': 'border-purple-500', 'LEGENDARY': 'border-yellow-400' }[selectedSticker.rarity]
+                        }`}>
+                            {/* Rarity Banner on the sticker */}
+                            <div className={`absolute top-0 right-0 px-4 py-1 rounded-bl-2xl text-white font-black uppercase text-[10px] md:text-xs z-30 shadow-lg ${
+                                { 'COMMON': 'bg-gray-400', 'RARE': 'bg-blue-500', 'EPIC': 'bg-purple-600', 'LEGENDARY': 'bg-yellow-500' }[selectedSticker.rarity]
+                            }`}>
+                                {{ 'COMMON': 'Comune', 'RARE': 'Rara', 'EPIC': 'Epica', 'LEGENDARY': 'Leggendaria' }[selectedSticker.rarity]}
+                            </div>
+
+                            <img 
+                                src={selectedSticker.image} 
+                                alt={selectedSticker.name} 
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="mt-8 text-center max-w-xs md:max-w-md px-4">
+                        <h3 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter mb-2 drop-shadow-lg">
+                            {selectedSticker.name}
+                        </h3>
+                        <p className="text-white/80 text-base md:text-xl font-bold italic drop-shadow-md">
+                            "{selectedSticker.description}"
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

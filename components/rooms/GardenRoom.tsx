@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../../types';
 import RoomLayout from './RoomLayout';
@@ -34,13 +33,13 @@ const HOUSE_ENTRANCE_AREA: Point[] = [
     { "x": 52.24, "y": 37.62 }
 ];
 
-// Parametri sveglia consolidati
+// Parametri sveglia consolidati - Top alzato da 56 a 44
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 40,
+    right: 1,
+    iconSize: 90,
+    timeSize: 24,
+    dateSize: 14,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -64,29 +63,10 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     
     const todayWeather = getWeatherForDate(now);
 
-    const getGardenBackground = () => {
-        const isNight = isNightTime(now);
-        if (isNight) {
-            switch (todayWeather) {
-                case 'WIND': return GARDEN_NIGHT_WIND;
-                case 'RAIN': return GARDEN_NIGHT_RAIN;
-                case 'SNOW': return GARDEN_NIGHT_SNOW;
-                default: return GARDEN_NIGHT_SUN;
-            }
-        } else {
-            switch (todayWeather) {
-                case 'WIND': return GARDEN_BG_WIND;
-                case 'RAIN': return GARDEN_BG_RAIN;
-                case 'SNOW': return GARDEN_BG_SNOW;
-                default: return GARDEN_BG_SUN;
-            }
-        }
-    };
-
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000);
 
-        const bgUrl = getGardenBackground();
+        const bgUrl = getBackgroundUrl();
         const img = new Image();
         img.src = bgUrl;
         img.onload = () => setIsLoaded(true);
@@ -146,7 +126,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                     </div>
                 )}
 
-                {/* SVEGLIA - LA TUA GIORNATA */}
+                {/* SVEGLIA - LA TUA GIORNATA (SOLO TESTO SENZA SFONDO) */}
                 <button 
                     onClick={() => setShowDailyModal(true)}
                     className="absolute z-50 transition-transform outline-none group hover:scale-105 active:scale-95"
@@ -159,22 +139,15 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                         className="relative flex items-center justify-center"
                         style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
                     >
-                        <img 
-                            src={CLOCK_SCREEN_IMG} 
-                            alt="Sveglia" 
-                            className="w-full h-full object-contain drop-shadow-2xl" 
-                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
-                        />
-                        
                         <div 
                             className="absolute inset-0 flex flex-col items-center justify-center"
                             style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
                         >
                             <div className="flex flex-col items-center justify-center">
                                 <span 
-                                    className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
+                                    className="font-luckiest text-orange-500 leading-none drop-shadow-md"
                                     style={{ 
-                                        WebkitTextStroke: '0.5px #431407',
+                                        WebkitTextStroke: '0.8px #431407',
                                         fontSize: `${CLOCK_STYLE.timeSize}px`
                                     }}
                                 >
@@ -183,7 +156,7 @@ const GardenRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
                                 <span 
                                     className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
                                     style={{ 
-                                        WebkitTextStroke: '0.3px #431407',
+                                        WebkitTextStroke: '0.5px #431407',
                                         fontSize: `${CLOCK_STYLE.dateSize}px`
                                     }}
                                 >

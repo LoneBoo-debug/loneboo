@@ -189,7 +189,7 @@ const SoundZone: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
         <div className="relative w-full h-full overflow-hidden">
             {/* TASTO ESCI PER LA CITTÀ */}
             {isLoaded && (
-                <div className="absolute top-20 md:top-28 left-4 z-50">
+                <div className="absolute top-12 md:top-8 left-4 z-50">
                     <button 
                         onClick={() => setView(AppView.CITY_MAP)}
                         className="hover:scale-105 active:scale-95 transition-all outline-none drop-shadow-xl"

@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { AppView } from '../types';
 import { X, Timer, MapPin, Check, AlertCircle, ZoomIn, List, Info, ArrowUpRight, Sun, Cloud, CloudRain } from 'lucide-react';
-import { OFFICIAL_LOGO } from '../constants';
+import { OFFICIAL_LOGO, TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { getProgress, spendTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
 import DailyRewardsModal from './DailyRewardsModal';
 import { monthNames } from '../services/calendarDatabase';
 
-const MAP_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietteriadovevai887xs32.webp';
-const MAP_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietterinotteasx.webp';
+const MAP_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietterigiornodaysun456.webp';
+const MAP_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliettenottenught678.webp';
 const TRAVEL_VIDEO_DAY_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinasewsq.mp4';
 const TRAVEL_VIDEO_NIGHT_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/viaggio+notte.mp4';
 const TRAVEL_CENTER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trinviagibimbd45f42.webp';
@@ -31,13 +31,13 @@ const ICON_WEATHER_SUNNY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/s
 const ICON_WEATHER_CLOUDY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvolosoviaggio883ujws.webp';
 const ICON_WEATHER_RAINY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tempestaviaggio88.webp';
 
-// Parametri sveglia consolidati
+// Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 40,
+    right: 1,
+    iconSize: 90,
+    timeSize: 24,
+    dateSize: 14,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -69,7 +69,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         name: "Città degli Arcobaleni",
         cost: 0,
         points: [{ x: 52.24, y: 81.98 }, { x: 52.24, y: 92.18 }, { x: 95.68, y: 91.88 }, { x: 96.22, y: 82.13 }],
-        labelPos: { x: 94, y: 93.5 },
+        labelPos: { x: 94, y: 94.5 },
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliettocittaarcobaleni775f.webp',
         duration: "4 ore",
         distance: "55 km",
@@ -98,7 +98,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         name: "Città Grigia",
         cost: 0,
         points: [{ x: 4, y: 68.35 }, { x: 3.73, y: 78.39 }, { x: 46.91, y: 78.69 }, { x: 47.17, y: 68.5 }],
-        labelPos: { x: 45, y: 79.5 },
+        labelPos: { x: 45, y: 80.5 },
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliettcittagrigidsk45.webp',
         duration: "1 ora",
         distance: "15 km",
@@ -107,7 +107,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         maxMinutes: 60,
         pathPoints: [
             {"x": 46.94,"y": 26.31},{"x": 49.85,"y": 27.15},{"x": 53.64,"y": 26.14},{"x": 55.98,"y": 24.62},{"x": 56.56,"y": 22.09},
-            {"x": 57.14,"y": 19.73},{"x": 58.31,"y": 17.54},{"x": 61.52,"y": 17.03},{"x": 65.89,"y": 15.85},{"x": 69.39,"y": 15.51},
+            {"x": 57.14,"y": 19.73},{"x": 61.52,"y": 17.03},{"x": 65.89,"y": 15.85},{"x": 69.39,"y": 15.51},
             {"x": 72.01,"y": 15.51},{"x": 74.93,"y": 14.84}
         ]
     },
@@ -116,7 +116,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         name: "Città delle Montagne",
         cost: 0,
         points: [{ x: 3.73, y: 81.98 }, { x: 4, y: 92.33 }, { x: 46.64, y: 92.48 }, { x: 47.17, y: 81.83 }],
-        labelPos: { x: 45, y: 93.5 },
+        labelPos: { x: 45, y: 94.5 },
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/biglietocittamontagnej55eed.webp',
         duration: "3 ore",
         distance: "45 km",
@@ -142,7 +142,7 @@ const FINAL_ZONES: ZoneInfo[] = [
         name: "Città dei Laghi",
         cost: 0,
         points: [{ x: 52.77, y: 68.2 }, { x: 52.77, y: 78.39 }, { x: 95.95, y: 78.54 }, { x: 96.22, y: 68.79 }],
-        labelPos: { x: 94, y: 79.5 },
+        labelPos: { x: 94, y: 80.5 },
         ticketImg: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bigliecittadeilaghir43ws2.webp',
         duration: "1 ora 30 minuti",
         distance: "20 km",
@@ -189,7 +189,10 @@ const MapImageModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                         <span className="font-black text-[7px] md:text-[9px] uppercase text-blue-300 truncate max-w-[60px] md:max-w-[100px]">{z.name.replace('Città ', '')}</span>
                                         <div className="flex gap-2 text-[6px] md:text-[8px] font-bold opacity-60">
                                             <span>{z.distance}</span>
-                                            <span>{z.cost}🪙</span>
+                                            <div className="flex items-center gap-0.5">
+                                                <span>{z.cost}</span>
+                                                <TokenIcon className="w-2 h-2" />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -237,7 +240,7 @@ const MapImageModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                                 </div>
                                                 <div className="w-px h-6 bg-white/10"></div>
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-sm mb-0.5">🪙</span>
+                                                    <TokenIcon className="w-3 h-3 mb-0.5" />
                                                     <span className="text-[10px] md:text-xs font-black text-yellow-400">{z.cost}</span>
                                                 </div>
                                             </div>
@@ -424,7 +427,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const handlePurchase = () => {
         if (!selectedZone) return;
         if (userTokens >= selectedZone.cost) {
-            if (selectedZone.cost > 0) spendTokens(selectedZone.cost);
+            if (selectedZone.cost > 0) spendTokens(selectedZone.cost, `Viaggio a ${selectedZone.name}`);
             startTravelAnimation(selectedZone);
         }
     };
@@ -533,14 +536,22 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
             {/* HUD SALDO GETTONI - Spostato a sinistra */}
             {!isTraveling && isLoaded && (
-                <div className="fixed top-24 md:top-32 left-0 right-0 px-4 flex justify-start items-center z-50 pointer-events-none">
-                    <div className="pointer-events-auto bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl shadow-black/50">
-                        <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                <div 
+                    className="fixed z-50 pointer-events-none flex items-center justify-center"
+                    style={{ 
+                        top: `${CLOCK_STYLE.top}px`, 
+                        left: `${CLOCK_STYLE.right}px`,
+                        width: `${CLOCK_STYLE.iconSize}px`,
+                        height: `${CLOCK_STYLE.iconSize}px`
+                    }}
+                >
+                    <div className="pointer-events-auto bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-xs md:text-base shadow-xl shadow-black/50">
+                        <span>{userTokens}</span> <TokenIcon className="w-4 h-4 md:w-5 md:h-5" />
                     </div>
                 </div>
             )}
 
-            {/* SVEGLIA - LA TUA GIORNATA (IDENTICA AL GIARDINO) */}
+            {/* SVEGLIA - LA TUA GIORNATA (SOLO TESTO) */}
             {isLoaded && !isTraveling && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
@@ -554,13 +565,6 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                         className="relative flex items-center justify-center"
                         style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
                     >
-                        <img 
-                            src={CLOCK_SCREEN_IMG} 
-                            alt="Sveglia" 
-                            className="w-full h-full object-contain drop-shadow-2xl" 
-                            style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
-                        />
-                        
                         <div 
                             className="absolute inset-0 flex flex-col items-center justify-center"
                             style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
@@ -569,7 +573,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                                 <span 
                                     className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
                                     style={{ 
-                                        WebkitTextStroke: '0.5px #431407',
+                                        WebkitTextStroke: '0.8px #431407',
                                         fontSize: `${CLOCK_STYLE.timeSize}px`
                                     }}
                                 >
@@ -578,7 +582,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                                 <span 
                                     className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
                                     style={{ 
-                                        WebkitTextStroke: '0.3px #431407',
+                                        WebkitTextStroke: '0.5px #431407',
                                         fontSize: `${CLOCK_STYLE.dateSize}px`
                                     }}
                                 >
@@ -693,10 +697,10 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     <React.Fragment key={zone.id}>
                         <div onClick={(e) => { e.stopPropagation(); setSelectedZone(zone); }} className="absolute inset-0 z-10 cursor-pointer hover:bg-white/10 active:bg-white/20 transition-all" style={{ clipPath: getClipPath(zone.points) }} />
                         <div className="absolute z-20 pointer-events-none transform -translate-x-full -translate-y-full" style={{ left: `${zone.labelPos.x}%`, top: `${zone.labelPos.y}%` }}>
-                            <div className="bg-white/95 backdrop-blur-sm border-2 border-orange-500 px-2 py-0.5 md:px-3 md:py-1 rounded-full shadow-lg flex items-center gap-1">
+                            <div className="bg-white/95 backdrop-blur-sm border-2 border-orange-500 px-2 py-0.5 md:px-3 md:py-1 rounded-full shadow-lg flex items-center justify-center gap-1 min-w-[75px] md:min-w-[110px]">
                                 <span className="font-black text-[9px] md:text-sm text-orange-600 uppercase leading-none">Costo:</span>
                                 <span className="font-black text-[10px] md:text-base text-black leading-none">{zone.cost}</span>
-                                <span className="text-xs md:text-sm leading-none">🪙</span>
+                                <TokenIcon className="w-3 h-3 md:w-4 md:h-4" />
                             </div>
                         </div>
                     </React.Fragment>
@@ -705,33 +709,33 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
             {selectedZone && !isTraveling && (
                 <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={handleCancel}>
-                    <div className="bg-white rounded-[40px] border-8 border-orange-500 p-6 md:p-8 w-full max-lg text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-[40px] border-8 border-orange-500 p-4 md:p-6 w-full max-w-lg text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center" onClick={e => e.stopPropagation()}>
                         <button onClick={handleCancel} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"><X size={24} strokeWidth={4} /></button>
 
-                        <div className="w-full flex flex-row items-center gap-4 md:gap-6 mb-8 text-left bg-slate-50 p-4 rounded-[30px] border-4 border-slate-100 shadow-inner">
-                            <div className="w-32 md:w-44 shrink-0 flex items-center justify-center">
+                        <div className="w-full flex flex-row items-center gap-4 md:gap-6 mb-4 text-left bg-slate-50 p-3 rounded-[30px] border-4 border-slate-100 shadow-inner">
+                            <div className="w-28 md:w-36 shrink-0 flex items-center justify-center">
                                 <img src={selectedZone.ticketImg} alt="Biglietto" className="w-full h-full object-contain drop-shadow-lg" />
                             </div>
                             <div className="flex flex-col min-w-0">
                                 <h2 className="text-blue-900 font-black uppercase text-[10px] md:text-xs tracking-tight leading-none mb-1">Biglietto di viaggio</h2>
-                                <h3 className="text-orange-600 font-black text-lg md:text-2xl uppercase leading-tight mb-3 break-words overflow-visible">{selectedZone.name}</h3>
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2 text-gray-500"><Timer size={16} className="text-blue-400 shrink-0" /><span className="text-[11px] md:text-sm font-bold leading-none">Durata: <span className="text-slate-800">{selectedZone.duration}</span></span></div>
-                                    <div className="flex items-center gap-2 text-gray-500"><MapPin size={16} className="text-blue-400 shrink-0" /><span className="text-[11px] md:text-sm font-bold leading-none">Distanza: <span className="text-slate-800">{selectedZone.distance}</span></span></div>
+                                <h3 className="text-orange-600 font-black text-base md:text-xl uppercase leading-tight mb-1 break-words overflow-visible">{selectedZone.name}</h3>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-gray-500"><Timer size={14} className="text-blue-400 shrink-0" /><span className="text-[10px] md:text-xs font-bold leading-none">Durata: <span className="text-slate-800">{selectedZone.duration}</span></span></div>
+                                    <div className="flex items-center gap-2 text-gray-500"><MapPin size={14} className="text-blue-400 shrink-0" /><span className="text-[10px] md:text-xs font-bold leading-none">Distanza: <span className="text-slate-800">{selectedZone.distance}</span></span></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="w-full bg-slate-100/50 rounded-2xl p-4 border-2 border-slate-200 mb-8 flex flex-col gap-2">
-                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-xs">Prezzo Biglietto</span><span className="font-black text-lg">{selectedZone.cost} 🪙</span></div>
+                        <div className="w-full bg-slate-100/50 rounded-2xl p-3 border-2 border-slate-200 mb-4 flex flex-col gap-1.5">
+                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-[10px]">Prezzo Biglietto</span><div className="flex items-center gap-1"><span className="font-black text-base">{selectedZone.cost}</span><TokenIcon className="w-4 h-4" /></div></div>
                             <div className="h-px bg-slate-200"></div>
-                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-xs">I tuoi Gettoni</span><span className={`font-black text-lg ${userTokens >= selectedZone.cost ? 'text-green-600' : 'text-red-500'}`}>{userTokens} 🪙</span></div>
+                            <div className="flex justify-between items-center"><span className="text-gray-400 font-bold uppercase text-[10px]">I tuoi Gettoni</span><div className="flex items-center gap-1"><span className={`font-black text-base ${userTokens >= selectedZone.cost ? 'text-green-600' : 'text-red-500'}`}>{userTokens}</span><TokenIcon className="w-4 h-4" /></div></div>
                         </div>
 
                         {userTokens >= selectedZone.cost ? (
-                            <button onClick={handlePurchase} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-40 md:w-56 h-auto drop-shadow-xl" /></button>
+                            <button onClick={handlePurchase} className="w-full hover:scale-105 active:scale-95 transition-all outline-none flex items-center justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-36 md:w-48 h-auto drop-shadow-xl" /></button>
                         ) : (
-                            <div className="flex flex-row items-center gap-4 w-full justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-28 md:w-36 h-auto opacity-50 grayscale pointer-events-none" /><span className="text-red-500 font-black text-[10px] md:text-sm uppercase leading-tight text-left max-w-[120px]">Non hai abbastanza gettoni per questo viaggio!</span></div>
+                            <div className="flex flex-row items-center gap-4 w-full justify-center"><img src={BTN_PAY_AND_GO} alt="PAGA E PARTI!" className="w-24 md:w-32 h-auto opacity-50 grayscale pointer-events-none" /><span className="text-red-500 font-black text-[10px] md:text-xs uppercase leading-tight text-left max-w-[120px]">Non hai abbastanza gettoni!</span></div>
                         )}
                     </div>
                 </div>

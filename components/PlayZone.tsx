@@ -1,8 +1,9 @@
-
 import React, { useState, Suspense, useEffect, useRef, useMemo, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { getProgress, addTokens } from '../services/tokens';
-import { OFFICIAL_LOGO } from '../constants';
+import { OFFICIAL_LOGO, TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { AppView } from '../types';
 import { getWeatherForDate, isNightTime } from '../services/weatherService';
 import DailyRewardsModal from './DailyRewardsModal';
@@ -15,6 +16,7 @@ const TicTacToeGame = lazy(() => import('./TicTacToeGame'));
 const WhackGhostGame = lazy(() => import('./WhackGhostGame'));
 const RPSGame = lazy(() => import('./RPSGame'));
 const SimonGame = lazy(() => import('./SimonGame'));
+// Updated lazy import for MathGame to match the default export in MathGame.tsx
 const MathGame = lazy(() => import('./MathGame'));
 const OddOneOutGame = lazy(() => import('./OddOneOutGame'));
 const GuessNumberGame = lazy(() => import('./GuessNumberGame'));
@@ -40,7 +42,7 @@ const PLAY_NIGHT_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parc
 
 const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 
-// Asset Audio e Video
+// Asset Audio e Video Ambientali
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/parcogiochispeechboo6tr64.mp3';
 const BOO_TALK_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tmpzpu5rw91.mp4';
 
@@ -164,13 +166,13 @@ const INITIAL_MAP_DATA: Record<string, Point[]> = {
   ]
 };
 
-// Parametri sveglia consolidati
+// Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 40,
+    right: 1,
+    iconSize: 90,
+    timeSize: 24,
+    dateSize: 14,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -186,6 +188,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
   const [tokenBalance, setTokenBalance] = useState(() => getProgress().tokens);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showCoinAnimation, setShowCoinAnimation] = useState(false);
   const [showDailyModal, setShowDailyModal] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -286,6 +289,20 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
     };
   }, [activeGame, isAudioOn, currentBgMobile, currentBgDesktop]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPlaying) {
+      timer = setTimeout(() => {
+        setShowCoinAnimation(true);
+        // Sequence: 1.5s zoom in/travel, 7s rotate, 1.5s zoom out/travel = 10s total
+        setTimeout(() => setShowCoinAnimation(false), 10000);
+      }, 35000);
+    } else {
+      setShowCoinAnimation(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isPlaying]);
+
   const getClipPath = (points: Point[]) => {
       if (!points || points.length < 3) return 'none';
       return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
@@ -331,21 +348,21 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
             <span className="text-white font-black tracking-widest uppercase">Preparo il gioco...</span>
           </div>
         }>
-          {activeGame === GameType.QUIZ && <QuizGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.MEMORY && <MemoryGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.TICTACTOE && <TicTacToeGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.WHACK && <WhackGhostGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.RPS && <RPSGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
-          {activeGame === GameType.SIMON && <SimonGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.MATH && <MathGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
-          {activeGame === GameType.ODD && <OddOneOutGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.GUESS && <GuessNumberGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
-          {activeGame === GameType.CHECKERS && <CheckersGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.CHESS && <ChessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.CONNECT4 && <ConnectFourGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.WORDGUESS && <WordGuessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
-          {activeGame === GameType.ARCADE && <ArcadeConsole onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
-          {activeGame === GameType.BINGO && <BingoGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n)} />}
+          {activeGame === GameType.QUIZ && <QuizGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Quiz')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.MEMORY && <MemoryGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Memory')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.TICTACTOE && <TicTacToeGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Tris')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.WHACK && <WhackGhostGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Acchiappa Boo')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.RPS && <RPSGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Morra')} />}
+          {activeGame === GameType.SIMON && <SimonGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Simon Boo')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.MATH && <MathGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Matematica Magica')} />}
+          {activeGame === GameType.ODD && <OddOneOutGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Trova l\'Intruso')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.GUESS && <GuessNumberGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Indovina il Numero')} />}
+          {activeGame === GameType.CHECKERS && <CheckersGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Dama')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.CHESS && <ChessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Scacchi')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.CONNECT4 && <ConnectFourGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Forza 4')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.WORDGUESS && <WordGuessGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Indovina la Parola')} onOpenNewsstand={() => setView(AppView.NEWSSTAND)} />}
+          {activeGame === GameType.ARCADE && <ArcadeConsole onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Sala Giochi')} />}
+          {activeGame === GameType.BINGO && <BingoGame onBack={() => setActiveGame(GameType.NONE)} onEarnTokens={n => addTokens(n, 'Premio Bingo')} />}
         </Suspense>
       </div>
     );
@@ -369,7 +386,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         </div>
       )}
 
-      {/* SVEGLIA - LA TUA GIORNATA (SPOSTATA DA GIARDINO) */}
+      {/* SVEGLIA - LA TUA GIORNATA (SOLO TESTO) */}
       {isLoaded && activeGame === GameType.NONE && (
         <button 
             onClick={() => setShowDailyModal(true)}
@@ -383,13 +400,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
                 className="relative flex items-center justify-center"
                 style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}
             >
-                <img 
-                    src={CLOCK_SCREEN_IMG} 
-                    alt="Sveglia" 
-                    className="w-full h-full object-contain drop-shadow-2xl" 
-                    style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }}
-                />
-                
                 <div 
                     className="absolute inset-0 flex flex-col items-center justify-center"
                     style={{ paddingTop: `${CLOCK_STYLE.paddingTop}px` }}
@@ -398,7 +408,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
                         <span 
                             className="font-luckiest text-orange-500 leading-none drop-shadow-sm"
                             style={{ 
-                                WebkitTextStroke: '0.5px #431407',
+                                WebkitTextStroke: '0.8px #431407',
                                 fontSize: `${CLOCK_STYLE.timeSize}px`
                             }}
                         >
@@ -407,7 +417,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
                         <span 
                             className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5 opacity-90"
                             style={{ 
-                                WebkitTextStroke: '0.3px #431407',
+                                WebkitTextStroke: '0.5px #431407',
                                 fontSize: `${CLOCK_STYLE.dateSize}px`
                             }}
                         >
@@ -430,7 +440,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         {isLoaded && (
           <div className="absolute top-[74%] right-[4%] z-[60] animate-in slide-in-from-bottom-2 duration-700 pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl transition-transform hover:scale-105">
-                  <span>{tokenBalance}</span> <span className="text-xl">🪙</span>
+                  <span>{tokenBalance}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
           </div>
         )}
@@ -452,6 +462,44 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
       </div>
 
       {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.PLAY} />}
+
+      <AnimatePresence>
+        {showCoinAnimation && (
+          <motion.div
+            initial={{ 
+              scale: 0, 
+              x: '40vw', 
+              y: '30vh',
+              opacity: 0,
+              rotateY: 0
+            }}
+            animate={{ 
+              scale: [0, 1, 1, 0],
+              x: ['40vw', '0vw', '0vw', '40vw'],
+              y: ['30vh', '0vh', '0vh', '30vh'],
+              opacity: [0, 1, 1, 0],
+              rotateY: [0, 0, 2520, 2520]
+            }}
+            transition={{
+              duration: 10,
+              times: [0, 0.15, 0.85, 1],
+              ease: "easeInOut",
+              rotateY: {
+                duration: 7,
+                delay: 1.5,
+                ease: "linear"
+              }
+            }}
+            className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
+          >
+            <img 
+              src="https://loneboo-images.s3.eu-south-1.amazonaws.com/iconmoneyloneboo.webp" 
+              alt="Magic Coin" 
+              className="w-32 h-32 md:w-64 md:h-64 object-contain drop-shadow-[0_0_50px_rgba(255,215,0,0.8)]"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AppView } from '../types';
 import CityExplorationModal from './CityExplorationModal';
 
-const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/leghicitybgder55tgf.webp';
+const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lakebgroundcuty543.webp';
 
 const EXPLORATION_ITEMS = [
     { 

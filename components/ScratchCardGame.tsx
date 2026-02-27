@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Star, Percent, Check, Lock, ShieldCheck } from 'lucide-react';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { addTokens } from '../services/tokens';
 
 const BG_SCRATCH = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/game-scratch-card.webp';
@@ -98,7 +100,7 @@ const ScratchArea: React.FC<{ points: ScratchPoint[], value: number, prize?: num
         <div className="absolute overflow-hidden" style={{ left: `${minX}%`, top: `${minY}%`, width: `${width}%`, height: `${height}%` }}>
             <div className="absolute inset-0 bg-white flex flex-col items-center justify-center p-1 pointer-events-none select-none">
                 <span className="font-black text-blue-900 text-xl md:text-4xl leading-none">{value}</span>
-                {prize && <span className="text-[8px] md:text-xs font-black text-green-600 mt-0.5">{prize}🪙</span>}
+                {prize && <div className="flex items-center gap-0.5 mt-0.5"><span className="text-[8px] md:text-xs font-black text-green-600">{prize}</span><TokenIcon className="w-2 h-2 md:w-3 md:h-3" /></div>}
             </div>
             <canvas ref={canvasRef} className="absolute inset-0 cursor-crosshair touch-none" 
                 onMouseDown={(e) => { isDrawing.current = true; scratch(e.clientX, e.clientY); }}
@@ -270,11 +272,11 @@ const ScratchCardGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <h4 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2 font-luckiest uppercase"><Percent className="text-boo-purple" size={26} /> Vincite</h4>
                             <table className="w-full text-sm md:text-lg">
                                 <tbody className="font-bold text-slate-600">
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">500 Gettoni 🪙</td><td className="text-right text-red-500 font-black">Rarissimo (0.5%)</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">100 Gettoni 🪙</td><td className="text-right text-orange-500 font-black">Raro (1.5%)</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">50 Gettoni 🪙</td><td className="text-right text-yellow-600 font-black">Speciale (4%)</td></tr>
-                                    <tr className="border-b-2 border-slate-200"><td className="py-2">10-20 Gettoni 🪙</td><td className="text-right text-blue-600 font-black">Buona (19%)</td></tr>
-                                    <tr><td className="py-2">2-5 Gettoni 🪙</td><td className="text-right text-green-600 font-black">Comune (75%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2 flex items-center gap-1">500 <TokenIcon className="w-4 h-4" /></td><td className="text-right text-red-500 font-black">Rarissimo (0.5%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2 flex items-center gap-1">100 <TokenIcon className="w-4 h-4" /></td><td className="text-right text-orange-500 font-black">Raro (1.5%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2 flex items-center gap-1">50 <TokenIcon className="w-4 h-4" /></td><td className="text-right text-yellow-600 font-black">Speciale (4%)</td></tr>
+                                    <tr className="border-b-2 border-slate-200"><td className="py-2 flex items-center gap-1">10-20 <TokenIcon className="w-4 h-4" /></td><td className="text-right text-blue-600 font-black">Buona (19%)</td></tr>
+                                    <tr><td className="py-2 flex items-center gap-1">2-5 <TokenIcon className="w-4 h-4" /></td><td className="text-right text-green-600 font-black">Comune (75%)</td></tr>
                                 </tbody>
                             </table>
                         </div>

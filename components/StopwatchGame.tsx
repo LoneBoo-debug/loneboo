@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AppView } from '../types';
 import { addTokens, getProgress } from '../services/tokens';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { Trophy, Volume2, VolumeX } from 'lucide-react';
 import RobotHint from './RobotHint';
 
@@ -257,14 +259,14 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 </div>
 
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
-                    <span>{tokens}</span> <span className="text-xl">🪙</span>
+                    <span>{tokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>
 
             {/* RobotHint FISSO DURANTE IL GIOCO */}
             <RobotHint 
                 show={true} 
-                message={"STOPPA IL TIMER\nAL MOMENTO GIUSTO\n(VINCI 30 🪙)"} 
+                message={"STOPPA IL TIMER\nAL MOMENTO GIUSTO\n(VINCI 30 GETTONI)"} 
                 variant="YELLOW" 
             />
 
@@ -303,7 +305,7 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                                         CHE RIFLESSI! SEI UN FENOMENO!
                                     </p>
                                     <div className="bg-yellow-400 text-black font-black px-6 py-2 rounded-2xl border-4 border-black shadow-[4px_4px_0_black] animate-bounce flex items-center gap-2 text-lg md:text-xl mt-10">
-                                        <Trophy size={24} /> +30 GETTONI!
+                                        <Trophy size={24} /> +30 <TokenIcon className="w-6 h-6" />
                                     </div>
                                 </div>
                             ) : (

@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RotateCcw, Loader2 } from 'lucide-react';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 
@@ -62,7 +64,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       // Inizializza Audio
@@ -329,7 +331,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
         <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
-                <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             
             {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
@@ -347,10 +349,17 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
         
         {/* AREA CONTENUTO */}
-        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
+        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-48 md:pt-60">
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
-                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] relative">
+                        {/* Box istruzioni spostato SOPRA i tasti con posizionamento assoluto per non spostare i tasti stessi */}
+                        <div className="absolute -top-16 md:-top-20 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4 w-max max-w-[90vw]">
+                            <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
+                                Scegli un livello e sfida il nonno a Dama!
+                            </p>
+                        </div>
+
                         <button onClick={() => handleLevelSelect('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
                             <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
                         </button>
@@ -367,11 +376,6 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                                 </div>
                             )}
                         </div>
-                    </div>
-                    <div className="mt-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
-                        <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
-                            Scegli un livello e sfida il nonno a Dama!
-                        </p>
                     </div>
                 </div>
             ) : (
@@ -434,8 +438,8 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                                 </div>
 
                                 {winner === 'RED' && (
-                                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-block whitespace-nowrap shadow-lg transform rotate-[-2deg]">
-                                        +{difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20} GETTONI! 🪙
+                                    <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-flex items-center gap-2 whitespace-nowrap shadow-lg transform rotate-[-2deg]">
+                                        +{difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20} GETTONI! <TokenIcon className="w-5 h-5" />
                                     </div>
                                 )}
 

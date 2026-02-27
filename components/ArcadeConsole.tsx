@@ -162,7 +162,7 @@ const ArcadeConsole: React.FC<ArcadeConsoleProps> = ({ onBack, onEarnTokens }) =
             const isArcade = GAMES_ARCADE.some(g => g.id === activeGameId);
             return (
                 <WebGamePlayer 
-                    src={game.embedUrl || ''} 
+                    src={game.embedUrl || undefined} 
                     title={game.title} 
                     onBack={() => setActiveGameId(null)}
                     isFullScreen={isArcade}

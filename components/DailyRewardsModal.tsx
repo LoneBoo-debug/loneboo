@@ -4,7 +4,8 @@ import { X, Sparkles, MessageCircle, Gamepad2, Clock, Star, Info } from 'lucide-
 import { AppView, PlayerProgress } from '../types';
 import { addTokens, getProgress } from '../services/tokens';
 import { CALENDAR_INFO, monthNames } from '../services/calendarDatabase';
-import { ATELIER_COMBO_CSV_URL } from '../constants';
+import { ATELIER_COMBO_CSV_URL, TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { getForecast } from '../services/weatherService';
 
 interface DailyRewardsModalProps {
@@ -32,8 +33,27 @@ const SPECIAL_OVERLAYS: Record<string, string> = {
     'S2': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp',
     'S3': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccahalloweenboocarxe4e3ws.webp',
     'S4': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boxcompete55rt44+(1).webp',
-    'S5': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp'
+    'S5': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp',
+    'SUB_ELF_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elfatelierscoiru54.webp',
+    'SUB_DEMOGORGON_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/demogorgoboo8ur.webp',
+    'SUB_NINJA_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ninjiaboosocuteate44.webp',
+    'SUB_ROBOT_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rbotoneboodww+(1).webp',
+    'SUB_GLADIATOR_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gladiatorboodnej33+(1).webp',
+    'SUB_TSHIRT_RUDEN': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rudenfien4wsd.webp',
+    'SUB_TSHIRT_MAGIC': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/magictoeern4w.webp',
+    'SUB_TSHIRT_ONEBOO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/onebootshirtue432.webp',
+    'SUB_TSHIRT_COORAA': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cooraaoscurobooe4.webp',
+    'SUB_TSHIRT_LONEBOO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/loneboooscurotshirt.webp',
+    'SUB_OBJ_CLOWN_NOSE': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nasorossoclownboo5.webp',
+    'SUB_OBJ_NECKLACE': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/collanaboooscuro.webp',
+    'SUB_OBJ_EYEPATCH': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bendaocchiboooscur.webp',
+    'SUB_HAT_BASCO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bascooscuroboo5jen3.webp',
+    'SUB_HAT_ELMO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elmooscuroboo54.webp',
+    'SUB_HAT_MAGO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/magoboooscuro6789.webp',
+    'SUB_HAT_COWBOY': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cowboyoscuro44e23.webp'
 };
+
+const HIDES_BASE_CLOTHING = ['SUB_ELF_OUTFIT', 'SUB_DEMOGORGON_OUTFIT', 'SUB_NINJA_OUTFIT', 'SUB_ROBOT_OUTFIT', 'SUB_GLADIATOR_OUTFIT', 'S5'];
 
 const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView, currentView }) => {
     const [now, setNow] = useState(new Date());
@@ -42,6 +62,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
     const [showClaimSuccess, setShowClaimSuccess] = useState(false);
     const [comboMap, setComboMap] = useState<Record<string, string>>({});
     const [displayMode, setDisplayMode] = useState<'BOO' | 'EVENT'>('BOO');
+    const [viewMode, setViewMode] = useState<'STANDARD' | 'STATEMENT'>('STANDARD');
 
     const dateKey = useMemo(() => `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`, [now]);
     const holidayInfo = useMemo(() => CALENDAR_INFO[dateKey], [dateKey]);
@@ -111,30 +132,40 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
     const currentBooImage = useMemo(() => {
         const look = progress.equippedClothing;
-        const isHeadOverlayWorn = look.special2 === 'S2' || look.special3 === 'S3' || look.special4 === 'S4';
-        const isBodyOverlayWorn = look.special5 === 'S5';
+        const isHeadOverlayWorn = look.special2 === 'S2' || look.special3 === 'S3' || look.special4 === 'S4' || (look.special5 && HIDES_BASE_CLOTHING.includes(look.special5)) || (look.hat && SPECIAL_OVERLAYS[look.hat]);
+        const isBodyOverlayWorn = (look.special5 && HIDES_BASE_CLOTHING.includes(look.special5)) || (look.tshirt && SPECIAL_OVERLAYS[look.tshirt]);
+        
         const effectiveHat = isHeadOverlayWorn ? undefined : look.hat;
         const effectiveTshirt = isBodyOverlayWorn ? undefined : look.tshirt;
+        
         const activeIds = [effectiveTshirt, effectiveHat, look.glasses].filter(Boolean).map(id => (id as string).toUpperCase());
         if (activeIds.length === 0) return BOO_BASE;
         const currentKey = [...activeIds].sort().join('_');
         if (comboMap[currentKey]) return comboMap[currentKey];
+
+        // Fallback: se la combo non esiste, prova a cercare i singoli pezzi in ordine di priorità
+        // Includiamo anche i pezzi originali se quelli "effective" sono undefined (perché sono diventati overlay)
         const priorityOrder: (keyof typeof look)[] = ['glasses', 'hat', 'tshirt'];
         for (const key of priorityOrder) {
-            const idToUse = key === 'hat' ? effectiveHat : (key === 'tshirt' ? effectiveTshirt : look[key]);
+            const idToUse = look[key];
             const idStr = (idToUse as string | undefined)?.toUpperCase();
             if (idStr && comboMap[idStr]) return comboMap[idStr];
         }
+
         return BOO_BASE;
     }, [progress.equippedClothing, comboMap]);
 
     const specialOverlayImages = useMemo(() => {
         const layers: string[] = []; const look = progress.equippedClothing;
-        if (look.special5 === 'S5') layers.push(SPECIAL_OVERLAYS['S5']);
-        if (look.special === 'S1') layers.push(SPECIAL_OVERLAYS['S1']);
-        if (look.special2 === 'S2') layers.push(SPECIAL_OVERLAYS['S2']);
-        if (look.special3 === 'S3') layers.push(SPECIAL_OVERLAYS['S3']);
-        if (look.special4 === 'S4') layers.push(SPECIAL_OVERLAYS['S4']);
+        if (look.special5 && SPECIAL_OVERLAYS[look.special5]) layers.push(SPECIAL_OVERLAYS[look.special5]);
+        
+        const slots: (keyof typeof look)[] = ['glasses', 'tshirt', 'hat', 'special', 'special2', 'special3', 'special4'];
+        slots.forEach(slot => {
+            const id = look[slot];
+            if (id && SPECIAL_OVERLAYS[id]) {
+                layers.push(SPECIAL_OVERLAYS[id]);
+            }
+        });
         return layers;
     }, [progress.equippedClothing]);
 
@@ -154,7 +185,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
         return { text: "sei ancora qui? guarda l'orario è tardi, spegniamo su...", img: "https://loneboo-images.s3.eu-south-1.amazonaws.com/booarrabbiato4r33e+(1).webp" };
     };
 
-    const handleClaim = () => { if (!hasClaimed) { addTokens(5); localStorage.setItem('loneboo_daily_tokens_last_claim', new Date().toISOString().split('T')[0]); setHasClaimed(true); setShowClaimSuccess(true); setProgress(getProgress()); } };
+    const handleClaim = () => { if (!hasClaimed) { addTokens(5, 'Premio Giornaliero'); localStorage.setItem('loneboo_daily_tokens_last_claim', new Date().toISOString().split('T')[0]); setHasClaimed(true); setShowClaimSuccess(true); setProgress(getProgress()); } };
     const handleNavigate = (target: AppView, originKey?: string) => { if (currentView) { if (originKey) sessionStorage.setItem(originKey, currentView); if (target === AppView.SCHOOL) sessionStorage.setItem('school_origin', currentView); if (target === AppView.PLAY) sessionStorage.setItem('play_origin', currentView); } onClose(); setView(target); };
 
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
@@ -178,93 +209,151 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
                 <div className="bg-white/20 p-4 flex justify-between items-center border-b border-white/10 shrink-0 relative z-10">
                     <div className="flex items-center gap-3 flex-1">
-                        <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-white/50 flex items-center gap-1.5 text-white font-black text-xs md:text-base shadow-lg shrink-0">
-                            <span>{progress.tokens}</span> <span className="text-lg">🪙</span>
-                        </div>
+                        {viewMode === 'STATEMENT' && (
+                            <button 
+                                onClick={() => setViewMode('STANDARD')}
+                                className="bg-white/20 text-white p-1.5 rounded-full hover:bg-white/40 transition-all shrink-0"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setViewMode('STATEMENT')}
+                            className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-white/50 flex items-center gap-1.5 text-white font-black text-xs md:text-base shadow-lg shrink-0 hover:scale-105 active:scale-95 transition-all"
+                        >
+                            <span>{progress.tokens}</span> <TokenIcon className="w-4 h-4 md:w-5 md:h-5" />
+                        </button>
                         <div className="flex justify-center flex-1 px-2"><img src={IMG_HEADER_TITLE} alt="La tua giornata" className="h-10 md:h-14 w-auto object-contain drop-shadow-md" /></div>
                     </div>
                     <button onClick={onClose} className="bg-white/20 text-white p-2 rounded-full hover:bg-white/40 transition-all shrink-0"><X size={20} /></button>
                 </div>
 
                 <div className="p-4 space-y-4 overflow-y-auto no-scrollbar flex-1 relative z-10">
-                    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-col gap-3 w-full shadow-xl">
-                        
-                        <div className="flex flex-row items-center justify-between w-full gap-2">
-                            <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                                <img src={ICON_CLOCK} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
-                                <span className="font-black text-2xl md:text-4xl tracking-widest text-yellow-300 drop-shadow-sm leading-none">{timeStr}</span>
-                            </div>
-                            <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                                <img src={ICON_CALENDAR} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
-                                <p className="text-white font-black text-2xl md:text-4xl uppercase opacity-90 leading-tight">{dateStr}</p>
-                            </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-2 w-full border-t border-white/10 pt-3">
-                            {forecast.map((f, i) => (
-                                <div 
-                                    key={i} 
-                                    className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-300 ${i === 0 ? 'bg-white/15 border-yellow-400/50 shadow-lg scale-[1.03]' : 'bg-black/20 border-white/10'}`}
-                                >
-                                    <span className={`text-[8px] md:text-[10px] font-black uppercase mb-1 ${i === 0 ? 'text-yellow-400' : 'text-white/60'}`}>
-                                        {f.label}
-                                    </span>
-                                    <img src={f.icon} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt={f.type} />
-                                    <span className="text-[7px] md:text-[9px] font-bold text-white/40 uppercase mt-1">
-                                        {f.date}
-                                    </span>
+                    {viewMode === 'STANDARD' ? (
+                        <>
+                            <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-col gap-3 w-full shadow-xl">
+                                
+                                <div className="flex flex-row items-center justify-between w-full gap-2">
+                                    <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                                        <img src={ICON_CLOCK} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
+                                        <span className="font-black text-xl md:text-3xl tracking-widest text-yellow-300 drop-shadow-sm leading-none">{timeStr}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                                        <img src={ICON_CALENDAR} className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-md shrink-0" alt="" />
+                                        <p className="text-white font-black text-xl md:text-3xl uppercase opacity-90 leading-tight">{dateStr}</p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
+                                
+                                <div className="grid grid-cols-3 gap-2 w-full border-t border-white/10 pt-3">
+                                    {forecast.map((f, i) => (
+                                        <div 
+                                            key={i} 
+                                            className="flex flex-col items-center justify-center p-1 transition-all duration-300"
+                                        >
+                                            <span className={`text-[8px] md:text-[10px] font-black uppercase mb-1 ${i === 0 ? 'text-yellow-400' : 'text-white/60'}`}>
+                                                {f.label}
+                                            </span>
+                                            <img src={f.icon} className="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-md" alt={f.type} />
+                                            <span className="text-[7px] md:text-[9px] font-bold text-white/40 uppercase mt-1">
+                                                {f.date}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
 
-                        {/* MESSAGGIO METEO NARRATIVO IN STILE LUCKY GUY GIALLO */}
-                        <div className="border-t border-white/10 pt-2 w-full text-center">
-                            <p className="font-luckiest text-yellow-400 text-sm md:text-xl uppercase tracking-tighter text-stroke-lucky-small leading-tight">
-                                {weatherNarrative}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex flex-col justify-center relative overflow-hidden transition-all duration-500 shadow-lg min-h-[120px]">
-                        {displayMode === 'BOO' ? (
-                            <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
-                                <img src={timeData.img} className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-xl shrink-0" alt="" />
-                                <div className="flex flex-col gap-3 flex-1">
-                                    <p className="text-yellow-300 font-bold text-base md:text-xl leading-snug">{timeData.text}</p>
-                                    {timeData.action && <button onClick={() => handleNavigate(timeData.action!.view)} className="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-xl border border-white/30 text-[10px] md:text-xs font-black uppercase flex items-center gap-2 w-fit transition-all"><timeData.action.icon size={14} /> {timeData.action.label}</button>}
+                                {/* MESSAGGIO METEO NARRATIVO IN STILE LUCKY GUY GIALLO */}
+                                <div className="border-t border-white/10 pt-2 w-full text-center">
+                                    <p className="font-luckiest text-yellow-400 text-sm md:text-xl uppercase tracking-tighter text-stroke-lucky-small leading-tight">
+                                        {weatherNarrative}
+                                    </p>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
-                                <div className="bg-orange-500 p-3 rounded-2xl text-white shadow-lg shrink-0 flex items-center justify-center w-20 h-20 md:w-28 md:h-28"><Star size={32} fill="currentColor" className="animate-pulse" /></div>
-                                <div className="flex flex-col flex-1">
-                                    <h4 className="text-yellow-300 font-black text-base md:text-2xl uppercase tracking-tight drop-shadow-md">{holidayInfo.event}</h4>
-                                    <p className="text-yellow-300 font-bold text-sm md:text-lg italic opacity-90 leading-tight">"{holidayInfo.description}"</p>
+
+                            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex flex-col justify-center relative overflow-hidden transition-all duration-500 shadow-lg min-h-[120px]">
+                                {displayMode === 'BOO' ? (
+                                    <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
+                                        <img src={timeData.img} className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-xl shrink-0" alt="" />
+                                        <div className="flex flex-col gap-3 flex-1">
+                                            <p className="text-yellow-300 font-bold text-base md:text-xl leading-snug">{timeData.text}</p>
+                                            {timeData.action && <button onClick={() => handleNavigate(timeData.action!.view)} className="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-xl border border-white/30 text-[10px] md:text-xs font-black uppercase flex items-center gap-2 w-fit transition-all"><timeData.action.icon size={14} /> {timeData.action.label}</button>}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
+                                        <div className="bg-orange-500 p-3 rounded-2xl text-white shadow-lg shrink-0 flex items-center justify-center w-20 h-20 md:w-28 md:h-28"><Star size={32} fill="currentColor" className="animate-pulse" /></div>
+                                        <div className="flex flex-col flex-1">
+                                            <h4 className="text-yellow-300 font-black text-base md:text-2xl uppercase tracking-tight drop-shadow-md">{holidayInfo.event}</h4>
+                                            <p className="text-yellow-300 font-bold text-sm md:text-lg italic opacity-90 leading-tight">"{holidayInfo.description}"</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-row justify-center items-end gap-3 pb-6 shrink-0 px-2 mt-auto">
+                                {!hasClaimed ? (
+                                    <button onClick={handleClaim} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
+                                        <img src={IMG_CLAIM_TOKENS} alt="Prendi 5 gettoni" className="w-full h-auto drop-shadow-xl" />
+                                    </button>
+                                ) : (
+                                    <div className="w-[28%] opacity-90 transition-all flex items-center justify-center">
+                                        <img src={IMG_CLAIMED_STATUS} alt="Gettoni Riscossi" className="w-full h-auto drop-shadow-lg transform scale-110" />
+                                    </div>
+                                )}
+                                <button onClick={() => handleNavigate(AppView.ATELIER, 'atelier_origin')} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
+                                    <img src={BTN_ATELIER_IMG} alt="Personalizza Boo" className="w-full h-auto drop-shadow-xl" />
+                                </button>
+                                <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
+                                    <img src={IMG_GO_SCHOOL} alt="Vai a Scuola" className="w-full h-auto drop-shadow-xl" />
+                                </button>
+                                <button onClick={() => handleNavigate(AppView.CHAT)} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
+                                    <img src={IMG_GO_MARAGNO} alt="Chiedi a Maragno" className="w-full h-auto drop-shadow-xl" />
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col gap-3 animate-in slide-in-from-bottom duration-300">
+                            <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 border border-white/20 flex flex-row items-center justify-between px-6 shadow-xl shrink-0">
+                                <div className="flex flex-col">
+                                    <span className="text-white/60 font-black text-[10px] uppercase tracking-widest">Il tuo saldo</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-3xl md:text-5xl font-black text-yellow-300 drop-shadow-md">{progress.tokens}</span>
+                                        <TokenIcon className="w-6 h-6 md:w-10 md:h-10 drop-shadow-md" />
+                                    </div>
+                                </div>
+                                <div className="bg-white/10 p-2 rounded-2xl">
+                                    <Clock size={24} className="text-white/40" />
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    <div className="flex flex-row justify-center items-end gap-3 pb-6 shrink-0 px-2 mt-auto">
-                        {!hasClaimed ? (
-                            <button onClick={handleClaim} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
-                                <img src={IMG_CLAIM_TOKENS} alt="Prendi 5 gettoni" className="w-full h-auto drop-shadow-xl" />
-                            </button>
-                        ) : (
-                            <div className="w-[28%] opacity-90 transition-all flex items-center justify-center">
-                                <img src={IMG_CLAIMED_STATUS} alt="Gettoni Riscossi" className="w-full h-auto drop-shadow-lg transform scale-110" />
+                            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-3 border border-white/20 flex flex-col shadow-lg">
+                                <h3 className="text-white font-black text-xs md:text-sm uppercase tracking-wider border-b border-white/10 pb-2 mb-2 flex items-center gap-2">
+                                    Ultimi 6 Movimenti
+                                </h3>
+                                <div className="flex flex-col gap-1.5">
+                                    {progress.transactions && progress.transactions.length > 0 ? (
+                                        progress.transactions.slice(0, 6).map((t) => (
+                                            <div key={t.id} className="bg-black/20 rounded-xl p-2 px-3 flex justify-between items-center border border-white/5">
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-white font-bold text-[11px] md:text-xs truncate">{t.description}</span>
+                                                    <span className="text-white/40 text-[9px] md:text-[10px]">
+                                                        {new Date(t.date).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} - {new Date(t.date).toLocaleDateString('it-IT')}
+                                                    </span>
+                                                </div>
+                                                <div className={`flex items-center gap-1 font-black text-xs md:text-base shrink-0 ml-2 ${t.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {t.amount > 0 ? '+' : ''}{t.amount}
+                                                    <TokenIcon className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="py-10 text-center text-white/40 italic text-sm">
+                                            Nessun movimento registrato
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        )}
-                        <button onClick={() => handleNavigate(AppView.ATELIER, 'atelier_origin')} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
-                            <img src={BTN_ATELIER_IMG} alt="Personalizza Boo" className="w-full h-auto drop-shadow-xl" />
-                        </button>
-                        <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
-                            <img src={IMG_GO_SCHOOL} alt="Vai a Scuola" className="w-full h-auto drop-shadow-xl" />
-                        </button>
-                        <button onClick={() => handleNavigate(AppView.CHAT)} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
-                            <img src={IMG_GO_MARAGNO} alt="Chiedi a Maragno" className="w-full h-auto drop-shadow-xl" />
-                        </button>
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {showClaimSuccess && (

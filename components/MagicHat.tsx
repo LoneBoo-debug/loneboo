@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, RotateCcw, Download, Copy, ChevronLeft, ChevronRight, ZoomIn, Beaker } from 'lucide-react';
+import { X, RotateCcw, Download, Copy, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { HAT_INPUT_ITEMS, HAT_RECIPES, HatItem, HatRecipe } from '../services/dbMagicHat';
-import { generateHybridImage } from '../services/ai';
+import { saveMagicHatSticker } from '../services/tokens';
+import MagicHatAlbum from './MagicHatAlbum';
 
 const HAT_IMG = 'https://i.postimg.cc/X7qKBDrZ/sdfasadfdfsa-(1)-(1)-(1).png';
 const BTN_MIX_IMG = 'https://i.postimg.cc/DfPfkbX2/desd-(1)-(1).png';
+const BTN_ALBUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/albumcappellomagicofre.webp';
 
 const MagicHat: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<HatItem[]>([]);
     const [isMixing, setIsMixing] = useState(false);
     const [isHatShaking, setIsHatShaking] = useState(false);
-    const [result, setResult] = useState<HatRecipe | null>(null);
+    const [result, setResult] = useState<HatRecipe & { id?: string } | null>(null);
     const [isZoomOpen, setIsZoomOpen] = useState(false);
+    const [isAlbumOpen, setIsAlbumOpen] = useState(false);
+    const [isCollected, setIsCollected] = useState(false);
     
-    // Developer Tool State
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [clickCount, setClickCount] = useState(0);
-    const [aiImage, setAiImage] = useState<string | null>(null);
     const [isJiggling, setIsJiggling] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -27,21 +27,6 @@ const MagicHat: React.FC = () => {
         // Feedback visivo immediato al clic
         setIsJiggling(true);
         setTimeout(() => setIsJiggling(false), 300);
-
-        setClickCount(prev => {
-            const next = prev + 1;
-            if (next >= 5) {
-                setTimeout(() => {
-                    setIsAdmin(current => {
-                        const newState = !current;
-                        alert(newState ? "🧪 LABORATORIO ATTIVATO! \n\nUsa l'IA per creare nuove immagini." : "✨ Modalità Gioco.");
-                        return newState;
-                    });
-                }, 50);
-                return 0;
-            }
-            return next;
-        });
     };
 
     const handleSelectItem = (item: HatItem) => {
@@ -81,41 +66,23 @@ const MagicHat: React.FC = () => {
         setTimeout(async () => {
             setIsHatShaking(true);
             
-            if (isAdmin) {
-                try {
-                    const img = await generateHybridImage(selectedItems[0].name, selectedItems[1].name);
-                    setIsHatShaking(false);
-                    setIsMixing(false);
-                    if (img) {
-                        setAiImage(img);
-                        setResult({
-                            name: `Mix ${selectedItems[0].name} + ${selectedItems[1].name}`,
-                            img: img,
-                            desc: "Creato nel laboratorio di Lone Boo!"
-                        });
-                    }
-                } catch (e) {
-                    setIsHatShaking(false);
-                    setIsMixing(false);
-                    alert("Errore magico durante la creazione IA.");
+            // Tempo di scuotimento 2 secondi
+            setTimeout(() => {
+                setIsHatShaking(false);
+                setIsMixing(false);
+                const found = HAT_RECIPES[key];
+                if (found) {
+                    setResult({ ...found, id: key });
+                } else {
+                    setResult({
+                        id: 'unknown',
+                        name: 'Oggetto Misterioso',
+                        img: 'https://i.postimg.cc/1360vPBq/close.png',
+                        desc: 'Questa combinazione non è ancora stata scoperta!'
+                    });
                 }
-            } else {
-                // Tempo di scuotimento 2 secondi
-                setTimeout(() => {
-                    setIsHatShaking(false);
-                    setIsMixing(false);
-                    const found = HAT_RECIPES[key];
-                    if (found) {
-                        setResult(found);
-                    } else {
-                        setResult({
-                            name: 'Oggetto Misterioso',
-                            img: 'https://i.postimg.cc/1360vPBq/close.png',
-                            desc: 'Questa combinazione non è ancora stata scoperta!'
-                        });
-                    }
-                }, 2000);
-            }
+                setIsCollected(false);
+            }, 2000);
         }, 1200);
     };
 
@@ -142,14 +109,23 @@ const MagicHat: React.FC = () => {
         alert("Codice JSON copiato!");
     };
 
+    const handleCollect = () => {
+        if (result && result.id && result.id !== 'unknown') {
+            saveMagicHatSticker(result.id);
+            setIsCollected(true);
+        }
+    };
+
     const reset = () => {
         setSelectedItems([]);
         setResult(null);
-        setAiImage(null);
         setIsZoomOpen(false);
         setIsMixing(false);
         setIsHatShaking(false);
+        setIsCollected(false);
     };
+
+    if (isAlbumOpen) return <MagicHatAlbum onClose={() => { setIsAlbumOpen(false); reset(); }} />;
 
     return (
         <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] flex flex-col bg-transparent overflow-hidden touch-none select-none">
@@ -186,6 +162,16 @@ const MagicHat: React.FC = () => {
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
+
+            {/* ALBUM BUTTON */}
+            <div className="absolute top-[70px] md:top-[110px] right-4 z-[60]">
+                <button 
+                    onClick={() => setIsAlbumOpen(true)}
+                    className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto"
+                >
+                    <img src={BTN_ALBUM_IMG} alt="Album" className="w-20 md:w-32 h-auto drop-shadow-2xl" />
+                </button>
+            </div>
 
             {/* ZOOM OVERLAY */}
             {isZoomOpen && result && (
@@ -228,13 +214,6 @@ const MagicHat: React.FC = () => {
 
                 {/* THE HAT & RESULT WRAPPER */}
                 <div className="relative flex flex-col items-center mb-16 md:mb-24">
-                    {isAdmin && (
-                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 bg-purple-600 text-white px-4 py-1 rounded-full border-2 border-yellow-400 shadow-xl flex items-center gap-2 animate-bounce">
-                            <Beaker size={16} className="text-yellow-400" />
-                            <span className="font-black text-[10px] uppercase">LABORATORIO IA</span>
-                        </div>
-                    )}
-
                     <div className={`absolute inset-0 bg-purple-500 rounded-full blur-3xl opacity-20 ${isMixing ? 'animate-pulse' : ''}`}></div>
                     
                     <button 
@@ -276,7 +255,7 @@ const MagicHat: React.FC = () => {
                                 <button onClick={reset} className="bg-red-500 text-white p-2.5 rounded-full border-4 border-white shadow-xl hover:scale-110 transition-transform"><X size={24} strokeWidth={4} /></button>
                             </div>
                             
-                            <div className="relative w-40 h-40 md:w-64 md:h-64 mb-6 cursor-zoom-in group" onClick={() => setIsZoomOpen(true)}>
+                            <div className="relative w-56 h-56 md:w-80 md:h-80 mb-6 cursor-zoom-in group" onClick={() => setIsZoomOpen(true)}>
                                 <div className="absolute inset-0 bg-purple-200 rounded-full blur-2xl opacity-30 animate-pulse"></div>
                                 <img src={result.img} alt={result.name} className="relative z-10 w-full h-full object-cover rounded-[40px] border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
                                 <div className="absolute inset-0 z-20 bg-black/0 group-hover:bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all rounded-[40px]">
@@ -284,23 +263,19 @@ const MagicHat: React.FC = () => {
                                 </div>
                             </div>
 
-                            <h4 className="text-3xl md:text-5xl font-black text-purple-600 mb-2 uppercase tracking-tighter text-center leading-none">{result.name}</h4>
-                            <p className="text-gray-600 font-bold text-sm md:text-lg mb-8 leading-snug italic text-center px-4">"{result.desc}"</p>
+                            <p className="text-gray-600 font-bold text-sm md:text-xl mb-8 leading-snug italic text-center px-4">"{result.desc}"</p>
 
-                            <div className="flex gap-3 w-full">
-                                <button onClick={reset} className="flex-1 bg-yellow-400 text-black font-black py-4 rounded-[25px] border-b-8 border-yellow-600 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2 text-lg shadow-lg">
-                                    <RotateCcw size={24} /> ANCORA!
-                                </button>
-                                
-                                {isAdmin && aiImage && (
-                                    <div className="flex gap-2">
-                                        <button onClick={downloadAsset} title="Scarica PNG" className="bg-blue-500 text-white p-4 rounded-[25px] border-b-8 border-blue-700 active:border-b-0 active:translate-y-1 shadow-lg hover:brightness-110">
-                                            <Download size={24} />
-                                        </button>
-                                        <button onClick={copyJson} title="Copia JSON" className="bg-purple-600 text-white p-4 rounded-[25px] border-b-8 border-purple-800 active:border-b-0 active:translate-y-1 shadow-lg hover:brightness-110">
-                                            <Copy size={24} />
-                                        </button>
-                                    </div>
+                            <div className="flex flex-col gap-3 w-full">
+                                {result.id && result.id !== 'unknown' && (
+                                    <button 
+                                        onClick={() => {
+                                            handleCollect();
+                                            setIsAlbumOpen(true);
+                                        }} 
+                                        className="w-full bg-green-500 text-white font-black py-4 rounded-[25px] border-b-8 border-green-700 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 text-xl"
+                                    >
+                                        COLLEZIONA
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -309,7 +284,7 @@ const MagicHat: React.FC = () => {
             </div>
 
             {/* ITEM SELECTOR */}
-            <div className="relative w-full h-24 md:h-32 z-40 flex items-center mb-12 md:mb-16 px-4">
+            <div className="relative w-full h-24 md:h-32 z-40 flex items-center mb-48 md:mb-64 px-4">
                 <button 
                     onClick={() => scroll('left')} 
                     className="absolute left-2 md:left-6 z-50 bg-white/20 hover:bg-white/40 p-2 rounded-full text-white backdrop-blur-md transition-all active:scale-90 shadow-md border border-white/10"

@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { RotateCcw, LogOut, Music, Music2 } from 'lucide-react';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
@@ -62,7 +64,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       bgMusic.current = new Audio(BG_MUSIC_URL);
@@ -237,7 +239,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
 
           <div className="pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                  <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                  <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
           </div>
       </div>
@@ -258,9 +260,9 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
           {!isPlaying && !gameResult && (
               <div className="flex flex-col items-center animate-in fade-in z-20 w-full px-4">
                 
-                <div className="mb-10 w-full text-center">
+                <div className="mb-10 w-full text-center px-6">
                     <p 
-                        className="font-luckiest text-white text-xl md:text-4xl whitespace-nowrap drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase tracking-wide" 
+                        className="font-luckiest text-white text-xl md:text-4xl drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase tracking-wide" 
                         style={{ WebkitTextStroke: '1.5px black' }}
                     >
                         Colpisci almeno <span className="text-yellow-400">25 Boo</span> in 1 minuto!
@@ -364,7 +366,7 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
                         )}
 
                         <p className="text-lg text-gray-600 font-bold mb-4">Hai preso <span className="text-2xl text-boo-purple font-black mx-1">{score}</span> fantasmi.<br/><span className="text-[10px] uppercase opacity-70">(Obiettivo: 25)</span></p>
-                        {gameResult === 'WIN' && earnedTokens > 0 && <div className="bg-yellow-400 text-black px-5 py-2 rounded-2xl font-black text-lg border-4 border-black mb-6 animate-pulse shadow-lg transform rotate-[-2deg] inline-block">+{earnedTokens} GETTONI! 🪙</div>}
+                        {gameResult === 'WIN' && earnedTokens > 0 && <div className="bg-yellow-400 text-black px-5 py-2 rounded-2xl font-black text-lg border-4 border-black mb-6 animate-pulse shadow-lg transform rotate-[-2deg] inline-block flex items-center gap-2">+{earnedTokens} <TokenIcon className="w-6 h-6" /></div>}
                         {gameResult === 'LOSE' && <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-lg font-bold text-xs mb-4 border-2 border-gray-200">Nessun gettone (Serve 25)</div>}
                         
                         <div className="flex flex-row gap-2 w-full justify-center items-center mt-2">

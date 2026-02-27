@@ -6,7 +6,6 @@ import StoryDice from './StoryDice';
 import MagicHunt from './MagicHunt';
 import GhostPassport from './GhostPassport';
 import MagicHat from './MagicHat';
-import RobotHint from './RobotHint'; 
 import { isNightTime } from '../services/weatherService';
 
 const TOWER_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremoagicagiornides.webp';
@@ -19,6 +18,10 @@ const BG_PASSPORT_GHOST = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sf
 const BG_MAGIC_HUNT = 'https://i.postimg.cc/DzmbRdLY/caccimagifd.jpg';
 const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflancdadersdd.webp';
 const BG_MAGIC_HAT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfomagihaatdfeb432ws.webp';
+
+// Portale Sotterranei
+const BTN_SUB_TOWER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaineisotteindic.webp';
+const TRANSITION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sotteratransictionea.mp4';
 
 // Asset Audio e Video Ambientali
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicaspeechboo4e4e4.mp3';
@@ -34,7 +37,6 @@ const ZONES_DATA: ZoneConfig[] = [
   { "id": "hat", "points": [ { "x": 77.56, "y": 57.97 }, { "x": 78.09, "y": 71.61 }, { "x": 95.42, "y": 74.66 }, { "x": 95.68, "y": 57.79 } ] }
 ];
 
-// Note: Le coordinate sono ora unificate per il nuovo sfondo
 const ZONES_DESKTOP: ZoneConfig[] = [
   { "id": "dice", "points": [ { "x": 32.88, "y": 64.58 }, { "x": 32.18, "y": 78.08 }, { "x": 42.3, "y": 79.66 }, { "x": 42.4, "y": 65.48 } ] },
   { "id": "hunt", "points": [ { "x": 54.53, "y": 16.2 }, { "x": 54.33, "y": 30.38 }, { "x": 63.85, "y": 31.05 }, { "x": 63.35, "y": 11.25 } ] },
@@ -50,8 +52,9 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [now, setNow] = useState(new Date());
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   
-  // Stati per l'audio e video ambientale
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -61,19 +64,15 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   }, [now]);
 
   useEffect(() => {
-      // Monitoraggio orario per cambio sfondo
       const timeInterval = setInterval(() => setNow(new Date()), 60000);
-
       const img = new Image(); 
       img.src = currentBg;
       img.onload = () => setIsLoaded(true);
 
-      // Inizializzazione Audio Ambientale
       if (!ambientAudioRef.current) {
           ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
           ambientAudioRef.current.loop = false;
           ambientAudioRef.current.volume = 0.5;
-
           ambientAudioRef.current.addEventListener('play', () => setIsAmbientPlaying(true));
           ambientAudioRef.current.addEventListener('pause', () => setIsAmbientPlaying(false));
           ambientAudioRef.current.addEventListener('ended', () => {
@@ -82,16 +81,14 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
           });
       }
 
-      // Avvio automatico se l'audio è già attivo globalmente
-      if (isAudioOn && !activeGame) {
+      if (isAudioOn && !activeGame && !isTransitioning) {
           ambientAudioRef.current.play().catch(e => console.log("Ambient audio blocked", e));
       }
 
-      // Listener per cambiamenti audio globali dall'header
       const handleGlobalAudioChange = () => {
           const enabled = localStorage.getItem('loneboo_music_enabled') === 'true';
           setIsAudioOn(enabled);
-          if (enabled && !activeGame) {
+          if (enabled && !activeGame && !isTransitioning) {
               ambientAudioRef.current?.play().catch(() => {});
           } else {
               ambientAudioRef.current?.pause();
@@ -110,25 +107,60 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
               ambientAudioRef.current.currentTime = 0;
           }
       };
-  }, [activeGame, currentBg]);
+  }, [activeGame, currentBg, isTransitioning]);
 
-  // Interrompe ambient quando si entra in un gioco
   useEffect(() => {
-    if (activeGame) {
+    if (activeGame || isTransitioning) {
         ambientAudioRef.current?.pause();
     } else if (isAudioOn) {
         ambientAudioRef.current?.play().catch(() => {});
     }
-  }, [activeGame, isAudioOn]);
+  }, [activeGame, isAudioOn, isTransitioning]);
 
   const handleZoneClick = (gameId: string) => {
       setActiveGame(gameId);
+  };
+
+  const startSubterraneanTransition = () => {
+      setIsTransitioning(true);
+      if (ambientAudioRef.current) ambientAudioRef.current.pause();
+      
+      // Pre-caricamento dello sfondo e del componente dei sotterranei durante l'animazione
+      const preImg = new Image();
+      preImg.src = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sotterraneitorremoacighca.webp';
+      
+      // Pre-caricamento del chunk JS del componente
+      import('./MagicTowerSub').catch(() => {});
+
+      // La transizione dura ora 11 secondi totali
+      // Iniziamo il fade out a 10s per completarlo esattamente all'11° secondo (duration-1000)
+      setTimeout(() => {
+          setIsFadingOut(true);
+      }, 10000);
+
+      setTimeout(() => {
+          setView(AppView.MAGIC_TOWER_SUB);
+      }, 11000);
   };
 
   const getClipPath = (points: Point[]) => {
       if (!points || points.length < 3) return 'none';
       return `polygon(${points.map(p => `${p.x}% ${p.y}%`).join(', ')})`;
   };
+
+  if (isTransitioning) {
+      return (
+          <div className={`fixed inset-0 z-[1000] bg-black flex items-center justify-center transition-opacity duration-1000 ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
+              <video 
+                  src={TRANSITION_VIDEO} 
+                  autoPlay 
+                  playsInline 
+                  loop
+                  className="w-full h-full object-cover"
+              />
+          </div>
+      );
+  }
 
   if (activeGame) {
       const bg = activeGame === 'passport' ? BG_PASSPORT_GHOST : 
@@ -170,7 +202,6 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
             </div>
         )}
 
-        {/* MINI TV DI BOO - Sincronizzato con l'audio ambientale */}
         {isLoaded && isAudioOn && isAmbientPlaying && !activeGame && (
             <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
                 <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
@@ -188,7 +219,6 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
             </div>
         )}
 
-        {/* TASTO ESCI PER LA CITTÀ - Posizionato al limite superiore */}
         {isLoaded && !activeGame && (
             <div className="absolute top-1 md:top-2 left-0 md:left-1 z-50 animate-in slide-in-from-left duration-500">
                 <button 
@@ -199,15 +229,22 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
                 </button>
             </div>
         )}
-        
-        <RobotHint 
-            show={isLoaded && !activeGame} 
-            message="Tocca un oggetto magico e divertiti.." 
-            variant="PURPLE"
-        />
+
+        {/* PORTALE SOTTERRANEI (SOSTITUISCE ROBOTHINT) */}
+        {isLoaded && !activeGame && (
+            <button 
+                onClick={startSubterraneanTransition}
+                className="absolute bottom-6 right-6 z-[120] hover:scale-110 active:scale-95 transition-all outline-none animate-in slide-in-from-bottom duration-700"
+            >
+                <img 
+                    src={BTN_SUB_TOWER} 
+                    alt="Sotterranei" 
+                    className="w-40 md:w-72 h-auto drop-shadow-2xl" 
+                />
+            </button>
+        )}
         
         <div className="relative w-full h-full overflow-hidden select-none">
-            {/* --- MOBILE (VERTICALE) --- */}
             <div className="block md:hidden w-full h-full relative">
                 <img 
                     src={currentBg} 
@@ -220,7 +257,6 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
                 ))}
             </div>
 
-            {/* --- DESKTOP (ORIZZONTALE 16:9) --- */}
             <div className="hidden md:block w-full h-full relative overflow-hidden">
                 <img 
                     src={currentBg} 

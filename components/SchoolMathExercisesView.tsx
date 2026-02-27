@@ -259,13 +259,13 @@ const SchoolMathExercisesView: React.FC<{ setView: (v: AppView) => void }> = ({ 
                         )}
                     </div>
 
-                    <div className="mb-6 flex-1 flex items-center justify-center overflow-y-auto no-scrollbar">
-                        <p className="text-slate-800 font-black text-lg md:text-4xl text-center leading-tight">
-                            {currentProblem.text}
+                    <div className="mb-4 md:mb-6 flex-1 flex items-center justify-center overflow-y-auto no-scrollbar min-h-[80px] md:min-h-[140px] px-2 py-2">
+                        <p className="text-slate-900 font-black text-base md:text-2xl text-center leading-tight">
+                            {currentProblem?.text}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 shrink-0">
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 shrink-0">
                         {currentProblem.options.map((option, idx) => {
                             let btnStyle = "bg-white border-slate-200 text-slate-700 hover:border-purple-400 hover:bg-purple-50";
                             
@@ -282,12 +282,11 @@ const SchoolMathExercisesView: React.FC<{ setView: (v: AppView) => void }> = ({ 
                                     key={idx}
                                     onClick={() => handleAnswer(idx)}
                                     className={`
-                                        py-2 md:py-3 px-4 rounded-2xl border-4 text-base md:text-xl font-black transition-all flex items-center justify-center gap-3
+                                        py-2 md:py-4 px-1 md:px-4 rounded-xl md:rounded-2xl border-2 md:border-4 text-sm md:text-3xl font-black transition-all flex items-center justify-center h-full min-h-[60px] md:min-h-[100px]
                                         ${btnStyle}
                                     `}
                                 >
-                                    <span className="opacity-50 text-xs md:text-lg">{String.fromCharCode(65 + idx)})</span>
-                                    {option}
+                                    <span className="text-center break-words w-full">{option}</span>
                                 </button>
                             );
                         })}

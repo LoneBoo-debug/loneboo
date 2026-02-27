@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView, PlayerProgress } from '../types';
 import { getProgress, equipClothing, purchaseClothing } from '../services/tokens';
-import { ATELIER_COMBO_CSV_URL } from '../constants';
+import { ATELIER_COMBO_CSV_URL, TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 import { ChevronLeft, ChevronRight, Check, Sparkles, AlertCircle, ShoppingCart, Volume2, VolumeX } from 'lucide-react';
 import { isNightTime } from '../services/weatherService';
 
@@ -62,48 +63,32 @@ const GLASSES_DATA: AtelierItem[] = [
     { id: 'G5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassrotondboo432+(1).webp', price: 8, category: 'GLASSES', slot: 'glasses' }
 ];
 
-const SPECIAL_DATA: AtelierItem[] = [
-    { 
-        id: 'S1', 
-        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarcolored4rg6t5r.webp', 
-        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarpacolorataboocaracters.webp',
-        price: 50, 
-        category: 'SPECIAL',
-        slot: 'special'
-    },
-    {
-        id: 'S2',
-        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconbbbonoel5tfe.webp',
-        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp',
-        price: 75,
-        category: 'SPECIAL',
-        slot: 'special2'
-    },
-    {
-        id: 'S3',
-        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icnnzucc54redsa.webp',
-        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccahalloweenboocarxe4e3ws.webp',
-        price: 75,
-        category: 'SPECIAL',
-        slot: 'special3'
-    },
-    {
-        id: 'S4',
-        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconboxpugil778js.webp',
-        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boxcompete55rt44+(1).webp',
-        price: 85,
-        category: 'SPECIAL',
-        slot: 'special4'
-    },
-    {
-        id: 'S5',
-        icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gicoooore.webp',
-        overlay: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp',
-        price: 100,
-        category: 'SPECIAL',
-        slot: 'special5'
-    }
-];
+const SPECIAL_OVERLAYS: Record<string, string> = {
+    'S1': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarpacolorataboocaracters.webp',
+    'S2': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp',
+    'S3': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccahalloweenboocarxe4e3ws.webp',
+    'S4': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boxcompete55rt44+(1).webp',
+    'S5': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp',
+    'SUB_ELF_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elfatelierscoiru54.webp',
+    'SUB_DEMOGORGON_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/demogorgoboo8ur.webp',
+    'SUB_NINJA_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ninjiaboosocuteate44.webp',
+    'SUB_ROBOT_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rbotoneboodww+(1).webp',
+    'SUB_GLADIATOR_OUTFIT': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gladiatorboodnej33+(1).webp',
+    'SUB_TSHIRT_RUDEN': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rudenfien4wsd.webp',
+    'SUB_TSHIRT_MAGIC': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/magictoeern4w.webp',
+    'SUB_TSHIRT_ONEBOO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/onebootshirtue432.webp',
+    'SUB_TSHIRT_COORAA': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cooraaoscurobooe4.webp',
+    'SUB_TSHIRT_LONEBOO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/loneboooscurotshirt.webp',
+    'SUB_OBJ_CLOWN_NOSE': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nasorossoclownboo5.webp',
+    'SUB_OBJ_NECKLACE': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/collanaboooscuro.webp',
+    'SUB_OBJ_EYEPATCH': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bendaocchiboooscur.webp',
+    'SUB_HAT_BASCO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bascooscuroboo5jen3.webp',
+    'SUB_HAT_ELMO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elmooscuroboo54.webp',
+    'SUB_HAT_MAGO': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/magoboooscuro6789.webp',
+    'SUB_HAT_COWBOY': 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cowboyoscuro44e23.webp'
+};
+
+const HIDES_BASE_CLOTHING = ['SUB_ELF_OUTFIT', 'SUB_DEMOGORGON_OUTFIT', 'SUB_NINJA_OUTFIT', 'SUB_ROBOT_OUTFIT', 'SUB_GLADIATOR_OUTFIT', 'S5'];
 
 interface ActionFeedback {
     message: string;
@@ -221,12 +206,12 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     }, [isLoaded, isAudioOn]);
 
     const currentBooImage = useMemo(() => {
-        // Se è equipaggiato il cappello speciale S2, la zucca S3 o il casco da boxe S4, nascondiamo il cappello standard
-        const isHeadOverlayWorn = previewLook.special2 === 'S2' || previewLook.special3 === 'S3' || previewLook.special4 === 'S4';
+        // Se è equipaggiato un completo speciale (special5), nascondiamo maglietta e cappello
+        const isFullOutfitWorn = previewLook.special5 && HIDES_BASE_CLOTHING.includes(previewLook.special5);
+        const isHeadOverlayWorn = previewLook.special2 === 'S2' || previewLook.special3 === 'S3' || previewLook.special4 === 'S4' || isFullOutfitWorn || (previewLook.hat && SPECIAL_OVERLAYS[previewLook.hat]);
+        const isBodyOverlayWorn = isFullOutfitWorn || (previewLook.tshirt && SPECIAL_OVERLAYS[previewLook.tshirt]);
+        
         const effectiveHat = isHeadOverlayWorn ? undefined : previewLook.hat;
-
-        // Se è equipaggiato l'Abito Sera (S5), nascondiamo la maglietta standard
-        const isBodyOverlayWorn = previewLook.special5 === 'S5';
         const effectiveTshirt = isBodyOverlayWorn ? undefined : previewLook.tshirt;
 
         const activeIds = [effectiveTshirt, effectiveHat, previewLook.glasses]
@@ -238,25 +223,11 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
         const currentKey = [...activeIds].sort().join('_');
         if (comboMap[currentKey]) return comboMap[currentKey];
 
-        // Fallback per combo a 3 pezzi
-        if (activeIds.length === 3) {
-            if (effectiveHat && effectiveTshirt) {
-                const pk = [effectiveHat, effectiveTshirt].map(id => id!.toUpperCase()).sort().join('_');
-                if (comboMap[pk]) return comboMap[pk];
-            }
-            if (previewLook.glasses && effectiveTshirt) {
-                const pk = [previewLook.glasses, effectiveTshirt].map(id => id!.toUpperCase()).sort().join('_');
-                if (comboMap[pk]) return comboMap[pk];
-            }
-            if (previewLook.glasses && effectiveHat) {
-                const pk = [previewLook.glasses, effectiveHat].map(id => id!.toUpperCase()).sort().join('_');
-                if (comboMap[pk]) return comboMap[pk];
-            }
-        }
-
+        // Fallback: se la combo non esiste, prova a cercare i singoli pezzi in ordine di priorità
+        // Includiamo anche i pezzi originali se quelli "effective" sono undefined (perché sono diventati overlay)
         const priorityOrder: (keyof typeof previewLook)[] = ['glasses', 'hat', 'tshirt'];
         for (const key of priorityOrder) {
-            const idToUse = key === 'hat' ? effectiveHat : (key === 'tshirt' ? effectiveTshirt : previewLook[key]);
+            const idToUse = previewLook[key];
             const idStr = (idToUse as string | undefined)?.toUpperCase();
             if (idStr && comboMap[idStr]) return comboMap[idStr];
         }
@@ -267,33 +238,21 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
     const specialOverlayImages = useMemo(() => {
         const layers: string[] = [];
         
-        // L'abito da sera (S5) va sotto la sciarpa
-        if (previewLook.special5 === 'S5') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S5');
-            if (item?.overlay) layers.push(item.overlay);
+        // I completi speciali (special5)
+        if (previewLook.special5 && SPECIAL_OVERLAYS[previewLook.special5]) {
+            layers.push(SPECIAL_OVERLAYS[previewLook.special5]);
         }
-        // La sciarpa (S1) va sopra l'abito da sera
-        if (previewLook.special === 'S1') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S1');
-            if (item?.overlay) layers.push(item.overlay);
-        }
-        // Il cappello Babbo Natale (S2)
-        if (previewLook.special2 === 'S2') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S2');
-            if (item?.overlay) layers.push(item.overlay);
-        }
-        // La zucca di Halloween (S3)
-        if (previewLook.special3 === 'S3') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S3');
-            if (item?.overlay) layers.push(item.overlay);
-        }
-        // Casco da boxe (S4)
-        if (previewLook.special4 === 'S4') {
-            const item = SPECIAL_DATA.find(i => i.id === 'S4');
-            if (item?.overlay) layers.push(item.overlay);
-        }
+
+        // Altri overlay speciali (inclusi cappelli e magliette dei sotterranei)
+        const slots: (keyof typeof previewLook)[] = ['glasses', 'tshirt', 'hat', 'special', 'special2', 'special3', 'special4'];
+        slots.forEach(slot => {
+            const id = previewLook[slot];
+            if (id && SPECIAL_OVERLAYS[id]) {
+                layers.push(SPECIAL_OVERLAYS[id]);
+            }
+        });
         return layers;
-    }, [previewLook.special, previewLook.special2, previewLook.special3, previewLook.special4, previewLook.special5]);
+    }, [previewLook.special, previewLook.special2, previewLook.special3, previewLook.special4, previewLook.special5, previewLook.tshirt, previewLook.hat, previewLook.glasses]);
 
     const toggleMenu = (menu: Category) => {
         setOpenMenu(prev => prev === menu ? null : menu);
@@ -330,11 +289,14 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 nextLook.special3 = undefined;
             }
 
-            // Logica mutua esclusione per l'area corpo: Magliette vs Abito Sera (S5)
-            if (slot === 'tshirt') {
-                nextLook.special5 = undefined;
-            } else if (item.id === 'S5') {
+            // Logica mutua esclusione: I completi (special5) rimuovono magliette e cappelli
+            if (slot === 'special5') {
+                nextLook.hat = undefined;
                 nextLook.tshirt = undefined;
+            }
+            // Se indosso una maglietta o un cappello, rimuovo il completo speciale
+            else if (slot === 'tshirt' || slot === 'hat') {
+                nextLook.special5 = undefined;
             }
 
             setPreviewLook(nextLook);
@@ -369,11 +331,12 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             equipClothing('special3', undefined);
         }
 
-        // Logica mutua esclusione persistente per l'area corpo
-        if (item.slot === 'tshirt') {
-            equipClothing('special5', undefined);
-        } else if (item.id === 'S5') {
+        // Logica mutua esclusione persistente
+        if (item.slot === 'special5') {
+            equipClothing('hat', undefined);
             equipClothing('tshirt', undefined);
+        } else if (item.slot === 'tshirt' || item.slot === 'hat') {
+            equipClothing('special5', undefined);
         }
 
         equipClothing(item.slot, item.id);
@@ -451,11 +414,12 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                 equipClothing('special3', undefined);
             }
 
-            // Logica mutua esclusione per l'area corpo all'acquisto
-            if (itemToBuy.slot === 'tshirt') {
-                equipClothing('special5', undefined);
-            } else if (itemToBuy.id === 'S5') {
+            // Logica mutua esclusione all'acquisto
+            if (itemToBuy.slot === 'special5') {
+                equipClothing('hat', undefined);
                 equipClothing('tshirt', undefined);
+            } else if (itemToBuy.slot === 'tshirt' || itemToBuy.slot === 'hat') {
+                equipClothing('special5', undefined);
             }
 
             equipClothing(itemToBuy.slot, itemToBuy.id);
@@ -547,7 +511,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                                 ) : (
                                     <div className="flex items-center gap-1 font-black text-base md:text-2xl text-slate-800 drop-shadow-sm pointer-events-none">
                                         <span>{item.price}</span>
-                                        <span className="text-lg md:text-xl">🪙</span>
+                                        <TokenIcon className="w-5 h-5 md:w-7 md:h-7" />
                                     </div>
                                 )}
                             </div>
@@ -615,7 +579,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
             <div className="relative z-50 w-full pt-[75px] md:pt-[105px] px-4 flex justify-between items-start pointer-events-none">
                 <div className="flex flex-col items-start gap-3 pointer-events-auto">
                     <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                        <span>{progress.tokens}</span> <span className="text-xl">🪙</span>
+                        <span>{progress.tokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <button 
                         onClick={handleExit}
@@ -681,7 +645,7 @@ const AtelierView: React.FC<{ setView: (view: AppView) => void }> = ({ setView }
                             <span className="font-black text-blue-900 text-[10px] md:text-xs uppercase opacity-60">Stai provando</span>
                             <div className="flex items-center gap-2">
                                 <span className="font-black text-2xl md:text-4xl text-slate-800">{itemToBuy.price}</span>
-                                <span className="text-xl md:text-3xl">🪙</span>
+                                <TokenIcon className="w-7 h-7 md:w-10 md:h-10" />
                             </div>
                         </div>
                     </div>

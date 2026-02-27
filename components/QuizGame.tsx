@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { SOCIALS } from '../constants';
+import { SOCIALS, TOKEN_ICON_URL } from '../constants';
 import { RotateCcw, CircleCheck, CircleX, ArrowLeft } from 'lucide-react';
 import { QuizQuestion } from '../types';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
+import TokenIcon from './TokenIcon';
 // Importiamo dal nuovo database dedicato
 import { QUIZ_EASY, QUIZ_MEDIUM, QUIZ_HARD } from '../services/quizDatabase';
 import UnlockModal from './UnlockModal';
@@ -53,7 +54,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
   useEffect(() => {
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
       
       // Ritardo di sicurezza per prevenire ghost clicks
@@ -227,7 +228,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
 
             <div className="pointer-events-auto">
                 <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg">
-                    <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>
         </div>
@@ -266,8 +267,8 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
                                 {onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                                 
                                 {earnedTokens > 0 && (
-                                    <div className="absolute -top-8 -right-4 md:-right-8 z-[70] bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black text-xl md:text-2xl border-4 border-white shadow-xl rotate-12 animate-bounce">
-                                        +{earnedTokens} 🪙
+                                    <div className="absolute -top-8 -right-4 md:-right-8 z-[70] bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black text-xl md:text-2xl border-4 border-white shadow-xl rotate-12 animate-bounce flex items-center gap-2">
+                                        +{earnedTokens} <TokenIcon className="w-6 h-6 md:w-8 md:h-8" />
                                     </div>
                                 )}
 

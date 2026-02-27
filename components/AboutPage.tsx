@@ -87,10 +87,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
                 </div>
                 <div className="text-sm md:text-lg font-bold text-slate-700 leading-relaxed space-y-4">
                     <p>
-                        Lone Boo è un progetto educativo e multimediale italiano dedicato ai bambini, nato dall’incontro tra creatività, narrazione, musica ed educazione. Al centro dell’universo c’è Lone Boo, un simpatico fantasmino curioso e gentile, che accompagna i bambini in un percorso fatto di storie, canzoni, giochi e apprendimento.
+                        Lone Boo non è solo un personaggio, ma un vero e proprio <strong>ecosistema multimediale unificato</strong>. Tutto ciò che vedi — dal sito web all'app, dai libri su Amazon ai video musicali su YouTube — è parte di un unico grande progetto correlato e unito sotto lo stesso nome: <strong>Lone Boo</strong>.
                     </p>
                     <p>
-                        Il progetto nasce come esperienza artistica e musicale, ma nel tempo si è evoluto fino a diventare un ecosistema digitale completo, pensato per supportare la crescita cognitiva, emotiva e scolastica dei più piccoli.
+                        Nato dall’incontro tra creatività, narrazione, musica ed educazione, questo universo accompagna i bambini in un percorso coerente dove divertimento e apprendimento si fondono in un'unica esperienza digitale e fisica.
                     </p>
                 </div>
             </div>
@@ -147,12 +147,12 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
             <div className="bg-blue-600 text-white p-6 rounded-[35px] border-4 border-black shadow-xl flex flex-col md:col-span-2">
                 <div className="flex items-center gap-3 mb-4 border-b-2 border-white/20 pb-2">
                     <GraduationCap size={32} />
-                    <h3 className="text-xl md:text-2xl font-black uppercase leading-none">Scuola Arcobaleno – L’educazione al centro</h3>
+                    <h3 className="text-xl md:text-2xl font-black uppercase leading-none">Scuola Arcobaleno – Il Cuore Educativo dell'Ecosistema</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <p className="text-sm md:text-base font-bold leading-relaxed">
-                            Sezione educativa dedicata alla scuola primaria (1ª-5ª elementare). Uno spazio strutturato, chiaro e rassicurante basato sui **programmi ministeriali del Ministero dell’Istruzione italiano**.
+                            Perfettamente integrata nel mondo di Lone Boo, la Scuola Arcobaleno è la sezione educativa dedicata alla scuola primaria (1ª-5ª elementare). Uno spazio strutturato che segue i **programmi ministeriali italiani**, unendo la magia del personaggio allo studio serio.
                         </p>
                         <ul className="space-y-1">
                             {['Italiano', 'Matematica', 'Storia', 'Geografia', 'Scienze'].map(m => (
@@ -187,10 +187,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ setView }) => {
             <div className="bg-white/50 backdrop-blur-md p-5 rounded-[30px] border-4 border-white shadow-lg flex flex-col">
                 <div className="flex items-center gap-3 mb-3 border-b-2 border-white/50 pb-2">
                     <BookOpen className="text-orange-600" size={24} />
-                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Libri e Pubblicazioni</h3>
+                    <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Progetto Editoriale</h3>
                 </div>
                 <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
-                    L'esperienza continua fuori dallo schermo con i libri disponibili su Amazon, favorendo il contatto con la carta, la lettura condivisa e l'immaginazione.
+                    La collana "Le Avventure di Lone Boo" su Amazon porta la magia fuori dallo schermo, unendo la lettura tradizionale all'universo digitale in un legame indissolubile.
                 </p>
             </div>
 

@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
       // FIX: Garantiamo che API_KEY sia letta prioritariamente dalle variabili di sistema (Vercel)
       // o dal file .env se presenti.
       'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY || ''),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || ''),
       'process.env.VITE_YOUTUBE_API_KEY': JSON.stringify(env.VITE_YOUTUBE_API_KEY || process.env.VITE_YOUTUBE_API_KEY || ''),
       'process.env.VITE_YOUTUBE_CHANNEL_ID': JSON.stringify(env.VITE_YOUTUBE_CHANNEL_ID || process.env.VITE_YOUTUBE_CHANNEL_ID || ''),
       'process.env.RESEND_API_KEY': JSON.stringify(env.RESEND_API_KEY || process.env.RESEND_API_KEY || '')

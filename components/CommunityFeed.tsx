@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppNotification, AppView, CommunityPost } from '../types';
 import { fetchAppNotifications, markNotificationsAsRead } from '../services/notificationService';
@@ -63,11 +62,11 @@ const INITIAL_ZONES: Record<string, Point[]> = {
 };
 
 const CLOCK_STYLE = {
-    top: 56,
-    right: 4,
-    iconSize: 82,
-    timeSize: 23,
-    dateSize: 13,
+    top: 40,
+    right: 1,
+    iconSize: 90,
+    timeSize: 24,
+    dateSize: 14,
     paddingTop: 0,
     iconScaleY: 0.74
 };
@@ -160,7 +159,9 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
     return () => {
         clearInterval(timer);
         window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
-        if (audioRef.current) audioRef.current.pause();
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
     };
   }, [currentBg]);
 
@@ -199,7 +200,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
             </div>
         )}
 
-        {/* SVEGLIA - LA TUA GIORNATA */}
+        {/* SVEGLIA - LA TUA GIORNATA (SOLO TESTO) */}
         {isLoaded && (
             <button 
                 onClick={(e) => { e.stopPropagation(); setShowDailyModal(true); }}
@@ -207,10 +208,9 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
                 style={{ top: `${CLOCK_STYLE.top}px`, right: `${CLOCK_STYLE.right}px` }}
             >
                 <div className="relative flex items-center justify-center" style={{ width: `${CLOCK_STYLE.iconSize}px`, height: `${CLOCK_STYLE.iconSize}px` }}>
-                    <img src={CLOCK_SCREEN_IMG} alt="Sveglia" className="w-full h-full object-contain drop-shadow-2xl" style={{ transform: `scaleY(${CLOCK_STYLE.iconScaleY})` }} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="font-luckiest text-orange-500 leading-none" style={{ WebkitTextStroke: '0.5px #431407', fontSize: `${CLOCK_STYLE.timeSize}px` }}>{currentTimeStr}</span>
-                        <span className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5" style={{ WebkitTextStroke: '0.3px #431407', fontSize: `${CLOCK_STYLE.dateSize}px` }}>{currentDateStr}</span>
+                        <span className="font-luckiest text-orange-500 leading-none" style={{ WebkitTextStroke: '0.8px #431407', fontSize: `${CLOCK_STYLE.timeSize}px` }}>{currentTimeStr}</span>
+                        <span className="font-luckiest text-orange-500 uppercase tracking-tighter leading-none mt-0.5" style={{ WebkitTextStroke: '0.5px #431407', fontSize: `${CLOCK_STYLE.dateSize}px` }}>{currentDateStr}</span>
                     </div>
                 </div>
             </button>
@@ -250,7 +250,7 @@ const CommunityFeed: React.FC<{ setView?: (view: AppView) => void }> = ({ setVie
         {/* MODALE AVVISI */}
         {isNotifModalOpen && (
             <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-                <div className="bg-white rounded-[30px] border-4 border-purple-500 w-full max-w-lg h-[75vh] flex flex-col overflow-hidden animate-in zoom-in">
+                <div className="bg-white rounded-[30px] border-4 border-purple-500 w-full max-lg h-[75vh] flex flex-col overflow-hidden animate-in zoom-in">
                     <div className="bg-purple-600 p-3 flex justify-between items-center border-b-4 border-purple-800">
                         <img src={NOTIF_HEADER_IMG} alt="Avvisi" className="h-10 md:h-14 object-contain" />
                         <button onClick={() => setIsNotifModalOpen(false)}><img src={BTN_CLOSE_IMG} alt="X" className="w-12 h-12" /></button>

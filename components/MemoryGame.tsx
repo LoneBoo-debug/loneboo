@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { MEMORY_ICONS } from '../constants';
+import { MEMORY_ICONS, TOKEN_ICON_URL } from '../constants';
 import { MemoryCard } from '../types';
 import { RotateCcw, Trophy, Timer, Play, Lock } from 'lucide-react';
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
+import TokenIcon from './TokenIcon';
 
 const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
 const BTN_MEDIUM_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediologjeidnuj4hedn.webp';
@@ -55,7 +56,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
       const progress = getProgress();
       setUserTokens(progress.tokens);
       setCurrentTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
@@ -252,7 +253,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
 
           <div className="pointer-events-auto">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{currentTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
           </div>
       </div>
@@ -347,8 +348,8 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
                                     <>
                                         <Trophy size={60} className="text-yellow-400 drop-shadow-lg mb-2 animate-bounce mx-auto" />
                                         <h2 className="text-3xl font-black text-black mb-2 drop-shadow-sm">Vittoria! 🎉</h2>
-                                        <div className="bg-yellow-400 text-black px-4 py-2 rounded-full font-black text-lg border-2 border-black mb-4 animate-pulse inline-block whitespace-nowrap">
-                                            +{difficulty === 'HARD' ? 15 : (difficulty === 'MEDIUM' ? 10 : 5)} GETTONI! 🪙
+                                        <div className="bg-yellow-400 text-black px-4 py-2 rounded-full font-black text-lg border-2 border-black mb-4 animate-pulse inline-flex items-center gap-2 whitespace-nowrap">
+                                            +{difficulty === 'HARD' ? 15 : (difficulty === 'MEDIUM' ? 10 : 5)} GETTONI! <TokenIcon className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-row gap-4 justify-center items-center w-full mt-2">
                                             <button onClick={() => initGame(difficulty!)} className="hover:scale-105 active:scale-95 transition-transform w-44">

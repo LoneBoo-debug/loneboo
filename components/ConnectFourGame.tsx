@@ -1,9 +1,11 @@
 
-import { getProgress, unlockHardMode } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 import { isNightTime } from '../services/weatherService';
+import { TOKEN_ICON_URL } from '../constants';
+import TokenIcon from './TokenIcon';
 
 const NEW_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/connect4.webp';
 const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
@@ -60,7 +62,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
       const progress = getProgress();
       setUserTokens(progress.tokens);
-      const albumComplete = progress.unlockedStickers.length >= 30; 
+      const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
       // Inizializza Audio
@@ -261,7 +263,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
         <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA E SALDO GETTONI IN ALTO A DESTRA */}
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
+        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-start justify-between z-50 pointer-events-none">
             <div className="flex flex-col items-start gap-2 pointer-events-auto">
                 <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
                     <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
@@ -275,7 +277,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
 
             <div className="pointer-events-auto flex flex-col items-end gap-3">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{userTokens}</span> <span className="text-xl">🪙</span>
+                    <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 
                 {/* Tasto Audio sotto i gettoni */}

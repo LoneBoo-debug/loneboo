@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, AppView } from '../types';
 import { Book, ChevronLeft, Volume2, ArrowRight, Star, X, Pause, ImageIcon, PlayCircle, ChevronRight, ArrowLeft, Lock, Info, ChevronDown, Play, Square, ZoomIn } from 'lucide-react';
 import { markQuizComplete, markActivityComplete } from '../services/tokens';
@@ -36,6 +37,7 @@ const IMG_VIDEO_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.co
 const IMG_GAME_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocoinarrivof56tg7y.webp';
 const IMG_ACTIVITY_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/attivitiesinarrivo872xx.webp';
 const IMG_ACTIVITY_EXERCISE_COMING_SOON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esercizioinarrivopop998u.webp';
+const IMG_ZOOM_TEXT_ICON = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_creami+una+icona+stile+cartoon_480846855759605769.webp';
 
 const ORNELLA_TALK_ANIM = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ornelaspiega.mp4';
 
@@ -136,6 +138,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
 
   const [comingSoonModal, setComingSoonModal] = useState<{ active: boolean, type: 'GAME' | 'VIDEO' | 'ACTIVITY' | 'EXERCISE' }>({ active: false, type: 'GAME' });
   const [zoomedLessonImage, setZoomedLessonImage] = useState<string | null>(null);
+  const [isTextZoomed, setIsTextZoomed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Helper per riprodurre i suoni di feedback aggiornato
@@ -628,52 +631,62 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
             </div>
           )}
 
-          <div className="flex-1 flex flex-col items-center z-10 pt-44 md:pt-56 px-6 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center z-10 pt-36 md:pt-48 px-6 overflow-hidden">
               <div className="relative w-full max-w-5xl px-8 md:px-16 flex flex-col items-center h-full justify-start overflow-hidden">
                   
                   {selectedLesson.isPremium && !isPremiumActive ? (
-                      <div className="flex-1 w-full flex flex-col items-center justify-center">
-                          <div className="bg-white/95 backdrop-blur-md p-6 md:p-10 rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-sm">
-                              <div className="w-full mb-6 flex justify-center">
+                      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-2xl p-6 animate-in fade-in duration-500">
+                          <div className="bg-white/95 p-4 md:p-6 rounded-[2.5rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm w-full animate-in zoom-in duration-300">
+                              <div className="w-full mb-3 flex justify-center">
                                   <img 
                                     src={PREMIUM_HEADER_IMG} 
                                     alt="Contenuto Bloccato" 
-                                    className="w-full h-auto max-w-[200px] drop-shadow-md" 
+                                    className="w-full h-auto max-w-[140px] md:max-w-[180px] drop-shadow-md" 
                                   />
                               </div>
-                              <h3 className="text-2xl md:text-3xl font-black text-blue-900 uppercase mb-2 tracking-tighter leading-none">Contenuto Premium</h3>
-                              <p className="text-gray-600 font-bold mb-8 text-sm md:text-lg leading-snug">
+                              <h3 className="text-xl md:text-2xl font-black text-blue-900 uppercase mb-1 tracking-tighter leading-none">Contenuto Premium</h3>
+                              <p className="text-gray-600 font-bold mb-4 text-xs md:text-base leading-snug">
                                   Questa lezione è riservata agli abbonati di Lone Boo World! 👑 <br/> 
-                                  <span className="text-xs text-slate-400 mt-2 block">Chiedi a mamma o papà!</span>
+                                  <span className="text-[10px] text-slate-400 mt-1 block">Chiedi a mamma o papà!</span>
                               </p>
-                              <div className="flex gap-4 w-full justify-center">
+                              <div className="flex gap-3 w-full justify-center">
                                   <button onClick={handleCloseLesson} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                                      <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-24 md:w-32 h-auto drop-shadow-lg" />
+                                      <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-20 md:w-28 h-auto drop-shadow-lg" />
                                   </button>
-                                  <button onClick={handleOpenPremiumInfo} className="hover:scale-110 active:scale-95 transition-all outline-none" style={{ marginLeft: '10px' }}>
-                                      <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-24 md:w-32 h-auto drop-shadow-lg" />
+                                  <button onClick={handleOpenPremiumInfo} className="hover:scale-110 active:scale-95 transition-all outline-none">
+                                      <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-20 md:w-28 h-auto drop-shadow-lg" />
                                   </button>
                               </div>
                           </div>
                       </div>
                   ) : (
                       <>
-                        <div className="w-full flex flex-col items-center justify-center min-h-[60px] md:min-h-[120px] mb-4 md:mb-6 shrink-0 mt-8 md:mt-12">
+                        <div className="w-full flex flex-col items-center justify-center min-h-[60px] md:min-h-[120px] mb-4 md:mb-6 shrink-0 mt-2 md:mt-4">
                             <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase leading-tight drop-shadow-sm">
                                 {selectedLesson.title}
                             </h3>
                         </div>
-                        <div className="absolute left-1 md:left-4 top-[12%] md:top-[18%] flex flex-col items-center z-30 pointer-events-none">
+                        <div className="absolute left-1 md:left-4 top-[8%] md:top-[14%] flex flex-col items-center z-30 pointer-events-none">
                             <div className="px-2 py-1.5 md:px-4 md:py-3 flex flex-col items-center transition-all pointer-events-auto">
                                 <span className="font-black text-blue-700 text-[8px] md:text-xs uppercase tracking-widest leading-none mb-1">Pagina</span>
                                 <span className="font-black text-blue-700 text-xs md:text-2xl leading-none">{currentPage}/{totalPages}</span>
                             </div>
                         </div>
+
+                        {/* TASTO ZOOM TESTO */}
+                        <button 
+                            onClick={() => setIsTextZoomed(true)}
+                            className="absolute right-1 md:right-4 top-[8%] md:top-[14%] z-50 hover:scale-110 active:scale-95 transition-all outline-none"
+                            title="Ingrandisci testo"
+                        >
+                            <img src={IMG_ZOOM_TEXT_ICON} alt="Zoom" className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-md" />
+                        </button>
+
                         <div 
                             ref={textContainerRef}
                             onScroll={handleManualScroll}
                             className="w-full overflow-y-auto overflow-x-hidden no-scrollbar pointer-events-auto block"
-                            style={{ height: '48vh', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+                            style={{ height: '52vh', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
                         >
                             <div className="flex flex-col gap-4 pb-12">
                                 {renderMixedContent(selectedLesson.text)}
@@ -684,8 +697,8 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
               </div>
           </div>
 
-          {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          {isExerciseOpen && currentQuiz && (!selectedLesson.isPremium || isPremiumActive) && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                   <div className="bg-white w-full max-md rounded-[3rem] border-8 border-blue-500 shadow-2xl overflow-hidden relative flex flex-col">
                       <button onClick={() => setIsExerciseOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all z-10"><X size={24} strokeWidth={4} /></button>
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0"><img src={CUSTOM_VERIFY_BTN} alt="Esercizio" className="h-10 md:h-16 w-auto object-contain" /></div>
@@ -713,11 +726,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                           )}
                       </div>
                   </div>
-              </div>
+              </div>,
+              document.body
           )}
 
-          {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
+          {isVisualActivityOpen && currentActivity && (!selectedLesson.isPremium || isPremiumActive) && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
                   <div className="bg-white w-full max-w-2xl rounded-[3rem] border-8 border-orange-500 shadow-2xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto max-h-[800px]">
                       <button onClick={() => setIsVisualActivityOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 active:scale-90 transition-transform z-10"><X size={24} strokeWidth={4} /></button>
                       <div className="p-3 md:p-4 flex justify-center border-b-4 border-slate-100 shrink-0"><img src={CUSTOM_VISUAL_BTN} alt="Attività" className="h-10 md:h-14 w-auto object-contain" /></div>
@@ -757,11 +771,12 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                           </div>
                       </div>
                   </div>
-              </div>
+              </div>,
+              document.body
           )}
 
-          {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300 flex items-center justify-center">
+          {comingSoonModal.active && (!selectedLesson.isPremium || isPremiumActive) && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300 flex items-center justify-center">
                   <div className="bg-white rounded-[3rem] border-8 border-yellow-400 p-0 w-full max-w-[240px] md:max-w-[320px] max-h-[75vh] text-center shadow-2xl relative overflow-hidden animate-in zoom-in duration-300 flex items-center justify-center">
                       <button onClick={() => setComingSoonModal({ ...comingSoonModal, active: false })} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full border-2 border-black hover:scale-110 active:scale-95 transition-all z-20 shadow-lg"><X size={18} strokeWidth={4} /></button>
                       <div className="w-full h-full flex flex-col items-center justify-center">
@@ -777,27 +792,29 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                           />
                       </div>
                   </div>
-              </div>
+              </div>,
+              document.body
           )}
 
-          {isVideoOpen && (!selectedLesson.isPremium || isPremiumActive) && (
-              <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
+          {isVideoOpen && (!selectedLesson.isPremium || isPremiumActive) && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
                   <div className="relative w-full max-w-5xl bg-white rounded-[30px] md:rounded-[40px] border-[6px] md:border-[8px] border-red-600 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                       <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-[210]"><X size={24} /></button>
                       <div className="flex-1 w-full aspect-video bg-black"><iframe src={embedUrl} className="w-full h-full border-0" allowFullScreen allow="autoplay; fullscreen" /></div>
                       <div className="p-4 text-center bg-white shrink-0 border-t border-gray-100 flex items-center justify-center gap-3"><PlayCircle className="text-red-600" /><h3 className="text-gray-800 text-lg md:text-xl font-black uppercase truncate px-2">Impariamo con Lone Boo!</h3></div>
                   </div>
-              </div>
+              </div>,
+              document.body
           )}
 
-          {zoomedLessonImage && (
+          {zoomedLessonImage && createPortal(
               <div 
-                className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300"
+                className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300"
                 onClick={() => setZoomedLessonImage(null)}
               >
                   <button 
                     onClick={() => setZoomedLessonImage(null)}
-                    className="absolute top-20 md:top-28 right-6 z-[510] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 active:scale-95 transition-all"
+                    className="absolute top-20 md:top-28 right-6 z-[10000] bg-red-500 text-white p-2 md:p-3 rounded-full border-4 border-white shadow-xl hover:scale-110 active:scale-95 transition-all"
                   >
                       <X size={24} strokeWidth={4} />
                   </button>
@@ -811,7 +828,28 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                         className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-xl" 
                       />
                   </div>
-              </div>
+              </div>,
+              document.body
+          )}
+
+          {isTextZoomed && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-white flex flex-col animate-in fade-in duration-300">
+                  <div className="p-4 md:p-8 flex justify-between items-center border-b-4 border-slate-100 shrink-0">
+                      <h2 className="font-luckiest text-blue-700 text-2xl md:text-5xl uppercase truncate max-w-[80%]">{selectedLesson.title}</h2>
+                      <button 
+                        onClick={() => setIsTextZoomed(false)}
+                        className="bg-red-500 text-white p-3 md:p-4 rounded-full border-4 border-black hover:scale-110 active:scale-95 transition-all shadow-xl"
+                      >
+                          <X size={32} strokeWidth={4} />
+                      </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6 md:p-12 no-scrollbar">
+                      <div className="max-w-5xl mx-auto flex flex-col gap-8 pb-20">
+                          {renderMixedContent(selectedLesson.text)}
+                      </div>
+                  </div>
+              </div>,
+              document.body
           )}
 
           {showTeacherChat && (!selectedLesson.isPremium || isPremiumActive) && (

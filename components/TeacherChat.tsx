@@ -9,7 +9,7 @@ const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-cl
 const PUNISHMENT_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/presid7763ybd3.webp';
 const BTN_MARAGNO_NAV = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indicainfopoinrne22.webp';
 
-const INSULT_LIMIT = 3;
+const INSULT_LIMIT = 2;
 const BAN_DURATION_MS = 5 * 60 * 1000;
 
 interface TeacherChatProps {
@@ -118,8 +118,6 @@ const TeacherChat: React.FC<TeacherChatProps> = ({ onClose, grade, setView }) =>
 
                 if (newCount === 1) {
                     cleanResponse = "Tesoro, le parole hanno un peso importante e dobbiamo usarle per fare del bene, non per offendere. Cerchiamo di parlare con gentilezza, d'accordo? 🌸";
-                } else if (newCount === 2) {
-                    cleanResponse = "Adesso basta. Se continui con questo comportamento sarò costretta a informare il Preside. Per favore, scusati e riprendiamo la lezione con rispetto. ⚠️";
                 } else if (newCount >= INSULT_LIMIT) {
                     const banTime = Date.now() + BAN_DURATION_MS;
                     setBanUntil(banTime);
