@@ -55,6 +55,14 @@ const HAT_DATA: AtelierItem[] = [
     { id: 'H5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/coronaboo3e3e+(1).webp', price: 50, category: 'HATS', slot: 'hat' }
 ];
 
+const SPECIAL_DATA: AtelierItem[] = [
+    { id: 'S1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sciarpacolorataboocaracters.webp', price: 5, category: 'SPECIAL', slot: 'special' },
+    { id: 'S2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cappelobeardnatalebbo5fr42.webp', price: 15, category: 'SPECIAL', slot: 'special' },
+    { id: 'S3', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccahalloweenboocarxe4e3ws.webp', price: 15, category: 'SPECIAL', slot: 'special' },
+    { id: 'S4', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/boxcompete55rt44+(1).webp', price: 30, category: 'SPECIAL', slot: 'special' },
+    { id: 'S5', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/completosera998gre.webp', price: 40, category: 'SPECIAL', slot: 'special' }
+];
+
 const GLASSES_DATA: AtelierItem[] = [
     { id: 'G1', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassblackboo98ud83+(1).webp', price: 5, category: 'GLASSES', slot: 'glasses' },
     { id: 'G2', icon: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/glassloveboo9i8j32+(1).webp', price: 10, category: 'GLASSES', slot: 'glasses' },

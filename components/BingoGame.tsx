@@ -170,7 +170,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
       rowIndices.forEach(c => {
         const min = c * 10 + 1;
         const max = c === 8 ? 90 : (c + 1) * 10;
-        let num;
+        let num: number;
         do {
           num = Math.floor(Math.random() * (max - min + 1)) + min;
         } while (card.some(row => row.includes(num)));

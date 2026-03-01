@@ -261,7 +261,7 @@ const GuitarHeroGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 )}
             </div>
-        </div>
+        </SoundLayout>
     );
 };
 

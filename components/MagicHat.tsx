@@ -16,6 +16,7 @@ const MagicHat: React.FC = () => {
     const [isZoomOpen, setIsZoomOpen] = useState(false);
     const [isAlbumOpen, setIsAlbumOpen] = useState(false);
     const [isCollected, setIsCollected] = useState(false);
+    const [aiImage, setAiImage] = useState<string | null>(null);
     
     const [isJiggling, setIsJiggling] = useState(false);
 

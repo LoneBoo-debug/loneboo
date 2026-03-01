@@ -159,7 +159,9 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
-        <Header currentView={currentView} setView={handleSetView} />
+        <Suspense fallback={null}>
+            <Header currentView={currentView} setView={handleSetView} />
+        </Suspense>
         
         <Suspense fallback={null}>
             <InstallPWA />

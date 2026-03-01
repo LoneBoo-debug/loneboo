@@ -59,9 +59,23 @@ CLASSE 5ª:
 - SCIENZE: Il corpo umano (apparato digerente, respiratorio, circolatorio), la cellula.
 `;
 
+const getAI = () => {
+    // Prova prima GEMINI_API_KEY, poi API_KEY (per compatibilità con Vercel)
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey || apiKey === "") {
+        console.warn("ATTENZIONE: Chiave API non trovata (GEMINI_API_KEY o API_KEY).");
+        return null;
+    }
+    return new GoogleGenAI({ apiKey });
+};
+
+const KEY_MISSING_MSG = "La magia delle risposte è momentaneamente spenta perché manca la chiave segreta nel server. 🗝️ Controlla le impostazioni!";
+
 export const getTeacherResponse = async (history: ChatMessage[], newMessage: string, grade: number = 1): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return KEY_MISSING_MSG;
+        
         const gradeNames = ["Prima", "Seconda", "Terza", "Quarta", "Quinta"];
         const currentGradeName = gradeNames[grade - 1] || `${grade}ª`;
 
@@ -119,7 +133,9 @@ export const getTeacherResponse = async (history: ChatMessage[], newMessage: str
 
 export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return KEY_MISSING_MSG;
+
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
             SEI MARAGNO. 🕷️ Un ragnetto saggio, spiritoso e guida ufficiale esperta di Città Colorata. 
@@ -196,7 +212,9 @@ export const getMaragnoChatResponse = async (history: ChatMessage[], newMessage:
 
 export const getGrufoResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return KEY_MISSING_MSG;
+
         const systemInstruction = `
             ${LONE_BOO_IDENTITY}
             Sei Grufo il Saggio, la guida del Giardino delle Emozioni di Lone Boo World. 🦉
@@ -232,7 +250,9 @@ export const getGrufoResponse = async (history: ChatMessage[], newMessage: strin
 
 export const generateSpeech = async (text: string): Promise<string | null> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return null;
+
         const cleanText = text.replace(/[*#_~`]/g, '').trim();
         if (!cleanText) return null;
         const response = await ai.models.generateContent({
@@ -253,7 +273,9 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 
 export const checkScavengerHuntMatch = async (base64Image: string, target: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return "NO | Chiave API mancante.";
+
         const imagePart = {
             inlineData: {
                 mimeType: 'image/jpeg',
@@ -276,7 +298,9 @@ export const checkScavengerHuntMatch = async (base64Image: string, target: strin
 
 export const generateDiceStory = async (elements: string[]): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return KEY_MISSING_MSG;
+
         const prompt = `Sei Grufo il Saggio. Inventa una brevissima favola magica (massimo 3-4 frasi) senza usare asterischi che includa questi elementi: ${elements.join(', ')}.`;
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
@@ -290,7 +314,9 @@ export const generateDiceStory = async (elements: string[]): Promise<string> => 
 
 export const generateHybridImage = async (item1: string, item2: string): Promise<string | null> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return null;
+
         const prompt = `A high-quality 2D cartoon sticker for young children in Lone Boo World style (NOT Mario style). Cute, wholesome, silly. Hybrid mix between ${item1} and ${item2}. Vibrant colors, bold outlines, white background.`;
         const response = await ai.models.generateContent({
             model: IMAGE_MODEL,
@@ -308,7 +334,9 @@ export const generateHybridImage = async (item1: string, item2: string): Promise
 
 export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage: string): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return KEY_MISSING_MSG;
+
         const contents = [
             ...history.map(m => ({
                 role: m.role,
@@ -329,7 +357,9 @@ export const getLoneBooChatResponse = async (history: ChatMessage[], newMessage:
 
 export const transformObjectMagically = async (imageBase64: string): Promise<any> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = getAI();
+        if (!ai) return { name: "Oggetto Magico", rarity: "COMUNE" };
+
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const response = await ai.models.generateContent({
             model: TEXT_MODEL,

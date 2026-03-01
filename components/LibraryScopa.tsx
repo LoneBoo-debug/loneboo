@@ -237,27 +237,28 @@ const LibraryScopa: React.FC<LibraryScopaProps> = ({ setView }) => {
     }, [playerHand, opponentHand, deck, phase, isBlocked]);
 
     useEffect(() => {
-        const currentOpponentHand = opponentHand.map((c, i) => ({c, i})).filter(item => item.c !== null);
+        const currentOpponentHand = opponentHand.map((c, i) => ({c, i})).filter(item => item.c !== null) as { c: CardAsset, i: number }[];
         if (turn === 'opponent' && phase === 'PLAYING' && !isBlocked && currentOpponentHand.length > 0) {
             const timer = setTimeout(() => {
                 let bestOption: { card: CardAsset, combo: CardAsset[], score: number, handIndex: number } | null = null;
-                currentOpponentHand.forEach(item => {
-                    const options = findAllCaptureOptions(item.c!, table);
-                    options.forEach(combo => {
+                for (const item of currentOpponentHand) {
+                    const options = findAllCaptureOptions(item.c, table);
+                    for (const combo of options) {
                         let score = combo.length;
                         if (combo.some(c => c.suit === 'denari')) score += 2;
                         if (combo.some(c => c.id === 'denari_7')) score += 5;
-                        if (item.c!.value === 7) score += 1;
+                        if (item.c.value === 7) score += 1;
                         if (!bestOption || score > bestOption.score) {
-                            bestOption = { card: item.c!, combo, score, handIndex: item.i };
+                            bestOption = { card: item.c, combo, score, handIndex: item.i };
                         }
-                    });
-                });
+                    }
+                }
                 if (bestOption) {
-                    executePlayAction(bestOption.card, bestOption.combo, false, bestOption.handIndex);
+                    const bo = bestOption as { card: CardAsset, combo: CardAsset[], score: number, handIndex: number };
+                    executePlayAction(bo.card, bo.combo, false, bo.handIndex);
                 } else {
                     const first = currentOpponentHand[0];
-                    executePlayAction(first.c!, [], false, first.i);
+                    executePlayAction(first.c, [], false, first.i);
                 }
             }, 1000);
             return () => clearTimeout(timer);
