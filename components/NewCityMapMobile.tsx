@@ -241,8 +241,6 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             ))}
             
             {showDailyModal && <DailyRewardsModal onClose={() => setShowDailyModal(false)} setView={setView} currentView={AppView.CITY_MAP} />}
-
-            <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none opacity-20"><span className="text-white font-black text-[10px] uppercase tracking-[1em]">Lone Boo City</span></div>
         </div>
     );
 };

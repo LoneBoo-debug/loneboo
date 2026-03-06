@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { AppView } from './types';
+import { AppView, SchoolSubject } from './types';
 import { OFFICIAL_LOGO } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
@@ -72,12 +72,16 @@ const EmotionalGarden = lazy(() => import('./components/EmotionalGarden'));
 const CalendarView = lazy(() => import('./components/CalendarView'));
 const AtelierView = lazy(() => import('./components/AtelierView'));
 const SubAtelierOscuro = lazy(() => import('./components/SubAtelierOscuro'));
+const SubFiumeSotterraneo = lazy(() => import('./components/SubFiumeSotterraneo'));
 const SubExploreDetail = lazy(() => import('./components/SubExploreDetail'));
 const SubOscurita = lazy(() => import('./components/SubOscurita'));
 const SubOscuritaSuperficie = lazy(() => import('./components/SubOscuritaSuperficie'));
 const SubMonsterBattle = lazy(() => import('./components/SubMonsterBattle'));
 
 const RainbowCity = lazy(() => import('./components/RainbowCity'));
+const RainbowCityScuolaMedia = lazy(() => import('./components/RainbowCityScuolaMedia'));
+const RainbowCityClassroom = lazy(() => import('./components/RainbowCityClassroom'));
+const MedieSubjectPage = lazy(() => import('./components/MedieSubjectPage'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
 const MountainCity = lazy(() => import('./components/MountainCity'));
 const LakeCity = lazy(() => import('./components/LakeCity'));
@@ -103,6 +107,7 @@ const PageLoader = () => (
 const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
+  const [lastClassroomView, setLastClassroomView] = useState<AppView>(AppView.RAINBOW_CITY_SCUOLA_MEDIA_1);
   const [subOscuritaInitialPhase, setSubOscuritaInitialPhase] = useState<'BLACK' | 'STATIC'>('BLACK');
 
   useEffect(() => {
@@ -137,6 +142,12 @@ const App: React.FC = () => {
   const handleSetView = (view: AppView, skipAnim?: boolean) => {
     if (view === AppView.SUB_OSCURITA) {
         setSubOscuritaInitialPhase(skipAnim ? 'STATIC' : 'BLACK');
+    }
+    if (view === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 || view === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 || view === AppView.RAINBOW_CITY_SCUOLA_MEDIA_3) {
+        setLastClassroomView(view);
+    }
+    if (view === AppView.PREMIUM_INFO) {
+        setPremiumReturnView(currentView);
     }
     setView(view);
   };
@@ -236,18 +247,43 @@ const App: React.FC = () => {
                 {currentView === AppView.VOCAL_FX && <VocalFxPage setView={handleSetView} />}
                 {currentView === AppView.EMOTIONAL_GARDEN && <EmotionalGarden setView={handleSetView} />}
                 {currentView === AppView.RAINBOW_CITY && <RainbowCity setView={handleSetView} />}
+                {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA && <RainbowCityScuolaMedia setView={handleSetView} />}
+                {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 && <RainbowCityClassroom title="1 Media" setView={handleSetView} />}
+                {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 && <RainbowCityClassroom title="2 Media" setView={handleSetView} />}
+                {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_3 && <RainbowCityClassroom title="3 Media" setView={handleSetView} />}
+                
+                {/* Middle School Subject Pages */}
+                {currentView === AppView.MEDIE_ITALIANO && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/italianopagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.ITALIANO} />}
+                {currentView === AppView.MEDIE_INGLESE && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/inglesepagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.INGLESE} />}
+                {currentView === AppView.MEDIE_STORIA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/storiapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.STORIA} />}
+                {currentView === AppView.MEDIE_GEOGRAFIA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/geografiapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.GEOGRAFIA} />}
+                {currentView === AppView.MEDIE_ARTE && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/artepagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.ARTE} />}
+                {currentView === AppView.MEDIE_TECNOLOGIA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/tecnologiapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.TECNOLOGIA} />}
+                {currentView === AppView.MEDIE_MATEMATICA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/matematicapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.MATEMATICA} />}
+                {currentView === AppView.MEDIE_SCIENZE && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/scienzepagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.SCIENZE} />}
+                {currentView === AppView.MEDIE_ESPERIMENTI && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/esperimentipagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.ESPERIMENTI} />}
+                {currentView === AppView.MEDIE_INFORMATICA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/informaticapgemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.INFORMATICA} />}
+                {currentView === AppView.MEDIE_CIVICA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/civicapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.CIVICA} />}
+                {currentView === AppView.MEDIE_MOTORIA && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/motoriapagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.MOTORIA} />}
+
                 {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
                 {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
                 {currentView === AppView.CALENDAR && <CalendarView setView={handleSetView} />}
                 {currentView === AppView.ATELIER && <AtelierView setView={handleSetView} />}
                 {currentView === AppView.SUB_ATELIER_OSCURO && <SubAtelierOscuro setView={handleSetView} />}
-                {currentView === AppView.SUB_FIUME_SOTTERRANEO && <SubExploreDetail title="Fiume Sotterraneo" setView={handleSetView} />}
+                {currentView === AppView.SUB_FIUME_SOTTERRANEO && <SubFiumeSotterraneo setView={handleSetView} />}
                 {currentView === AppView.SUB_ARTI_MAGICHE && <SubExploreDetail title="Arti Magiche" setView={handleSetView} />}
                 {currentView === AppView.SUB_OSCURITA && <SubOscurita setView={handleSetView} initialPhase={subOscuritaInitialPhase} />}
                 {currentView === AppView.SUB_OSCURITA_POTERE && <SubExploreDetail title="Potere Magico" setView={handleSetView} backView={AppView.SUB_OSCURITA} />}
                 {currentView === AppView.SUB_OSCURITA_MOSTRO && <SubMonsterBattle setView={handleSetView} />}
                 {currentView === AppView.SUB_OSCURITA_SUPERFICIE && <SubOscuritaSuperficie setView={handleSetView} />}
+                
+                {/* Rainbow City Locations */}
+                {currentView === AppView.RAINBOW_CITY_ZOO && <SubExploreDetail title="Zoo Fantastico" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
+                {currentView === AppView.RAINBOW_CITY_ARTE && <SubExploreDetail title="Arte e Disegno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
+                {currentView === AppView.RAINBOW_CITY_ALIMENTARI && <SubExploreDetail title="Alimentari Arcobaleno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
+                {currentView === AppView.RAINBOW_CITY_BURGER && <SubExploreDetail title="Burger" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
             </Suspense>
         </main>
     </div>

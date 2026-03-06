@@ -158,6 +158,15 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
                   loop
                   className="w-full h-full object-cover"
               />
+              <button 
+                  onClick={() => {
+                      setIsFadingOut(true);
+                      setTimeout(() => setView(AppView.MAGIC_TOWER_SUB), 300);
+                  }}
+                  className="absolute bottom-10 right-10 z-[1100] bg-black/50 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black/70 transition-all border border-white/20"
+              >
+                  Salta
+              </button>
           </div>
       );
   }

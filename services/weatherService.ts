@@ -24,9 +24,9 @@ export const isNightTime = (date: Date): boolean => {
     const totalMinutes = hours * 60 + minutes;
 
     const nightStart = 20 * 60 + 15; // 1215 min
-    const nightEnd = 6 * 60 + 45;   // 405 min
+    const nightEnd = 6 * 60 + 30;   // 390 min
 
-    // È notte se siamo oltre le 20:15 O prima delle 06:45
+    // È notte se siamo oltre le 20:15 O prima delle 06:30
     return totalMinutes >= nightStart || totalMinutes < nightEnd;
 };
 

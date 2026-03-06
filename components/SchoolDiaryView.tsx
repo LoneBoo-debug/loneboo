@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AppView, SchoolSubject, GradeCurriculumData, SchoolLesson } from '../types';
-import { OFFICIAL_LOGO } from '../constants';
+import { OFFICIAL_LOGO, ELEMENTARY_SUBJECTS } from '../constants';
 import { getProgress } from '../services/tokens';
 import { fetchGradeCurriculum } from '../services/curriculumService';
 import { GRADE1_DATA } from '../services/curriculum/grade1';
@@ -40,7 +40,7 @@ const ICON_STATUS_DONE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/qui
 const ICON_STATUS_EMPTY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/quizninskeinauns88sjwh7.webp';
 
 // Mappa icone materie
-const SUBJECT_ICONS: Record<SchoolSubject, string> = {
+const SUBJECT_ICONS: Partial<Record<SchoolSubject, string>> = {
     [SchoolSubject.ITALIANO]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tabletteraulhhf44ed+(2).webp',
     [SchoolSubject.MATEMATICA]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tabletteraulhhf44ed+(3).webp',
     [SchoolSubject.STORIA]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tabletteraulhhf44ed+(5).webp',
@@ -83,7 +83,8 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
             if (dynamic) {
                 const merged = { ...baseData };
                 (Object.keys(dynamic.subjects) as SchoolSubject[]).forEach(s => {
-                    if (dynamic.subjects[s].length > 0) merged.subjects[s] = dynamic.subjects[s];
+                    const chapters = dynamic.subjects[s];
+                    if (chapters && chapters.length > 0) merged.subjects[s] = chapters;
                 });
                 setCurriculum(merged);
             } else {
@@ -134,8 +135,9 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
         let grandTotal = 0;
         let grandDone = 0;
 
-        Object.values(SchoolSubject).forEach(subj => {
-            const lessons = curriculum.subjects[subj].flatMap(ch => ch.lessons);
+        ELEMENTARY_SUBJECTS.forEach(subj => {
+            const chapters = curriculum.subjects[subj];
+            const lessons = chapters ? chapters.flatMap(ch => ch.lessons) : [];
             let subjTotal = 0;
             let subjDone = 0;
 
@@ -274,7 +276,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
             </div>
 
             <div className="relative z-20 p-4 grid grid-cols-5 w-full shrink-0 gap-3 items-center">
-                {Object.values(SchoolSubject).map((subj) => {
+                {ELEMENTARY_SUBJECTS.map((subj) => {
                     const isActive = activeSubject === subj;
                     return (
                         <button
@@ -282,11 +284,17 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                             onClick={() => setActiveSubject(subj)}
                             className={`transition-all duration-300 outline-none flex items-center justify-center ${isActive ? 'scale-125 z-10' : 'scale-110 hover:scale-115'}`}
                         >
-                            <img 
-                                src={SUBJECT_ICONS[subj]} 
-                                alt={subj} 
-                                className="w-full h-auto drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]" 
-                            />
+                            {SUBJECT_ICONS[subj] ? (
+                                <img 
+                                    src={SUBJECT_ICONS[subj]} 
+                                    alt={subj} 
+                                    className="w-full h-auto drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]" 
+                                />
+                            ) : (
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-white/50 rounded-xl flex items-center justify-center text-slate-500 font-black text-[10px] md:text-xs uppercase border-2 border-white/30">
+                                    {subj.substring(0, 3)}
+                                </div>
+                            )}
                         </button>
                     );
                 })}
@@ -300,7 +308,7 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                             <span className="font-black uppercase tracking-widest text-xs">Caricamento...</span>
                         </div>
                     ) : (
-                        curriculum.subjects[activeSubject].flatMap(chapter => chapter.lessons).map((lesson) => {
+                        (curriculum.subjects[activeSubject] || []).flatMap(chapter => chapter.lessons).map((lesson) => {
                             const hasQuizzes = lesson.quizzes && lesson.quizzes.length > 0;
                             const hasActivities = lesson.activities && lesson.activities.length > 0;
                             const hasAudio = !!lesson.audioUrl && lesson.audioUrl !== "";
@@ -453,14 +461,21 @@ const SchoolDiaryView: React.FC<SchoolDiaryViewProps> = ({ setView }) => {
                                     </div>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {Object.values(SchoolSubject).map(subj => {
+                                        {ELEMENTARY_SUBJECTS.map(subj => {
                                             const stats = evaluationData.stats[subj];
+                                            if (!stats) return null;
                                             const perc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
                                             
                                             return (
                                                 <div key={subj} className="bg-white/80 p-3 md:p-4 rounded-2xl border-2 border-slate-200 shadow-sm flex items-center gap-4 group transition-all hover:border-blue-300">
-                                                    <div className="w-10 h-10 md:w-16 md:h-16 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
-                                                        <img src={SUBJECT_ICONS[subj]} className="w-full h-full object-contain group-hover:scale-110 transition-transform" alt="" />
+                                                    <div className="w-10 h-10 md:w-16 md:h-16 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden">
+                                                        {SUBJECT_ICONS[subj] ? (
+                                                            <img src={SUBJECT_ICONS[subj]} className="w-full h-full object-contain group-hover:scale-110 transition-transform" alt="" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-[8px] md:text-[10px] uppercase">
+                                                                {subj.substring(0, 3)}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-center mb-1.5">

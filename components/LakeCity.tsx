@@ -1,9 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { AppView } from '../types';
 import CityExplorationModal from './CityExplorationModal';
+import { isNightTime } from '../services/weatherService';
 
 const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lakebgroundcuty543.webp';
+const CITY_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/citylaghinight.webp';
 
 const EXPLORATION_ITEMS = [
     { 
@@ -32,22 +34,32 @@ interface LakeCityProps {
 
 const LakeCity: React.FC<LakeCityProps> = ({ setView }) => {
     const [isExplorationOpen, setIsExplorationOpen] = useState(false);
+    const [now, setNow] = useState(new Date());
+
+    const currentBg = useMemo(() => {
+        return isNightTime(now) ? CITY_BG_NIGHT : CITY_BG;
+    }, [now]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        
+        const timer = setInterval(() => setNow(new Date()), 60000);
         
         const handleToggleExploration = () => {
             setIsExplorationOpen(prev => !prev);
         };
         window.addEventListener('toggleCityExploration', handleToggleExploration);
-        return () => window.removeEventListener('toggleCityExploration', handleToggleExploration);
+        return () => {
+            window.removeEventListener('toggleCityExploration', handleToggleExploration);
+            clearInterval(timer);
+        };
     }, []);
 
     return (
         <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-blue-400">
             {/* Background Layer */}
             <img 
-                src={CITY_BG} 
+                src={currentBg} 
                 alt="Città dei Laghi" 
                 className="absolute inset-0 w-full h-full object-fill select-none animate-in fade-in duration-1000"
             />

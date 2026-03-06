@@ -9,6 +9,9 @@ import AccessibilityMenu from './AccessibilityMenu';
 import ParentalGate from './ParentalGate';
 import ParentalArea from './ParentalArea';
 
+import { getProgress } from '../services/tokens';
+import { getHolidayInfo } from '../services/holidayService';
+
 // Immagini pure stringhe
 const CITY_BTN_IMAGE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icocitycytyrye.webp';
 const BOO_HOUSE_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icocasasasa.webp';
@@ -50,10 +53,10 @@ interface HeaderProps {
 
 const STATION_DESTINATIONS = [
     { id: AppView.SOCIALS, name: "Città Colorata", cost: 0, isHome: true },
-    { id: AppView.GRAY_CITY, name: "Città Grigia", cost: 0 },
-    { id: AppView.LAKE_CITY, name: "Città dei Laghi", cost: 0 },
-    { id: AppView.MOUNTAIN_CITY, name: "Città delle Montagne", cost: 0 },
-    { id: AppView.RAINBOW_CITY, name: "Città degli Arcobaleni", cost: 0 }
+    { id: AppView.GRAY_CITY, name: "Città Grigia", cost: 135 },
+    { id: AppView.LAKE_CITY, name: "Città dei Laghi", cost: 165 },
+    { id: AppView.MOUNTAIN_CITY, name: "Città delle Montagne", cost: 220 },
+    { id: AppView.RAINBOW_CITY, name: "Città degli Arcobaleni", cost: 255 }
 ];
 
 const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
@@ -66,6 +69,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     const [showParentalGate, setShowParentalGate] = useState(false);
     const [showParentalArea, setShowParentalArea] = useState(false);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
+    const [hasTrainPass, setHasTrainPass] = useState(false);
+    const holidayInfo = useMemo(() => getHolidayInfo(), []);
     
     const [logoClicks, setLogoClicks] = useState(0);
     const logoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,6 +113,13 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     }, []);
 
     useEffect(() => {
+        const checkPass = () => {
+            const p = getProgress();
+            setHasTrainPass(!!p.hasTrainPass);
+        };
+        checkPass();
+        window.addEventListener('progressUpdated', checkPass);
+        
         const loadNotifs = async () => {
             const data = await fetchAppNotifications();
             setNotifications(data);
@@ -121,7 +133,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             setShowParentalGate(true);
         };
         window.addEventListener('triggerParentalGate', handleTriggerGate);
-        return () => window.removeEventListener('triggerParentalGate', handleTriggerGate);
+        return () => {
+            window.removeEventListener('triggerParentalGate', handleTriggerGate);
+            window.removeEventListener('progressUpdated', checkPass);
+        };
     }, []);
 
     useEffect(() => {
@@ -194,7 +209,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
                 <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
                     
-                    {!isHome && !isExternalCity && !isJourney && (
+                    {!isHome && !isExternalCity && !isJourney && currentView !== AppView.PREMIUM_INFO && (
                         <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
                                 <button 
@@ -208,25 +223,25 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                 </button>
 
                                 {isMenuOpen && (
-                                    <div className="absolute top-[110%] left-0 bg-sky-200/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl p-2 flex flex-col gap-2 w-60 animate-in slide-in-from-top-2 fade-in z-40">
-                                        <button onClick={handleOpenNotifications} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
+                                    <div className="absolute top-[110%] left-0 bg-sky-200/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 w-max min-w-[140px] animate-in slide-in-from-top-2 fade-in z-40">
+                                        <button onClick={handleOpenNotifications} className="flex items-center gap-2 p-2 pr-4 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                             <div className="relative w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
                                                 <img src={ICON_NOTIF} alt="Notifiche" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" />
                                                 {hasNew && <span className="absolute -top-1 -right-1 w-3 i-3 bg-red-500 rounded-full border border-white animate-pulse"></span>}
                                             </div>
-                                            <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Notifiche</span>
+                                            <span className="block font-luckiest text-[11px] uppercase text-gray-900 drop-shadow-sm">Notifiche</span>
                                         </button>
-                                        <button onClick={handleOpenInfo} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
+                                        <button onClick={handleOpenInfo} className="flex items-center gap-2 p-2 pr-4 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                             <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_INFO} alt="Info" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
-                                            <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Info & Aiuto</span>
+                                            <span className="block font-luckiest text-[11px] uppercase text-gray-900 drop-shadow-sm">Info & Aiuto</span>
                                         </button>
-                                        <button onClick={handleOpenAccessibility} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
+                                        <button onClick={handleOpenAccessibility} className="flex items-center gap-2 p-2 pr-4 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                             <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_MAGIC} alt="Magia" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
-                                            <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Magia</span>
+                                            <span className="block font-luckiest text-[11px] uppercase text-gray-900 drop-shadow-sm">Magia</span>
                                         </button>
-                                        <button onClick={handleOpenParental} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
+                                        <button onClick={handleOpenParental} className="flex items-center gap-2 p-2 pr-4 rounded-xl hover:bg-white/40 transition-colors w-full text-left group">
                                             <div className="w-9 h-9 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center"><img src={ICON_PARENTS} alt="Genitori" className="w-8 h-8 object-contain drop-shadow-sm pointer-events-auto" /></div>
-                                            <span className="block font-black text-sm uppercase text-gray-900 drop-shadow-sm">Genitori</span>
+                                            <span className="block font-luckiest text-[11px] uppercase text-gray-900 drop-shadow-sm">Genitori</span>
                                         </button>
                                     </div>
                                 )}
@@ -242,7 +257,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                         </div>
                     )}
 
-                    {!isHome && (
+                    {!isHome && currentView !== AppView.PREMIUM_INFO && (
                         <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
                             {isJourney ? (
                                 <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
@@ -271,18 +286,35 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                                     <img src={BTN_RETURN_TO_COLOR_CITY} alt="" className="w-12 h-12 object-contain" />
                                                     <span className="text-red-600 font-black text-xs uppercase tracking-widest">DESTINAZIONI</span>
                                                 </div>
-                                                {STATION_DESTINATIONS.filter(dest => dest.id !== currentView).map(dest => (
-                                                    <button key={dest.id} onClick={() => handleTravelTo(dest.id, dest.isHome || false)} className={`flex items-center justify-between p-3 rounded-xl transition-all active:scale-95 border-b-4 ${dest.isHome ? 'bg-blue-600 border-blue-800 text-white shadow-lg' : 'bg-white/40 border-black/5 text-slate-900 hover:bg-white/60'}`}>
-                                                        <div className="flex flex-col items-start text-left">
-                                                            <span className="font-black text-xs uppercase leading-tight">{dest.name}</span>
-                                                            <span className={`text-[10px] font-bold uppercase ${dest.isHome ? 'text-white/70' : 'text-slate-500'}`}>{dest.isHome ? 'Ritorno a casa' : 'Viaggio diretto'}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
-                                                            <span className="font-black text-xs">{dest.cost}</span>
-                                                            <TokenIcon className="w-3 h-3" />
-                                                        </div>
-                                                    </button>
-                                                ))}
+                                                {STATION_DESTINATIONS.filter(dest => dest.id !== currentView).map(dest => {
+                                                    const baseCost = dest.cost;
+                                                    const discountedCost = holidayInfo.isHoliday ? Math.floor(baseCost * (1 - holidayInfo.discount)) : baseCost;
+                                                    
+                                                    return (
+                                                        <button key={dest.id} onClick={() => handleTravelTo(dest.id, dest.isHome || false)} className={`flex items-center justify-between p-3 rounded-xl transition-all active:scale-95 border-b-4 ${dest.isHome ? 'bg-blue-600 border-blue-800 text-white shadow-lg' : 'bg-white/40 border-black/5 text-slate-900 hover:bg-white/60'}`}>
+                                                            <div className="flex flex-col items-start text-left">
+                                                                <span className="font-black text-xs uppercase leading-tight">{dest.name}</span>
+                                                                <span className={`text-[10px] font-bold uppercase ${dest.isHome ? 'text-white/70' : 'text-slate-500'}`}>{dest.isHome ? 'Ritorno a casa' : 'Viaggio diretto'}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
+                                                                {hasTrainPass && baseCost > 0 ? (
+                                                                    <>
+                                                                        <span className="font-black text-xs line-through opacity-50">{discountedCost}</span>
+                                                                        <span className="font-black text-xs text-green-600">0</span>
+                                                                    </>
+                                                                ) : holidayInfo.isHoliday && baseCost > 0 ? (
+                                                                    <>
+                                                                        <span className="font-black text-xs line-through opacity-50">{baseCost}</span>
+                                                                        <span className="font-black text-xs text-red-600">{discountedCost}</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="font-black text-xs">{baseCost}</span>
+                                                                )}
+                                                                <TokenIcon className="w-3 h-3" />
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>

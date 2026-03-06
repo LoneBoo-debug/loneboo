@@ -49,7 +49,7 @@ const PremiumInfoPage: React.FC<PremiumInfoPageProps> = ({ setView, returnView }
                     {/* Intro */}
                     <div className="text-center mb-12">
                         <p className="text-xl md:text-2xl font-bold text-slate-700 leading-relaxed">
-                            <span className="text-blue-600 font-black">Scuola Elementare Arcobaleno in Lone Boo World</span>, nasce con un obiettivo chiaro: accompagnare bambini e famiglie nel percorso della scuola primaria in modo <span className="text-blue-600 font-black">serio, completo e coinvolgente.</span><br/>
+                            <span className="text-blue-600 font-black">Lone Boo World</span>, nasce con un obiettivo chiaro: accompagnare bambini e ragazzi nel percorso scolastico in modo <span className="text-blue-600 font-black">serio, completo e coinvolgente.</span><br/>
                             L’abbonamento Lone Boo Premium è pensato per chi desidera offrire ai propri figli uno strumento educativo affidabile, sempre aggiornato e costruito con competenza.
                         </p>
                     </div>
@@ -58,7 +58,7 @@ const PremiumInfoPage: React.FC<PremiumInfoPageProps> = ({ setView, returnView }
                     <section>
                         <SectionTitle icon={GraduationCap}>Percorso Didattico Completo</SectionTitle>
                         <p className="text-lg md:text-xl text-slate-700 font-bold leading-relaxed mb-4">
-                            Con l’abbonamento Premium si sbloccano tutte le lezioni di tutte le materie per tutte le classi della scuola primaria, dalla prima alla quinta.
+                            Con l’abbonamento Premium si sbloccano tutte le lezioni di tutte le materie per tutte le classi della scuola primaria e secondaria.
                         </p>
                         <div className="flex flex-wrap gap-2 mb-6">
                             {['Italiano', 'Matematica', 'Storia', 'Geografia', 'Scienze'].map(s => (

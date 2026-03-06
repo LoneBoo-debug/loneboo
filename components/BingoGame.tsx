@@ -27,11 +27,11 @@ const OPPONENT_WIN_IMAGES: Record<string, string> = {
 type PrizeId = 'AMBO' | 'TERNO' | 'QUATERNA' | 'CINQUINA' | 'TOMBOLA';
 
 const PRIZES = [
-  { id: 'AMBO' as PrizeId, label: 'Ambo', tokens: 1, count: 2 },
-  { id: 'TERNO' as PrizeId, label: 'Terno', tokens: 2, count: 3 },
-  { id: 'QUATERNA' as PrizeId, label: 'Quaterna', tokens: 3, count: 4 },
-  { id: 'CINQUINA' as PrizeId, label: 'Cinquina', tokens: 5, count: 5 },
-  { id: 'TOMBOLA' as PrizeId, label: 'Tombola', tokens: 10, count: 15 }
+  { id: 'AMBO' as PrizeId, label: 'Ambo', tokens: 6, count: 2 },
+  { id: 'TERNO' as PrizeId, label: 'Terno', tokens: 10, count: 3 },
+  { id: 'QUATERNA' as PrizeId, label: 'Quaterna', tokens: 16, count: 4 },
+  { id: 'CINQUINA' as PrizeId, label: 'Cinquina', tokens: 24, count: 5 },
+  { id: 'TOMBOLA' as PrizeId, label: 'Tombola', tokens: 35, count: 15 }
 ];
 
 interface Player {
@@ -52,6 +52,7 @@ interface StarEffect {
 const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => void }> = ({ onBack, onEarnTokens }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [extractedNumbers, setExtractedNumbers] = useState<number[]>([]);
+  const [extractionPool, setExtractionPool] = useState<number[]>([]);
   const [currentNumber, setCurrentNumber] = useState<number | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [prizeHistory, setPrizeHistory] = useState<{ prizeId: string, winnerName: string }[]>([]);
@@ -200,6 +201,11 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
     ];
     setPlayers(allPlayers);
     setExtractedNumbers([]);
+    
+    // Crea e mescola il pool di 90 numeri
+    const pool = Array.from({ length: 90 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+    setExtractionPool(pool);
+    
     setCurrentNumber(null);
     setPrizeHistory([]);
     setIsGameOver(false);
@@ -213,20 +219,20 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
   const performExtraction = useCallback(() => {
     if (!isPlaying || isGameOver || isPaused) return;
 
-    setExtractedNumbers(prev => {
-      if (prev.length >= 90) {
+    setExtractionPool(prevPool => {
+      if (prevPool.length === 0) {
         setIsGameOver(true);
-        return prev;
+        return prevPool;
       }
 
-      let next;
-      do {
-        next = Math.floor(Math.random() * 90) + 1;
-      } while (prev.includes(next));
+      const nextPool = [...prevPool];
+      const next = nextPool.pop()!;
 
       setCurrentNumber(next);
+      setExtractedNumbers(prev => [...prev, next]);
       playSfx('PLIN');
-      return [...prev, next];
+      
+      return nextPool;
     });
   }, [isPlaying, isGameOver, isPaused, playSfx]);
 
@@ -346,7 +352,6 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
   };
 
   const currentPlayer = players.find(p => p.id === 'player');
-  const penultimateNumber = extractedNumbers.length >= 2 ? extractedNumbers[extractedNumbers.length - 2] : null;
 
   return (
     <div className="fixed inset-0 z-0 bg-[#1e1b4b] overflow-hidden select-none touch-none h-full w-full">
@@ -414,12 +419,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
                   Tocca Inizia!
                </div>
             ) : (
-              <div className="flex items-center gap-4 md:gap-8 animate-in slide-in-from-right duration-500">
-                 {penultimateNumber !== null && (
-                   <div className="w-12 h-12 md:w-16 md:h-16 bg-white/40 rounded-full border-2 border-white/50 flex items-center justify-center opacity-70">
-                     <span className="text-2xl md:text-3xl font-black text-white">{penultimateNumber}</span>
-                   </div>
-                 )}
+              <div className="flex items-center justify-center animate-in slide-in-from-right duration-500">
                  <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.6)] flex items-center justify-center animate-in zoom-in spin-in-90 duration-500">
                    <span className="text-4xl md:text-5xl font-black text-blue-900">{currentNumber || ""}</span>
                  </div>

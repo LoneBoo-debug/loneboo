@@ -15,7 +15,7 @@ const MONSTER_IMAGES = [
 ];
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/antromostrorocciasub.webp';
-const BTN_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esicenigmi.webp';
+const BTN_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tastoescimonsterbattle.webp';
 const PUNCH_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/universfield-punch-03-352040.mp3';
 const BGM_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tunetank-epic-battle-music-347288.mp3';
 const EARTHQUAKE_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/themediaguy-earthquake-rumble-amp-cracking-379298.mp3';
@@ -686,7 +686,6 @@ const SubMonsterBattle: React.FC<SubMonsterBattleProps> = ({ setView }) => {
                     className="hover:scale-110 active:scale-95 transition-all outline-none group flex flex-col items-center pointer-events-auto"
                 >
                     <img src={BTN_BACK_URL} alt="Esci" className="w-20 h-20 md:w-28 h-auto drop-shadow-2xl brightness-90 group-hover:brightness-110" />
-                    <p className="text-white/70 text-[10px] font-black uppercase tracking-widest mt-1 text-center bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm">Torna Indietro</p>
                 </button>
 
                 {/* TOKEN BALANCE - BOTTOM CENTER */}

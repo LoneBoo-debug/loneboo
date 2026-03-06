@@ -4,7 +4,14 @@ export enum SchoolSubject {
   MATEMATICA = 'MATEMATICA',
   STORIA = 'STORIA',
   GEOGRAFIA = 'GEOGRAFIA',
-  SCIENZE = 'SCIENZE'
+  SCIENZE = 'SCIENZE',
+  INGLESE = 'INGLESE',
+  ARTE = 'ARTE',
+  TECNOLOGIA = 'TECNOLOGIA',
+  ESPERIMENTI = 'ESPERIMENTI',
+  INFORMATICA = 'INFORMATICA',
+  CIVICA = 'CIVICA',
+  MOTORIA = 'MOTORIA'
 }
 
 export interface SchoolQuiz {
@@ -37,7 +44,7 @@ export interface SchoolChapter {
 
 export interface GradeCurriculumData {
   grade: number;
-  subjects: Record<SchoolSubject, SchoolChapter[]>;
+  subjects: Partial<Record<SchoolSubject, SchoolChapter[]>>;
 }
 
 export interface Video {
@@ -158,7 +165,27 @@ export enum AppView {
   SUB_OSCURITA_POTERE = 'SUB_OSCURITA_POTERE',
   SUB_OSCURITA_MOSTRO = 'SUB_OSCURITA_MOSTRO',
   SUB_OSCURITA_SUPERFICIE = 'SUB_OSCURITA_SUPERFICIE',
-  MAGIC_HAT_ALBUM = 'MAGIC_HAT_ALBUM'
+  MAGIC_HAT_ALBUM = 'MAGIC_HAT_ALBUM',
+  RAINBOW_CITY_SCUOLA_MEDIA = 'RAINBOW_CITY_SCUOLA_MEDIA',
+  RAINBOW_CITY_ZOO = 'RAINBOW_CITY_ZOO',
+  RAINBOW_CITY_ARTE = 'RAINBOW_CITY_ARTE',
+  RAINBOW_CITY_ALIMENTARI = 'RAINBOW_CITY_ALIMENTARI',
+  RAINBOW_CITY_BURGER = 'RAINBOW_CITY_BURGER',
+  RAINBOW_CITY_SCUOLA_MEDIA_1 = 'RAINBOW_CITY_SCUOLA_MEDIA_1',
+  RAINBOW_CITY_SCUOLA_MEDIA_2 = 'RAINBOW_CITY_SCUOLA_MEDIA_2',
+  RAINBOW_CITY_SCUOLA_MEDIA_3 = 'RAINBOW_CITY_SCUOLA_MEDIA_3',
+  MEDIE_ITALIANO = 'MEDIE_ITALIANO',
+  MEDIE_INGLESE = 'MEDIE_INGLESE',
+  MEDIE_STORIA = 'MEDIE_STORIA',
+  MEDIE_GEOGRAFIA = 'MEDIE_GEOGRAFIA',
+  MEDIE_ARTE = 'MEDIE_ARTE',
+  MEDIE_TECNOLOGIA = 'MEDIE_TECNOLOGIA',
+  MEDIE_MATEMATICA = 'MEDIE_MATEMATICA',
+  MEDIE_SCIENZE = 'MEDIE_SCIENZE',
+  MEDIE_ESPERIMENTI = 'MEDIE_ESPERIMENTI',
+  MEDIE_INFORMATICA = 'MEDIE_INFORMATICA',
+  MEDIE_CIVICA = 'MEDIE_CIVICA',
+  MEDIE_MOTORIA = 'MEDIE_MOTORIA'
 }
 
 export interface ChatMessage {
@@ -264,6 +291,22 @@ export interface TokenTransaction {
     date: string;
 }
 
+export enum LessonStatus {
+  NON_LETTO = 'NON_LETTO',
+  IN_LETTURA = 'IN_LETTURA',
+  LETTO = 'LETTO'
+}
+
+export interface LessonProgress {
+  lessonId: string;
+  status: LessonStatus;
+  scrollPercentage: number;
+  lastUpdated: number;
+  grade: number;
+  subject: string;
+  title: string;
+}
+
 export interface PlayerProgress {
     playerName?: string;
     avatar?: 'BOY' | 'GIRL';
@@ -283,6 +326,7 @@ export interface PlayerProgress {
     purchasedClothing: string[];
     transactions?: TokenTransaction[];
     magicHatStickers?: string[];
+    hasTrainPass?: boolean;
 }
 
 export interface SocialStats {

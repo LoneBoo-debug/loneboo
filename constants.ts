@@ -1,7 +1,16 @@
 
-import { Video, SocialLink, AppView } from './types';
+import { Video, SocialLink, AppView, SchoolSubject } from './types';
 
 export const APP_VERSION = '1.8.8';
+// ... (rest of imports)
+
+export const ELEMENTARY_SUBJECTS = [
+    SchoolSubject.ITALIANO,
+    SchoolSubject.MATEMATICA,
+    SchoolSubject.STORIA,
+    SchoolSubject.GEOGRAFIA,
+    SchoolSubject.SCIENZE
+];
 
 export const OFFICIAL_LOGO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/logo-main2211.webp';
 export const TOKEN_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconmoneyloneboo.webp';
@@ -20,6 +29,7 @@ export const SOCIAL_STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2P
 
 // Database Scolastico Ufficiale
 export const SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDck5eVCJQL553cZunTTmwNpO6wjgm89vpGOhYb6tGoQ2_gR6uRbRGw4lAWWSOQA8Pe_Xl5bftx2Dh/pub?gid=0&single=true&output=csv';
+export const MIDDLE_SCHOOL_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvh-binhXrlxCoG-24KdwUpzJID3TFj48xWR5oPqSkaxmjtLghq1YX6qqYjSPH_zBBDzfRnfJtc44W/pub?gid=0&single=true&output=csv';
 
 // Database Dizionario Sinonimi e Contrari
 export const DICTIONARY_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTKBlP3n0AaA2X2Svo1KdIJOlT42JtV-n5ZcM1qDL0p04uieplscARs4_NjFKHqKvwAa7MLHzacI9a2/pub?gid=0&single=true&output=csv';

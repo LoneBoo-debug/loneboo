@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, ShoppingBag, Check, Lock, Star, Download, Settings, Move, ArrowRight, Upload, Camera, ScanLine, Copy, RotateCcw, Trash2, Smile, BookOpen, LogOut, Image as ImageIcon, User, HelpCircle, Share, AlertCircle, CheckCircle2, Calendar, ArrowLeftRight, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
-import { getProgress, openPack, spendTokens, getPassportCode, restorePassport, saveSticker, addDuplicate, tradeDuplicates, setPlayerName, decodePassport, saveProgress, addTokens, upgradeToNextAlbum } from '../services/tokens';
+import { getProgress, openPack, spendTokens, getPassportCode, restorePassport, saveSticker, addDuplicate, tradeDuplicates, setPlayerName, decodePassport, saveProgress, addTokens, upgradeToNextAlbum, purchaseTrainPass } from '../services/tokens';
 import { PlayerProgress, Sticker, AppView } from '../types';
 import { isNightTime } from '../services/weatherService';
 import { TOKEN_ICON_URL } from '../constants';
@@ -63,6 +63,7 @@ const CITY_BACK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/fdre66
 const IMG_PACK_STANDARD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pack-standard.webp';
 const IMG_PACK_GOLD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pack-gold.webp';
 const IMG_CALENDAR_BANNER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/calendarnewstand33eqa.webp';
+const IMG_TRAIN_PASS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/abbonamentotreno.webp';
 
 // Nuovi Asset Frecce
 const BTN_ARROW_LEFT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freccia%20sibnistraedicoly87yt5.png';
@@ -170,6 +171,15 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
             const isGold = version === 2;
             if (spendTokens(cost, `Pacchetto Figurine ${isGold ? 'Gold' : 'Standard'}`)) {
                 triggerPackAnimation(openPack(version, isGold));
+            }
+        }
+    };
+
+    const handleBuyTrainPass = () => {
+        if (progress.tokens >= 850 && !progress.hasTrainPass) {
+            if (purchaseTrainPass()) {
+                alert("Congratulazioni! Hai acquistato l'Abbonamento Treno! 🚂✨ Ora puoi viaggiare gratis ovunque!");
+                setProgress(getProgress());
             }
         }
     };
@@ -392,6 +402,19 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                                         <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_CALENDAR_BANNER} className="h-full w-auto object-contain drop-shadow-2xl" alt="Calendario" /></div>
                                         <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Calendario Magico</h3>
                                         <button onClick={() => setView(AppView.CALENDAR)} className="bg-blue-600 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-blue-900 shadow-xl active:translate-y-1 active:border-b-0 transition-all text-xl flex items-center gap-2">ENTRA 0 <TokenIcon className="w-6 h-6" /></button>
+                                    </div>
+                                    <div className="flex-shrink-0 w-full h-full snap-center flex flex-col items-center justify-center p-4">
+                                        <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_TRAIN_PASS} className="h-full w-auto object-contain drop-shadow-2xl" alt="Abbonamento Treno" /></div>
+                                        <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Abbonamento Treno</h3>
+                                        {progress.hasTrainPass ? (
+                                            <div className="bg-green-500 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-green-800 shadow-xl text-xl flex items-center gap-2 uppercase">
+                                                <Check size={24} /> Già acquistato
+                                            </div>
+                                        ) : (
+                                            <button onClick={handleBuyTrainPass} disabled={progress.tokens < 850} className="bg-yellow-500 text-black font-black py-4 px-10 rounded-2xl border-b-8 border-yellow-700 shadow-xl active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50 text-xl flex items-center gap-2 uppercase">
+                                                Compra 850 <TokenIcon className="w-6 h-6" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -661,7 +661,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                       </div>
                   ) : (
                       <>
-                        <div className="w-full flex flex-col items-center justify-center min-h-[60px] md:min-h-[120px] mb-4 md:mb-6 shrink-0 mt-2 md:mt-4">
+                        <div className="w-full flex flex-col items-center justify-center min-h-[60px] md:min-h-[120px] mb-4 md:mb-6 shrink-0 mt-10 md:mt-16">
                             <h3 className="font-luckiest text-center text-blue-700 text-xl md:text-5xl uppercase leading-tight drop-shadow-sm">
                                 {selectedLesson.title}
                             </h3>
@@ -686,7 +686,7 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({ data, initialSubject, o
                             ref={textContainerRef}
                             onScroll={handleManualScroll}
                             className="w-full overflow-y-auto overflow-x-hidden no-scrollbar pointer-events-auto block"
-                            style={{ height: '52vh', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+                            style={{ height: '46vh', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
                         >
                             <div className="flex flex-col gap-4 pb-12">
                                 {renderMixedContent(selectedLesson.text)}

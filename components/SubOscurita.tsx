@@ -9,6 +9,7 @@ const STATIC_BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newosb
 const ILLUMINATED_BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oscutillumina4e3.webp';
 const AUDIO_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
 const BTN_EXIT_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esicenigmi.webp';
+const BTN_BACK_EXPLORE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/indietroesplorasotterre888.webp';
 const BTN_TORCH_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torciilluminaoscurenj45.webp';
 
 interface SubOscuritaProps {
@@ -123,6 +124,17 @@ const SubOscurita: React.FC<SubOscuritaProps> = ({ setView, initialPhase = 'BLAC
         <div 
             className="fixed inset-0 z-[150] bg-black flex flex-col overflow-hidden select-none"
         >
+            {(phase === 'BLACK' || phase === 'ANIMATION') && (
+                <div className="absolute bottom-10 right-10 z-[170]">
+                    <button 
+                        onClick={() => setPhase('STATIC')}
+                        className="bg-black/50 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black/70 transition-all border border-white/20"
+                    >
+                        Salta
+                    </button>
+                </div>
+            )}
+
             {phase === 'BLACK' && (
                 <div className="absolute inset-0 bg-black z-[160]" />
             )}
@@ -156,7 +168,17 @@ const SubOscurita: React.FC<SubOscuritaProps> = ({ setView, initialPhase = 'BLAC
                     ))}
 
                     {/* UI CONTROLS */}
-                    <div className="absolute top-6 left-6 z-[170] flex items-center gap-4 pointer-events-auto">
+                    <div className="absolute bottom-6 left-6 z-[170] pointer-events-auto">
+                        <button 
+                            onClick={handleExit}
+                            className="hover:scale-110 active:scale-95 transition-all outline-none"
+                        >
+                            <img 
+                                src={BTN_BACK_EXPLORE_URL} 
+                                alt="Torna ai Sotterranei" 
+                                className="w-20 h-20 md:w-32 h-auto drop-shadow-2xl" 
+                            />
+                        </button>
                     </div>
 
                     <div className="absolute top-6 right-6 z-[170] flex flex-col items-center gap-4 pointer-events-auto">

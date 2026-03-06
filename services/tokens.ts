@@ -20,7 +20,8 @@ const INITIAL_PROGRESS: PlayerProgress = {
     completedActivities: {},
     equippedClothing: {},
     purchasedClothing: [],
-    transactions: []
+    transactions: [],
+    hasTrainPass: false
 };
 
 export const getProgress = (): PlayerProgress => {
@@ -38,7 +39,8 @@ export const getProgress = (): PlayerProgress => {
                     purchasedClothing: parsed.purchasedClothing || [],
                     transactions: parsed.transactions || [],
                     duplicatesVol2: parsed.duplicatesVol2 || 0,
-                    duplicateStickersVol2: parsed.duplicateStickersVol2 || []
+                    duplicateStickersVol2: parsed.duplicateStickersVol2 || [],
+                    hasTrainPass: !!parsed.hasTrainPass
                 };
             }
         }
@@ -150,6 +152,19 @@ export const upgradeToNextAlbum = (): boolean => {
     const progress = getProgress();
     if ((progress.currentAlbum || 1) < 2) {
         progress.currentAlbum = 2;
+        saveProgress(progress);
+        return true;
+    }
+    return false;
+};
+
+export const purchaseTrainPass = (): boolean => {
+    const progress = getProgress();
+    if (progress.hasTrainPass) return true;
+    if (progress.tokens >= 850) {
+        progress.tokens -= 850;
+        progress.hasTrainPass = true;
+        recordTransaction(progress, -850, 'Acquisto Abbonamento Treno');
         saveProgress(progress);
         return true;
     }

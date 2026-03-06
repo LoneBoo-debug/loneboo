@@ -1,5 +1,5 @@
 
-import { SCHOOL_DATA_CSV_URL } from '../constants';
+import { SCHOOL_DATA_CSV_URL, MIDDLE_SCHOOL_DATA_CSV_URL } from '../constants';
 import { GradeCurriculumData, SchoolSubject, SchoolChapter, SchoolLesson, SchoolQuiz } from '../types';
 
 const parseCSV = (text: string): string[][] => {
@@ -162,9 +162,102 @@ export const fetchGradeCurriculum = async (grade: number): Promise<GradeCurricul
 
         const totalLessons = Object.values(curriculum.subjects).reduce((acc, chapters) => acc + chapters.length, 0);
         return totalLessons > 0 ? curriculum : null;
-
     } catch (error) {
         console.warn("Curriculum fetch error:", error);
         return null;
+    }
+};
+
+export const fetchMiddleSchoolCurriculum = async (grade: number, subject: SchoolSubject): Promise<SchoolLesson[]> => {
+    if (!MIDDLE_SCHOOL_DATA_CSV_URL) return [];
+
+    try {
+        const separator = MIDDLE_SCHOOL_DATA_CSV_URL.includes('?') ? '&' : '?';
+        const response = await fetch(`${MIDDLE_SCHOOL_DATA_CSV_URL}${separator}t=${Date.now()}`);
+        if (!response.ok) return [];
+
+        const text = await response.text();
+        const allRows = parseCSV(text);
+        if (allRows.length < 2) return [];
+
+        const dataRows = allRows.slice(1);
+        const lessons: SchoolLesson[] = [];
+
+        dataRows.forEach((parts) => {
+            if (parts.length < 4) return;
+
+            const rowGrade = parseInt(parts[0]);
+            if (rowGrade !== grade) return;
+
+            const rowSubject = parts[1].toUpperCase() as SchoolSubject;
+            if (rowSubject !== subject) return;
+
+            const lessonTitle = parts[2];
+            const lessonText = parts[3];
+            const accessType = parts[4]?.toLowerCase() || 'gratis';
+            const isPremium = accessType === 'abbonamento';
+
+            lessons.push({
+                id: `ms_${grade}_${subject}_${lessonTitle}`.replace(/[^a-z0-9]/gi, '_').toLowerCase(),
+                title: lessonTitle,
+                text: lessonText,
+                audioUrl: "",
+                quizzes: [],
+                activities: [],
+                isPremium: isPremium,
+                grade,
+                subject
+            });
+        });
+
+        return lessons;
+    } catch (error) {
+        console.warn("Middle School Curriculum fetch error:", error);
+        return [];
+    }
+};
+
+export const fetchAllMiddleSchoolLessons = async (): Promise<SchoolLesson[]> => {
+    if (!MIDDLE_SCHOOL_DATA_CSV_URL) return [];
+
+    try {
+        const separator = MIDDLE_SCHOOL_DATA_CSV_URL.includes('?') ? '&' : '?';
+        const response = await fetch(`${MIDDLE_SCHOOL_DATA_CSV_URL}${separator}t=${Date.now()}`);
+        if (!response.ok) return [];
+
+        const text = await response.text();
+        const allRows = parseCSV(text);
+        if (allRows.length < 2) return [];
+
+        const dataRows = allRows.slice(1);
+        const lessons: SchoolLesson[] = [];
+
+        dataRows.forEach((parts) => {
+            if (parts.length < 4) return;
+
+            const grade = parseInt(parts[0]);
+            const subject = parts[1].toUpperCase();
+            const lessonTitle = parts[2];
+            const lessonText = parts[3];
+            const accessType = parts[4]?.toLowerCase() || 'gratis';
+            const isPremium = accessType === 'abbonamento';
+
+            lessons.push({
+                id: `ms_${grade}_${subject}_${lessonTitle}`.replace(/[^a-z0-9]/gi, '_').toLowerCase(),
+                title: lessonTitle,
+                text: lessonText,
+                audioUrl: "",
+                quizzes: [],
+                activities: [],
+                grade,
+                subject,
+                isPremium: isPremium
+            });
+        });
+
+        return lessons;
+    } catch (error) {
+        console.warn("All Middle School Curriculum fetch error:", error);
+        return [];
     }
 };
