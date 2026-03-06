@@ -167,7 +167,7 @@ const RainbowCityClassroom: React.FC<RainbowCityClassroomProps> = ({ title, setV
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-[100] bg-slate-950 flex items-center justify-center overflow-hidden">
             <img 
                 src={isNight ? BG_NIGHT : BG_DAY} 
                 alt={title} 

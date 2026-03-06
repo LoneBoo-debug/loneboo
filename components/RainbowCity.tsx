@@ -146,7 +146,7 @@ const RainbowCity: React.FC<RainbowCityProps> = ({ setView }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-sky-300">
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-sky-300">
             {/* Background Layer */}
             <img 
                 src={isNight ? CITY_NIGHT_BG : CITY_BG} 

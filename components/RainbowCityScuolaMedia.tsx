@@ -215,7 +215,7 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center overflow-hidden select-none">
+        <div className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center overflow-hidden select-none">
             {/* Background Layer */}
             <img 
                 src={isNight ? BG_NIGHT_URL : BG_URL} 
