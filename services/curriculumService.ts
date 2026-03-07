@@ -194,15 +194,41 @@ export const fetchMiddleSchoolCurriculum = async (grade: number, subject: School
 
             const lessonTitle = parts[2];
             const lessonText = parts[3];
-            const accessType = parts[4]?.toLowerCase() || 'gratis';
+            const accessType = parts[5]?.toLowerCase() || 'gratis';
             const isPremium = accessType === 'abbonamento';
+
+            const quizzes: SchoolQuiz[] = [];
+            if (parts[8] && parts[8] !== "-") {
+                quizzes.push({
+                    question: parts[8],
+                    options: parts[9] ? parts[9].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[10]) || 0,
+                    feedback: parts[11] || "Bravissimo! ✨"
+                });
+            }
+            if (parts[12] && parts[12] !== "-") {
+                quizzes.push({
+                    question: parts[12],
+                    options: parts[13] ? parts[13].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[14]) || 0,
+                    feedback: parts[15] || "Ottimo lavoro! 🎈"
+                });
+            }
+            if (parts[16] && parts[16] !== "-") {
+                quizzes.push({
+                    question: parts[16],
+                    options: parts[17] ? parts[17].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[18]) || 0,
+                    feedback: parts[19] || "Fenomenale! 🌟"
+                });
+            }
 
             lessons.push({
                 id: `ms_${grade}_${subject}_${lessonTitle}`.replace(/[^a-z0-9]/gi, '_').toLowerCase(),
                 title: lessonTitle,
                 text: lessonText,
                 audioUrl: "",
-                quizzes: [],
+                quizzes: quizzes,
                 activities: [],
                 isPremium: isPremium,
                 grade,
@@ -239,15 +265,41 @@ export const fetchAllMiddleSchoolLessons = async (): Promise<SchoolLesson[]> => 
             const subject = parts[1].toUpperCase();
             const lessonTitle = parts[2];
             const lessonText = parts[3];
-            const accessType = parts[4]?.toLowerCase() || 'gratis';
+            const accessType = parts[5]?.toLowerCase() || 'gratis';
             const isPremium = accessType === 'abbonamento';
+
+            const quizzes: SchoolQuiz[] = [];
+            if (parts[8] && parts[8] !== "-") {
+                quizzes.push({
+                    question: parts[8],
+                    options: parts[9] ? parts[9].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[10]) || 0,
+                    feedback: parts[11] || "Bravissimo! ✨"
+                });
+            }
+            if (parts[12] && parts[12] !== "-") {
+                quizzes.push({
+                    question: parts[12],
+                    options: parts[13] ? parts[13].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[14]) || 0,
+                    feedback: parts[15] || "Ottimo lavoro! 🎈"
+                });
+            }
+            if (parts[16] && parts[16] !== "-") {
+                quizzes.push({
+                    question: parts[16],
+                    options: parts[17] ? parts[17].split('|').map(o => o.trim()) : ["A", "B", "C"],
+                    correctIndex: parseInt(parts[18]) || 0,
+                    feedback: parts[19] || "Fenomenale! 🌟"
+                });
+            }
 
             lessons.push({
                 id: `ms_${grade}_${subject}_${lessonTitle}`.replace(/[^a-z0-9]/gi, '_').toLowerCase(),
                 title: lessonTitle,
                 text: lessonText,
                 audioUrl: "",
-                quizzes: [],
+                quizzes: quizzes,
                 activities: [],
                 grade,
                 subject,

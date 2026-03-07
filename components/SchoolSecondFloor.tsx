@@ -3,9 +3,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO } from '../constants';
 import { isNightTime } from '../services/weatherService';
+import { getProgress } from '../services/tokens';
+import { motion } from 'motion/react';
 
 const SCHOOL_SF_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfsecondfloorschool567990er.webp';
 const SCHOOL_SF_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/secondopianoscuolanotte.webp';
+const STUDENT_PASS_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/abbonamento+studentemedie.webp';
+const PROMO_BUTTON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/promobuttonzion33.webp';
 
 // Asset Audio e Video
 const SCHOOL_FLOOR_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/e6201c78-2a97-40a8-9bf4-29fbce108801.mp3';
@@ -142,9 +146,11 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
     // La mini TV è visibile se l'audio è ON e stiamo ancora riproducendo uno dei due step
     const isBooTalking = isAudioOn && (currentStep === 1 || currentStep === 2);
 
+    const progress = getProgress();
+
     return (
         <div 
-            className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none"
+            className="absolute inset-0 top-0 left-0 w-full h-[100dvh] z-0 bg-[#4c1d95] overflow-hidden touch-none overscroll-none select-none"
         >
             {!isLoaded && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-purple-900/95 backdrop-blur-md">
@@ -190,6 +196,37 @@ const SchoolSecondFloor: React.FC<SchoolSecondFloorProps> = ({ setView }) => {
                             style={{ clipPath: getClipPath(pts) }} 
                         />
                     ))}
+
+                    {/* Sono stato promosso - Bottom Right */}
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setView(AppView.PROMOTION_INFO)}
+                        className="absolute bottom-6 right-6 z-50 w-52 md:w-80 h-auto outline-none"
+                    >
+                        <img 
+                            src={PROMO_BUTTON_URL} 
+                            alt="Sono stato promosso" 
+                            className="w-full h-auto drop-shadow-2xl"
+                        />
+                    </motion.button>
+
+                    {/* Badge Abbonamento Studente - Bottom Left */}
+                    {progress.hasStudentPass && (
+                        <motion.div
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="absolute bottom-6 left-6 z-50 w-24 h-24 md:w-32 md:h-32 pointer-events-none"
+                        >
+                            <img 
+                                src={STUDENT_PASS_URL} 
+                                alt="Abbonamento Studente" 
+                                className="w-full h-full object-contain drop-shadow-2xl animate-pulse"
+                            />
+                        </motion.div>
+                    )}
                 </>
             )}
         </div>

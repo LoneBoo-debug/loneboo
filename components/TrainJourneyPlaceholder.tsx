@@ -23,6 +23,8 @@ const BTN_BACK_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornac
 const BTN_RETURN_TO_CITY_GRAF = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp';
 const CLOCK_SCREEN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/schermosvegliatuagiornuere.webp';
 const IMG_TRAIN_PASS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/abbonamentotreno.webp';
+const IMG_STUDENT_PASS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/abbonamento+studentemedie.webp';
+const LOCK_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/icon-parents.webp';
 
 // Asset Marlo Capostazione
 const MARLO_STATION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marlocapostatione443.mp4';
@@ -274,8 +276,10 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const [selectedZone, setSelectedZone] = useState<ZoneInfo | null>(null);
     const [showMapModal, setShowMapModal] = useState(false);
     const [showDailyModal, setShowDailyModal] = useState(false);
-    const [showPassPopup, setShowPassPopup] = useState(false);
+    const [showPassPopup, setShowPassPopup] = useState<{ type: 'train' | 'student' } | null>(null);
     const [hasTrainPass, setHasTrainPass] = useState(false);
+    const [hasStudentPass, setHasStudentPass] = useState(false);
+    const [showObtainModal, setShowObtainModal] = useState<{ type: 'train' | 'student' } | null>(null);
     const holidayInfo = useMemo(() => getHolidayInfo(), []);
     
     const [isTraveling, setIsTraveling] = useState(false);
@@ -345,6 +349,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         const p = getProgress();
         setUserTokens(p.tokens);
         setHasTrainPass(!!p.hasTrainPass);
+        setHasStudentPass(!!p.hasStudentPass);
 
         trainAudioRef.current = new Audio(TRAIN_SOUND_URL);
         trainAudioRef.current.loop = true;
@@ -434,7 +439,13 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         if (!selectedZone) return;
         const baseCost = selectedZone.cost;
         const discountedCost = holidayInfo.isHoliday ? Math.floor(baseCost * (1 - holidayInfo.discount)) : baseCost;
-        const effectiveCost = hasTrainPass ? 0 : discountedCost;
+        
+        let effectiveCost = hasTrainPass ? 0 : discountedCost;
+        
+        // Student pass makes trip to Rainbow City free
+        if (selectedZone.id === AppView.RAINBOW_CITY && hasStudentPass) {
+            effectiveCost = 0;
+        }
         
         if (userTokens >= effectiveCost) {
             if (effectiveCost > 0) spendTokens(effectiveCost, `Viaggio a ${selectedZone.name}`);
@@ -563,7 +574,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     className="fixed z-50 flex flex-col items-center"
                     style={{ 
                         top: `${CLOCK_STYLE.top}px`, 
-                        left: `${CLOCK_STYLE.right}px`,
+                        left: `${CLOCK_STYLE.right + 10}px`,
                         width: `${CLOCK_STYLE.iconSize}px`
                     }}
                 >
@@ -574,14 +585,38 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     </div>
 
                     {/* MINIATURA ABBONAMENTO */}
-                    {hasTrainPass && (
+                    <div className="flex flex-row gap-2 -mt-2 translate-x-12 md:translate-x-16">
                         <button 
-                            onClick={() => setShowPassPopup(true)}
-                            className="w-16 md:w-20 hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-lg -mt-2"
+                            onClick={() => hasTrainPass ? setShowPassPopup({ type: 'train' }) : setShowObtainModal({ type: 'train' })}
+                            className="w-16 md:w-20 hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-lg relative"
                         >
-                            <img src={IMG_TRAIN_PASS} alt="Abbonamento" className="w-full h-auto rounded-lg border-2 border-yellow-400" />
+                            <img 
+                                src={IMG_TRAIN_PASS} 
+                                alt="Abbonamento Treno" 
+                                className={`w-full h-auto rounded-lg border-2 ${hasTrainPass ? 'border-yellow-400' : 'border-gray-400 grayscale opacity-60'}`} 
+                            />
+                            {!hasTrainPass && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <img src={LOCK_ICON_URL} alt="Locked" className="w-6 h-6 md:w-8 md:h-8 object-contain drop-shadow-md" />
+                                </div>
+                            )}
                         </button>
-                    )}
+                        <button 
+                            onClick={() => hasStudentPass ? setShowPassPopup({ type: 'student' }) : setShowObtainModal({ type: 'student' })}
+                            className="w-16 md:w-20 hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-lg relative"
+                        >
+                            <img 
+                                src={IMG_STUDENT_PASS} 
+                                alt="Abbonamento Studente" 
+                                className={`w-full h-auto rounded-lg border-2 ${hasStudentPass ? 'border-green-400' : 'border-gray-400 grayscale opacity-60'}`} 
+                            />
+                            {!hasStudentPass && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <img src={LOCK_ICON_URL} alt="Locked" className="w-6 h-6 md:w-8 md:h-8 object-contain drop-shadow-md" />
+                                </div>
+                            )}
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -791,7 +826,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                                     )}
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    {hasTrainPass ? (
+                                    {(hasTrainPass || (selectedZone.id === AppView.RAINBOW_CITY && hasStudentPass)) ? (
                                         <>
                                             <span className="font-black text-base line-through opacity-50">{holidayInfo.isHoliday ? Math.floor(selectedZone.cost * 0.7) : selectedZone.cost}</span>
                                             <span className="font-black text-base text-green-600">0</span>
@@ -833,10 +868,38 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
 
             {/* POPUP ABBONAMENTO */}
             {showPassPopup && (
-                <div className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setShowPassPopup(false)}>
+                <div className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setShowPassPopup(null)}>
                     <div className="bg-white rounded-[40px] border-8 border-yellow-400 p-2 w-full max-w-[320px] md:max-w-sm text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setShowPassPopup(false)} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"><X size={24} strokeWidth={4} /></button>
-                        <img src={IMG_TRAIN_PASS} alt="Abbonamento Treno" className="w-full h-auto rounded-3xl border-4 border-yellow-100 shadow-lg" />
+                        <button onClick={() => setShowPassPopup(null)} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"><X size={24} strokeWidth={4} /></button>
+                        <img src={showPassPopup.type === 'train' ? IMG_TRAIN_PASS : IMG_STUDENT_PASS} alt="Abbonamento" className="w-full h-auto rounded-3xl border-4 border-yellow-100 shadow-lg" />
+                    </div>
+                </div>
+            )}
+
+            {showObtainModal && (
+                <div className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setShowObtainModal(null)}>
+                    <div className="bg-white rounded-[40px] border-8 border-orange-500 p-6 w-full max-w-md text-center shadow-2xl relative animate-in zoom-in duration-300 flex flex-col items-center" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setShowObtainModal(null)} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-black hover:scale-110 z-10"><X size={24} strokeWidth={4} /></button>
+                        
+                        <div className="relative mb-6">
+                            <img 
+                                src={showObtainModal.type === 'train' ? IMG_TRAIN_PASS : IMG_STUDENT_PASS} 
+                                alt="Badge" 
+                                className="w-48 h-48 md:w-64 md:h-64 object-contain grayscale opacity-60 rounded-xl border-4 border-gray-200"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <img src={LOCK_ICON_URL} alt="Locked" className="w-20 h-20 md:w-32 md:h-32 object-contain drop-shadow-lg" />
+                            </div>
+                        </div>
+
+                        <h3 className="font-luckiest text-orange-600 text-2xl uppercase mb-4">
+                            {showObtainModal.type === 'train' ? 'ABBONAMENTO TRENO' : 'ABBONAMENTO STUDENTI'}
+                        </h3>
+                        <p className="text-slate-700 font-bold text-sm md:text-base leading-relaxed">
+                            {showObtainModal.type === 'train' 
+                                ? "puoi acquistare in Edicola per 850 monete questa tessera che ti permetterà di viaggiare illimitatamente verso Città degli Arcobaleni, Città Grigia, Città dei Laghi e Città delle Montagne"
+                                : "Puoi ottenere questa tessera completando tutti gli esercizi previsti nelle aule di Scuola Arcobaleno per poter viaggiare illimitatamente verso Città degli Arcobaleni e continuare i tuoi studi in Scuola Media."}
+                        </p>
                     </div>
                 </div>
             )}

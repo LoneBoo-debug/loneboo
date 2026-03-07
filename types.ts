@@ -185,7 +185,8 @@ export enum AppView {
   MEDIE_ESPERIMENTI = 'MEDIE_ESPERIMENTI',
   MEDIE_INFORMATICA = 'MEDIE_INFORMATICA',
   MEDIE_CIVICA = 'MEDIE_CIVICA',
-  MEDIE_MOTORIA = 'MEDIE_MOTORIA'
+  MEDIE_MOTORIA = 'MEDIE_MOTORIA',
+  PROMOTION_INFO = 'PROMOTION_INFO'
 }
 
 export interface ChatMessage {
@@ -327,6 +328,7 @@ export interface PlayerProgress {
     transactions?: TokenTransaction[];
     magicHatStickers?: string[];
     hasTrainPass?: boolean;
+    hasStudentPass?: boolean;
 }
 
 export interface SocialStats {

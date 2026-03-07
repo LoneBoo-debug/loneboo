@@ -8,6 +8,10 @@ import { updateMedieProgress } from '../services/progressService';
 
 const BTN_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiduilibromediepage.webp';
 const BTN_SOMMARIO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sommariotastomedie.webp';
+const BTN_VERIFICA_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/verificatasterde33.webp';
+
+const CORRECT_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/11l-victory_trumpet-1749704498589-358767.mp3';
+const WRONG_SOUND_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/cartoon-fail-trumpet-278822.mp3';
 
 // PREMIUM ASSETS
 const PREMIUM_LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/libercloased44fx33.webp';
@@ -30,6 +34,11 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
     const [isPremiumActive, setIsPremiumActive] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [showQuizModal, setShowQuizModal] = useState(false);
+    const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+    const [quizFeedback, setQuizFeedback] = useState<string | null>(null);
+    const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+    const [isQuizFinished, setIsQuizFinished] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -95,6 +104,64 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
             setShowPremiumModal(true);
         } else {
             setSelectedLesson(lesson);
+            setShowQuizModal(false);
+            setCurrentQuizIndex(0);
+            setQuizFeedback(null);
+            setIsQuizFinished(false);
+        }
+    };
+
+    const handleQuizAnswer = (optionIndex: number) => {
+        if (!selectedLesson || quizFeedback) return;
+        
+        setSelectedOptionIndex(optionIndex);
+        const quiz = selectedLesson.quizzes[currentQuizIndex];
+        const isCorrect = optionIndex === quiz.correctIndex;
+        
+        const audio = new Audio(isCorrect ? CORRECT_SOUND_URL : WRONG_SOUND_URL);
+        audio.play().catch(e => console.log("Audio play blocked", e));
+
+        if (isCorrect) {
+            setQuizFeedback(quiz.feedback || "Bravissimo! ✨");
+        } else {
+            setQuizFeedback("Ops! Riprova... 🧐");
+        }
+    };
+
+    const handleNextQuiz = () => {
+        if (!selectedLesson) return;
+        
+        if (currentQuizIndex < selectedLesson.quizzes.length - 1) {
+            setCurrentQuizIndex(prev => prev + 1);
+            setQuizFeedback(null);
+            setSelectedOptionIndex(null);
+        } else {
+            setIsQuizFinished(true);
+        }
+    };
+
+    const getVictoryImage = () => {
+        switch (subject) {
+            case SchoolSubject.ITALIANO:
+            case SchoolSubject.INGLESE:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/utaridemaesrt33.webp';
+            case SchoolSubject.STORIA:
+            case SchoolSubject.GEOGRAFIA:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sroriaridemae322w.webp';
+            case SchoolSubject.MATEMATICA:
+            case SchoolSubject.SCIENZE:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scienzeridemaesr32.webp';
+            case SchoolSubject.ARTE:
+            case SchoolSubject.TECNOLOGIA:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tecnoridemaese32w1.webp';
+            case SchoolSubject.CIVICA:
+            case SchoolSubject.MOTORIA:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/civiride32ws.webp';
+            case SchoolSubject.ESPERIMENTI:
+            case SchoolSubject.INFORMATICA:
+                return 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esperide43ew.webp';
+            default:
+                return null;
         }
     };
 
@@ -228,8 +295,21 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
                 </AnimatePresence>
             </div>
 
-            {/* EXIT BUTTON BOTTOM RIGHT */}
-            <div className="absolute bottom-4 right-4 z-50">
+            {/* EXIT BUTTONS BOTTOM RIGHT */}
+            <div className="absolute bottom-4 right-4 z-50 flex flex-col items-center gap-4">
+                {selectedLesson && (
+                    <button 
+                        onClick={() => {
+                            setShowQuizModal(true);
+                            setCurrentQuizIndex(0);
+                            setQuizFeedback(null);
+                            setIsQuizFinished(false);
+                        }}
+                        className="hover:scale-110 active:scale-95 transition-all outline-none"
+                    >
+                        <img src={BTN_VERIFICA_URL} alt="Verifica" className="w-12 h-12 md:w-18 h-auto drop-shadow-2xl" />
+                    </button>
+                )}
                 <button 
                     onClick={() => setView(backView)}
                     className="hover:scale-110 active:scale-95 transition-all outline-none"
@@ -237,6 +317,118 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
                     <img src={BTN_BACK_URL} alt="Chiudi" className="w-12 h-12 md:w-18 h-auto drop-shadow-2xl" />
                 </button>
             </div>
+
+            {/* QUIZ MODAL */}
+            <AnimatePresence>
+                {showQuizModal && selectedLesson && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[250] bg-black/40 backdrop-blur-md flex items-center justify-center p-6"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white/95 rounded-[2.5rem] border-6 md:border-8 border-blue-500 shadow-2xl w-full max-w-lg p-4 md:p-6 relative flex flex-col items-center"
+                        >
+                            <button 
+                                onClick={() => setShowQuizModal(false)}
+                                className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full border-4 border-white shadow-xl hover:scale-110 transition-all"
+                            >
+                                <X size={20} strokeWidth={4} />
+                            </button>
+
+                            {selectedLesson.quizzes && selectedLesson.quizzes.length > 0 ? (
+                                !isQuizFinished ? (
+                                    <div className="w-full flex flex-col items-center">
+                                        <div className="bg-blue-100 px-3 py-1 rounded-full mb-3">
+                                            <span className="font-luckiest text-blue-600 text-xs md:text-sm uppercase">
+                                                Domanda {currentQuizIndex + 1} di {selectedLesson.quizzes.length}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="font-luckiest text-blue-900 text-lg md:text-xl text-center mb-4 leading-tight">
+                                            {selectedLesson.quizzes[currentQuizIndex].question}
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 gap-2 w-full">
+                                            {selectedLesson.quizzes[currentQuizIndex].options.map((option, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => handleQuizAnswer(idx)}
+                                                    disabled={!!quizFeedback}
+                                                    className={`w-full py-2 px-4 rounded-xl font-bold text-sm md:text-base transition-all border-2 md:border-4 ${
+                                                        quizFeedback && idx === selectedOptionIndex && idx !== selectedLesson.quizzes[currentQuizIndex].correctIndex
+                                                            ? 'bg-red-500 border-red-600 text-white scale-[1.01]'
+                                                            : quizFeedback && idx === selectedOptionIndex && idx === selectedLesson.quizzes[currentQuizIndex].correctIndex
+                                                            ? 'bg-green-500 border-green-600 text-white scale-[1.01]'
+                                                            : quizFeedback && idx !== selectedOptionIndex
+                                                            ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-50'
+                                                            : 'bg-white border-blue-200 text-blue-900 hover:border-blue-400 hover:bg-blue-50 active:scale-95'
+                                                    }`}
+                                                >
+                                                    {option}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {quizFeedback && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0 }}
+                                                    className="mt-4 flex flex-col items-center gap-3 w-full"
+                                                >
+                                                    <div className={`font-luckiest text-base md:text-lg text-center uppercase tracking-wider ${
+                                                        quizFeedback.includes('Ops') ? 'text-red-500' : 'text-green-600'
+                                                    }`}>
+                                                        {quizFeedback}
+                                                    </div>
+                                                    <button
+                                                        onClick={handleNextQuiz}
+                                                        className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-luckiest text-sm md:text-base px-6 py-2 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                                                    >
+                                                        {currentQuizIndex < selectedLesson.quizzes.length - 1 ? 'Prossima' : 'Risultato'}
+                                                    </button>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center py-6">
+                                        <div className="w-32 h-32 md:w-48 md:h-48 mb-6">
+                                            {getVictoryImage() ? (
+                                                <img src={getVictoryImage()!} alt="Vittoria" className="w-full h-full object-contain drop-shadow-xl" />
+                                            ) : (
+                                                <div className="text-6xl md:text-8xl text-center">🏆</div>
+                                            )}
+                                        </div>
+                                        <h3 className="font-luckiest text-blue-900 text-2xl md:text-4xl text-center mb-3 uppercase">Verifica Completata!</h3>
+                                        <p className="text-slate-600 font-bold text-lg md:text-xl text-center mb-8">Hai risposto correttamente a tutte le domande!</p>
+                                        <button 
+                                            onClick={() => setShowQuizModal(false)}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-luckiest text-xl px-10 py-3 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                                        >
+                                            Ottimo!
+                                        </button>
+                                    </div>
+                                )
+                            ) : (
+                                <div className="flex flex-col items-center py-8">
+                                    <div className="text-5xl mb-4">📝</div>
+                                    <h3 className="font-luckiest text-blue-900 text-2xl md:text-3xl text-center uppercase tracking-wider">
+                                        Verifica in preparazione
+                                    </h3>
+                                    <p className="text-slate-500 font-bold text-base mt-3">Torna presto per metterti alla prova!</p>
+                                </div>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* FULLSCREEN IMAGE ZOOM */}
             <AnimatePresence>

@@ -21,7 +21,8 @@ const INITIAL_PROGRESS: PlayerProgress = {
     equippedClothing: {},
     purchasedClothing: [],
     transactions: [],
-    hasTrainPass: false
+    hasTrainPass: false,
+    hasStudentPass: false
 };
 
 export const getProgress = (): PlayerProgress => {
@@ -40,7 +41,8 @@ export const getProgress = (): PlayerProgress => {
                     transactions: parsed.transactions || [],
                     duplicatesVol2: parsed.duplicatesVol2 || 0,
                     duplicateStickersVol2: parsed.duplicateStickersVol2 || [],
-                    hasTrainPass: !!parsed.hasTrainPass
+                    hasTrainPass: !!parsed.hasTrainPass,
+                    hasStudentPass: !!parsed.hasStudentPass
                 };
             }
         }
@@ -169,6 +171,14 @@ export const purchaseTrainPass = (): boolean => {
         return true;
     }
     return false;
+};
+
+export const unlockStudentPass = () => {
+    const progress = getProgress();
+    if (progress.hasStudentPass) return;
+    progress.hasStudentPass = true;
+    recordTransaction(progress, 0, 'Sblocco Abbonamento Studente');
+    saveProgress(progress);
 };
 
 // --- STICKERS LOGIC ---

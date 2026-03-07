@@ -82,6 +82,7 @@ const RainbowCity = lazy(() => import('./components/RainbowCity'));
 const RainbowCityScuolaMedia = lazy(() => import('./components/RainbowCityScuolaMedia'));
 const RainbowCityClassroom = lazy(() => import('./components/RainbowCityClassroom'));
 const MedieSubjectPage = lazy(() => import('./components/MedieSubjectPage'));
+const PromotionInfoPage = lazy(() => import('./components/PromotionInfoPage'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
 const MountainCity = lazy(() => import('./components/MountainCity'));
 const LakeCity = lazy(() => import('./components/LakeCity'));
@@ -251,6 +252,7 @@ const App: React.FC = () => {
                 {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 && <RainbowCityClassroom title="1 Media" setView={handleSetView} />}
                 {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 && <RainbowCityClassroom title="2 Media" setView={handleSetView} />}
                 {currentView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_3 && <RainbowCityClassroom title="3 Media" setView={handleSetView} />}
+                {currentView === AppView.PROMOTION_INFO && <PromotionInfoPage setView={handleSetView} />}
                 
                 {/* Middle School Subject Pages */}
                 {currentView === AppView.MEDIE_ITALIANO && <MedieSubjectPage bgUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/italianopagemedie.webp" setView={handleSetView} backView={lastClassroomView} grade={lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_1 ? 6 : lastClassroomView === AppView.RAINBOW_CITY_SCUOLA_MEDIA_2 ? 7 : 8} subject={SchoolSubject.ITALIANO} />}
