@@ -140,6 +140,11 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
         }
     };
 
+    const handleRetryQuestion = () => {
+        setQuizFeedback(null);
+        setSelectedOptionIndex(null);
+    };
+
     const getVictoryImage = () => {
         switch (subject) {
             case SchoolSubject.ITALIANO:
@@ -387,12 +392,21 @@ const MedieSubjectPage: React.FC<MedieSubjectPageProps> = ({ bgUrl, setView, bac
                                                     }`}>
                                                         {quizFeedback}
                                                     </div>
-                                                    <button
-                                                        onClick={handleNextQuiz}
-                                                        className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-luckiest text-sm md:text-base px-6 py-2 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
-                                                    >
-                                                        {currentQuizIndex < selectedLesson.quizzes.length - 1 ? 'Prossima' : 'Risultato'}
-                                                    </button>
+                                                    {quizFeedback.includes('Ops') ? (
+                                                        <button
+                                                            onClick={handleRetryQuestion}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white font-luckiest text-sm md:text-base px-8 py-2 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                                                        >
+                                                            Riprova
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={handleNextQuiz}
+                                                            className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-luckiest text-sm md:text-base px-6 py-2 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                                                        >
+                                                            {currentQuizIndex < selectedLesson.quizzes.length - 1 ? 'Prossima' : 'Risultato'}
+                                                        </button>
+                                                    )}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
