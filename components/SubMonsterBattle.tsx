@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Volume2, VolumeX } from 'lucide-react';
 import { AppView } from '../types';
 import { addTokens, getTokens } from '../services/tokens';
+import { pauseSubMusic } from '../services/bgMusic';
 import { TOKEN_ICON_URL } from '../constants';
 import TokenIcon from './TokenIcon';
 
@@ -272,6 +273,9 @@ const SubMonsterBattle: React.FC<SubMonsterBattleProps> = ({ setView }) => {
     }, [gameState, isGameOver]);
 
     useEffect(() => {
+        // Stop general sub music
+        pauseSubMusic();
+
         punchAudio.current = new Audio(PUNCH_SOUND_URL);
         bgmAudio.current = new Audio(BGM_URL);
         bgmAudio.current.volume = 0.9;
@@ -296,6 +300,7 @@ const SubMonsterBattle: React.FC<SubMonsterBattleProps> = ({ setView }) => {
                 glassBreakAudio.current.pause();
                 glassBreakAudio.current = null;
             }
+            pauseSubMusic();
         };
     }, []);
 

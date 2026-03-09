@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Settings, X, Crosshair, Map as MapIcon, Sparkles, Droplets, Wand2, Moon, Copy, Trash2, CheckCircle2 } from 'lucide-react';
 import { AppView } from '../types';
@@ -31,8 +31,9 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
     const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_sub_bg_music_enabled') !== 'false');
     const [zoomingTo, setZoomingTo] = useState<{ x: number, y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const areas: AreaConfig[] = [
+    const areas = useMemo<AreaConfig[]>(() => [
         { 
             id: AppView.SUB_ATELIER_OSCURO, 
             label: "Atelier Oscuro", 
@@ -77,7 +78,7 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
             ], 
             icon: <Moon className="w-5 h-5" /> 
         }
-    ];
+    ], []);
 
     useEffect(() => {
         const img = new Image();
@@ -95,6 +96,8 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
 
         return () => {
             window.removeEventListener('loneboo_sub_music_changed', handleAudioChange);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            pauseSubMusic();
         };
     }, []);
 
@@ -137,16 +140,17 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
         if (zoomingTo) return;
 
         if (area.id === AppView.SUB_OSCURITA) {
-            // Punta verso la porta seminascosta in fondo (leggermente più in alto e a sinistra del centro dell'area)
-            const targetX = 70.8;
-            const targetY = 46.5;
+            // Punta all'estrema sinistra della zona cliccabile
+            const targetX = 66.2;
+            const targetY = 48.5;
 
             setZoomingTo({ x: targetX, y: targetY });
 
-            // Attendi la fine dell'animazione prima di cambiare vista
-            setTimeout(() => {
+            // Attendi la fine dell'animazione (più lenta) prima di cambiare vista
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(() => {
                 setView(area.id);
-            }, 1200);
+            }, 2500);
         } else {
             setView(area.id);
         }
@@ -158,10 +162,10 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
             className="fixed inset-0 z-0 bg-slate-950 flex flex-col overflow-hidden select-none animate-in fade-in duration-1000"
             style={zoomingTo ? {
                 transform: `scale(4) translate(${50 - zoomingTo.x}%, ${50 - zoomingTo.y}%)`,
-                transition: 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'transform 2.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 transformOrigin: `${zoomingTo.x}% ${zoomingTo.y}%`
             } : {
-                transition: 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                transition: 'transform 2.5s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
         >
             <style>{`
@@ -206,10 +210,11 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
             </div>
 
             {/* AREE CLICCABILI */}
-            {isLoaded && !zoomingTo && areas.map((area) => (
+            {isLoaded && !zoomingTo && areas.map((area: AreaConfig) => (
                 <div
                     key={area.id}
                     onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         handleAreaClick(area);
                     }}
@@ -222,6 +227,7 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
             <div className="absolute top-[80px] md:top-[120px] left-6 right-6 z-50 flex justify-between items-start pointer-events-none">
                 <button 
                     onClick={(e) => { 
+                        e.preventDefault();
                         e.stopPropagation(); 
                         pauseSubMusic();
                         setView(AppView.MAGIC_TOWER_SUB); 

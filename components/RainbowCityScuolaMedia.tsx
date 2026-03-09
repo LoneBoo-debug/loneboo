@@ -4,12 +4,14 @@ import { motion } from 'motion/react';
 import { AppView, SchoolLesson, LessonProgress } from '../types';
 import { fetchAllMiddleSchoolLessons } from '../services/curriculumService';
 import { getInReadingLessons } from '../services/progressService';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, Check } from 'lucide-react';
 
 const BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scuolamediaday.webp';
 const BG_NIGHT_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/internoscuolanonight.webp';
 const BTN_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacityrainbowse.webp';
 const BTN_SEARCH_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_creami+un+pulsante+quadrato+st_485956893698539528+(1).webp';
+const BTN_REOPEN_DISCLAIMER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/avvisodidatti55r3eco.webp';
+const DISCLAIMER_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tgf65rfdxzaq10oo0o.webp';
 
 // PREMIUM ASSETS
 const PREMIUM_LOCK_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/libercloased44fx33.webp';
@@ -115,6 +117,9 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [inReadingLessons, setInReadingLessons] = useState<LessonProgress[]>([]);
     const [isNotificationsExpanded, setIsNotificationsExpanded] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(() => {
+        return localStorage.getItem('middle_school_disclaimer_accepted') !== 'true';
+    });
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -194,8 +199,14 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
     };
 
     const handleAreaClick = (area: AreaConfig) => {
+        if (showDisclaimer) return;
         if (area.points.length < 3) return;
         setView(area.view);
+    };
+
+    const handleAcceptDisclaimer = () => {
+        localStorage.setItem('middle_school_disclaimer_accepted', 'true');
+        setShowDisclaimer(false);
     };
 
     const navigateToLesson = (lesson: SchoolLesson) => {
@@ -237,12 +248,21 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
 
             {/* UI CONTROLS */}
             <div className="absolute top-6 left-6 right-6 z-50 flex items-start gap-4 pointer-events-none">
-                <button 
-                    onClick={() => setView(AppView.RAINBOW_CITY)}
-                    className="hover:scale-110 active:scale-95 transition-all outline-none pointer-events-auto shrink-0"
-                >
-                    <img src={BTN_BACK_URL} alt="Indietro" className="w-20 h-20 md:w-32 h-auto drop-shadow-2xl" />
-                </button>
+                <div className="flex flex-col gap-3 pointer-events-auto">
+                    <button 
+                        onClick={() => setView(AppView.RAINBOW_CITY)}
+                        className="hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
+                    >
+                        <img src={BTN_BACK_URL} alt="Indietro" className="w-20 h-20 drop-shadow-2xl" />
+                    </button>
+
+                    <button 
+                        onClick={() => setShowDisclaimer(true)}
+                        className="hover:scale-110 active:scale-95 transition-all outline-none w-20 h-20 shrink-0 animate-in slide-in-from-left duration-700"
+                    >
+                        <img src={BTN_REOPEN_DISCLAIMER_IMG} alt="Avviso Didattico" className="w-full h-auto drop-shadow-2xl" />
+                    </button>
+                </div>
 
                 {/* NOTIFICATIONS BOX */}
                 {inReadingLessons.length > 0 && (
@@ -255,11 +275,11 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                     >
                         <div className="flex items-center justify-between border-b border-black/10 pb-1 mb-2">
                             <div className="flex items-center gap-2 overflow-hidden">
-                                <h4 className="font-luckiest text-green-500 text-xs md:text-sm uppercase tracking-wider whitespace-nowrap">
+                                <h4 className="font-luckiest text-green-500 text-xs uppercase tracking-wider whitespace-nowrap">
                                     {isNotificationsExpanded ? 'Tutte le lezioni in corso:' : 'Continua a leggere:'}
                                 </h4>
                                 {inReadingLessons.length > 1 && !isNotificationsExpanded && (
-                                    <span className="text-green-600 font-black text-xs md:text-sm">
+                                    <span className="text-green-600 font-black text-xs">
                                         +{inReadingLessons.length - 1}
                                     </span>
                                 )}
@@ -276,14 +296,14 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                             {(isNotificationsExpanded ? inReadingLessons : [inReadingLessons[0]]).map(lesson => (
                                 <div key={lesson.lessonId} className="flex flex-col min-w-0 py-1">
                                     <div className="flex items-center justify-between gap-2 mb-1">
-                                        <span className="text-red-600 font-black text-[10px] md:text-[11px] uppercase leading-none truncate">
+                                        <span className="text-red-600 font-black text-[10px] uppercase leading-none truncate">
                                             {lesson.subject} - {lesson.grade === 6 ? '1ª' : lesson.grade === 7 ? '2ª' : '3ª'} MEDIA
                                         </span>
                                         <span className="text-black font-black text-[10px] shrink-0">{Math.round(lesson.scrollPercentage)}%</span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-black font-bold text-[11px] md:text-sm truncate drop-shadow-sm flex-1">{lesson.title}</span>
-                                        <div className="w-16 md:w-24 h-2 bg-black/10 rounded-full overflow-hidden shrink-0 border border-black/5">
+                                        <span className="text-black font-bold text-[11px] truncate drop-shadow-sm flex-1">{lesson.title}</span>
+                                        <div className="w-16 h-2 bg-black/10 rounded-full overflow-hidden shrink-0 border border-black/5">
                                             <motion.div 
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${lesson.scrollPercentage}%` }}
@@ -299,7 +319,7 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
             </div>
 
             {/* SEARCH BAR AT THE BOTTOM */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-2xl flex items-center gap-4 bg-white/20 backdrop-blur-md p-4 rounded-3xl border-2 border-white/30 shadow-2xl">
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md flex items-center gap-4 bg-white/20 backdrop-blur-md p-4 rounded-3xl border-2 border-white/30 shadow-2xl">
                 <div className="relative flex-1">
                     <input 
                         ref={searchInputRef}
@@ -308,7 +328,7 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Cerca una lezione..."
-                        className="w-full bg-white/90 rounded-2xl px-6 py-3 md:py-4 text-blue-900 font-bold outline-none focus:ring-4 ring-blue-500/30 text-lg md:text-xl placeholder-blue-300"
+                        className="w-full bg-white/90 rounded-2xl px-6 py-3 text-blue-900 font-bold outline-none focus:ring-4 ring-blue-500/30 text-lg placeholder-blue-300"
                     />
                     {searchQuery && (
                         <button 
@@ -323,14 +343,14 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                     onClick={handleSearch}
                     className="hover:scale-110 active:scale-95 transition-all outline-none shrink-0"
                 >
-                    <img src={BTN_SEARCH_URL} alt="Cerca" className="w-20 h-20 md:w-28 h-auto drop-shadow-2xl" />
+                    <img src={BTN_SEARCH_URL} alt="Cerca" className="w-20 h-20 drop-shadow-2xl" />
                 </button>
             </div>
 
             {/* SEARCH RESULTS MODAL */}
             {showResults && (
-                <div className="absolute inset-0 z-[100] bg-black/80 backdrop-blur-lg flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
-                    <div className="bg-white/10 border-4 border-white/30 rounded-[3rem] w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden shadow-2xl relative">
+                <div className="absolute inset-0 z-[100] bg-black/80 backdrop-blur-lg flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white/10 border-4 border-white/30 rounded-[3rem] w-full max-w-md h-[80vh] flex flex-col overflow-hidden shadow-2xl relative">
                         {/* Close Button */}
                         <button 
                             onClick={() => setShowResults(false)}
@@ -339,8 +359,8 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                             <X size={24} strokeWidth={3} />
                         </button>
 
-                        <div className="p-8 md:p-12 pb-0 flex-1 flex flex-col overflow-hidden">
-                            <h2 className="font-luckiest text-white text-xl md:text-3xl uppercase tracking-wider mb-4 mt-8 md:mt-4 drop-shadow-lg text-center">
+                        <div className="p-8 pb-0 flex-1 flex flex-col overflow-hidden">
+                            <h2 className="font-luckiest text-white text-xl uppercase tracking-wider mb-4 mt-8 drop-shadow-lg text-center">
                                 Risultati per: <span className="text-yellow-400">"{searchQuery}"</span>
                             </h2>
 
@@ -351,14 +371,14 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                                         <p className="font-luckiest text-white text-2xl uppercase">Ricerca in corso...</p>
                                     </div>
                                 ) : searchResults.length > 0 ? (
-                                    <div className="grid grid-cols-2 gap-6 md:gap-10">
+                                    <div className="flex flex-col gap-6">
                                         {searchResults.map((lesson) => (
                                             <div 
                                                 key={lesson.id}
                                                 onClick={() => navigateToLesson(lesson)}
-                                                className="flex flex-col md:flex-row items-center gap-4 md:gap-8 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
+                                                className="flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
                                             >
-                                                <div className="relative w-24 h-24 md:w-36 md:h-36 shrink-0 flex items-center justify-center">
+                                                <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
                                                     <img 
                                                         src={SUBJECT_ICONS[lesson.subject || 'ITALIANO'] || SUBJECT_ICONS['ITALIANO']} 
                                                         alt={lesson.subject} 
@@ -366,18 +386,18 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                                                     />
                                                     {lesson.isPremium && !isPremiumActive && (
                                                         <div className="absolute top-0 right-0 bg-white/90 rounded-full p-1 shadow-lg border border-slate-200">
-                                                            <img src={PREMIUM_LOCK_IMG} alt="Locked" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                                                            <img src={PREMIUM_LOCK_IMG} alt="Locked" className="w-6 h-6 object-contain" />
                                                         </div>
                                                     )}
-                                                    <div className="absolute -bottom-1 -left-1 md:-bottom-2 md:-left-2 bg-yellow-400 text-blue-900 font-luckiest text-base md:text-3xl px-2 py-0.5 md:px-4 md:py-1 rounded-lg md:rounded-2xl border-2 md:border-4 border-white shadow-xl">
+                                                    <div className="absolute -bottom-1 -left-1 bg-yellow-400 text-blue-900 font-luckiest text-base px-2 py-0.5 rounded-lg border-2 border-white shadow-xl">
                                                         {lesson.grade === 6 ? '1ª' : lesson.grade === 7 ? '2ª' : '3ª'}
                                                     </div>
                                                 </div>
-                                                <div className="flex-1 text-center md:text-left">
-                                                    <h3 className="font-luckiest text-white text-base md:text-3xl uppercase leading-tight mb-1 md:mb-3 group-hover:text-yellow-300 transition-colors line-clamp-2">
+                                                <div className="flex-1 text-center">
+                                                    <h3 className="font-luckiest text-white text-base uppercase leading-tight mb-1 group-hover:text-yellow-300 transition-colors line-clamp-2">
                                                         {lesson.title}
                                                     </h3>
-                                                    <p className="text-white/80 font-bold text-xs md:text-lg line-clamp-1">
+                                                    <p className="text-white/80 font-bold text-xs line-clamp-1">
                                                         {lesson.text.replace(/<[^>]*>/g, '').substring(0, 80)}...
                                                     </p>
                                                 </div>
@@ -400,16 +420,16 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
             {/* PREMIUM BLOCKED MODAL */}
             {showPremiumModal && (
                 <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-2xl p-6 animate-in fade-in duration-500">
-                    <div className="bg-white/95 p-4 md:p-6 rounded-[2.5rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm w-full animate-in zoom-in duration-300">
+                    <div className="bg-white/95 p-4 rounded-[2.5rem] border-8 border-yellow-400 shadow-2xl flex flex-col items-center text-center max-w-sm w-full animate-in zoom-in duration-300">
                         <div className="w-full mb-3 flex justify-center">
                             <img 
                                 src={PREMIUM_HEADER_IMG} 
                                 alt="Contenuto Bloccato" 
-                                className="w-full h-auto max-w-[140px] md:max-w-[180px] drop-shadow-md" 
+                                className="w-full h-auto max-w-[140px] drop-shadow-md" 
                             />
                         </div>
-                        <h3 className="text-xl md:text-2xl font-black text-blue-900 uppercase mb-1 tracking-tighter leading-none">Contenuto Premium</h3>
-                        <p className="text-gray-600 font-bold mb-4 text-xs md:text-base leading-snug">
+                        <h3 className="text-xl font-black text-blue-900 uppercase mb-1 tracking-tighter leading-none">Contenuto Premium</h3>
+                        <p className="text-gray-600 font-bold mb-4 text-xs leading-snug">
                             Questa lezione è riservata agli abbonati di Lone Boo World! 👑 <br/> 
                             <span className="text-[10px] text-slate-400 mt-1 block">Chiedi a mamma o papà!</span>
                         </p>
@@ -418,14 +438,79 @@ const RainbowCityScuolaMedia: React.FC<RainbowCityScuolaMediaProps> = ({ setView
                                 onClick={() => setShowPremiumModal(false)} 
                                 className="hover:scale-110 active:scale-95 transition-all outline-none"
                             >
-                                <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-20 md:w-28 h-auto drop-shadow-lg" />
+                                <img src={BTN_PREMIUM_BACK_IMG} alt="Torna Indietro" className="w-20 h-auto drop-shadow-lg" />
                             </button>
                             <button 
                                 onClick={() => setView(AppView.PREMIUM_INFO)} 
                                 className="hover:scale-110 active:scale-95 transition-all outline-none"
                             >
-                                <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-20 md:w-28 h-auto drop-shadow-lg" />
+                                <img src={BTN_PREMIUM_INFO_IMG} alt="Info" className="w-20 h-auto drop-shadow-lg" />
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- BOX DISCLAIMER OBBLIGATORIO --- */}
+            {showDisclaimer && (
+                <div className="fixed inset-0 z-[300] bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[3rem] border-8 border-blue-600 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)] max-w-md w-full animate-in zoom-in duration-500 relative max-h-[85vh] flex flex-col overflow-hidden">
+                        
+                        {/* Header Modale */}
+                        <div className="flex items-center gap-4 mb-6 shrink-0 border-b-4 border-blue-50 pb-4">
+                            <div className="w-14 h-14 shrink-0 flex items-center justify-center">
+                                <img src={DISCLAIMER_ICON_IMG} alt="Avviso" className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-blue-900 text-2xl uppercase tracking-tight leading-none">Avviso Didattico</h3>
+                                <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">Leggere con attenzione</p>
+                            </div>
+                        </div>
+                        
+                        {/* Area Testo Scrollabile */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                            <section className="bg-slate-50 p-4 rounded-2xl border-l-8 border-blue-500">
+                                <p className="text-slate-800 font-bold text-base leading-relaxed text-justify">
+                                    Le lezioni sviluppate per gli alunni della Scuola Media di Città degli Arcobaleni, pur seguendo con attenzione le direttive ministeriali e i programmi ufficiali, sono realizzate con un approccio pedagogico innovativo. L’obiettivo principale non è limitarsi alla semplice trasmissione di nozioni o all’elencazione di concetti, numeri o liste, ma coinvolgere attivamente lo studente, stimolando la comprensione reale, il pensiero critico e la curiosità verso ogni materia.
+                                </p>
+                            </section>
+
+                            <p className="text-slate-700 font-medium text-sm leading-relaxed text-justify px-2">
+                                Ogni lezione è progettata affinché l’alunno possa vivere la conoscenza, integrando esempi concreti, curiosità, esperimenti pratici e narrazioni che rendono l’apprendimento più vicino all’esperienza quotidiana. L’uso di linguaggio chiaro, descrizioni narrative e connessioni tra concetti facilita la memorizzazione e la comprensione profonda dei contenuti scolastici.
+                            </p>
+
+                            <div className="bg-blue-600/5 p-4 rounded-2xl border-2 border-blue-100">
+                                <p className="text-slate-800 font-bold text-sm leading-relaxed text-justify">
+                                    Inoltre, le lezioni sono sviluppate sfruttando i più moderni strumenti e tecnologie digitali, incluse applicazioni avanzate di intelligenza artificiale, per arricchire i contenuti, suggerire esempi interattivi e proporre spiegazioni personalizzate. Questo approccio innovativo permette di creare materiali didattici più dinamici e coinvolgenti, pur mantenendo un alto standard qualitativo e autorevolezza scientifica.
+                                </p>
+                            </div>
+
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed text-justify px-2 border-l-4 border-slate-200">
+                                È importante sottolineare, tuttavia, che nonostante l’impegno nella verifica e nell’aggiornamento dei contenuti, alcune informazioni potrebbero contenere piccole imprecisioni o variazioni rispetto alle fonti ufficiali. Pertanto, le lezioni non sostituiscono lo studio diretto in classe, l’approfondimento personale dei libri di testo, né il ruolo insostituibile del docente, che guida, chiarisce dubbi e accompagna l’alunno nel percorso di apprendimento.
+                            </p>
+
+                            <div className="bg-blue-600/5 p-4 rounded-2xl border-2 border-blue-100">
+                                <p className="text-slate-800 font-bold text-sm leading-relaxed text-justify">
+                                    Il materiale proposto ha quindi valore di integrazione e supporto, pensato per arricchire l’esperienza scolastica, stimolare la partecipazione e promuovere una maggiore autonomia nello studio. Invitiamo pertanto studenti, genitori e docenti a utilizzare le lezioni come strumento di approfondimento, confronto e pratica, valorizzando sempre il ruolo centrale della scuola, del docente e della sperimentazione pratica nella formazione completa degli alunni.
+                                </p>
+                            </div>
+
+                            <section className="bg-orange-50 p-4 rounded-2xl border-2 border-orange-100">
+                                <p className="text-slate-700 font-medium text-xs leading-relaxed text-justify italic">
+                                    Le lezioni della Scuola Media di Città degli Arcobaleni rappresentano un equilibrio tra rigore didattico, approccio creativo e innovazione tecnologica, con l’obiettivo di rendere lo studio un’esperienza significativa, piacevole e realmente efficace, senza sostituirsi mai al percorso educativo formale in aula.
+                                </p>
+                            </section>
+                        </div>
+
+                        {/* Footer Pulsante */}
+                        <div className="mt-8 pt-4 border-t-2 border-slate-100 shrink-0">
+                            <button 
+                                onClick={handleAcceptDisclaimer} 
+                                className="w-full bg-blue-600 text-white font-black py-5 rounded-2xl border-b-8 border-blue-800 hover:brightness-110 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl shadow-xl"
+                            >
+                                <Check size={28} strokeWidth={4} /> HO CAPITO
+                            </button>
+                            <p className="text-center text-[10px] text-slate-400 font-bold uppercase mt-4 tracking-widest">Responsabilità Didattica • Lone Boo World</p>
                         </div>
                     </div>
                 </div>

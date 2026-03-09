@@ -55,6 +55,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   
+  const transitionTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -101,6 +102,10 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       return () => {
           clearInterval(timeInterval);
           clearTimeout(timer);
+          // Clear all transition timeouts
+          transitionTimeoutsRef.current.forEach(clearTimeout);
+          transitionTimeoutsRef.current = [];
+          
           window.removeEventListener('loneboo_audio_changed', handleGlobalAudioChange);
           if (ambientAudioRef.current) {
               ambientAudioRef.current.pause();
@@ -134,13 +139,15 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
 
       // La transizione dura ora 11 secondi totali
       // Iniziamo il fade out a 10s per completarlo esattamente all'11° secondo (duration-1000)
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
           setIsFadingOut(true);
       }, 10000);
 
-      setTimeout(() => {
+      const t2 = setTimeout(() => {
           setView(AppView.MAGIC_TOWER_SUB);
       }, 11000);
+      
+      transitionTimeoutsRef.current.push(t1, t2);
   };
 
   const getClipPath = (points: Point[]) => {
@@ -161,7 +168,12 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
               <button 
                   onClick={() => {
                       setIsFadingOut(true);
-                      setTimeout(() => setView(AppView.MAGIC_TOWER_SUB), 300);
+                      // Clear previous timeouts to avoid double navigation
+                      transitionTimeoutsRef.current.forEach(clearTimeout);
+                      transitionTimeoutsRef.current = [];
+                      
+                      const t3 = setTimeout(() => setView(AppView.MAGIC_TOWER_SUB), 300);
+                      transitionTimeoutsRef.current.push(t3);
                   }}
                   className="absolute bottom-10 right-10 z-[1100] bg-black/50 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black/70 transition-all border border-white/20"
               >

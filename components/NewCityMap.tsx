@@ -23,11 +23,7 @@ const NewCityMap: React.FC<NewCityMapProps> = ({ setView }) => {
     return (
         <div className="absolute inset-0 z-0 overflow-hidden select-none touch-none overscroll-none bg-black">
             <Suspense fallback={null}>
-                {isMobile ? (
-                    <NewCityMapMobile setView={setView} />
-                ) : (
-                    <NewCityMapDesktop setView={setView} />
-                )}
+                <NewCityMapMobile setView={setView} />
             </Suspense>
         </div>
     );

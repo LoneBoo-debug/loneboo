@@ -97,6 +97,9 @@ const MagicTowerSub: React.FC<MagicTowerSubProps> = ({ setView }) => {
     };
 
     useEffect(() => {
+        // Stop sub music if it was playing from explore
+        pauseSubMusic();
+
         const fetchAtelierMap = async () => {
             try {
                 const response = await fetch(ATELIER_COMBO_CSV_URL);

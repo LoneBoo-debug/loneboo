@@ -206,15 +206,15 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
             {showParentalGate && <ParentalGate onClose={() => setShowParentalGate(false)} onSuccess={handleParentalSuccess} />}
             {showParentalArea && <ParentalArea onClose={() => setShowParentalArea(false)} setView={setView} />}
 
-            <header className="fixed top-0 left-0 right-0 z-[100] h-[64px] md:h-[96px] pointer-events-none select-none bg-transparent">
-                <div className="relative w-full h-full max-w-7xl mx-auto flex items-center pointer-events-none">
+            <header className="absolute top-0 left-0 right-0 z-[100] h-[64px] pointer-events-none select-none bg-transparent">
+                <div className="relative w-full h-full flex items-center pointer-events-none">
                     
                     {!isHome && !isExternalCity && !isJourney && currentView !== AppView.PREMIUM_INFO && (
-                        <div className="absolute left-[2%] md:left-[3%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
+                        <div className="absolute left-[2%] top-1/2 -translate-y-1/2 z-40 flex items-center pointer-events-auto" ref={menuRef}>
                             <div className="relative">
                                 <button 
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="relative active:scale-95 transition-all w-[11.5vw] h-[11.5vw] md:w-[6vw] md:h-[6vw] lg:w-[5.5vw] lg:h-[5.5vw] flex items-center justify-center z-50 bg-transparent"
+                                    className="relative active:scale-95 transition-all w-[44px] h-[44px] flex items-center justify-center z-50 bg-transparent"
                                 >
                                     {hasNew && !isMenuOpen && (
                                         <span className="absolute top-[10%] right-[10%] w-4 h-4 bg-red-600 rounded-full border-2 border-white animate-pulse z-20"></span>
@@ -250,35 +250,35 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                     )}
 
                     {!isHome && (
-                        <div className="absolute left-[14.5%] md:left-[11%] w-[45%] md:w-[30%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
+                        <div className="absolute left-[14.5%] w-[45%] h-full flex items-center pointer-events-auto py-2 z-[110] cursor-pointer" onClick={handleLogoClick}>
                             <div className="relative h-full flex items-center">
-                                <img src={titleImage} alt="Lone Boo" className="h-[65%] md:h-[85%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                                <img src={titleImage} alt="Lone Boo" className="h-[65%] w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                             </div>
                         </div>
                     )}
 
                     {!isHome && currentView !== AppView.PREMIUM_INFO && (
-                        <div className="absolute right-[2%] md:right-[3%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[1.5vw] md:gap-[1vw] pointer-events-auto" ref={stationMenuRef}>
+                        <div className="absolute right-[2%] top-1/2 -translate-y-1/2 z-50 flex items-center gap-[6px] pointer-events-auto" ref={stationMenuRef}>
                             {isJourney ? (
                                 <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
-                                    <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                    <div className={`relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
                                         <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
                                     </div>
-                                    <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
+                                    <span className={`text-[8px] font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
                                 </div>
                             ) : isExternalCity ? (
                                 <>
                                     <div className="flex flex-col items-center group cursor-pointer" onClick={handleExploreCity}>
-                                        <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-yellow-400">
+                                        <div className="relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] border-yellow-400">
                                             <img src={BTN_EXPLORE_CITY} alt="Esplora" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-yellow-500 uppercase mt-1">ESPLORA</span>
+                                        <span className="text-[8px] font-black text-yellow-500 uppercase mt-1">ESPLORA</span>
                                     </div>
                                     <div className="relative flex flex-col items-center group cursor-pointer" onClick={() => setIsStationMenuOpen(!isStationMenuOpen)}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isStationMenuOpen ? 'border-yellow-400 rotate-180' : 'border-red-500'}`}>
+                                        <div className={`relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] ${isStationMenuOpen ? 'border-yellow-400 rotate-180' : 'border-red-500'}`}>
                                             {isStationMenuOpen ? <ChevronDown size={32} className="text-yellow-500" strokeWidth={4} /> : <img src={BTN_RETURN_TO_COLOR_CITY} alt="Stazione" className="w-full h-full object-cover pointer-events-auto scale-[1.3]" />}
                                         </div>
-                                        <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isStationMenuOpen ? 'text-yellow-500' : 'text-red-500'}`}>STAZIONE</span>
+                                        <span className={`text-[8px] font-black uppercase mt-1 ${isStationMenuOpen ? 'text-yellow-500' : 'text-red-500'}`}>STAZIONE</span>
 
                                         {isStationMenuOpen && (
                                             <div className="absolute top-[120%] right-0 bg-white/30 backdrop-blur-xl border-4 border-red-500 rounded-[2rem] shadow-2xl p-3 flex flex-col gap-2 w-64 animate-in slide-in-from-top-4 duration-300 overflow-hidden">
@@ -319,33 +319,33 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
                                         )}
                                     </div>
                                     <div className="flex flex-col items-center group cursor-pointer" onClick={toggleAudio}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                        <div className={`relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
                                             <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
+                                        <span className={`text-[8px] font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
                                     </div>
                                 </>
                             ) : (
                                 <>
                                     <div className={`flex flex-col items-center transition-transform ${isBooGarden ? 'cursor-default opacity-50' : 'cursor-pointer hover:scale-105 active:scale-95'}`} onClick={isBooGarden ? undefined : () => setView(AppView.BOO_GARDEN)}>
-                                        <div className="relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#F97316]">
+                                        <div className="relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] border-[#F97316]">
                                             <img src={BOO_HOUSE_BTN_IMG} alt="Casa" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#F97316] uppercase mt-1">CASA</span>
+                                        <span className="text-[8px] font-black text-[#F97316] uppercase mt-1">CASA</span>
                                     </div>
 
                                     <div className={`flex flex-col items-center ${isCityMap ? 'cursor-default opacity-50' : 'cursor-pointer group hover:scale-105 active:scale-95'} transition-transform`} onClick={isCityMap ? undefined : handleCityClick}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 border-[#60A5FA]`}>
+                                        <div className={`relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] border-[#60A5FA]`}>
                                             <img src={CITY_BTN_IMAGE} alt="Città" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        <span className="text-[2.2vw] md:text-[10px] lg:text-xs font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>
+                                        <span className="text-[8px] font-black text-[#60A5FA] uppercase mt-1">CITTÀ</span>
                                     </div>
 
                                     <div className="flex flex-col items-center group cursor-pointer hover:scale-105 active:scale-95 transition-transform" onClick={toggleAudio}>
-                                        <div className={`relative w-[10.5vw] h-[10.5vw] md:w-[5.5vw] md:h-[5.5vw] lg:w-[5.2vw] lg:h-[5.2vw] rounded-full bg-white flex items-center justify-center overflow-hidden border-[0.8vw] md:border-4 ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
+                                        <div className={`relative w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center overflow-hidden border-[3px] ${isAudioOn ? 'border-green-500' : 'border-red-500'}`}>
                                             <img src={isAudioOn ? BTN_AUDIO_ON : BTN_AUDIO_OFF} alt="Audio" className="w-full h-full object-cover pointer-events-auto" />
                                         </div>
-                                        <span className={`text-[2.2vw] md:text-[10px] lg:text-xs font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
+                                        <span className={`text-[8px] font-black uppercase mt-1 ${isAudioOn ? 'text-green-500' : 'text-red-500'}`}>AUDIO</span>
                                     </div>
                                 </>
                             )}
@@ -356,10 +356,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
 
             {showNotificationsModal && (
                 <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-start justify-start p-4 pt-24" onClick={() => setShowNotificationsModal(false)}>
-                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-yellow-400 w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-top-4" onClick={e => e.stopPropagation()}>
                         <div className="bg-yellow-400 p-4 flex justify-between items-center border-b-4 border-yellow-500">
                             <h3 className="font-black text-black text-xl uppercase flex items-center gap-2"><img src={ICON_NOTIF} alt="" className="w-12 h-12 object-contain" />Notifiche</h3>
-                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 md:w-18 md:h-18 object-contain drop-shadow-sm pointer-events-auto" /></button>
+                            <button onClick={() => setShowNotificationsModal(false)} className="hover:scale-110 active:scale-95 transition-all outline-none"><img src={BTN_CLOSE_IMG} alt="Chiudi" className="w-14 h-14 object-contain drop-shadow-sm pointer-events-auto" /></button>
                         </div>
                         <div className="max-h-[65vh] overflow-y-auto p-2 bg-yellow-50">
                             {notifications.length === 0 ? (

@@ -168,8 +168,8 @@ const INITIAL_MAP_DATA: Record<string, Point[]> = {
 
 // Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 40,
-    right: 1,
+    top: 43,
+    right: 0.5,
     iconSize: 90,
     timeSize: 24,
     dateSize: 14,

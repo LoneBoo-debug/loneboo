@@ -381,7 +381,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
     };
 
     return (
-        <div className="fixed inset-0 top-0 left-0 w-full h-[100dvh] z-10 bg-[#e0f2fe] flex flex-col overflow-hidden pt-[64px] md:pt-[96px] select-none">
+        <div className="absolute inset-0 top-0 left-0 w-full h-full z-10 bg-[#e0f2fe] flex flex-col overflow-hidden pt-[64px] select-none">
             <style>{`
                 @keyframes flower-breath {
                     0%, 100% { transform: scale(1); }
@@ -406,14 +406,14 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 }
             `}</style>
 
-            <div className="fixed inset-0 z-0 pointer-events-none">
+            <div className="absolute inset-0 z-0 pointer-events-none">
                 <img src={currentBg} alt="" className="w-full h-full object-fill animate-in fade-in duration-1000" />
             </div>
 
             {/* MINI TV PER LA SEQUENZA DIALOGO */}
             {showMiniTV && (
-                <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
-                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                <div className="absolute top-20 left-4 z-[110] animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28">
                         <video 
                             src={currentVideoSrc} 
                             autoPlay 
@@ -429,14 +429,14 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
             )}
 
             {/* HEADER SUPERIORE */}
-            <div className="relative z-[60] w-full p-4 md:p-6 grid grid-cols-3 items-center shrink-0">
+            <div className="relative z-[60] w-full p-4 grid grid-cols-3 items-center shrink-0">
                 <div className="flex justify-start">
                     {selectedCategory && (
                         <button 
                             onClick={resetSelection}
                             className="hover:scale-110 active:scale-95 transition-all outline-none border-none bg-transparent"
                         >
-                            <img src={BTN_BACK_GARDEN} alt="Indietro" className="w-16 h-16 md:w-28 h-auto drop-shadow-2xl" />
+                            <img src={BTN_BACK_GARDEN} alt="Indietro" className="w-16 h-16 h-auto drop-shadow-2xl" />
                         </button>
                     )}
                 </div>
@@ -449,7 +449,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                         <img 
                             src={GRUFO_BANNER_BTN} 
                             alt="Parla con Grufo" 
-                            className="w-32 md:w-64 h-auto drop-shadow-2xl" 
+                            className="w-32 h-auto drop-shadow-2xl" 
                         />
                     </button>
                 </div>
@@ -459,20 +459,20 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                         onClick={() => { stopAllAudio(); setView(AppView.CITY_MAP); }}
                         className="hover:scale-110 active:scale-95 transition-all outline-none border-none bg-transparent"
                     >
-                        <img src={BTN_BACK_CITY} alt="Torna in Città" className="w-16 h-16 md:w-28 h-auto drop-shadow-2xl" />
+                        <img src={BTN_BACK_CITY} alt="Torna in Città" className="w-16 h-16 h-auto drop-shadow-2xl" />
                     </button>
                 </div>
             </div>
 
-            <div className="relative z-10 flex-1 w-full flex flex-col items-center justify-start pt-2 md:pt-4 p-4 overflow-hidden">
+            <div className="relative z-10 flex-1 w-full flex flex-col items-center justify-start pt-2 p-4 overflow-hidden">
                 {!selectedCategory && (
                     <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-start">
                         {/* FIORI SPOSTATI PIÙ IN BASSO */}
-                        <div className="flex flex-row flex-wrap justify-center items-center gap-4 md:gap-12 relative z-20 border-none animate-in slide-in-from-bottom duration-1000 mt-24 md:mt-40">
+                        <div className="flex flex-row flex-wrap justify-center items-center gap-4 relative z-20 border-none animate-in slide-in-from-bottom duration-1000 mt-24">
                             <button onClick={() => handleFlowerClick('FELICE')} className="group outline-none border-none bg-transparent relative z-30">
                                 <img 
                                     src={FLOWER_FELICE} 
-                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    className="w-28 h-28 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
                                     style={{ animationDelay: '0s' }}
                                     alt="Felice" 
                                 />
@@ -480,7 +480,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                             <button onClick={() => handleFlowerClick('TRISTE')} className="group outline-none border-none bg-transparent relative z-30">
                                 <img 
                                     src={FLOWER_TRISTE} 
-                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    className="w-28 h-28 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
                                     style={{ animationDelay: '1.2s' }}
                                     alt="Triste" 
                                 />
@@ -488,7 +488,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                             <button onClick={() => handleFlowerClick('ARRABBIATO')} className="group outline-none border-none bg-transparent relative z-30">
                                 <img 
                                     src={FLOWER_ARRABBIATO} 
-                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    className="w-28 h-28 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
                                     style={{ animationDelay: '0.6s' }}
                                     alt="Arrabbiato" 
                                 />
@@ -496,7 +496,7 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                             <button onClick={() => handleFlowerClick('PREOCCUPATO')} className="group outline-none border-none bg-transparent relative z-30">
                                 <img 
                                     src={FLOWER_PREOCCUPATO} 
-                                    className="w-28 h-28 md:w-64 md:h-64 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
+                                    className="w-28 h-28 object-contain opacity-100 flower-idle flower-halo drop-shadow-2xl group-hover:scale-110 transition-transform" 
                                     style={{ animationDelay: '1.8s' }}
                                     alt="Preoccupato" 
                                 />
@@ -504,44 +504,44 @@ const EmotionalGarden: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                         </div>
 
                         {/* TITOLO SPOSTATO PIÙ IN BASSO */}
-                        <div className="flex flex-col items-center gap-2 mb-8 mt-16 md:mt-28 animate-in slide-in-from-top duration-700">
-                            <h2 className="text-white text-3xl md:text-7xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl">Come ti senti oggi?...</h2>
-                            <p className="text-white text-xl md:text-4xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl opacity-90">Grufo il Saggio ti spiega le emozioni</p>
+                        <div className="flex flex-col items-center gap-2 mb-8 mt-16 animate-in slide-in-from-top duration-700">
+                            <h2 className="text-white text-3xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl">Come ti senti oggi?...</h2>
+                            <p className="text-white text-xl text-cartoon-garden text-center px-4 leading-tight drop-shadow-xl opacity-90">Grufo il Saggio ti spiega le emozioni</p>
                         </div>
                     </div>
                 )}
                 {selectedCategory && (
                     <div className="w-full max-w-2xl animate-in slide-in-from-bottom-10 duration-500 flex flex-col items-center mt-2 z-50">
-                        <div className="bg-white/25 backdrop-blur-xl p-4 md:p-6 rounded-[3rem] border-4 border-white/40 shadow-2xl w-full">
-                            <div className="flex items-center justify-between mb-2 md:mb-4 border-b-2 border-white/20 pb-2">
+                        <div className="bg-white/25 backdrop-blur-xl p-4 rounded-[3rem] border-4 border-white/40 shadow-2xl w-full">
+                            <div className="flex items-center justify-between mb-2 border-b-2 border-white/20 pb-2">
                                 <div className="flex items-center gap-3">
-                                    <img src={selectedCategory === 'FELICE' ? FLOWER_FELICE : selectedCategory === 'TRISTE' ? FLOWER_TRISTE : selectedCategory === 'ARRABBIATO' ? FLOWER_ARRABBIATO : FLOWER_PREOCCUPATO} className="w-10 h-10 md:w-16 md:h-16 object-contain flower-halo" alt="" />
-                                    <h3 className="text-white text-xl md:text-5xl text-cartoon-garden uppercase shrink-0">{selectedCategory === 'FELICE' ? 'Felice' : selectedCategory === 'TRISTE' ? 'Triste' : selectedCategory === 'ARRABBIATO' ? 'Arrabbiato' : 'Preoccupato'}</h3>
+                                    <img src={selectedCategory === 'FELICE' ? FLOWER_FELICE : selectedCategory === 'TRISTE' ? FLOWER_TRISTE : selectedCategory === 'ARRABBIATO' ? FLOWER_ARRABBIATO : FLOWER_PREOCCUPATO} className="w-10 h-10 object-contain flower-halo" alt="" />
+                                    <h3 className="text-white text-xl text-cartoon-garden uppercase shrink-0">{selectedCategory === 'FELICE' ? 'Felice' : selectedCategory === 'TRISTE' ? 'Triste' : selectedCategory === 'ARRABBIATO' ? 'Arrabbiato' : 'Preoccupato'}</h3>
                                 </div>
                                 {activeSubEmotionLabel && (
                                     <div className="animate-subemotion-label pr-4 flex-1 text-right overflow-visible">
-                                        <span className="text-yellow-400 text-3xl md:text-8xl text-cartoon-garden uppercase drop-shadow-2xl block whitespace-nowrap">{activeSubEmotionLabel}</span>
+                                        <span className="text-yellow-400 text-3xl text-cartoon-garden uppercase drop-shadow-2xl block whitespace-nowrap">{activeSubEmotionLabel}</span>
                                     </div>
                                 )}
                             </div>
-                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 md:gap-6 max-h-[50vh] overflow-y-auto no-scrollbar px-6 py-6">
+                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto no-scrollbar px-6 py-6">
                                 {EMOTIONS_DATA[selectedCategory].map((emo) => (
                                     <button key={emo.id} onClick={() => handleSubEmotionClick(emo)} className={`bg-white/95 hover:bg-white p-1 rounded-2xl border-b-4 border-slate-300 transition-all flex flex-col items-center group shadow-md relative ${activeSubEmotionLabel === emo.label ? 'ring-8 ring-yellow-400 border-yellow-500 scale-110 z-20 shadow-2xl' : 'active:border-b-0 active:translate-y-0.5'}`}>
                                         {emo.icon ? (
-                                            <img src={emo.icon} alt={emo.label} className="w-24 h-24 md:w-48 md:h-48 object-contain group-hover:scale-105 transition-transform" />
+                                            <img src={emo.icon} alt={emo.label} className="w-24 h-24 object-contain group-hover:scale-105 transition-transform" />
                                         ) : (
                                             <div className="flex flex-col items-center gap-1 w-full p-2">
-                                                <div className="w-16 h-16 md:w-32 md:h-32 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform overflow-hidden">
+                                                <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform overflow-hidden">
                                                     <span className="text-6xl">✨</span>
                                                 </div>
-                                                <span className="font-black text-slate-800 text-[10px] md:text-sm uppercase tracking-tighter truncate w-full text-center">{emo.label}</span>
+                                                <span className="font-black text-slate-800 text-[10px] uppercase tracking-tighter truncate w-full text-center">{emo.label}</span>
                                             </div>
                                         )}
                                     </button>
                                 ))}
                             </div>
                         </div>
-                        <p className="mt-3 md:mt-6 text-white/80 font-black uppercase tracking-widest text-[8px] md:text-[10px] bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm">Tocca un'emozione per ascoltare Grufo</p>
+                        <p className="mt-3 text-white/80 font-black uppercase tracking-widest text-[8px] bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm">Tocca un'emozione per ascoltare Grufo</p>
                     </div>
                 )}
             </div>
@@ -570,7 +570,6 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
-            // FIX: Defined 'recognition' locally before assigning to the ref to fix 'Cannot find name recognition' error
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.lang = 'it-IT';
@@ -631,23 +630,23 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
     };
 
     return (
-        <div className="fixed inset-0 z-[200] bg-[#0c1a2c]/95 flex items-start justify-center p-4 pt-24 md:pt-32 animate-in fade-in duration-300">
-            <div className="bg-[#1a2e44] w-full max-w-2xl h-[75vh] md:h-[80vh] rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col overflow-hidden relative">
+        <div className="absolute inset-0 z-[200] bg-[#0c1a2c]/95 flex items-start justify-center p-4 pt-24 animate-in fade-in duration-300">
+            <div className="bg-[#1a2e44] w-full max-w-2xl h-[75vh] rounded-[3rem] border-8 border-yellow-400 shadow-2xl flex flex-col overflow-hidden relative">
                 
                 {/* Header Chat */}
                 <div className="bg-[#2c4a6b] p-4 flex items-center gap-3 border-b-4 border-[#0c1a2c] shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 md:w-20 md:h-20 bg-black/20 rounded-full p-1 border-2 border-yellow-400/30">
+                        <div className="w-14 h-14 bg-black/20 rounded-full p-1 border-2 border-yellow-400/30">
                             <img src={GRUFO_CHAT_ICON} alt="Grufo" className="w-full h-full object-contain" />
                         </div>
                         <div>
-                            <h3 className="text-yellow-400 font-luckiest text-xl md:text-3xl uppercase leading-none">Grufo il Saggio</h3>
-                            <span className="text-blue-300 font-black text-[10px] md:text-xs uppercase tracking-widest opacity-70">Guida Emotiva</span>
+                            <h3 className="text-yellow-400 font-luckiest text-xl uppercase leading-none">Grufo il Saggio</h3>
+                            <span className="text-blue-300 font-black text-[10px] uppercase tracking-widest opacity-70">Guida Emotiva</span>
                         </div>
                     </div>
                     <div className="flex-1"></div>
                     <button onClick={onClose} className="hover:scale-110 active:scale-95 transition-all outline-none">
-                        <img src={BTN_BACK_GARDEN} alt="Chiudi" className="w-12 h-12 md:w-16 md:h-16" />
+                        <img src={BTN_BACK_GARDEN} alt="Chiudi" className="w-12 h-12" />
                     </button>
                 </div>
 
@@ -655,7 +654,7 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
                 <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat no-scrollbar">
                     {history.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                            <div className={`max-w-[85%] p-4 rounded-[2rem] shadow-xl font-bold text-sm md:text-xl leading-relaxed relative ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none border-b-4 border-blue-800' : 'bg-slate-100 text-slate-800 rounded-tl-none border-b-4 border-slate-300'}`}>
+                            <div className={`max-w-[85%] p-4 rounded-[2rem] shadow-xl font-bold text-sm leading-relaxed relative ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none border-b-4 border-blue-800' : 'bg-slate-100 text-slate-800 rounded-tl-none border-b-4 border-slate-300'}`}>
                                 {msg.text}
                             </div>
                         </div>
@@ -679,7 +678,7 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
                                     <img 
                                         src={BTN_MARAGNO_NAV} 
                                         alt="Vai da Maragno" 
-                                        className="w-48 md:w-64 h-auto drop-shadow-2xl" 
+                                        className="w-48 h-auto drop-shadow-2xl" 
                                     />
                                 </button>
                             ) : (
@@ -701,7 +700,7 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
                     <div className="flex items-center gap-2 w-full">
                         <button 
                             onClick={toggleListening} 
-                            className={`shrink-0 p-3 md:p-4 rounded-full transition-all border-4 ${isListening ? 'bg-red-500 text-white border-red-700 animate-pulse' : 'bg-slate-800 text-yellow-400 border-slate-700 hover:border-yellow-400'}`}
+                            className={`shrink-0 p-3 rounded-full transition-all border-4 ${isListening ? 'bg-red-500 text-white border-red-700 animate-pulse' : 'bg-slate-800 text-yellow-400 border-slate-700 hover:border-yellow-400'}`}
                         >
                             {isListening ? <MicOff size={24} /> : <Mic size={24} />}
                         </button>
@@ -711,17 +710,17 @@ const GrufoChatModal: React.FC<{ onClose: () => void; setView: (v: AppView) => v
                             onChange={(e) => setInputText(e.target.value)} 
                             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Racconta a Grufo..." 
-                            className="flex-1 bg-slate-800 border-4 border-slate-700 rounded-[2rem] px-5 py-3 md:py-4 font-bold text-white text-sm md:text-lg focus:outline-none focus:border-yellow-400 transition-all placeholder-slate-500 min-w-0"
+                            className="flex-1 bg-slate-800 border-4 border-slate-700 rounded-[2rem] px-5 py-3 font-bold text-white text-sm focus:outline-none focus:border-yellow-400 transition-all placeholder-slate-500 min-w-0"
                         />
                         <button 
                             onClick={handleSendMessage} 
                             disabled={!inputText.trim() || isThinking}
-                            className="bg-yellow-400 text-blue-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all disabled:opacity-50 border-4 border-black shrink-0"
+                            className="bg-yellow-400 text-blue-900 w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all disabled:opacity-50 border-4 border-black shrink-0"
                         >
                             <Send size={24} strokeWidth={3} />
                         </button>
                     </div>
-                    <p className="text-center text-[8px] md:text-[10px] font-bold text-slate-500 uppercase mt-3 tracking-widest">Consultati sempre con un genitore per i pensieri più importanti.</p>
+                    <p className="text-center text-[8px] font-bold text-slate-500 uppercase mt-3 tracking-widest">Consultati sempre con un genitore per i pensieri più importanti.</p>
                 </div>
             </div>
         </div>

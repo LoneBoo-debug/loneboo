@@ -75,7 +75,7 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
 
     return (
         <motion.div 
-            className="fixed inset-0 z-0 bg-black overflow-hidden flex flex-col items-center justify-center select-none"
+            className="absolute inset-0 z-0 bg-black overflow-hidden flex flex-col items-center justify-center select-none"
             animate={isShaking ? {
                 x: [0, -10, 10, -10, 10, 0],
                 y: [0, 5, -5, 5, -5, 0]
@@ -88,7 +88,7 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                 <motion.img
                     src={BG_INITIAL}
                     alt="Initial Background"
-                    className="absolute inset-0 w-full h-full object-cover md:object-fill"
+                    className="absolute inset-0 w-full h-full object-cover"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: isAnimating ? 0 : (isInitialLoaded ? 1 : 0) }}
                     transition={{ duration: 0.8, ease: "linear" }}
@@ -109,7 +109,7 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover md:object-fill"
+                        className="w-full h-full object-cover"
                     />
                 </motion.div>
             </div>
@@ -132,7 +132,7 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                         <img 
                             src={BTN_STONE} 
                             alt="Stone Button" 
-                            className={`w-24 md:w-40 h-auto drop-shadow-2xl transition-all duration-500 ${isAnimating ? 'brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]' : 'brightness-100'}`}
+                            className={`w-24 h-auto drop-shadow-2xl transition-all duration-500 ${isAnimating ? 'brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]' : 'brightness-100'}`}
                         />
                     </motion.button>
                 )}

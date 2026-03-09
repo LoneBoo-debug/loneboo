@@ -35,8 +35,8 @@ const HOUSE_ENTRANCE_AREA: Point[] = [
 
 // Parametri sveglia consolidati - Top alzato da 56 a 44
 const CLOCK_STYLE = {
-    top: 40,
-    right: 1,
+    top: 43,
+    right: 0.5,
     iconSize: 90,
     timeSize: 24,
     dateSize: 14,

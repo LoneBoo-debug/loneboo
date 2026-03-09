@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AppView } from '../types';
 import { OFFICIAL_LOGO, TOKEN_ICON_URL } from '../constants';
 import { getProgress, addTokens } from '../services/tokens';
+import { pauseSubMusic } from '../services/bgMusic';
 import { SUB_ENIGMAS_DB, SubEnigma } from '../services/dbSubEnigmas';
 import { Sparkles, Trophy, RotateCcw, AlertCircle, Clock, Lock } from 'lucide-react';
 import TokenIcon from './TokenIcon';
@@ -73,6 +74,9 @@ const SubEnigmasPage: React.FC<SubEnigmasPageProps> = ({ setView }) => {
     };
 
     useEffect(() => {
+        // Stop general sub music
+        pauseSubMusic();
+
         const img = new Image();
         img.src = ENIGMAS_BG;
         img.onload = () => setIsLoaded(true);
@@ -89,6 +93,7 @@ const SubEnigmasPage: React.FC<SubEnigmasPageProps> = ({ setView }) => {
                 bgMusicRef.current.pause();
                 bgMusicRef.current = null;
             }
+            pauseSubMusic();
         };
     }, []);
 

@@ -44,8 +44,8 @@ const MAP_AREAS: Record<string, Point[]> = {
 
 // Parametri sveglia consolidati - Alzato a 44
 const CLOCK_STYLE = {
-    top: 40,
-    right: 1,
+    top: 43,
+    right: 0.5,
     iconSize: 90,
     timeSize: 24,
     dateSize: 14,
@@ -164,8 +164,8 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             )}
 
             {isLoaded && isAudioOn && isPlaying && dialogueStep === 0 && (
-                <div className="absolute top-20 md:top-28 left-4 z-50 animate-in zoom-in duration-500">
-                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                <div className="absolute top-20 left-4 z-50 animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28">
                         <video src={BOO_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                     </div>
@@ -173,8 +173,8 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
             )}
 
             {isLoaded && isAudioOn && isPlaying && dialogueStep === 1 && (
-                <div className="absolute top-[160px] md:top-[240px] right-4 z-50 animate-in zoom-in duration-500">
-                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+                <div className="absolute top-[160px] right-4 z-50 animate-in zoom-in duration-500">
+                    <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28">
                         <video src={SECOND_TALK_VIDEO} autoPlay loop muted playsInline className="w-full h-full object-cover" style={{ mixBlendMode: 'screen', filter: 'contrast(1.1) brightness(1.1)' }} />
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                     </div>

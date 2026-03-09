@@ -271,6 +271,7 @@ const SubAtelierOscuro: React.FC<{ setView: (view: AppView) => void }> = ({ setV
             window.removeEventListener('progressUpdated', syncProgress);
             window.removeEventListener('loneboo_sub_music_changed', handleAudioChange);
             if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+            pauseSubMusic();
         };
     }, []);
 

@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { AppView } from '../types';
 import { getWeatherForDate, isNightTime } from '../services/weatherService';
 
@@ -11,10 +11,10 @@ const BG_IMAGES = {
 };
 
 interface SubOscuritaSuperficieProps {
-    setView: (view: AppView) => void;
+    setView: (view: AppView, skipAnim?: boolean) => void;
 }
 
-type AreaId = 'MUSEO' | 'BIBLIOTECA' | 'TORRE_MAGICA';
+type AreaId = 'MUSEO' | 'BIBLIOTECA' | 'TORRE_MAGICA' | 'BACK_TO_OSCURITA';
 interface Point { x: number; y: number }
 
 const DEFAULT_POLYGONS: Record<AreaId, Point[]> = {
@@ -35,15 +35,16 @@ const DEFAULT_POLYGONS: Record<AreaId, Point[]> = {
         { "x": 48.27, "y": 42.13 },
         { "x": 77.33, "y": 42.13 },
         { "x": 71.73, "y": 2.85 }
+    ],
+    BACK_TO_OSCURITA: [
+        { "x": 27.47, "y": 80.36 },
+        { "x": 16.27, "y": 89.66 },
+        { "x": 74.4, "y": 89.51 },
+        { "x": 66.67, "y": 79.91 }
     ]
 };
 
 const SubOscuritaSuperficie: React.FC<SubOscuritaSuperficieProps> = ({ setView }) => {
-    const [polygons] = useState<Record<AreaId, Point[]>>(() => {
-        const saved = localStorage.getItem('sub_superficie_polygons');
-        return saved ? JSON.parse(saved) : DEFAULT_POLYGONS;
-    });
-
     const currentBg = useMemo(() => {
         const now = new Date();
         if (isNightTime(now)) return BG_IMAGES.NIGHT;
@@ -72,6 +73,8 @@ const SubOscuritaSuperficie: React.FC<SubOscuritaSuperficieProps> = ({ setView }
             setView(AppView.BOOKS);
         } else if (id === 'TORRE_MAGICA') {
             setView(AppView.AI_MAGIC);
+        } else if (id === 'BACK_TO_OSCURITA') {
+            setView(AppView.SUB_OSCURITA, true);
         }
     };
 
@@ -86,7 +89,7 @@ const SubOscuritaSuperficie: React.FC<SubOscuritaSuperficieProps> = ({ setView }
             />
 
             {/* CLICKABLE AREAS */}
-            {Object.entries(polygons).map(([id, pts]) => (
+            {Object.entries(DEFAULT_POLYGONS).map(([id, pts]) => (
                 <div 
                     key={id}
                     onClick={(e) => { e.stopPropagation(); handleAreaClick(id as AreaId); }}
