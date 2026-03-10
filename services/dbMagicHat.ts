@@ -712,4 +712,274 @@ export const HAT_RECIPES: Record<string, HatRecipe> = {
         img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gatto_topo.webp',
         desc: 'L\'eterna sfida finalmente unita!'
     },
+    'giraffa-poltrona': {
+        name: 'Giraffa Comoda',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_poltrona.webp',
+        desc: 'Un collo lungo per guardare la TV in totale relax.'
+    },
+    'giraffa-gufo': {
+        name: 'Giraffa Notturna',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_gufo.webp',
+        desc: 'Vede tutto dall\'alto, anche di notte.'
+    },
+    'giraffa-monopattino': {
+        name: 'Giraffa Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_monopattino.webp',
+        desc: 'Sfreccia tra le foglie più alte!'
+    },
+    'giraffa-orso': {
+        name: 'Giraffa-Orso',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_orso.webp',
+        desc: 'Un abbraccio altissimo e molto soffice.'
+    },
+    'giraffa-ragno': {
+        name: 'Giraffa-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_ragno.webp',
+        desc: 'Cammina sulle tele più alte della giungla.'
+    },
+    'giraffa-ruota': {
+        name: 'Giraffa Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraff_ruota.webp',
+        desc: 'Gira e guarda tutto dall\'alto.'
+    },
+    'giraffa-sedia': {
+        name: 'Giraffa-Sedia',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_sedia.webp',
+        desc: 'Una seduta per chi ha grandi prospettive.'
+    },
+    'giraffa-tavolo': {
+        name: 'Giraffa-Tavolo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_tavolo.webp',
+        desc: 'Perfetto per un banchetto tra le chiome degli alberi.'
+    },
+    'giraffa-tv': {
+        name: 'Giraffa-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_televisione.webp',
+        desc: 'I tuoi programmi preferiti... ad alta quota!'
+    },
+    'giraffa-topo': {
+        name: 'Giraffa-Topo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giraffa_topo.webp',
+        desc: 'Piccola, scattante e con un collo lunghissimo.'
+    },
+    'gufo-tv': {
+        name: 'Gufo-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_televisione.webp',
+        desc: 'Visione notturna per i tuoi film preferiti.'
+    },
+    'gufo-topo': {
+        name: 'Gufo-Topo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_topo.webp',
+        desc: 'L\'amicizia notturna più inaspettata.'
+    },
+    'gufo-tavolo': {
+        name: 'Gufo-Tavolo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_tavolo.webp',
+        desc: 'Un banchetto saggio sotto la luna.'
+    },
+    'gufo-sedia': {
+        name: 'Gufo-Sedia',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_sedia.webp',
+        desc: 'Una seduta per osservare il bosco in silenzio.'
+    },
+    'gufo-ruota': {
+        name: 'Gufo-Ruota',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_ruota.webp',
+        desc: 'Gira e osserva tutto con i suoi grandi occhi.'
+    },
+    'gufo-ragno': {
+        name: 'Gufo-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_ragno.webp',
+        desc: 'Tele intrecciate nel buio della notte.'
+    },
+    'gufo-poltrona': {
+        name: 'Gufo-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_poltrona.webp',
+        desc: 'Comodità saggia per sogni d\'oro.'
+    },
+    'gufo-orso': {
+        name: 'Gufo-Orso',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_orso.webp',
+        desc: 'Un abbraccio notturno molto protettivo.'
+    },
+    'gufo-monopattino': {
+        name: 'Gufo-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/gufo_monopattino.webp',
+        desc: 'Vola basso e sfreccia veloce!'
+    },
+    'monopattino-tv': {
+        name: 'Pattino-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_televisione.webp',
+        desc: 'Cinema in movimento per piccoli piloti.'
+    },
+    'monopattino-topo': {
+        name: 'Topo-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_topo.webp',
+        desc: 'Piccolo, veloce e su due ruote!'
+    },
+    'monopattino-tavolo': {
+        name: 'Tavolo-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_tavolo.webp',
+        desc: 'Per un picnic velocissimo al parco.'
+    },
+    'monopattino-sedia': {
+        name: 'Sedia-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_sedia.webp',
+        desc: 'Comodità su ruote per sfrecciare ovunque.'
+    },
+    'monopattino-ruota': {
+        name: 'Super-Ruota',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_ruota.webp',
+        desc: 'Gira e sfreccia senza mai fermarsi.'
+    },
+    'monopattino-ragno': {
+        name: 'Ragno-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_ragno.webp',
+        desc: 'Otto zampe e due ruote per scalare ogni strada.'
+    },
+    'monopattino-poltrona': {
+        name: 'Pattino-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_poltrona.webp',
+        desc: 'Il massimo del comfort in movimento.'
+    },
+    'monopattino-orso': {
+        name: 'Orso-Sprint',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monopattino_orso.webp',
+        desc: 'Un abbraccio veloce su due ruote.'
+    },
+    'orso-tv': {
+        name: 'Orso-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_televisione.webp',
+        desc: 'I tuoi programmi preferiti con un amico soffice.'
+    },
+    'orso-topo': {
+        name: 'Orso-Topo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_topo.webp',
+        desc: 'Grandi abbracci e piccoli squittii.'
+    },
+    'orso-tavolo': {
+        name: 'Orso-Tavolo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_tavolo.webp',
+        desc: 'Perfetto per una merenda a base di miele.'
+    },
+    'orso-sedia': {
+        name: 'Orso-Sedia',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rso_sedia.webp',
+        desc: 'Una seduta calda e molto accogliente.'
+    },
+    'orso-ruota': {
+        name: 'Orso-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_ruota.webp',
+        desc: 'Rotola e abbraccia tutto quello che trova.'
+    },
+    'orso-ragno': {
+        name: 'Orso-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_ragno.webp',
+        desc: 'Tele soffici e otto zampe pelose.'
+    },
+    'orso-poltrona': {
+        name: 'Orso-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/orso_poltrona.webp',
+        desc: 'Il posto più morbido del mondo.'
+    },
+    'poltrona-tv': {
+        name: 'Tele-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_televisione.webp',
+        desc: 'Cinema in poltrona per sogni fantastici.'
+    },
+    'poltrona-topo': {
+        name: 'Topo-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_topo.webp',
+        desc: 'Un piccolo amico per un grande riposo.'
+    },
+    'poltrona-tavolo': {
+        name: 'Tavolo-Relax',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_tavolo.webp',
+        desc: 'Tutto a portata di mano per il tuo riposo.'
+    },
+    'poltrona-sedia': {
+        name: 'Super-Sedia',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_sedia.webp',
+        desc: 'Comodità raddoppiata per grandi idee.'
+    },
+    'poltrona-ruota': {
+        name: 'Poltrona-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_ruota.webp',
+        desc: 'Gira e riposa ovunque tu voglia.'
+    },
+    'poltrona-ragno': {
+        name: 'Poltrona-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/poltrona_ragno.webp',
+        desc: 'Tele intrecciate per un riposo magico.'
+    },
+    'ragno-tv': {
+        name: 'Tele-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/rano_televisione.webp',
+        desc: 'Programmi intrecciati con fantasia.'
+    },
+    'ragno-topo': {
+        name: 'Ragno-Topo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ragno_topo.webp',
+        desc: 'Piccoli passi e otto zampe veloci.'
+    },
+    'ragno-tavolo': {
+        name: 'Tavolo-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ragno_tavolo.webp',
+        desc: 'Perfetto per un banchetto misterioso.'
+    },
+    'ragno-sedia': {
+        name: 'Sedia-Ragno',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ragno_sedia.webp',
+        desc: 'Una seduta che ti lascia... appeso!'
+    },
+    'ragno-ruota': {
+        name: 'Ragno-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ragno_ruota.webp',
+        desc: 'Gira e tesse tele ovunque.'
+    },
+    'ruota-tv': {
+        name: 'Tele-Ruota',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ruota_televisione.webp',
+        desc: 'I tuoi programmi preferiti in continuo movimento.'
+    },
+    'ruota-topo': {
+        name: 'Topo-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ruota_topo.webp',
+        desc: 'Piccolo, scattante e non smette mai di girare.'
+    },
+    'ruota-tavolo': {
+        name: 'Tavolo-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ruota_tavolo.webp',
+        desc: 'Un banchetto che arriva rotolando!'
+    },
+    'ruota-sedia': {
+        name: 'Sedia-Rotolante',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ruota_sedia.webp',
+        desc: 'Comodità in movimento per esploratori.'
+    },
+    'sedia-tavolo': {
+        name: 'Set Pranzo Magico',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sedia_tavolo.webp',
+        desc: 'Tutto pronto per un banchetto fantastico.'
+    },
+    'sedia-topo': {
+        name: 'Sedia-Topo',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sedia_topo.webp',
+        desc: 'Una seduta piccola e molto scattante.'
+    },
+    'sedia-tv': {
+        name: 'Sedia-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sedia_televisione.webp',
+        desc: 'Comodità perfetta per guardare i cartoni.'
+    },
+    'tavolo-tv': {
+        name: 'Tavolo-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tavolo_televisione.webp',
+        desc: 'Pranzo e TV, il massimo del divertimento.'
+    },
+    'topo-tv': {
+        name: 'Topo-TV',
+        img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/topo_te%C3%B2evisione.webp',
+        desc: 'Piccoli programmi per grandi sognatori.'
+    },
 };

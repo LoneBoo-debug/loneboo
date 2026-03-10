@@ -1,10 +1,11 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { Rocket, Zap, Gamepad2, Book, Eye, Activity, Brain, Play, Star, Loader2, ArrowLeft, Hash } from 'lucide-react';
+import { Rocket, Zap, Gamepad2, Book, Eye, Activity, Brain, Play, Star, Loader2, ArrowLeft, Hash, Users } from 'lucide-react';
 import WebGamePlayer from './WebGamePlayer';
 
 // Lazy load dei giochi interni
 const GuessWhoGame = lazy(() => import('./GuessWhoGame'));
 const BingoGame = lazy(() => import('./BingoGame'));
+const ClashBoo = lazy(() => import('./ClashBoo'));
 
 const EXIT_BTN_IMG = 'https://i.postimg.cc/0QpvC8JQ/ritorna-al-parco-(1)-(2).png';
 const ARCADE_BG = 'https://i.postimg.cc/pLsrXpqT/dssala.jpg';
@@ -50,6 +51,18 @@ const GAMES_EDUCATIONAL: GameInfo[] = [
         image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/thumstmblnew.webp',
         color: 'bg-orange-50',
         borderColor: 'border-orange-600',
+        TagIcon: null,
+        tagText: ''
+    },
+    {
+        id: 'GAME_CLASH_BOO',
+        title: 'Clash Boo',
+        desc: 'Sfida i tuoi amici in una battaglia di figurine!',
+        isInternal: true,
+        icon: '',
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/clashboominiatures.webp',
+        color: 'bg-purple-600',
+        borderColor: 'border-purple-800',
         TagIcon: null,
         tagText: ''
     },
@@ -128,9 +141,11 @@ const ArcadeConsole: React.FC<ArcadeConsoleProps> = ({ onBack, onEarnTokens }) =
             if (game.isInternal) {
                 const isGuessWho = game.id === 'GAME_GUESS_WHO';
                 const isBingo = game.id === 'GAME_BINGO';
+                const isClashBoo = game.id === 'GAME_CLASH_BOO';
+
                 return (
-                    <div className="fixed inset-0 z-[70] bg-slate-900 flex flex-col animate-in fade-in duration-300">
-                        {(!isGuessWho && !isBingo) && (
+                    <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col animate-in fade-in duration-300">
+                        {(!isGuessWho && !isBingo && !isClashBoo) && (
                             <div className="flex items-center justify-between p-3 bg-slate-800 border-b-4 border-blue-500 shadow-lg shrink-0 z-20">
                                 <button 
                                     onClick={() => setActiveGameId(null)}
@@ -153,26 +168,29 @@ const ArcadeConsole: React.FC<ArcadeConsoleProps> = ({ onBack, onEarnTokens }) =
                             }>
                                 {game.id === 'GAME_GUESS_WHO' && <GuessWhoGame onBack={() => setActiveGameId(null)} onEarnTokens={onEarnTokens} />}
                                 {game.id === 'GAME_BINGO' && <BingoGame onBack={() => setActiveGameId(null)} onEarnTokens={onEarnTokens} />}
+                                {game.id === 'GAME_CLASH_BOO' && <ClashBoo setView={() => setActiveGameId(null)} />}
                             </Suspense>
                         </div>
                     </div>
                 );
             }
 
-            const isArcade = GAMES_ARCADE.some(g => g.id === activeGameId);
-            if (!game) return null;
-            return (
-                <WebGamePlayer 
-                    src={game.embedUrl || ""} 
-                    title={game.title} 
-                    onBack={() => setActiveGameId(null)}
-                    isFullScreen={isArcade}
-                />
-            );
-        }
-    }
+    const isArcade = GAMES_ARCADE.some(g => g.id === activeGameId);
+    if (!game) return null;
+    return (
+        <div className="fixed inset-0 z-[110]">
+            <WebGamePlayer 
+                src={game.embedUrl || ""} 
+                title={game.title} 
+                onBack={() => setActiveGameId(null)}
+                isFullScreen={isArcade}
+            />
+        </div>
+    );
+}
+}
 
-    const wrapperStyle = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
+const wrapperStyle = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
     const renderGameCard = (game: GameInfo) => (
         <div 

@@ -88,6 +88,21 @@ const StickerCard: React.FC<{ sticker: Sticker, isOwned: boolean, showDetails?: 
                 </div>
             )}
 
+            {/* Sticker Value - Lucky Cartoon Style */}
+            {(isOwned || showDetails) && sticker.value !== undefined && (
+                <div className="absolute top-1 left-1 z-30 flex items-center justify-center">
+                    <div className="relative">
+                        {/* Shadow/Outline for cartoon effect */}
+                        <div className="absolute inset-0 bg-black rounded-full translate-x-0.5 translate-y-0.5"></div>
+                        <div className="relative bg-yellow-400 border-2 border-black rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center shadow-sm">
+                            <span className="text-black font-black text-[10px] md:text-sm italic transform -rotate-12">
+                                {sticker.value}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`flex-1 w-full relative flex items-center justify-center overflow-hidden ${bgFallback}`}>
                 {(isOwned || showDetails) ? (isImage ? <img src={sticker.image} alt={sticker.name} className="w-full h-full object-cover" /> : <span className="text-6xl">{sticker.image}</span>) : <Lock size={32} className="text-gray-400" />}
                 {isNew && <div className="absolute top-0 left-0 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-br-lg z-10 animate-pulse">NUOVA!</div>}
@@ -524,6 +539,20 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                             }`}>
                                 {{ 'COMMON': 'Comune', 'RARE': 'Rara', 'EPIC': 'Epica', 'LEGENDARY': 'Leggendaria' }[selectedSticker.rarity]}
                             </div>
+
+                            {/* Sticker Value - Lucky Cartoon Style */}
+                            {selectedSticker.value !== undefined && (
+                                <div className="absolute top-3 left-3 z-40 flex items-center justify-center scale-150 origin-top-left">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-black rounded-full translate-x-0.5 translate-y-0.5"></div>
+                                        <div className="relative bg-yellow-400 border-2 border-black rounded-full w-8 h-8 flex items-center justify-center shadow-md">
+                                            <span className="text-black font-black text-sm italic transform -rotate-12">
+                                                {selectedSticker.value}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <img 
                                 src={selectedSticker.image} 

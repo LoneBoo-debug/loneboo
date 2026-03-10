@@ -62,7 +62,8 @@ enum GameType {
   CONNECT4 = 'CONNECT4',
   WORDGUESS = 'WORDGUESS',
   ARCADE = 'ARCADE',
-  BINGO = 'BINGO'
+  BINGO = 'BINGO',
+  CLASH_BOO = 'CLASH_BOO'
 }
 
 type Point = { x: number; y: number };
@@ -341,7 +342,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
 
   if (activeGame !== GameType.NONE) {
     return (
-      <div className="fixed inset-0 z-0 bg-slate-900 flex flex-col animate-in fade-in duration-300 pt-[64px] md:pt-[96px]">
+      <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col animate-in fade-in duration-300">
         <Suspense fallback={
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-800">
             <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
@@ -446,17 +447,22 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
         )}
 
         {isLoaded && (Object.entries(INITIAL_MAP_DATA) as [string, Point[]][]).map(([key, pts]) => {
+          // Calculate a rough center for the label
+          const centerX = pts.reduce((sum, p) => sum + p.x, 0) / pts.length;
+          const centerY = pts.reduce((sum, p) => sum + p.y, 0) / pts.length;
+
           return (
-            <div
-              key={key}
-              onClick={(e) => { 
-                e.preventDefault();
-                e.stopPropagation(); 
-                handleZoneClick(key); 
-              }}
-              className="absolute inset-0 z-10 cursor-pointer active:bg-white/10 pointer-events-auto"
-              style={{ clipPath: getClipPath(pts) }}
-            />
+            <React.Fragment key={key}>
+              <div
+                onClick={(e) => { 
+                  e.preventDefault();
+                  e.stopPropagation(); 
+                  handleZoneClick(key); 
+                }}
+                className="absolute inset-0 z-10 cursor-pointer active:bg-white/10 pointer-events-auto"
+                style={{ clipPath: getClipPath(pts) }}
+              />
+            </React.Fragment>
           );
         })}
       </div>

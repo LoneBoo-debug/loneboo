@@ -135,6 +135,7 @@ export enum AppView {
   COMMUNITY = 'COMMUNITY', 
   CHAT = 'CHAT', 
   PLAY = 'PLAY',
+  CLASH_BOO = 'CLASH_BOO',
   FANART = 'FANART',
   CHARACTERS = 'CHARACTERS', 
   DISCLAIMER = 'DISCLAIMER',
@@ -278,6 +279,7 @@ export interface Sticker {
     image: string;
     rarity: Rarity;
     description: string;
+    value?: number;
 }
 
 export interface AvatarConfig {
