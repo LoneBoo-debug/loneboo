@@ -180,11 +180,16 @@ const CLOCK_STYLE = {
 
 interface PlayZoneProps {
   setView: (view: AppView) => void;
+  onGameActiveChange?: (active: boolean) => void;
 }
 
-const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
+const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
   const [now, setNow] = useState(new Date());
   const [activeGame, setActiveGame] = useState<GameType>(GameType.NONE);
+
+  useEffect(() => {
+    onGameActiveChange?.(activeGame !== GameType.NONE);
+  }, [activeGame, onGameActiveChange]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(() => getProgress().tokens);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
@@ -342,7 +347,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView }) => {
 
   if (activeGame !== GameType.NONE) {
     return (
-      <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col animate-in fade-in duration-300">
+      <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col">
         <Suspense fallback={
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-800">
             <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />

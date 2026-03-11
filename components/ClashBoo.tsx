@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, User, Monitor, Users, Send, Check, AlertCircle, Trophy, RotateCcw, ChevronDown } from 'lucide-react';
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
-import { getProgress } from '../services/tokens';
+import { getProgress, addTokens } from '../services/tokens';
 import { Sticker, AppView } from '../types';
 import { db, auth } from '../firebase';
 import { 
@@ -32,6 +32,7 @@ interface GamePlayer {
   selectedCard: Sticker | null;
   score: number;
   roundsWon: number;
+  round: number;
 }
 
 const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
@@ -40,13 +41,14 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const [roomCode, setRoomCode] = useState('');
   const [inputCode, setInputCode] = useState('');
   const [showInviteMenu, setShowInviteMenu] = useState(false);
+  const [showJoinInput, setShowJoinInput] = useState(false);
   
   const [isConnected, setIsConnected] = useState(false);
   const [playerRole, setPlayerRole] = useState<'p1' | 'p2' | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
-  const [player, setPlayer] = useState<GamePlayer>({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
-  const [opponent, setOpponent] = useState<GamePlayer>({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
+  const [player, setPlayer] = useState<GamePlayer>({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
+  const [opponent, setOpponent] = useState<GamePlayer>({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
   
   const [round, setRound] = useState(1);
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
@@ -85,23 +87,32 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           // Sync opponent data
           if (playerRole === 'p1') {
             if (data.p2) {
-              setOpponent(prev => ({
-                ...prev,
-                id: data.p2.id || 'opponent',
-                cards: data.p2.cards || [],
-                selectedCard: data.p2.selectedCard || null,
-                roundsWon: data.p2.roundsWon || 0
-              }));
+              setOpponent(prev => {
+                // Don't clear opponent card if we are still showing results of the current round
+                const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p2.selectedCard && data.p2.round > prev.round;
+                return {
+                  ...prev,
+                  id: data.p2.id || 'opponent',
+                  cards: data.p2.cards || [],
+                  selectedCard: shouldKeepCard ? prev.selectedCard : (data.p2.selectedCard || null),
+                  roundsWon: data.p2.roundsWon || 0,
+                  round: data.p2.round || 1
+                };
+              });
             }
           } else if (playerRole === 'p2') {
             if (data.p1) {
-              setOpponent(prev => ({
-                ...prev,
-                id: data.p1.id || 'host',
-                cards: data.p1.cards || [],
-                selectedCard: data.p1.selectedCard || null,
-                roundsWon: data.p1.roundsWon || 0
-              }));
+              setOpponent(prev => {
+                const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p1.selectedCard && data.p1.round > prev.round;
+                return {
+                  ...prev,
+                  id: data.p1.id || 'host',
+                  cards: data.p1.cards || [],
+                  selectedCard: shouldKeepCard ? prev.selectedCard : (data.p1.selectedCard || null),
+                  roundsWon: data.p1.roundsWon || 0,
+                  round: data.p1.round || 1
+                };
+              });
             }
           }
 
@@ -120,8 +131,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   }, [isMultiplayer, roomCode, currentUser, playerRole]);
 
   const restartCurrentModeLocally = () => {
-    setPlayer(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0 }));
-    setOpponent(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0 }));
+    setPlayer(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 }));
+    setOpponent(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 }));
     setRound(1);
     setRoundWinner(null);
     setIsColpoFurbo(false);
@@ -138,7 +149,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       if (!db) throw new Error("Database non inizializzato");
       
       await setDoc(doc(db, 'rooms', code), {
-        p1: { id: currentUser?.uid || 'host', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+        p1: { id: currentUser?.uid || 'host', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
@@ -161,7 +172,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           setIsMultiplayer(true);
           
           await updateDoc(roomRef, {
-            p2: { id: currentUser?.uid || 'guest', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+            p2: { id: currentUser?.uid || 'guest', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
             status: 'PLAYING',
             updatedAt: serverTimestamp()
           });
@@ -296,16 +307,12 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       ...player, 
       roundsWon: pWon ? player.roundsWon + 1 : player.roundsWon,
       cards: player.cards.filter(c => c.id !== player.selectedCard?.id),
-      selectedCard: null 
+      selectedCard: null,
+      round: player.round + 1
     };
 
     setPlayer(newPlayer);
-    setOpponent(prev => ({ 
-      ...prev, 
-      roundsWon: oWon ? prev.roundsWon + 1 : prev.roundsWon,
-      cards: prev.cards.filter(c => c.id !== prev.selectedCard?.id),
-      selectedCard: null 
-    }));
+    // Don't update opponent locally here, let onSnapshot handle it
     
     setRound(prev => prev + 1);
     setRoundWinner(null);
@@ -324,6 +331,13 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
 
     if (player.roundsWon + (pWon ? 1 : 0) >= 3 || opponent.roundsWon + (oWon ? 1 : 0) >= 3 || pCardsLeft === 0) {
       setGameState('GAME_OVER');
+      
+      // Award tokens if player is the winner
+      const finalPlayerRounds = player.roundsWon + (pWon ? 1 : 0);
+      const finalOpponentRounds = opponent.roundsWon + (oWon ? 1 : 0);
+      if (finalPlayerRounds > finalOpponentRounds) {
+        addTokens(50, 'Vittoria Clash Boo');
+      }
     } else {
       setGameState('PLAYING');
     }
@@ -337,8 +351,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       try {
         await updateDoc(roomRef, {
           status: 'RESTART',
-          p1: { ...player, cards: [], selectedCard: null, score: 0, roundsWon: 0 },
-          p2: { ...opponent, cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+          p1: { ...player, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
+          p2: { ...opponent, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
           updatedAt: serverTimestamp()
         });
         // Reset status back to PLAYING after a short delay
@@ -360,8 +374,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       }
     }
     setGameState('MENU');
-    setPlayer({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
-    setOpponent({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
+    setPlayer({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
+    setOpponent({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
     setRound(1);
     setRoundWinner(null);
     setIsColpoFurbo(false);
@@ -402,24 +416,57 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden z-[100]"
+                  className="absolute right-0 mt-2 w-60 bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl overflow-hidden z-[100] p-4 flex flex-col gap-3"
                 >
-                  <button onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white flex items-center gap-2">
-                    <Send size={16} /> Invita (Crea)
-                  </button>
-                  <div className="p-2 border-t border-slate-700">
-                    <input 
-                      type="text" 
-                      placeholder="Codice..." 
-                      maxLength={4}
-                      value={inputCode}
-                      onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                      className="w-full bg-slate-900 text-white p-2 rounded border border-slate-600 text-center uppercase"
-                    />
-                    <button onClick={() => { joinRoom(); setShowInviteMenu(false); }} className="w-full mt-2 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-500">
-                      Entra
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                      className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                    >
+                      <img 
+                        src="https://loneboo-images.s3.eu-south-1.amazonaws.com/creagiocomultiplayer+(1).webp" 
+                        alt="Crea Gioco" 
+                        className="w-full h-auto drop-shadow-md"
+                      />
+                    </button>
+                    
+                    <button 
+                      onClick={() => setShowJoinInput(!showJoinInput)} 
+                      className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                    >
+                      <img 
+                        src="https://loneboo-images.s3.eu-south-1.amazonaws.com/partecipamultipoi+(1).webp" 
+                        alt="Partecipa" 
+                        className="w-full h-auto drop-shadow-md"
+                      />
                     </button>
                   </div>
+                  
+                  <AnimatePresence>
+                    {showJoinInput && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="flex flex-col gap-2 pt-2 border-t border-white/20 overflow-hidden"
+                      >
+                        <input 
+                          type="text" 
+                          placeholder="INSERISCI CODICE..." 
+                          maxLength={4}
+                          value={inputCode}
+                          onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                          className="w-full bg-white/40 text-slate-900 placeholder:text-slate-600 p-2 rounded-xl border border-white/50 text-center uppercase font-black tracking-widest outline-none focus:bg-white/60 transition-colors text-sm"
+                        />
+                        <button 
+                          onClick={() => { joinRoom(); setShowInviteMenu(false); }} 
+                          className="w-full bg-green-500/80 hover:bg-green-500 text-white py-2 rounded-xl font-black text-xs tracking-widest shadow-lg transition-colors uppercase"
+                        >
+                          CONFERMA ENTRA
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -662,6 +709,17 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
               {player.roundsWon > opponent.roundsWon ? 'CAMPIONE!' : 
                player.roundsWon < opponent.roundsWon ? 'RITENTA!' : 'PAREGGIO!'}
             </h2>
+            {player.roundsWon > opponent.roundsWon && (
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-2 mb-4 bg-yellow-400/20 py-2 px-4 rounded-full border border-yellow-400/50 w-fit mx-auto"
+              >
+                <span className="text-yellow-400 font-black text-2xl">+50</span>
+                <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/gettoneloneboonew.webp" alt="Gettoni" className="w-8 h-8" />
+              </motion.div>
+            )}
             <p className="text-slate-400 mb-8 text-xl">Punteggio finale: {player.roundsWon} - {opponent.roundsWon}</p>
             <div className="flex gap-4 justify-center">
               <button onClick={restartCurrentMode} className="hover:scale-105 transition-transform outline-none">

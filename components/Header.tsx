@@ -49,6 +49,7 @@ const BTN_EXPLORE_CITY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/exp
 interface HeaderProps {
     currentView: AppView;
     setView: (view: AppView) => void;
+    isGameActive?: boolean;
 }
 
 const STATION_DESTINATIONS = [
@@ -59,7 +60,7 @@ const STATION_DESTINATIONS = [
     { id: AppView.RAINBOW_CITY, name: "Città degli Arcobaleni", cost: 255 }
 ];
 
-const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
+const Header: React.FC<HeaderProps> = ({ currentView, setView, isGameActive }) => {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [hasNew, setHasNew] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false); 
@@ -199,6 +200,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView }) => {
     };
 
     const handleExploreCity = () => window.dispatchEvent(new CustomEvent('toggleCityExploration'));
+
+    if (isGameActive) return null;
 
     return (
         <>

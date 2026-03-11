@@ -107,6 +107,7 @@ const PageLoader = () => (
 
 const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
+  const [isGameActive, setIsGameActive] = useState(false);
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
   const [lastClassroomView, setLastClassroomView] = useState<AppView>(AppView.RAINBOW_CITY_SCUOLA_MEDIA_1);
   const [subOscuritaInitialPhase, setSubOscuritaInitialPhase] = useState<'BLACK' | 'STATIC'>('BLACK');
@@ -172,7 +173,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
         <Suspense fallback={null}>
-            <Header currentView={currentView} setView={handleSetView} />
+            <Header currentView={currentView} setView={handleSetView} isGameActive={isGameActive} />
         </Suspense>
         
         <Suspense fallback={null}>
@@ -189,7 +190,7 @@ const App: React.FC = () => {
                 {currentView === AppView.CITY_MAP && <NewCityMap setView={handleSetView} />}
                 {currentView === AppView.BOO_HOUSE && <RoomView setView={handleSetView} />}
                 {currentView === AppView.INTRO && <IntroPage setView={handleSetView} />}
-                {currentView === AppView.PLAY && <PlayZone setView={handleSetView} />}
+                {currentView === AppView.PLAY && <PlayZone setView={handleSetView} onGameActiveChange={setIsGameActive} />}
                 {currentView === AppView.VIDEOS && <VideoGallery setView={handleSetView} />}
                 {currentView === AppView.BOOKS && <BookShelf setView={handleSetView} />}
                 {currentView === AppView.BOOKS_LIST && <BooksListView setView={handleSetView} />}

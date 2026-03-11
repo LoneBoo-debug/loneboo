@@ -1,12 +1,24 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { RotateCcw, Loader2 } from 'lucide-react';
-import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
+import { RotateCcw, Loader2, Send, Check, AlertCircle, Trophy, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { getProgress, unlockHardMode, isAnyAlbumComplete, addTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
 import { TOKEN_ICON_URL } from '../constants';
 import TokenIcon from './TokenIcon';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
+import { db, auth } from '../firebase';
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  onSnapshot, 
+  getDoc, 
+  serverTimestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const TITLE_IMG = 'https://i.postimg.cc/nrFpH8Q/dmana-(1).png';
@@ -56,6 +68,16 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   const [aiMoving, setAiMoving] = useState<{ from: number, to: number } | null>(null);
   const [musicEnabled, setMusicEnabled] = useState(true);
 
+  // Multiplayer States
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
+  const [inputCode, setInputCode] = useState('');
+  const [showInviteMenu, setShowInviteMenu] = useState(false);
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [playerRole, setPlayerRole] = useState<'p1' | 'p2' | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   // Background dinamico basato sull'orario (20:15 - 06:45)
@@ -67,6 +89,15 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
+      // Firebase Auth
+      const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setCurrentUser(user);
+        } else {
+          signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+        }
+      });
+
       // Inizializza Audio
       bgMusicRef.current = new Audio(BG_MUSIC_URL);
       bgMusicRef.current.loop = true;
@@ -75,6 +106,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       // Timer per l'aggiornamento dell'orario
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
       return () => {
+          unsubscribeAuth();
           clearInterval(timeTimer);
           if (bgMusicRef.current) {
               bgMusicRef.current.pause();
@@ -82,6 +114,28 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
           }
       };
   }, []);
+
+  // Multiplayer Listener
+  useEffect(() => {
+    if (!isMultiplayer || !roomCode) return;
+
+    const roomRef = doc(db, 'checkers_rooms', roomCode);
+    const unsubscribe = onSnapshot(roomRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        if (data.board) setBoard(data.board);
+        if (data.turn) setTurn(data.turn);
+        if (data.winner) setWinner(data.winner);
+        if (data.status === 'PLAYING') setIsConnected(true);
+        if (data.status === 'RESTART') {
+          initBoard();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isMultiplayer, roomCode]);
 
   // Gestione musica basata sullo stato del gioco e del toggle
   useEffect(() => {
@@ -131,6 +185,17 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       setRewardGiven(false);
       setJumpingPieceIdx(null);
       setAiMoving(null);
+
+      if (isMultiplayer && roomCode) {
+        const roomRef = doc(db, 'checkers_rooms', roomCode);
+        updateDoc(roomRef, {
+          status: 'PLAYING',
+          board: newBoard,
+          turn: 'RED',
+          winner: null,
+          updatedAt: serverTimestamp()
+        }).catch(err => console.error("Error resetting room:", err));
+      }
   };
 
   useEffect(() => {
@@ -138,13 +203,22 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   }, [difficulty]);
 
   useEffect(() => {
-      if (winner === 'RED' && !rewardGiven && onEarnTokens) {
-          let reward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
-          onEarnTokens(reward);
-          setUserTokens(prev => prev + reward);
-          setRewardGiven(true);
+      if (winner && !rewardGiven && onEarnTokens) {
+          let reward = 0;
+          if (isMultiplayer) {
+              const iWon = (playerRole === 'p1' && winner === 'RED') || (playerRole === 'p2' && winner === 'BLACK');
+              reward = iWon ? 50 : 0;
+          } else if (winner === 'RED') {
+              reward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
+          }
+
+          if (reward > 0) {
+              onEarnTokens(reward);
+              setUserTokens(prev => prev + reward);
+              setRewardGiven(true);
+          }
       }
-  }, [winner, rewardGiven, onEarnTokens, difficulty]);
+  }, [winner, rewardGiven, isMultiplayer, playerRole, difficulty, onEarnTokens]);
 
   const getJumps = (idx: number, currentBoard: Piece[]) => {
       const piece = currentBoard[idx];
@@ -196,9 +270,20 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
   };
 
   const handleSelect = (idx: number) => {
-      if (turn !== 'RED' || winner || isThinking || aiMoving) return;
+      if (winner || isThinking || aiMoving) return;
+      
+      // Multiplayer turn check
+      if (isMultiplayer) {
+        if (playerRole === 'p1' && turn !== 'RED') return;
+        if (playerRole === 'p2' && turn !== 'BLACK') return;
+      } else {
+        if (turn !== 'RED') return;
+      }
+
       if (jumpingPieceIdx !== null && idx !== jumpingPieceIdx) return;
-      if (board[idx]?.color === 'RED') {
+      
+      const myColor = isMultiplayer ? (playerRole === 'p1' ? 'RED' : 'BLACK') : 'RED';
+      if (board[idx]?.color === myColor) {
           setSelectedIdx(idx);
           setValidMoves(jumpingPieceIdx !== null ? getJumps(idx, board) : getMoves(idx, board));
       } else if (jumpingPieceIdx === null) {
@@ -206,7 +291,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       }
   };
 
-  const movePiece = (from: number, to: number) => {
+  const movePiece = async (from: number, to: number) => {
       const newBoard = [...board];
       const piece = newBoard[from];
       if (!piece) return;
@@ -221,16 +306,46 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       newBoard[to] = { ...piece }; newBoard[from] = null;
       if (piece.color === 'RED' && toRow === 0) newBoard[to]!.type = 'KING';
       if (piece.color === 'BLACK' && toRow === 7) newBoard[to]!.type = 'KING';
-      setBoard(newBoard);
+      
+      let newWinner: PieceColor | null = null;
+      if (newBoard.filter(p => p?.color === 'BLACK').length === 0) newWinner = 'RED';
+      else if (newBoard.filter(p => p?.color === 'RED').length === 0) newWinner = 'BLACK';
 
-      if (newBoard.filter(p => p?.color === 'BLACK').length === 0) { setWinner('RED'); return; }
-      if (newBoard.filter(p => p?.color === 'RED').length === 0) { setWinner('BLACK'); return; }
+      let nextTurn = turn;
+      let nextJumpingIdx = null;
 
       if (isJump) {
           const nextJumps = getJumps(to, newBoard);
-          if (nextJumps.length > 0) { setJumpingPieceIdx(to); setSelectedIdx(to); setValidMoves(nextJumps); return; }
+          if (nextJumps.length > 0) { 
+            nextJumpingIdx = to;
+          } else {
+            nextTurn = turn === 'RED' ? 'BLACK' : 'RED';
+          }
+      } else {
+        nextTurn = turn === 'RED' ? 'BLACK' : 'RED';
       }
-      setJumpingPieceIdx(null); setSelectedIdx(null); setValidMoves([]); setTurn(prev => prev === 'RED' ? 'BLACK' : 'RED');
+
+      if (isMultiplayer && roomCode) {
+        const roomRef = doc(db, 'checkers_rooms', roomCode);
+        await updateDoc(roomRef, {
+          board: newBoard,
+          turn: nextTurn,
+          winner: newWinner,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        setBoard(newBoard);
+        setWinner(newWinner);
+        setTurn(nextTurn);
+        setJumpingPieceIdx(nextJumpingIdx);
+        if (nextJumpingIdx) {
+          setSelectedIdx(nextJumpingIdx);
+          setValidMoves(getJumps(nextJumpingIdx, newBoard));
+        } else {
+          setSelectedIdx(null);
+          setValidMoves([]);
+        }
+      }
   };
 
   const aiMove = () => {
@@ -273,14 +388,86 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
       }, 2000);
   };
 
-  useEffect(() => { if (turn === 'BLACK' && !winner && !aiMoving) aiMove(); }, [turn, winner]);
+  useEffect(() => { if (turn === 'BLACK' && !winner && !aiMoving && !isMultiplayer) aiMove(); }, [turn, winner, isMultiplayer]);
 
   const handleLevelSelect = (level: Difficulty) => {
       if (level === 'HARD' && !isHardUnlocked) { setShowUnlockModal(true); return; }
       setDifficulty(level);
+      setIsMultiplayer(false);
   };
 
-  const backToMenu = () => { setDifficulty(null); initBoard(); };
+  const generateRoomCode = async () => {
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    setRoomCode(code);
+    setPlayerRole('p1');
+    setIsMultiplayer(true);
+    setDifficulty('MEDIUM'); // Default difficulty for multiplayer context
+    
+    try {
+      const initialBoard = Array(64).fill(null);
+      for (let i = 0; i < 64; i++) {
+          const row = Math.floor(i / 8);
+          const col = i % 8;
+          if ((row + col) % 2 === 1) {
+              if (row < 3) initialBoard[i] = { color: 'BLACK', type: 'MAN' };
+              if (row > 4) initialBoard[i] = { color: 'RED', type: 'MAN' };
+          }
+      }
+
+      await setDoc(doc(db, 'checkers_rooms', code), {
+        p1: currentUser?.uid || 'host',
+        board: initialBoard,
+        turn: 'RED',
+        status: 'WAITING',
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error creating room:", error);
+      alert("Errore nella creazione della stanza.");
+    }
+  };
+
+  const joinRoom = async () => {
+    if (inputCode.length === 4) {
+      const roomRef = doc(db, 'checkers_rooms', inputCode);
+      try {
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          setRoomCode(inputCode);
+          setPlayerRole('p2');
+          setIsMultiplayer(true);
+          setDifficulty('MEDIUM');
+          
+          await updateDoc(roomRef, {
+            p2: currentUser?.uid || 'guest',
+            status: 'PLAYING',
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          alert("Stanza non trovata!");
+        }
+      } catch (error) {
+        console.error("Error joining room:", error);
+      }
+    }
+  };
+
+  const restartMultiplayer = async () => {
+    if (!roomCode) return;
+    const roomRef = doc(db, 'checkers_rooms', roomCode);
+    await updateDoc(roomRef, {
+      status: 'RESTART',
+      updatedAt: serverTimestamp()
+    });
+    initBoard();
+  };
+
+  const backToMenu = () => { 
+    setDifficulty(null); 
+    setIsMultiplayer(false);
+    setRoomCode('');
+    initBoard(); 
+  };
 
   const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-0 overflow-hidden touch-none overscroll-none select-none";
 
@@ -317,19 +504,92 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA */}
-        <div className="absolute top-[80px] md:top-[120px] left-4 z-[300] flex flex-col items-start gap-2 pointer-events-auto">
-            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto" />
+        <div className="absolute top-[20px] left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none">
+            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
+                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
             </button>
-            {difficulty && (
-                <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                    <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto" />
-                </button>
-            )}
+            
+            <div className="flex gap-2 pointer-events-auto">
+                {difficulty && (
+                    <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-10 md:h-12 w-auto" />
+                    </button>
+                )}
+                
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowInviteMenu(!showInviteMenu)}
+                        className="hover:scale-105 active:scale-95 transition-transform outline-none"
+                    >
+                        <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/sfidaunamicoclashboo.webp" alt="Sfida Amico" className="h-10 md:h-12 w-auto" />
+                    </button>
+                    
+                    <AnimatePresence>
+                        {showInviteMenu && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute right-0 mt-2 w-60 bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl overflow-hidden z-[1100] p-4 flex flex-col gap-3"
+                            >
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/creagiocomultiplayer+(1).webp" 
+                                            alt="Crea Gioco" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => setShowJoinInput(!showJoinInput)} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/partecipamultipoi+(1).webp" 
+                                            alt="Partecipa" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                </div>
+                                
+                                <AnimatePresence>
+                                    {showJoinInput && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="flex flex-col gap-2 pt-2 border-t border-white/20 overflow-hidden"
+                                        >
+                                            <input 
+                                                type="text" 
+                                                placeholder="INSERISCI CODICE..." 
+                                                maxLength={4}
+                                                value={inputCode}
+                                                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                                                className="w-full bg-white/40 text-slate-900 placeholder:text-slate-600 p-2 rounded-xl border border-white/50 text-center uppercase font-black tracking-widest outline-none focus:bg-white/60 transition-colors text-sm"
+                                            />
+                                            <button 
+                                                onClick={() => { joinRoom(); setShowInviteMenu(false); }} 
+                                                className="w-full bg-green-500/80 hover:bg-green-500 text-white py-2 rounded-xl font-black text-xs tracking-widest shadow-lg transition-colors uppercase"
+                                            >
+                                                CONFERMA ENTRA
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
         </div>
 
-        {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
-        <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none flex flex-col items-end gap-3">
+        {/* SALDO GETTONI E AUDIO (SOTTO L'HEADER) */}
+        <div className="absolute top-[80px] md:top-[100px] right-4 z-[100] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                 <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
@@ -380,15 +640,33 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                 </div>
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-8 md:pt-14 px-2">
-                    <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex justify-center mb-2">
+                    <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex flex-col items-center mb-2 gap-2">
+                        {isMultiplayer && roomCode && (
+                          <div className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full border-2 border-boo-purple shadow-lg flex items-center gap-2">
+                            <span className="text-boo-purple font-black text-xs uppercase">Codice Stanza:</span>
+                            <span className="text-boo-purple font-black text-lg tracking-widest">{roomCode}</span>
+                            {!isConnected && (
+                              <div className="flex items-center gap-2 ml-2">
+                                <Loader2 className="w-4 h-4 animate-spin text-boo-purple" />
+                                <span className="text-[10px] text-boo-purple animate-pulse">In attesa...</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
                             <div className={`w-4 h-4 rounded-full ${turn === 'RED' ? 'bg-red-600 animate-pulse' : 'bg-slate-800'}`}></div>
-                            <span className={`font-bold uppercase tracking-tight text-sm ${turn === 'RED' ? 'text-red-600' : 'text-slate-800'}`}>{turn === 'RED' ? (jumpingPieceIdx !== null ? 'Ancora tu!' : 'Tocca a te (Rossi)') : 'Nonno (Neri)'}</span>
+                            <span className={`font-bold uppercase tracking-tight text-sm ${turn === 'RED' ? 'text-red-600' : 'text-slate-800'}`}>
+                              {isMultiplayer ? (
+                                playerRole === 'p1' ? (turn === 'RED' ? 'Tocca a te' : 'Tocca all\'avversario') : (turn === 'BLACK' ? 'Tocca a te' : 'Tocca all\'avversario')
+                              ) : (
+                                turn === 'RED' ? (jumpingPieceIdx !== null ? 'Ancora tu!' : 'Tocca a te (Rossi)') : 'Nonno (Neri)'
+                              )}
+                            </span>
                         </div>
                     </div>
 
                     <div className="bg-white/40 backdrop-blur-md p-3 md:p-4 rounded-[30px] border-4 border-white/50 shadow-2xl relative shrink-0">
-                        {isThinking && (
+                        {isThinking && !isMultiplayer && (
                             <div className="absolute top-0 right-[-15px] md:right-[-30px] z-[200] flex flex-col items-center animate-in fade-in zoom-in duration-500 pointer-events-none transform -translate-y-[35%] -rotate-3">
                                 <span className="font-luckiest text-sm md:text-xl text-yellow-300 uppercase whitespace-nowrap mb-[-15px] relative z-10 -translate-x-3" style={{ textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', WebkitTextStroke: '1px black' }}>mmmh sto pensando...</span>
                                 <img src={GRANDFATHER_THINKING_IMG} alt="Nonno pensa" className="w-56 h-56 md:w-72 md:h-72 max-w-none object-contain drop-shadow-xl" />
@@ -427,24 +705,35 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                                 {winner === 'RED' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                                 
                                 <div className="mb-2">
-                                    {winner === 'RED' ? (
-                                        <div className="flex flex-col items-center">
-                                            <img src={VICTORY_TITLE_IMG} alt="Hai Vinto" className="h-40 md:h-56 w-auto object-contain" />
-                                            <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI BATTUTO IL NONNO</p>
-                                        </div>
+                                    {isMultiplayer ? (
+                                        ((playerRole === 'p1' && winner === 'RED') || (playerRole === 'p2' && winner === 'BLACK')) ? (
+                                            <div className="flex flex-col items-center">
+                                                <img src={VICTORY_TITLE_IMG} alt="Hai Vinto" className="h-40 md:h-56 w-auto object-contain" />
+                                                <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI VINTO LA SFIDA!</p>
+                                            </div>
+                                        ) : (
+                                            <h2 className="text-3xl font-black text-red-600 leading-tight uppercase">HAI PERSO LA SFIDA 🤖</h2>
+                                        )
                                     ) : (
-                                        <h2 className="text-3xl font-black text-red-600 leading-tight uppercase">HAI PERSO 🤖</h2>
+                                        winner === 'RED' ? (
+                                            <div className="flex flex-col items-center">
+                                                <img src={VICTORY_TITLE_IMG} alt="Hai Vinto" className="h-40 md:h-56 w-auto object-contain" />
+                                                <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI BATTUTO IL NONNO</p>
+                                            </div>
+                                        ) : (
+                                            <h2 className="text-3xl font-black text-red-600 leading-tight uppercase">HAI PERSO 🤖</h2>
+                                        )
                                     )}
                                 </div>
 
-                                {winner === 'RED' && (
+                                {((!isMultiplayer && winner === 'RED') || (isMultiplayer && ((playerRole === 'p1' && winner === 'RED') || (playerRole === 'p2' && winner === 'BLACK')))) && (
                                     <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-flex items-center gap-2 whitespace-nowrap shadow-lg transform rotate-[-2deg]">
-                                        +{difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20} GETTONI! <TokenIcon className="w-5 h-5" />
+                                        +{isMultiplayer ? 50 : (difficulty === 'EASY' ? 5 : difficulty === 'MEDIUM' ? 10 : 20)} GETTONI! <TokenIcon className="w-5 h-5" />
                                     </div>
                                 )}
 
                                 <div className="flex flex-row gap-4 w-full justify-center">
-                                    <button onClick={initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]">
+                                    <button onClick={isMultiplayer ? restartMultiplayer : initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]">
                                         <img src={BTN_PLAY_AGAIN_IMG} alt="Rigioca" className="w-full h-auto drop-shadow-xl" />
                                     </button>
                                     <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]">

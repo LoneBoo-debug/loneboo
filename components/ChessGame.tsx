@@ -1,12 +1,24 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { RotateCcw, Loader2, Lock, Settings, ArrowLeft } from 'lucide-react';
-import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
+import { RotateCcw, Loader2, Lock, Settings, ArrowLeft, Send, Check, AlertCircle, Trophy, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { getProgress, unlockHardMode, isAnyAlbumComplete, addTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
 import { TOKEN_ICON_URL } from '../constants';
 import TokenIcon from './TokenIcon';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
+import { db, auth } from '../firebase';
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  onSnapshot, 
+  getDoc, 
+  serverTimestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
 const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
@@ -148,6 +160,16 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   const [capturedByBlack, setCapturedByBlack] = useState<PieceType[]>([]);
   const [aiMoving, setAiMoving] = useState<{ from: number, to: number } | null>(null);
 
+  // Multiplayer States
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
+  const [inputCode, setInputCode] = useState('');
+  const [showInviteMenu, setShowInviteMenu] = useState(false);
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [playerRole, setPlayerRole] = useState<'p1' | 'p2' | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   // Background dinamico basato sull'orario (20:15 - 06:45)
@@ -159,6 +181,15 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
+      // Firebase Auth
+      const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setCurrentUser(user);
+        } else {
+          signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+        }
+      });
+
       // Inizializza Musica
       bgMusicRef.current = new Audio(BG_MUSIC_URL);
       bgMusicRef.current.loop = true;
@@ -167,6 +198,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       // Timer per l'aggiornamento dell'orario
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
       return () => {
+          unsubscribeAuth();
           clearInterval(timeTimer);
           if (bgMusicRef.current) {
               bgMusicRef.current.pause();
@@ -174,6 +206,30 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
           }
       };
   }, []);
+
+  // Multiplayer Listener
+  useEffect(() => {
+    if (!isMultiplayer || !roomCode) return;
+
+    const roomRef = doc(db, 'chess_rooms', roomCode);
+    const unsubscribe = onSnapshot(roomRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        if (data.board) setBoard(data.board);
+        if (data.turn) setTurn(data.turn);
+        if (data.winner) setWinner(data.winner);
+        if (data.capturedByWhite) setCapturedByWhite(data.capturedByWhite);
+        if (data.capturedByBlack) setCapturedByBlack(data.capturedByBlack);
+        if (data.status === 'PLAYING') setIsConnected(true);
+        if (data.status === 'RESTART') {
+          initBoard();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isMultiplayer, roomCode]);
 
   // Gestione riproduzione musica
   useEffect(() => {
@@ -225,6 +281,29 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
     setAiMoving(null);
     setCapturedByWhite([]);
     setCapturedByBlack([]);
+
+    if (isMultiplayer && roomCode) {
+      const roomRef = doc(db, 'chess_rooms', roomCode);
+      updateDoc(roomRef, {
+        status: 'PLAYING',
+        board: newBoard,
+        turn: 'w',
+        winner: null,
+        capturedByWhite: [],
+        capturedByBlack: [],
+        updatedAt: serverTimestamp()
+      }).catch(err => console.error("Error resetting room:", err));
+    }
+  };
+
+  const restartMultiplayer = async () => {
+    if (!roomCode) return;
+    const roomRef = doc(db, 'chess_rooms', roomCode);
+    await updateDoc(roomRef, {
+      status: 'RESTART',
+      updatedAt: serverTimestamp()
+    });
+    initBoard();
   };
 
   useEffect(() => {
@@ -232,13 +311,22 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   }, [difficulty]);
 
   useEffect(() => {
-      if (winner === 'w' && !rewardGiven && onEarnTokens) {
-          let reward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
-          onEarnTokens(reward);
-          setUserTokens(prev => prev + reward);
-          setRewardGiven(true);
+      if (winner && !rewardGiven && onEarnTokens) {
+          let reward = 0;
+          if (isMultiplayer) {
+              const iWon = (playerRole === 'p1' && winner === 'w') || (playerRole === 'p2' && winner === 'b');
+              reward = iWon ? 50 : 0;
+          } else if (winner === 'w') {
+              reward = difficulty === 'HARD' ? 20 : (difficulty === 'MEDIUM' ? 10 : 5);
+          }
+
+          if (reward > 0) {
+              onEarnTokens(reward);
+              setUserTokens(prev => prev + reward);
+              setRewardGiven(true);
+          }
       }
-  }, [winner, rewardGiven, onEarnTokens, difficulty]);
+  }, [winner, rewardGiven, isMultiplayer, playerRole, difficulty, onEarnTokens]);
 
   const getPseudoMoves = (idx: number, currentBoard: Piece[], color: PieceColor) => {
     const piece = currentBoard[idx];
@@ -330,31 +418,65 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   };
 
   const handleSelect = (idx: number) => {
-      if (turn === 'w' && board[idx]?.color === 'w' && !winner && !isThinking && !aiMoving) {
+      if (winner || isThinking || aiMoving) return;
+
+      // Multiplayer turn check
+      if (isMultiplayer) {
+        if (playerRole === 'p1' && turn !== 'w') return;
+        if (playerRole === 'p2' && turn !== 'b') return;
+      } else {
+        if (turn !== 'w') return;
+      }
+
+      if (board[idx]?.color === turn) {
           setSelectedIdx(idx);
           setLegalMoves(getLegalMoves(idx, board));
       }
   };
 
-  const handleMove = (toIdx: number) => {
+  const handleMove = async (toIdx: number) => {
       if (selectedIdx === null) return;
       const newBoard = [...board];
       const targetPiece = newBoard[toIdx];
       
-      if (targetPiece) setCapturedByWhite(prev => [...prev, targetPiece.type]);
+      if (targetPiece) {
+        if (turn === 'w') setCapturedByWhite(prev => [...prev, targetPiece.type]);
+        else setCapturedByBlack(prev => [...prev, targetPiece.type]);
+      }
+
       newBoard[toIdx] = newBoard[selectedIdx];
       newBoard[selectedIdx] = null;
       if (newBoard[toIdx]?.type === 'p' && (Math.floor(toIdx / 8) === 0 || Math.floor(toIdx / 8) === 7)) {
           // @ts-ignore
           newBoard[toIdx].type = 'q';
       }
-      setBoard(newBoard);
-      setSelectedIdx(null);
-      setLegalMoves([]);
-      if (isCheckmate(newBoard, 'b')) { setWinner('w'); return; }
-      const blackKing = findKing(newBoard, 'b');
-      if (isSquareAttacked(blackKing, newBoard, 'w')) setInCheck('b'); else setInCheck(null);
-      setTurn('b');
+
+      const nextTurn = turn === 'w' ? 'b' : 'w';
+      let newWinner: PieceColor | null = null;
+      if (isCheckmate(newBoard, nextTurn)) newWinner = turn;
+
+      if (isMultiplayer && roomCode) {
+        const roomRef = doc(db, 'chess_rooms', roomCode);
+        const updatedCapturedByWhite = turn === 'w' && targetPiece ? [...capturedByWhite, targetPiece.type] : capturedByWhite;
+        const updatedCapturedByBlack = turn === 'b' && targetPiece ? [...capturedByBlack, targetPiece.type] : capturedByBlack;
+        
+        await updateDoc(roomRef, {
+          board: newBoard,
+          turn: nextTurn,
+          winner: newWinner,
+          capturedByWhite: updatedCapturedByWhite,
+          capturedByBlack: updatedCapturedByBlack,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        setBoard(newBoard);
+        setSelectedIdx(null);
+        setLegalMoves([]);
+        if (newWinner) { setWinner(newWinner); return; }
+        const opponentKing = findKing(newBoard, nextTurn);
+        if (isSquareAttacked(opponentKing, newBoard, turn)) setInCheck(nextTurn); else setInCheck(null);
+        setTurn(nextTurn);
+      }
   };
 
   const getPieceValue = (p: Piece) => {
@@ -371,7 +493,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   };
 
   useEffect(() => {
-    if (turn === 'b' && !winner && difficulty && !aiMoving) {
+    if (turn === 'b' && !winner && difficulty && !aiMoving && !isMultiplayer) {
         setIsThinking(true);
         const aiTimer = setTimeout(() => {
             const allMoves: { from: number, to: number, score: number }[] = [];
@@ -444,9 +566,72 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   const handleLevelSelect = (level: Difficulty) => {
       if (level === 'HARD' && !isHardUnlocked) { setShowUnlockModal(true); return; }
       setDifficulty(level);
+      setIsMultiplayer(false);
   };
 
-  const backToMenu = () => { setDifficulty(null); initBoard(); };
+  const generateRoomCode = async () => {
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    setRoomCode(code);
+    setPlayerRole('p1');
+    setIsMultiplayer(true);
+    setDifficulty('MEDIUM');
+    
+    try {
+      const newBoard: Piece[] = Array(64).fill(null);
+      const setupRow = (row: number, color: PieceColor, pieces: PieceType[]) => {
+        pieces.forEach((p, i) => { newBoard[row * 8 + i] = { type: p, color }; });
+      };
+      const backRow: PieceType[] = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
+      const pawnRow: PieceType[] = Array(8).fill('p');
+      setupRow(0, 'b', backRow); 
+      setupRow(1, 'b', pawnRow);
+      setupRow(6, 'w', pawnRow); 
+      setupRow(7, 'w', backRow);
+
+      await setDoc(doc(db, 'chess_rooms', code), {
+        p1: currentUser?.uid || 'host',
+        board: newBoard,
+        turn: 'w',
+        status: 'WAITING',
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error creating room:", error);
+      alert("Errore nella creazione della stanza.");
+    }
+  };
+
+  const joinRoom = async () => {
+    if (inputCode.length === 4) {
+      const roomRef = doc(db, 'chess_rooms', inputCode);
+      try {
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          setRoomCode(inputCode);
+          setPlayerRole('p2');
+          setIsMultiplayer(true);
+          setDifficulty('MEDIUM');
+          
+          await updateDoc(roomRef, {
+            p2: currentUser?.uid || 'guest',
+            status: 'PLAYING',
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          alert("Stanza non trovata!");
+        }
+      } catch (error) {
+        console.error("Error joining room:", error);
+      }
+    }
+  };
+
+  const backToMenu = () => { 
+    setDifficulty(null); 
+    setIsMultiplayer(false);
+    setRoomCode('');
+    initBoard(); 
+  };
 
   const wrapperStyle = "fixed inset-0 top-0 left-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
 
@@ -485,19 +670,92 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         />
 
         {/* HUD NAVIGAZIONE SUPERIORE (STILE TRIS/DAMA) */}
-        <div className="absolute top-[80px] md:top-[120px] left-4 z-[300] flex flex-col items-start gap-2 pointer-events-auto">
-            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto" />
+        <div className="absolute top-[20px] left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none">
+            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
+                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
             </button>
-            {difficulty && (
-                <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                    <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto" />
-                </button>
-            )}
+            
+            <div className="flex gap-2 pointer-events-auto">
+                {difficulty && (
+                    <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-10 md:h-12 w-auto" />
+                    </button>
+                )}
+                
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowInviteMenu(!showInviteMenu)}
+                        className="hover:scale-105 active:scale-95 transition-transform outline-none"
+                    >
+                        <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/sfidaunamicoclashboo.webp" alt="Sfida Amico" className="h-10 md:h-12 w-auto" />
+                    </button>
+                    
+                    <AnimatePresence>
+                        {showInviteMenu && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute right-0 mt-2 w-60 bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl overflow-hidden z-[1100] p-4 flex flex-col gap-3"
+                            >
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/creagiocomultiplayer+(1).webp" 
+                                            alt="Crea Gioco" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => setShowJoinInput(!showJoinInput)} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/partecipamultipoi+(1).webp" 
+                                            alt="Partecipa" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                </div>
+                                
+                                <AnimatePresence>
+                                    {showJoinInput && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="flex flex-col gap-2 pt-2 border-t border-white/20 overflow-hidden"
+                                        >
+                                            <input 
+                                                type="text" 
+                                                placeholder="INSERISCI CODICE..." 
+                                                maxLength={4}
+                                                value={inputCode}
+                                                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                                                className="w-full bg-white/40 text-slate-900 placeholder:text-slate-600 p-2 rounded-xl border border-white/50 text-center uppercase font-black tracking-widest outline-none focus:bg-white/60 transition-colors text-sm"
+                                            />
+                                            <button 
+                                                onClick={() => { joinRoom(); setShowInviteMenu(false); }} 
+                                                className="w-full bg-green-500/80 hover:bg-green-500 text-white py-2 rounded-xl font-black text-xs tracking-widest shadow-lg transition-colors uppercase"
+                                            >
+                                                CONFERMA ENTRA
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
         </div>
 
         {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
-        <div className="absolute top-[80px] md:top-[120px] right-4 z-[300] pointer-events-none flex flex-col items-end gap-3">
+        <div className="absolute top-[80px] md:top-[100px] right-4 z-[100] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                 <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
@@ -517,10 +775,16 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
         
         {/* AREA CONTENUTO */}
-        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-44 md:pt-56">
+        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-48 md:pt-60">
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
-                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px]">
+                    <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] relative">
+                        {/* Box istruzioni spostato SOPRA i tasti con posizionamento assoluto per non spostare i tasti stessi */}
+                        <div className="absolute -top-16 md:-top-20 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4 w-max max-w-[90vw]">
+                            <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
+                                Scegli un livello e sfida il nonno a Scacchi!
+                            </p>
+                        </div>
                         <button onClick={() => handleLevelSelect('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
                             <img src={BTN_EASY_IMG} alt="Facile" className="w-full h-auto drop-shadow-md" />
                         </button>
@@ -539,19 +803,34 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                         </div>
                     </div>
 
-                    {/* BOX TESTO STILE AEREO SOTTO I LIVELLI */}
-                    <div className="mt-8 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4">
-                        <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
-                            Scegli un livello e sfida il nonno a Scacchi!
-                        </p>
-                    </div>
+                    {/* BOX TESTO STILE AEREO SOTTO I LIVELLI rimosso perchè spostato sopra */}
                 </div>
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-10 md:pt-16 px-2">
-                    <div className="flex items-center gap-4 mb-2 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
-                        <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>
-                        <span className={`font-black text-sm md:text-base uppercase ${turn === 'w' ? 'text-indigo-600' : 'text-slate-700'}`}>{turn === 'w' ? 'Tocca a te (Bianchi)' : 'Il Nonno (Neri)'}</span>
-                        {inCheck && <span className="text-red-600 font-black animate-pulse bg-red-100 px-2 rounded ml-2 text-xs">SCACCO!</span>}
+                    <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex flex-col items-center mb-2 gap-2">
+                        {isMultiplayer && roomCode && (
+                          <div className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full border-2 border-boo-purple shadow-lg flex items-center gap-2">
+                            <span className="text-boo-purple font-black text-xs uppercase">Codice Stanza:</span>
+                            <span className="text-boo-purple font-black text-lg tracking-widest">{roomCode}</span>
+                            {!isConnected && (
+                              <div className="flex items-center gap-2 ml-2">
+                                <Loader2 className="w-4 h-4 animate-spin text-boo-purple" />
+                                <span className="text-[10px] text-boo-purple animate-pulse">In attesa...</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
+                            <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>
+                            <span className={`font-black text-sm md:text-base uppercase ${turn === 'w' ? 'text-indigo-600' : 'text-slate-700'}`}>
+                                {isMultiplayer ? (
+                                    playerRole === 'p1' ? (turn === 'w' ? 'Tocca a te' : 'Tocca all\'avversario') : (turn === 'b' ? 'Tocca a te' : 'Tocca all\'avversario')
+                                ) : (
+                                    turn === 'w' ? 'Tocca a te (Bianchi)' : 'Il Nonno (Neri)'
+                                )}
+                            </span>
+                            {inCheck && <span className="text-red-600 font-black animate-pulse bg-red-100 px-2 rounded ml-2 text-xs">SCACCO!</span>}
+                        </div>
                     </div>
 
                     <div className="bg-white/40 backdrop-blur-md p-2 md:p-3 rounded-[30px] border-4 border-white/50 shadow-2xl relative shrink-0 flex flex-col items-center gap-2">
@@ -565,7 +844,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                         </div>
 
                         <div className="relative">
-                            {isThinking && (
+                            {isThinking && !isMultiplayer && (
                                 <div className="absolute top-0 right-[-15px] md:right-[-30px] z-[200] flex flex-col items-center animate-in fade-in zoom-in duration-500 pointer-events-none transform -translate-y-[35%] -rotate-3">
                                     <span className="font-luckiest text-sm md:text-xl text-yellow-300 uppercase whitespace-nowrap mb-[-15px] relative z-10 -translate-x-3" style={{ textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', WebkitTextStroke: '1px black' }}>mmmh sto pensando...</span>
                                     <img src={GRANDFATHER_THINKING_IMG} alt="Nonno pensa" className="w-56 h-56 md:w-72 md:h-72 max-w-none object-contain drop-shadow-xl" />
@@ -615,22 +894,33 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                             <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-sm w-full shadow-2xl relative flex flex-col items-center transform translate-y-10">
                                 {winner === 'w' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                                 
-                                {winner === 'w' && (
-                                    <div className="mb-4 flex flex-col items-center">
-                                        <img src={VICTORY_TITLE_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain" />
-                                    </div>
+                                {isMultiplayer ? (
+                                    ((playerRole === 'p1' && winner === 'w') || (playerRole === 'p2' && winner === 'b')) ? (
+                                        <div className="mb-4 flex flex-col items-center">
+                                            <img src={VICTORY_TITLE_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain" />
+                                            <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI VINTO LA SFIDA!</p>
+                                        </div>
+                                    ) : (
+                                        <h2 className="text-3xl font-black mb-4 text-red-600 leading-tight uppercase">HAI PERSO LA SFIDA! 🤖</h2>
+                                    )
+                                ) : (
+                                    winner === 'w' ? (
+                                        <div className="mb-4 flex flex-col items-center">
+                                            <img src={VICTORY_TITLE_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain" />
+                                            <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI BATTUTO IL NONNO!</p>
+                                        </div>
+                                    ) : (
+                                        <h2 className="text-3xl font-black mb-4 text-red-600 leading-tight uppercase">HAI PERSO! 🤖</h2>
+                                    )
                                 )}
 
-                                <h2 className="text-3xl font-black mb-4 text-boo-purple leading-tight uppercase">
-                                    {winner === 'w' ? 'SCACCO MATTO!' : 'HAI PERSO! 🤖'}
-                                </h2>
-                                {winner === 'w' && (
+                                {((!isMultiplayer && winner === 'w') || (isMultiplayer && ((playerRole === 'p1' && winner === 'w') || (playerRole === 'p2' && winner === 'b')))) && (
                                     <div className="bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-lg border-2 border-black mb-6 animate-pulse inline-flex items-center gap-2 whitespace-nowrap shadow-lg transform rotate-[-2deg]">
-                                        +{tokenReward} GETTONI! <TokenIcon className="w-5 h-5" />
+                                        +{isMultiplayer ? 50 : tokenReward} GETTONI! <TokenIcon className="w-5 h-5" />
                                     </div>
                                 )}
                                 <div className="flex flex-row gap-4 w-full justify-center mt-2">
-                                    <button onClick={initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
+                                    <button onClick={isMultiplayer ? restartMultiplayer : initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
                                     <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={EXIT_BTN_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>
                                 </div>
                             </div>
