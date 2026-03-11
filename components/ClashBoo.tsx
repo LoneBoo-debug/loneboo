@@ -31,6 +31,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const [inputCode, setInputCode] = useState('');
   const [showInviteMenu, setShowInviteMenu] = useState(false);
   
+  const [isConnected, setIsConnected] = useState(false);
+  
   const [player, setPlayer] = useState<GamePlayer>({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
   const [opponent, setOpponent] = useState<GamePlayer>({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
   
@@ -48,43 +50,77 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   }, [progress.unlockedStickers]);
 
   useEffect(() => {
-    if (isMultiplayer) {
-      socketRef.current = io({
-        transports: ['websocket'],
-        upgrade: false
-      });
-      
-      socketRef.current.on('player_joined', (data) => {
-        console.log('Opponent joined:', data.id);
-        setOpponent(prev => ({ ...prev, id: data.id }));
-        
-        // Send a "hello" back to the new player so they know we are here
-        socketRef.current?.emit('game_action', {
-          roomCode,
-          action: 'HELLO',
-          payload: { id: socketRef.current.id }
+    if (isMultiplayer && roomCode) {
+      // Create socket if it doesn't exist
+      if (!socketRef.current) {
+        socketRef.current = io({
+          transports: ['websocket'],
+          upgrade: false,
+          reconnection: true,
+          reconnectionAttempts: 5
         });
 
-        // If we already selected our cards, send them to the new player
-        if (player.cards.length === 5) {
+        socketRef.current.on('connect', () => {
+          console.log('Connected to server, joining room:', roomCode);
+          setIsConnected(true);
+          socketRef.current?.emit('join_room', roomCode);
+        });
+        
+        socketRef.current.on('player_joined', (data) => {
+          console.log('Opponent joined:', data.id);
+          setOpponent(prev => ({ ...prev, id: data.id }));
+          
+          // Send a "hello" back to the new player so they know we are here
           socketRef.current?.emit('game_action', {
             roomCode,
-            action: 'CARDS_SELECTED',
-            payload: { cards: player.cards, id: socketRef.current.id }
+            action: 'HELLO',
+            payload: { id: socketRef.current.id }
           });
-        }
-      });
 
-      socketRef.current.on('game_action', (data) => {
-        const { action, payload } = data;
-        handleRemoteAction(action, payload);
-      });
+          // If we already selected our cards, send them to the new player
+          if (player.cards.length === 5) {
+            socketRef.current?.emit('game_action', {
+              roomCode,
+              action: 'CARDS_SELECTED',
+              payload: { cards: player.cards, id: socketRef.current.id }
+            });
+          }
+        });
+
+        socketRef.current.on('game_action', (data) => {
+          const { action, payload } = data;
+          handleRemoteAction(action, payload);
+        });
+
+        socketRef.current.on('disconnect', () => {
+          console.log('Disconnected from server');
+          setIsConnected(false);
+        });
+      } else {
+        // If socket exists but roomCode changed, join the new room
+        socketRef.current.emit('join_room', roomCode);
+      }
 
       return () => {
-        socketRef.current?.disconnect();
+        // We don't necessarily want to disconnect on every re-render of dependencies
+        // but if isMultiplayer becomes false, we should.
       };
+    } else if (!isMultiplayer && socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
     }
-  }, [isMultiplayer, roomCode, player.cards]); // Added dependencies to allow re-sending state
+  }, [isMultiplayer, roomCode]); // Simplified dependencies for connection logic
+
+  // Separate effect for sending cards when they change
+  useEffect(() => {
+    if (isMultiplayer && socketRef.current && player.cards.length === 5) {
+      socketRef.current.emit('game_action', {
+        roomCode,
+        action: 'CARDS_SELECTED',
+        payload: { cards: player.cards, id: socketRef.current.id }
+      });
+    }
+  }, [player.cards.length, isMultiplayer, roomCode]);
 
   const handleRemoteAction = (action: string, payload: any) => {
     switch (action) {
@@ -116,7 +152,6 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     setRoomCode(code);
     setIsMultiplayer(true);
-    socketRef.current?.emit('join_room', code);
     setGameState('SELECT_CARDS');
   };
 
@@ -124,7 +159,6 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     if (inputCode.length === 4) {
       setRoomCode(inputCode);
       setIsMultiplayer(true);
-      socketRef.current?.emit('join_room', inputCode);
       setGameState('SELECT_CARDS');
     }
   };
@@ -362,9 +396,9 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
               <div className="flex items-center gap-4">
                 {isMultiplayer && (
                   <div className="bg-purple-600/30 px-3 py-1 rounded-full border border-purple-500/50 flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${opponent.id !== 'opponent' ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
                     <span className="text-[10px] font-bold text-purple-200 uppercase tracking-tighter">
-                      {opponent.id !== 'opponent' ? 'Avversario Connesso' : 'In attesa...'}
+                      {isConnected ? (opponent.id !== 'opponent' ? 'Avversario Connesso' : 'Server OK - In attesa...') : 'Connessione...'}
                     </span>
                   </div>
                 )}
