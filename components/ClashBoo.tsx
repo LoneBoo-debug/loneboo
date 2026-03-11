@@ -49,11 +49,30 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
 
   useEffect(() => {
     if (isMultiplayer) {
-      socketRef.current = io();
+      socketRef.current = io({
+        transports: ['websocket'],
+        upgrade: false
+      });
       
       socketRef.current.on('player_joined', (data) => {
         console.log('Opponent joined:', data.id);
-        // If we are the host, we might want to send our state
+        setOpponent(prev => ({ ...prev, id: data.id }));
+        
+        // Send a "hello" back to the new player so they know we are here
+        socketRef.current?.emit('game_action', {
+          roomCode,
+          action: 'HELLO',
+          payload: { id: socketRef.current.id }
+        });
+
+        // If we already selected our cards, send them to the new player
+        if (player.cards.length === 5) {
+          socketRef.current?.emit('game_action', {
+            roomCode,
+            action: 'CARDS_SELECTED',
+            payload: { cards: player.cards, id: socketRef.current.id }
+          });
+        }
       });
 
       socketRef.current.on('game_action', (data) => {
@@ -65,10 +84,13 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
         socketRef.current?.disconnect();
       };
     }
-  }, [isMultiplayer]);
+  }, [isMultiplayer, roomCode, player.cards]); // Added dependencies to allow re-sending state
 
   const handleRemoteAction = (action: string, payload: any) => {
     switch (action) {
+      case 'HELLO':
+        setOpponent(prev => ({ ...prev, id: payload.id }));
+        break;
       case 'CARDS_SELECTED':
         setOpponent(prev => ({ ...prev, cards: payload.cards, id: payload.id }));
         break;
@@ -270,7 +292,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       </div>
 
       {/* Header */}
-      <div className="relative p-4 flex justify-between items-center z-50">
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-transparent">
         <button onClick={() => setView(AppView.PLAY)} className="hover:scale-105 active:scale-95 transition-transform">
           <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/esciclashboo.webp" alt="Esci" className="h-10 md:h-12 w-auto" />
         </button>
@@ -320,7 +342,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 relative flex flex-col items-center justify-center p-4">
+      <div className="flex-1 relative flex flex-col items-center justify-center w-full h-full">
 
         {gameState === 'MENU' && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-row gap-4 z-10">
@@ -334,16 +356,26 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
         )}
 
         {gameState === 'SELECT_CARDS' && (
-          <div className="w-full max-w-4xl flex flex-col h-[90%] z-10 bg-slate-900/90 backdrop-blur-xl p-4 md:p-8 rounded-3xl border-2 border-white/20 shadow-2xl overflow-hidden">
+          <div className="w-full h-full z-10 bg-slate-900/90 backdrop-blur-xl p-4 md:p-8 pt-20 md:pt-24 flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl md:text-2xl font-black text-white uppercase italic">Scegli 5 Carte ({player.cards.length}/5)</h2>
-              <button 
-                onClick={confirmSelection}
-                disabled={player.cards.length !== 5}
-                className="px-8 py-3 bg-green-600 text-white rounded-full font-black disabled:opacity-50 disabled:grayscale shadow-lg"
-              >
-                CONFERMA
-              </button>
+              <div className="flex items-center gap-4">
+                {isMultiplayer && (
+                  <div className="bg-purple-600/30 px-3 py-1 rounded-full border border-purple-500/50 flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${opponent.id !== 'opponent' ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`}></div>
+                    <span className="text-[10px] font-bold text-purple-200 uppercase tracking-tighter">
+                      {opponent.id !== 'opponent' ? 'Avversario Connesso' : 'In attesa...'}
+                    </span>
+                  </div>
+                )}
+                <button 
+                  onClick={confirmSelection}
+                  disabled={player.cards.length !== 5}
+                  className="px-8 py-3 bg-green-600 text-white rounded-full font-black disabled:opacity-50 disabled:grayscale shadow-lg"
+                >
+                  CONFERMA
+                </button>
+              </div>
             </div>
             
             <div className="flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-2 bg-slate-800/50 rounded-2xl border-2 border-slate-700">
@@ -378,18 +410,28 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
         )}
 
         {gameState === 'WAITING_OPPONENT' && (
-          <div className="text-center z-10 bg-slate-900/80 backdrop-blur-lg p-12 rounded-3xl border-2 border-white/20 shadow-2xl max-w-[90vw]">
+          <div className="w-full h-full z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-lg p-12 pt-20 md:pt-24 relative">
             <div className="w-24 h-24 border-8 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h2 className="text-3xl font-black text-white mb-2">ATTESA AVVERSARIO</h2>
             <p className="text-slate-400">Condividi il codice con un amico:</p>
             <div className="mt-4 bg-slate-800 px-8 py-4 rounded-2xl border-2 border-purple-500 text-4xl font-black text-white tracking-widest">
               {roomCode}
             </div>
+            {opponent.id !== 'opponent' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8 flex items-center gap-3 bg-green-600/20 border border-green-500/50 px-6 py-3 rounded-full"
+              >
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 font-bold uppercase tracking-widest">Amico Connesso!</span>
+              </motion.div>
+            )}
           </div>
         )}
 
         {(gameState === 'PLAYING' || gameState === 'ROUND_RESULT') && (
-          <div className="w-full max-w-[98vw] md:max-w-7xl flex flex-col h-[95%] z-10 justify-between bg-slate-900/60 backdrop-blur-md p-4 md:p-8 rounded-3xl border-2 border-white/10 shadow-2xl relative">
+          <div className="w-full h-full z-10 flex flex-col justify-between bg-slate-900/60 backdrop-blur-md p-4 md:p-8 pt-20 md:pt-24 relative">
             {/* Round Result Overlay (Top Aligned) */}
             <AnimatePresence>
               {gameState === 'ROUND_RESULT' && (
@@ -397,7 +439,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                   initial={{ opacity: 0, y: -50, scale: 0.8 }} 
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="absolute top-4 left-0 right-0 flex flex-col items-center justify-center z-[60] pointer-events-none"
+                  className="absolute top-24 md:top-32 left-0 right-0 flex flex-col items-center justify-center z-[60] pointer-events-none"
                 >
                   {isColpoFurbo && (
                     <div className="bg-yellow-400 text-black px-6 py-1 rounded-full font-black text-lg mb-2 animate-bounce shadow-[4px_4px_0px_rgba(0,0,0,0.3)] border-2 border-black">
