@@ -53,11 +53,10 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     if (isMultiplayer && roomCode) {
       // Create socket if it doesn't exist
       if (!socketRef.current) {
-        socketRef.current = io({
-          transports: ['websocket'],
-          upgrade: false,
+        socketRef.current = io(window.location.origin, {
           reconnection: true,
-          reconnectionAttempts: 5
+          reconnectionAttempts: 10,
+          reconnectionDelay: 1000
         });
 
         socketRef.current.on('connect', () => {
