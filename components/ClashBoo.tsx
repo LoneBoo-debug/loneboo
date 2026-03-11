@@ -135,6 +135,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setIsMultiplayer(true);
     
     try {
+      if (!db) throw new Error("Database non inizializzato");
+      
       await setDoc(doc(db, 'rooms', code), {
         p1: { id: currentUser?.uid || 'host', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 },
         status: 'WAITING',
@@ -143,6 +145,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       setGameState('SELECT_CARDS');
     } catch (error) {
       console.error("Error creating room:", error);
+      alert("Errore nella creazione della stanza. Assicurati che le variabili di ambiente siano configurate su Vercel e che l'accesso Anonimo sia attivo su Firebase.");
     }
   };
 
@@ -150,6 +153,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     if (inputCode.length === 4) {
       const roomRef = doc(db, 'rooms', inputCode);
       try {
+        if (!db) throw new Error("Database non inizializzato");
         const snap = await getDoc(roomRef);
         if (snap.exists()) {
           setRoomCode(inputCode);
@@ -163,10 +167,11 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           });
           setGameState('SELECT_CARDS');
         } else {
-          alert("Stanza non trovata!");
+          alert("Stanza non trovata! Verifica il codice.");
         }
       } catch (error) {
         console.error("Error joining room:", error);
+        alert("Errore nell'accesso alla stanza. Verifica la connessione.");
       }
     }
   };
