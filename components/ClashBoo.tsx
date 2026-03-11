@@ -4,7 +4,17 @@ import { X, User, Monitor, Users, Send, Check, AlertCircle, Trophy, RotateCcw, C
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from '../services/stickersDatabase';
 import { getProgress } from '../services/tokens';
 import { Sticker, AppView } from '../types';
-import { io, Socket } from 'socket.io-client';
+import { db, auth } from '../firebase';
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  onSnapshot, 
+  getDoc, 
+  serverTimestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const CLASH_BOO_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfondoclashboogifure.webp';
 
@@ -32,6 +42,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const [showInviteMenu, setShowInviteMenu] = useState(false);
   
   const [isConnected, setIsConnected] = useState(false);
+  const [playerRole, setPlayerRole] = useState<'p1' | 'p2' | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   const [player, setPlayer] = useState<GamePlayer>({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
   const [opponent, setOpponent] = useState<GamePlayer>({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
@@ -40,7 +52,6 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [isColpoFurbo, setIsColpoFurbo] = useState(false);
   
-  const socketRef = useRef<Socket | null>(null);
   const progress = getProgress();
   
   // All stickers owned by the player
@@ -49,94 +60,64 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     return all.filter(s => progress.unlockedStickers.includes(s.id));
   }, [progress.unlockedStickers]);
 
+  // Auth setup
   useEffect(() => {
-    if (isMultiplayer && roomCode) {
-      // Create socket if it doesn't exist
-      if (!socketRef.current) {
-        socketRef.current = io(window.location.origin, {
-          reconnection: true,
-          reconnectionAttempts: 10,
-          reconnectionDelay: 1000
-        });
-
-        socketRef.current.on('connect', () => {
-          console.log('Connected to server, joining room:', roomCode);
-          setIsConnected(true);
-          socketRef.current?.emit('join_room', roomCode);
-        });
-        
-        socketRef.current.on('player_joined', (data) => {
-          console.log('Opponent joined:', data.id);
-          setOpponent(prev => ({ ...prev, id: data.id }));
-          
-          // Send a "hello" back to the new player so they know we are here
-          socketRef.current?.emit('game_action', {
-            roomCode,
-            action: 'HELLO',
-            payload: { id: socketRef.current.id }
-          });
-
-          // If we already selected our cards, send them to the new player
-          if (player.cards.length === 5) {
-            socketRef.current?.emit('game_action', {
-              roomCode,
-              action: 'CARDS_SELECTED',
-              payload: { cards: player.cards, id: socketRef.current.id }
-            });
-          }
-        });
-
-        socketRef.current.on('game_action', (data) => {
-          const { action, payload } = data;
-          handleRemoteAction(action, payload);
-        });
-
-        socketRef.current.on('disconnect', () => {
-          console.log('Disconnected from server');
-          setIsConnected(false);
-        });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user);
+        setIsConnected(true);
       } else {
-        // If socket exists but roomCode changed, join the new room
-        socketRef.current.emit('join_room', roomCode);
+        signInAnonymously(auth).catch(console.error);
       }
+    });
+    return () => unsubscribe();
+  }, []);
 
-      return () => {
-        // We don't necessarily want to disconnect on every re-render of dependencies
-        // but if isMultiplayer becomes false, we should.
-      };
-    } else if (!isMultiplayer && socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
-  }, [isMultiplayer, roomCode]); // Simplified dependencies for connection logic
-
-  // Separate effect for sending cards when they change
+  // Multiplayer sync
   useEffect(() => {
-    if (isMultiplayer && socketRef.current && player.cards.length === 5) {
-      socketRef.current.emit('game_action', {
-        roomCode,
-        action: 'CARDS_SELECTED',
-        payload: { cards: player.cards, id: socketRef.current.id }
-      });
-    }
-  }, [player.cards.length, isMultiplayer, roomCode]);
+    if (isMultiplayer && roomCode && currentUser) {
+      const roomRef = doc(db, 'rooms', roomCode);
+      
+      const unsubscribe = onSnapshot(roomRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          
+          // Sync opponent data
+          if (playerRole === 'p1') {
+            if (data.p2) {
+              setOpponent(prev => ({
+                ...prev,
+                id: data.p2.id || 'opponent',
+                cards: data.p2.cards || [],
+                selectedCard: data.p2.selectedCard || null,
+                roundsWon: data.p2.roundsWon || 0
+              }));
+            }
+          } else if (playerRole === 'p2') {
+            if (data.p1) {
+              setOpponent(prev => ({
+                ...prev,
+                id: data.p1.id || 'host',
+                cards: data.p1.cards || [],
+                selectedCard: data.p1.selectedCard || null,
+                roundsWon: data.p1.roundsWon || 0
+              }));
+            }
+          }
 
-  const handleRemoteAction = (action: string, payload: any) => {
-    switch (action) {
-      case 'HELLO':
-        setOpponent(prev => ({ ...prev, id: payload.id }));
-        break;
-      case 'CARDS_SELECTED':
-        setOpponent(prev => ({ ...prev, cards: payload.cards, id: payload.id }));
-        break;
-      case 'CARD_PLAYED':
-        setOpponent(prev => ({ ...prev, selectedCard: payload.card }));
-        break;
-      case 'RESTART':
-        restartCurrentModeLocally();
-        break;
+          // Sync game state if needed
+          if (data.status === 'RESTART' && gameState !== 'SELECT_CARDS') {
+            restartCurrentModeLocally();
+          }
+        } else if (playerRole === 'p2') {
+          // Room deleted by host
+          resetGame();
+        }
+      });
+
+      return () => unsubscribe();
     }
-  };
+  }, [isMultiplayer, roomCode, currentUser, playerRole]);
 
   const restartCurrentModeLocally = () => {
     setPlayer(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0 }));
@@ -147,18 +128,46 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setGameState('SELECT_CARDS');
   };
 
-  const generateRoomCode = () => {
+  const generateRoomCode = async () => {
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     setRoomCode(code);
+    setPlayerRole('p1');
     setIsMultiplayer(true);
-    setGameState('SELECT_CARDS');
+    
+    try {
+      await setDoc(doc(db, 'rooms', code), {
+        p1: { id: currentUser?.uid || 'host', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+        status: 'WAITING',
+        updatedAt: serverTimestamp()
+      });
+      setGameState('SELECT_CARDS');
+    } catch (error) {
+      console.error("Error creating room:", error);
+    }
   };
 
-  const joinRoom = () => {
+  const joinRoom = async () => {
     if (inputCode.length === 4) {
-      setRoomCode(inputCode);
-      setIsMultiplayer(true);
-      setGameState('SELECT_CARDS');
+      const roomRef = doc(db, 'rooms', inputCode);
+      try {
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          setRoomCode(inputCode);
+          setPlayerRole('p2');
+          setIsMultiplayer(true);
+          
+          await updateDoc(roomRef, {
+            p2: { id: currentUser?.uid || 'guest', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+            status: 'PLAYING',
+            updatedAt: serverTimestamp()
+          });
+          setGameState('SELECT_CARDS');
+        } else {
+          alert("Stanza non trovata!");
+        }
+      } catch (error) {
+        console.error("Error joining room:", error);
+      }
     }
   };
 
@@ -175,15 +184,22 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }
   };
 
-  const confirmSelection = () => {
+  const confirmSelection = async () => {
     if (player.cards.length === 5) {
-      if (isMultiplayer) {
-        socketRef.current?.emit('game_action', {
-          roomCode,
-          action: 'CARDS_SELECTED',
-          payload: { cards: player.cards, id: socketRef.current.id }
-        });
-        setGameState('WAITING_OPPONENT');
+      if (isMultiplayer && roomCode) {
+        const roomRef = doc(db, 'rooms', roomCode);
+        const updateData: any = {};
+        updateData[playerRole === 'p1' ? 'p1' : 'p2'] = {
+          ...player,
+          id: currentUser?.uid || player.id
+        };
+        
+        try {
+          await updateDoc(roomRef, updateData);
+          setGameState('WAITING_OPPONENT');
+        } catch (error) {
+          console.error("Error confirming selection:", error);
+        }
       } else {
         // Generate CPU cards
         const allStickers = [...STICKERS_COLLECTION, ...STICKERS_COLLECTION_VOL2];
@@ -202,17 +218,21 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }
   }, [gameState, opponent.cards]);
 
-  const playCard = (card: Sticker) => {
+  const playCard = async (card: Sticker) => {
     if (player.selectedCard) return;
     
     setPlayer(prev => ({ ...prev, selectedCard: card }));
     
-    if (isMultiplayer) {
-      socketRef.current?.emit('game_action', {
-        roomCode,
-        action: 'CARD_PLAYED',
-        payload: { card }
-      });
+    if (isMultiplayer && roomCode) {
+      const roomRef = doc(db, 'rooms', roomCode);
+      const updateData: any = {};
+      updateData[`${playerRole}.selectedCard`] = card;
+      
+      try {
+        await updateDoc(roomRef, updateData);
+      } catch (error) {
+        console.error("Error playing card:", error);
+      }
     } else {
       // CPU plays a random card from its remaining cards
       const availableCpuCards = opponent.cards.filter(c => !opponent.selectedCard || c.id !== opponent.selectedCard.id);
@@ -263,16 +283,18 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }, 1000);
   };
 
-  const nextRound = () => {
+  const nextRound = async () => {
     const pWon = roundWinner === 'player';
     const oWon = roundWinner === 'opponent';
     
-    setPlayer(prev => ({ 
-      ...prev, 
-      roundsWon: pWon ? prev.roundsWon + 1 : prev.roundsWon,
-      cards: prev.cards.filter(c => c.id !== prev.selectedCard?.id),
+    const newPlayer = { 
+      ...player, 
+      roundsWon: pWon ? player.roundsWon + 1 : player.roundsWon,
+      cards: player.cards.filter(c => c.id !== player.selectedCard?.id),
       selectedCard: null 
-    }));
+    };
+
+    setPlayer(newPlayer);
     setOpponent(prev => ({ 
       ...prev, 
       roundsWon: oWon ? prev.roundsWon + 1 : prev.roundsWon,
@@ -284,6 +306,15 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setRoundWinner(null);
     setIsColpoFurbo(false);
 
+    // Sync to Firebase if multiplayer
+    if (isMultiplayer && roomCode) {
+      const roomRef = doc(db, 'rooms', roomCode);
+      const updateData: any = {};
+      updateData[playerRole === 'p1' ? 'p1' : 'p2'] = newPlayer;
+      updateData.updatedAt = serverTimestamp();
+      await updateDoc(roomRef, updateData);
+    }
+
     const pCardsLeft = player.cards.filter(c => c.id !== player.selectedCard?.id).length;
 
     if (player.roundsWon + (pWon ? 1 : 0) >= 3 || opponent.roundsWon + (oWon ? 1 : 0) >= 3 || pCardsLeft === 0) {
@@ -293,19 +324,36 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }
   };
 
-  const restartCurrentMode = () => {
+  const restartCurrentMode = async () => {
     restartCurrentModeLocally();
     
-    if (isMultiplayer) {
-      socketRef.current?.emit('game_action', {
-        roomCode,
-        action: 'RESTART',
-        payload: {}
-      });
+    if (isMultiplayer && roomCode) {
+      const roomRef = doc(db, 'rooms', roomCode);
+      try {
+        await updateDoc(roomRef, {
+          status: 'RESTART',
+          p1: { ...player, cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+          p2: { ...opponent, cards: [], selectedCard: null, score: 0, roundsWon: 0 },
+          updatedAt: serverTimestamp()
+        });
+        // Reset status back to PLAYING after a short delay
+        setTimeout(() => {
+          updateDoc(roomRef, { status: 'PLAYING' });
+        }, 1000);
+      } catch (error) {
+        console.error("Error restarting game:", error);
+      }
     }
   };
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (isMultiplayer && roomCode && playerRole === 'p1') {
+      try {
+        await deleteDoc(doc(db, 'rooms', roomCode));
+      } catch (error) {
+        console.error("Error deleting room:", error);
+      }
+    }
     setGameState('MENU');
     setPlayer({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0 });
     setOpponent({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0 });

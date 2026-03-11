@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "GameRoom": {
+      "title": "Game Room",
+      "description": "A room for a Clash Boo multiplayer game session",
+      "type": "object",
+      "properties": {
+        "p1": {
+          "type": "object",
+          "description": "Data for player 1 (host)"
+        },
+        "p2": {
+          "type": "object",
+          "description": "Data for player 2 (guest)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["WAITING", "PLAYING", "FINISHED"],
+          "description": "The current status of the game room"
+        },
+        "round": {
+          "type": "integer",
+          "description": "The current round number"
+        },
+        "lastAction": {
+          "type": "object",
+          "description": "The last action performed in the room"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the room was last updated"
+        }
+      },
+      "required": ["p1", "status", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active game rooms"
+    }
+  }
+}

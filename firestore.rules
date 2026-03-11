@@ -1,0 +1,60 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: rooms
+// Document ID: roomCode (4-char string)
+// Fields:
+//   - p1: object (required) - Data for player 1 (host)
+//   - p2: object (optional) - Data for player 2 (guest)
+//   - status: string (required) - WAITING, PLAYING, RESTART, FINISHED
+//   - updatedAt: timestamp (required) - Last update time
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidRoom(data) {
+      return data.p1 is map && 
+             data.status in ['WAITING', 'PLAYING', 'RESTART', 'FINISHED'] &&
+             data.updatedAt is timestamp;
+    }
+
+    match /rooms/{roomCode} {
+      // Read access for anyone authenticated (needed to check if room exists)
+      allow read: if isAuthenticated();
+      
+      // Create: only if authenticated and setting themselves as p1
+      allow create: if isAuthenticated() 
+        && isValidRoom(request.resource.data)
+        && request.resource.data.p1.id == request.auth.uid;
+        
+      // Update: 
+      // 1. Guest joining (setting p2)
+      // 2. Either player updating their own cards/selection
+      // 3. Host restarting
+      allow update: if isAuthenticated()
+        && isValidRoom(request.resource.data)
+        && (
+          // Guest joining
+          (resource.data.status == 'WAITING' && request.resource.data.p2.id == request.auth.uid) ||
+          // Existing players updating
+          (request.auth.uid == resource.data.p1.id || (resource.data.p2 != null && request.auth.uid == resource.data.p2.id))
+        );
+        
+      // Delete: only host can delete
+      allow delete: if isAuthenticated() && resource.data.p1.id == request.auth.uid;
+    }
+  }
+}
