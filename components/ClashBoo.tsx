@@ -95,7 +95,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           if (playerRole === 'p1') {
             if (data.p2) {
               setIsConnected(true);
-              if (gameState === 'WAITING_OPPONENT') setGameState('SELECT_CARDS');
+              if (gameState === 'MENU' || gameState === 'WAITING_OPPONENT') setGameState('SELECT_CARDS');
               setOpponent(prev => {
                 // Don't clear opponent card if we are still showing results of the current round
                 const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p2.selectedCard && data.p2.round > prev.round;
@@ -157,6 +157,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setRoomCode(code);
     setPlayerRole('p1');
     setIsMultiplayer(true);
+    setGameState('WAITING_OPPONENT');
     
     try {
       if (!db) throw new Error("Database non inizializzato");
@@ -166,7 +167,6 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
-      setGameState('WAITING_OPPONENT');
     } catch (error) {
       console.error("Error creating room:", error);
       alert("Errore nella creazione della stanza. Verifica i permessi Firebase.");
@@ -510,8 +510,15 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                         animate={{ height: 'auto', opacity: 1 }}
                         className="flex flex-col items-center gap-2 pt-3 border-t border-white/20 overflow-hidden"
                       >
-                        <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center">
+                        <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center relative group">
                           <span className="text-slate-900 font-black text-xl tracking-widest">{roomCode}</span>
+                          <button 
+                            onClick={() => resetGame()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors shadow-md"
+                            title="Chiudi Stanza"
+                          >
+                            <X size={14} />
+                          </button>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
@@ -569,19 +576,47 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           </motion.div>
         )}
 
+
+
+        {gameState === 'WAITING_OPPONENT' && !isNextRoundReady && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="text-center z-10 bg-slate-800/95 backdrop-blur-xl p-8 md:p-12 rounded-3xl border-4 border-white shadow-2xl max-w-[90vw] md:max-w-lg w-full mx-auto"
+          >
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative">
+                <Users size={80} className="text-blue-400 animate-pulse" />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-slate-800 animate-ping"></div>
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-white uppercase italic tracking-wider">In attesa...</h2>
+                <p className="text-slate-400 text-lg">
+                  {opponent.id !== 'opponent' 
+                    ? "L'avversario sta scegliendo le carte..." 
+                    : "L'avversario si sta collegando alla stanza."}
+                </p>
+                {opponent.id === 'opponent' && (
+                  <p className="text-yellow-400/80 text-sm font-bold uppercase tracking-widest">Controlla il menu di invito per il codice</p>
+                )}
+              </div>
+
+              <button 
+                onClick={resetGame}
+                className="mt-4 px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-black rounded-full shadow-xl transition-all active:scale-95 uppercase tracking-widest text-sm"
+              >
+                Annulla e Torna al Menu
+              </button>
+            </div>
+          </motion.div>
+        )}
+        
         {gameState === 'SELECT_CARDS' && (
           <div className="w-full h-full z-10 bg-slate-900/90 backdrop-blur-xl p-4 md:p-8 pt-20 md:pt-24 flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl md:text-2xl font-black text-white uppercase italic">Scegli 5 Carte ({player.cards.length}/5)</h2>
               <div className="flex items-center gap-4">
-                {isMultiplayer && (
-                  <div className="bg-purple-600/30 px-3 py-1 rounded-full border border-purple-500/50 flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                    <span className="text-[10px] font-bold text-purple-200 uppercase tracking-tighter">
-                      {isConnected ? (opponent.id !== 'opponent' ? 'Avversario Connesso' : 'Server OK - In attesa...') : 'Connessione...'}
-                    </span>
-                  </div>
-                )}
                 <button 
                   onClick={confirmSelection}
                   disabled={player.cards.length !== 5}
@@ -620,27 +655,6 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {gameState === 'WAITING_OPPONENT' && (
-          <div className="w-full h-full z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-lg p-12 pt-20 md:pt-24 relative">
-            <div className="w-24 h-24 border-8 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 className="text-3xl font-black text-white mb-2">ATTESA AVVERSARIO</h2>
-            <p className="text-slate-400">Condividi il codice con un amico:</p>
-            <div className="mt-4 bg-slate-800 px-8 py-4 rounded-2xl border-2 border-purple-500 text-4xl font-black text-white tracking-widest">
-              {roomCode}
-            </div>
-            {opponent.id !== 'opponent' && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-8 flex items-center gap-3 bg-green-600/20 border border-green-500/50 px-6 py-3 rounded-full"
-              >
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 font-bold uppercase tracking-widest">Amico Connesso!</span>
-              </motion.div>
-            )}
           </div>
         )}
 

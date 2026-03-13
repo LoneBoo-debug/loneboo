@@ -695,16 +695,6 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         
         {/* AREA CONTENUTO */}
         <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-48 md:pt-60">
-            {isMultiplayer && roomCode && difficulty && (
-              <div className="absolute top-[160px] md:top-[200px] left-0 right-0 flex justify-center z-[1200] pointer-events-none">
-                <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3 shadow-xl pointer-events-auto">
-                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                  <span className="text-blue-700 font-black uppercase tracking-widest text-sm">
-                      CODICE: {roomCode}
-                  </span>
-                </div>
-              </div>
-            )}
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
                     <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] relative">

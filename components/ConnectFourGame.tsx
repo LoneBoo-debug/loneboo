@@ -612,23 +612,6 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
 
         {!difficulty ? (
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-36 md:pt-48">
-                {/* Multiplayer Status */}
-                {isMultiplayer && roomCode && (
-                    <div className="mb-6 flex flex-col items-center gap-2">
-                        <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                            <span className="text-blue-700 font-black uppercase tracking-widest text-sm">
-                                {roomCode ? `CODICE: ${roomCode}` : 'CONNESSIONE...'}
-                            </span>
-                        </div>
-                        {playerRole === 'RED' && (
-                            <p className="text-white/80 text-xs font-bold uppercase tracking-tighter bg-black/20 px-3 py-1 rounded-full">
-                                In attesa di un amico...
-                            </p>
-                        )}
-                    </div>
-                )}
-
                 {/* ISTRUZIONE SU DUE RIGHE IN UN BOX TRASLUCIDO - INGRANDITA */}
                 <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-[40px] border-4 border-white/40 shadow-2xl mb-10 animate-in slide-in-from-top-4 duration-500 max-w-[95%] md:max-w-xl">
                     <h2 
