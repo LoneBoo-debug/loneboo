@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { RotateCcw, Loader2, Lock, Settings, ArrowLeft, Send, Check, AlertCircle, Trophy, Users } from 'lucide-react';
+import { RotateCcw, Loader2, Lock, Settings, ArrowLeft, Send, Check, AlertCircle, Trophy, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getProgress, unlockHardMode, isAnyAlbumComplete, addTokens } from '../services/tokens';
 import { isNightTime } from '../services/weatherService';
@@ -231,13 +231,19 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        if (data.board) setBoard(data.board);
+        if (data.board) {
+          const parsedBoard = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
+          setBoard(parsedBoard);
+        }
         if (data.turn) setTurn(data.turn);
         if (data.winner) setWinner(data.winner);
         if (data.inCheck !== undefined) setInCheck(data.inCheck);
         if (data.capturedByWhite) setCapturedByWhite(data.capturedByWhite);
         if (data.capturedByBlack) setCapturedByBlack(data.capturedByBlack);
-        if (data.status === 'PLAYING') setIsConnected(true);
+        if (data.status === 'PLAYING') {
+          setIsConnected(true);
+          setDifficulty('MEDIUM');
+        }
         if (data.status === 'RESTART') {
           initBoard();
         }
@@ -302,7 +308,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       const roomRef = doc(db, 'chess_rooms', roomCode);
       updateDoc(roomRef, {
         status: 'PLAYING',
-        board: newBoard,
+        board: JSON.stringify(newBoard),
         turn: 'w',
         winner: null,
         inCheck: null,
@@ -491,7 +497,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         if (turn === 'b' && targetPiece) setCapturedByBlack(updatedCapturedByBlack);
 
         await updateDoc(roomRef, {
-          board: newBoard,
+          board: JSON.stringify(newBoard),
           turn: nextTurn,
           winner: newWinner,
           inCheck: nextInCheck,
@@ -608,7 +614,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
     setRoomCode(code);
     setPlayerRole('p1');
     setIsMultiplayer(true);
-    setDifficulty('MEDIUM');
+    setIsConnected(false);
     
     try {
       const newBoard: Piece[] = Array(64).fill(null);
@@ -624,7 +630,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
 
       await setDoc(doc(db, 'chess_rooms', code), {
         p1: { id: currentUser.uid, name: 'Tu' },
-        board: newBoard,
+        board: JSON.stringify(newBoard),
         turn: 'w',
         inCheck: null,
         status: 'WAITING',
@@ -748,7 +754,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                             >
                                 <div className="flex gap-2">
                                     <button 
-                                        onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                        onClick={() => { generateRoomCode(); }} 
                                         className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
                                     >
                                         <img 
@@ -770,6 +776,33 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                                     </button>
                                 </div>
                                 
+                                <AnimatePresence>
+                                    {isMultiplayer && roomCode && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            className="flex flex-col items-center gap-2 pt-3 border-t border-white/20 overflow-hidden"
+                                        >
+                                            <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center relative group">
+                                                <span className="text-slate-900 font-black text-xl tracking-widest">{roomCode}</span>
+                                                <button 
+                                                    onClick={() => backToMenu()}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors shadow-md"
+                                                    title="Chiudi Stanza"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+                                                    {isConnected ? "Avversario connesso!" : "In attesa dell'avversario..."}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
                                 <AnimatePresence>
                                     {showJoinInput && (
                                         <motion.div 
@@ -826,13 +859,23 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         
         {/* AREA CONTENUTO */}
         <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-48 md:pt-60">
+            {isMultiplayer && roomCode && difficulty && (
+              <div className="absolute top-[160px] md:top-[200px] left-0 right-0 flex justify-center z-[1200] pointer-events-none">
+                <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3 shadow-xl pointer-events-auto">
+                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                  <span className="text-blue-700 font-black uppercase tracking-widest text-sm">
+                      CODICE: {roomCode}
+                  </span>
+                </div>
+              </div>
+            )}
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
                     <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] relative">
                         {/* Box istruzioni spostato SOPRA i tasti con posizionamento assoluto per non spostare i tasti stessi */}
                         <div className="absolute -top-16 md:-top-20 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/40 shadow-lg animate-in slide-in-from-top-4 w-max max-w-[90vw]">
                             <p className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] text-sm md:text-xl" style={{ WebkitTextStroke: '1px black' }}>
-                                Scegli un livello e sfida il nonno a Scacchi!
+                                {isMultiplayer ? "SFIDA MULTIPLAYER" : "Scegli un livello e sfida il nonno a Scacchi!"}
                             </p>
                         </div>
                         <button onClick={() => handleLevelSelect('EASY')} className="sticker-btn animate-float-btn w-full outline-none border-none bg-transparent">
@@ -858,18 +901,6 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-10 md:pt-16 px-2">
                     <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex flex-col items-center mb-2 gap-2">
-                        {isMultiplayer && roomCode && (
-                          <div className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full border-2 border-boo-purple shadow-lg flex items-center gap-2">
-                            <span className="text-boo-purple font-black text-xs uppercase">Codice Stanza:</span>
-                            <span className="text-boo-purple font-black text-lg tracking-widest">{roomCode}</span>
-                            {!isConnected && (
-                              <div className="flex items-center gap-2 ml-2">
-                                <Loader2 className="w-4 h-4 animate-spin text-boo-purple" />
-                                <span className="text-[10px] text-boo-purple animate-pulse">In attesa...</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
                         <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
                             <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>
                             <span className={`font-black text-sm md:text-base uppercase ${turn === 'w' ? 'text-indigo-600' : 'text-slate-700'}`}>

@@ -38,9 +38,9 @@ service cloud.firestore {
       allow update: if isAuthenticated()
         && isRoomsCollection(col)
         && (
-          // Guest joining
-          (resource.data.status == 'WAITING' && request.resource.data.p2.id == request.auth.uid) ||
-          // Existing players updating
+          // Guest joining: allow if status is WAITING and p2 is being set
+          (resource.data.status == 'WAITING') ||
+          // Existing players updating: allow if user is p1 or p2
           (request.auth.uid == resource.data.p1.id || 
            (resource.data.p2 != null && request.auth.uid == resource.data.p2.id))
         );

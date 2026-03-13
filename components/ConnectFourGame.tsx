@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, User, Monitor, ChevronDown, Send, Check, AlertCircle } from 'lucide-react';
+import { Users, User, Monitor, ChevronDown, Send, Check, AlertCircle, X } from 'lucide-react';
 
 const NEW_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/connect4.webp';
 const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
@@ -506,7 +506,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                             >
                                 <div className="flex gap-2">
                                     <button 
-                                        onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                        onClick={() => { generateRoomCode(); }} 
                                         className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
                                     >
                                         <img 
@@ -528,6 +528,33 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                                     </button>
                                 </div>
                                 
+                                <AnimatePresence>
+                                    {isMultiplayer && roomCode && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            className="flex flex-col items-center gap-2 pt-3 border-t border-white/20 overflow-hidden"
+                                        >
+                                            <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center relative group">
+                                                <span className="text-slate-900 font-black text-xl tracking-widest">{roomCode}</span>
+                                                <button 
+                                                    onClick={() => backToMenu()}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors shadow-md"
+                                                    title="Chiudi Stanza"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+                                                    {isConnected ? "Avversario connesso!" : "In attesa dell'avversario..."}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
                                 <AnimatePresence>
                                     {showJoinInput && (
                                         <motion.div 
@@ -590,20 +617,9 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                     <div className="mb-6 flex flex-col items-center gap-2">
                         <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3">
                             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                            <span className="text-white font-black uppercase tracking-widest text-sm">
+                            <span className="text-blue-700 font-black uppercase tracking-widest text-sm">
                                 {roomCode ? `CODICE: ${roomCode}` : 'CONNESSIONE...'}
                             </span>
-                            {roomCode && !isConnected && (
-                                <button 
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(roomCode);
-                                        alert("Codice copiato!");
-                                    }}
-                                    className="bg-white/20 hover:bg-white/40 p-1 rounded-md transition-colors"
-                                >
-                                    <Check size={14} className="text-white" />
-                                </button>
-                            )}
                         </div>
                         {playerRole === 'RED' && (
                             <p className="text-white/80 text-xs font-bold uppercase tracking-tighter bg-black/20 px-3 py-1 rounded-full">
@@ -619,8 +635,14 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                         className="font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[3px_3px_0_black] text-xl sm:text-4xl md:text-[46px] leading-tight" 
                         style={{ WebkitTextStroke: '1.5px black' }}
                     >
-                        Sfida <span className="text-yellow-300">Zuccotto</span><br />
-                        e metti <span className="text-red-400">4 gettoni</span> in fila!
+                        {isMultiplayer ? (
+                            "SFIDA MULTIPLAYER"
+                        ) : (
+                            <>
+                                Sfida <span className="text-yellow-300">Zuccotto</span><br />
+                                e metti <span className="text-red-400">4 gettoni</span> in fila!
+                            </>
+                        )}
                     </h2>
                 </div>
 

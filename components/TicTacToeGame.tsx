@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Trophy, Loader2, Lock, ArrowLeft, Send, Check, AlertCircle, Users } from 'lucide-react';
+import { Trophy, Loader2, Lock, ArrowLeft, Send, Check, AlertCircle, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TOKEN_ICON_URL } from '../constants';
 import TokenIcon from './TokenIcon';
@@ -134,7 +134,10 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
         if (data.board) setBoard(data.board);
         if (data.isPlayerTurn !== undefined) setIsPlayerTurn(data.isPlayerTurn);
         if (data.winner !== undefined) setWinner(data.winner);
-        if (data.status === 'PLAYING') setIsConnected(true);
+        if (data.status === 'PLAYING') {
+          setIsConnected(true);
+          setDifficulty('MEDIUM');
+        }
         if (data.status === 'RESTART') {
           resetGame();
         }
@@ -344,7 +347,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
     setRoomCode(code);
     setPlayerRole('p1');
     setIsMultiplayer(true);
-    setDifficulty('MEDIUM');
+    setIsConnected(false);
     
     try {
       await setDoc(doc(db, 'tictactoe_rooms', code), {
@@ -413,7 +416,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
   };
 
   const renderTitle = () => {
-    const levelLabel = difficulty === 'EASY' ? 'LIVELLO FACILE' : (difficulty === 'MEDIUM' ? 'LIVELLO MEDIO' : 'SFIDA DIFFICILE');
+    const levelLabel = isMultiplayer ? 'SFIDA MULTIPLAYER' : (difficulty === 'EASY' ? 'LIVELLO FACILE' : (difficulty === 'MEDIUM' ? 'LIVELLO MEDIO' : 'SFIDA DIFFICILE'));
 
     return (
         <div className="absolute top-[160px] md:top-[220px] left-0 right-0 flex flex-col items-center z-50 pointer-events-none px-4 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -422,7 +425,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
                     className={`font-luckiest text-white uppercase text-center tracking-wide drop-shadow-[2px_2px_0_black] ${difficulty ? 'text-sm md:text-2xl whitespace-nowrap' : 'text-lg md:text-4xl'}`}
                     style={{ WebkitTextStroke: '1.2px black', lineHeight: '1.1' }}
                 >
-                    {difficulty ? levelLabel : "GIOCA CONTRO LA STREGA"}
+                    {difficulty || isMultiplayer ? levelLabel : "GIOCA CONTRO LA STREGA"}
                 </h1>
             </div>
         </div>
@@ -489,7 +492,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
                           >
                               <div className="flex gap-2">
                                   <button 
-                                      onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                      onClick={() => { generateRoomCode(); }} 
                                       className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
                                   >
                                       <img 
@@ -511,6 +514,33 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
                                   </button>
                               </div>
                               
+                              <AnimatePresence>
+                                  {isMultiplayer && roomCode && (
+                                      <motion.div 
+                                          initial={{ height: 0, opacity: 0 }}
+                                          animate={{ height: 'auto', opacity: 1 }}
+                                          className="flex flex-col items-center gap-2 pt-3 border-t border-white/20 overflow-hidden"
+                                      >
+                                          <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center relative group">
+                                              <span className="text-slate-900 font-black text-xl tracking-widest">{roomCode}</span>
+                                              <button 
+                                                  onClick={() => backToMenu()}
+                                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors shadow-md"
+                                                  title="Chiudi Stanza"
+                                              >
+                                                  <X size={14} />
+                                              </button>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                                              <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+                                                  {isConnected ? "Avversario connesso!" : "In attesa dell'avversario..."}
+                                              </span>
+                                          </div>
+                                      </motion.div>
+                                  )}
+                              </AnimatePresence>
+
                               <AnimatePresence>
                                   {showJoinInput && (
                                       <motion.div 
@@ -568,17 +598,13 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
       
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-64 md:pt-80 pb-4">
-        {isMultiplayer && roomCode && (
-          <div className="absolute top-[280px] md:top-[340px] z-50 flex flex-col items-center gap-2">
-            <div className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full border-2 border-boo-purple shadow-lg flex items-center gap-2">
-              <span className="text-boo-purple font-black text-xs uppercase">Codice Stanza:</span>
-              <span className="text-boo-purple font-black text-lg tracking-widest">{roomCode}</span>
-              {!isConnected && (
-                <div className="flex items-center gap-2 ml-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-boo-purple" />
-                  <span className="text-[10px] text-boo-purple animate-pulse">In attesa...</span>
-                </div>
-              )}
+        {isMultiplayer && roomCode && difficulty && (
+          <div className="absolute top-[160px] md:top-[200px] left-0 right-0 flex justify-center z-[1200] pointer-events-none">
+            <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3 shadow-xl pointer-events-auto">
+              <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+              <span className="text-blue-700 font-black uppercase tracking-widest text-sm">
+                  CODICE: {roomCode}
+              </span>
             </div>
           </div>
         )}

@@ -94,6 +94,8 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           // Sync opponent data
           if (playerRole === 'p1') {
             if (data.p2) {
+              setIsConnected(true);
+              if (gameState === 'WAITING_OPPONENT') setGameState('SELECT_CARDS');
               setOpponent(prev => {
                 // Don't clear opponent card if we are still showing results of the current round
                 const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p2.selectedCard && data.p2.round > prev.round;
@@ -164,7 +166,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
-      setGameState('SELECT_CARDS');
+      setGameState('WAITING_OPPONENT');
     } catch (error) {
       console.error("Error creating room:", error);
       alert("Errore nella creazione della stanza. Verifica i permessi Firebase.");
@@ -479,7 +481,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                 >
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                      onClick={() => { generateRoomCode(); }} 
                       className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
                     >
                       <img 
@@ -501,6 +503,26 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                     </button>
                   </div>
                   
+                  <AnimatePresence>
+                    {isMultiplayer && roomCode && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        className="flex flex-col items-center gap-2 pt-3 border-t border-white/20 overflow-hidden"
+                      >
+                        <div className="bg-white/40 px-4 py-2 rounded-xl border border-white/50 w-full text-center">
+                          <span className="text-slate-900 font-black text-xl tracking-widest">{roomCode}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                          <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+                            {isConnected ? "Avversario connesso!" : "In attesa dell'avversario..."}
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <AnimatePresence>
                     {showJoinInput && (
                       <motion.div 
