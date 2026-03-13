@@ -154,7 +154,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   
   const [capturedByWhite, setCapturedByWhite] = useState<PieceType[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<PieceType[]>([]);
@@ -169,6 +169,14 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   const [playerRole, setPlayerRole] = useState<'p1' | 'p2' | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
+
+  const displayIndices = useMemo(() => {
+    const indices = Array.from({ length: 64 }, (_, i) => i);
+    if (isMultiplayer && playerRole === 'p2') {
+      return [...indices].reverse();
+    }
+    return indices;
+  }, [isMultiplayer, playerRole]);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -195,6 +203,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       bgMusicRef.current.loop = true;
       bgMusicRef.current.volume = 0.4;
 
+      // Sincronizzazione audio globale
       // Timer per l'aggiornamento dell'orario
       const timeTimer = setInterval(() => setNow(new Date()), 60000);
       return () => {
@@ -234,13 +243,13 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   // Gestione riproduzione musica
   useEffect(() => {
     if (bgMusicRef.current) {
-        if (musicEnabled && difficulty && !winner) {
+        if (musicEnabled && !winner) {
             bgMusicRef.current.play().catch(() => console.log("Audio block by browser"));
         } else {
             bgMusicRef.current.pause();
         }
     }
-  }, [musicEnabled, difficulty, winner]);
+  }, [musicEnabled, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -570,6 +579,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
   };
 
   const generateRoomCode = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     setRoomCode(code);
     setPlayerRole('p1');
@@ -589,7 +602,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       setupRow(7, 'w', backRow);
 
       await setDoc(doc(db, 'chess_rooms', code), {
-        p1: currentUser?.uid || 'host',
+        p1: { id: currentUser.uid, name: 'Tu' },
         board: newBoard,
         turn: 'w',
         status: 'WAITING',
@@ -597,11 +610,15 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       });
     } catch (error) {
       console.error("Error creating room:", error);
-      alert("Errore nella creazione della stanza.");
+      alert("Errore nella creazione della stanza. Verifica i permessi Firebase.");
     }
   };
 
   const joinRoom = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
     if (inputCode.length === 4) {
       const roomRef = doc(db, 'chess_rooms', inputCode);
       try {
@@ -613,7 +630,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
           setDifficulty('MEDIUM');
           
           await updateDoc(roomRef, {
-            p2: currentUser?.uid || 'guest',
+            p2: { id: currentUser.uid, name: 'Tu' },
             status: 'PLAYING',
             updatedAt: serverTimestamp()
           });
@@ -622,6 +639,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         }
       } catch (error) {
         console.error("Error joining room:", error);
+        alert("Errore nell'accesso alla stanza.");
       }
     }
   };
@@ -670,7 +688,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         />
 
         {/* HUD NAVIGAZIONE SUPERIORE (STILE TRIS/DAMA) */}
-        <div className="absolute top-[20px] left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none">
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
             <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
                 <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
             </button>
@@ -755,21 +773,23 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         </div>
 
         {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
-        <div className="absolute top-[80px] md:top-[100px] right-4 z-[100] pointer-events-none flex flex-col items-end gap-3">
+        <div className="absolute top-[80px] md:top-[100px] right-4 z-[1200] pointer-events-none flex flex-col items-end gap-3">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                 <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             
             {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
-            {difficulty && !winner && (
-                <button 
-                    onClick={() => setMusicEnabled(!musicEnabled)}
-                    className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-                >
-                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
-                </button>
-            )}
+            <button 
+                onClick={() => {
+                    const nextState = !musicEnabled;
+                    setMusicEnabled(nextState);
+                    localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                }}
+                className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+            >
+                <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
+            </button>
         </div>
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
@@ -851,7 +871,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                                 </div>
                             )}
                             <div className="grid grid-cols-8 grid-rows-8 w-[min(85vw,50vh)] h-[min(85vw,50vh)] md:w-[min(55vh,55vw)] md:h-[min(55vh,55vw)] aspect-square border-4 border-indigo-900 rounded-lg overflow-hidden bg-indigo-100 shadow-inner">
-                                {board.map((piece, idx) => {
+                                {displayIndices.map((idx) => {
+                                    const piece = board[idx];
                                     const row = Math.floor(idx / 8); const col = idx % 8;
                                     const isDark = (row + col) % 2 === 1;
                                     const isValid = legalMoves.includes(idx);
@@ -860,8 +881,12 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                                     const isAiAnimatingFrom = aiMoving?.from === idx;
                                     let transform = 'none'; let transition = 'none';
                                     if (isAiAnimatingFrom) {
-                                        const dr = (Math.floor(aiMoving!.to / 8) - row) * 100;
-                                        const dc = (aiMoving!.to % 8 - col) * 100;
+                                        let dr = (Math.floor(aiMoving!.to / 8) - row) * 100;
+                                        let dc = (aiMoving!.to % 8 - col) * 100;
+                                        if (isMultiplayer && playerRole === 'p2') {
+                                            dr = -dr;
+                                            dc = -dc;
+                                        }
                                         transform = `translate(${dc}%, ${dr}%)`; transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
                                     }
                                     return (

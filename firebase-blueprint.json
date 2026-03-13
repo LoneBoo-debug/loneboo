@@ -38,7 +38,27 @@
   "firestore": {
     "/rooms/{roomCode}": {
       "schema": "GameRoom",
-      "description": "Collection of active game rooms"
+      "description": "Collection of active game rooms (legacy)"
+    },
+    "/checkers_rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active checkers game rooms"
+    },
+    "/chess_rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active chess game rooms"
+    },
+    "/tictactoe_rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active tic-tac-toe game rooms"
+    },
+    "/connect4_rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active connect 4 game rooms"
+    },
+    "/clashboo_rooms/{roomCode}": {
+      "schema": "GameRoom",
+      "description": "Collection of active clash boo game rooms"
     }
   }
 }

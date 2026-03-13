@@ -48,7 +48,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   const [userTokens, setUserTokens] = useState(0);
   
   // Music States
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   const [firstMoveMade, setFirstMoveMade] = useState(false);
   const bgMusic = useRef<HTMLAudioElement | null>(null);
 
@@ -480,7 +480,11 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                 {/* TASTO MUSICA (BASSO A DESTRA) */}
                 <div className="flex flex-col items-center shrink-0">
                     <button 
-                        onClick={() => setMusicEnabled(!musicEnabled)}
+                        onClick={() => {
+                            const nextState = !musicEnabled;
+                            setMusicEnabled(nextState);
+                            localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                        }}
                         className="bg-black/40 backdrop-blur-md p-3 rounded-full border-2 border-white/50 text-white shadow-xl pointer-events-auto hover:scale-110 active:scale-95 transition-all"
                         title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
                     >

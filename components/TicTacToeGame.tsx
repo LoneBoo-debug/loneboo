@@ -60,7 +60,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   const [isMounting, setIsMounting] = useState(true);
 
   // Multiplayer States
@@ -140,13 +140,13 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
   // Gestione musica basata sullo stato del gioco e del toggle
   useEffect(() => {
       if (bgMusicRef.current) {
-          if (musicEnabled && difficulty && !winner) {
+          if (musicEnabled && !winner) {
               bgMusicRef.current.play().catch(() => console.log("Musica bloccata dal browser"));
           } else {
               bgMusicRef.current.pause();
           }
       }
-  }, [musicEnabled, difficulty, winner]);
+  }, [musicEnabled, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -331,7 +331,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
     
     try {
       await setDoc(doc(db, 'tictactoe_rooms', code), {
-        p1: currentUser?.uid || 'host',
+        p1: { id: currentUser?.uid || 'host', name: 'Tu' },
         board: Array(9).fill(null),
         isPlayerTurn: true,
         winner: null,
@@ -356,7 +356,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
           setDifficulty('MEDIUM');
           
           await updateDoc(roomRef, {
-            p2: currentUser?.uid || 'guest',
+            p2: { id: currentUser?.uid || 'guest', name: 'Tu' },
             status: 'PLAYING',
             updatedAt: serverTimestamp()
           });
@@ -433,7 +433,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
       <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" />
 
       {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA E SALDO GETTONI IN ALTO A DESTRA */}
-      <div className="absolute top-[20px] left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none">
+      <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
           <div className="flex flex-col items-start pointer-events-auto">
               <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
                   <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto drop-shadow-md" />
@@ -519,14 +519,18 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
       </div>
 
       {/* SALDO GETTONI E AUDIO SOTTO L'HEADER */}
-      <div className="absolute top-[80px] md:top-[100px] right-4 z-[100] pointer-events-none flex flex-col items-end gap-3">
+      <div className="absolute top-[80px] md:top-[100px] right-4 z-[1200] pointer-events-none flex flex-col items-end gap-3">
           <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
               <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           
           {/* Tasto Audio sotto i gettoni */}
           <button 
-              onClick={() => setMusicEnabled(!musicEnabled)}
+              onClick={() => {
+                  const nextState = !musicEnabled;
+                  setMusicEnabled(nextState);
+                  localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+              }}
               className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
               title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
           >

@@ -53,6 +53,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const [round, setRound] = useState(1);
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [isColpoFurbo, setIsColpoFurbo] = useState(false);
+  const [isNextRoundReady, setIsNextRoundReady] = useState(false);
   
   const progress = getProgress();
   
@@ -78,7 +79,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   // Multiplayer sync
   useEffect(() => {
     if (isMultiplayer && roomCode && currentUser) {
-      const roomRef = doc(db, 'rooms', roomCode);
+      const roomRef = doc(db, 'clashboo_rooms', roomCode);
       
       const unsubscribe = onSnapshot(roomRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -140,6 +141,10 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   };
 
   const generateRoomCode = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     setRoomCode(code);
     setPlayerRole('p1');
@@ -148,21 +153,25 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     try {
       if (!db) throw new Error("Database non inizializzato");
       
-      await setDoc(doc(db, 'rooms', code), {
-        p1: { id: currentUser?.uid || 'host', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
+      await setDoc(doc(db, 'clashboo_rooms', code), {
+        p1: { id: currentUser.uid, name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
       setGameState('SELECT_CARDS');
     } catch (error) {
       console.error("Error creating room:", error);
-      alert("Errore nella creazione della stanza. Assicurati che le variabili di ambiente siano configurate su Vercel e che l'accesso Anonimo sia attivo su Firebase.");
+      alert("Errore nella creazione della stanza. Verifica i permessi Firebase.");
     }
   };
 
   const joinRoom = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
     if (inputCode.length === 4) {
-      const roomRef = doc(db, 'rooms', inputCode);
+      const roomRef = doc(db, 'clashboo_rooms', inputCode);
       try {
         if (!db) throw new Error("Database non inizializzato");
         const snap = await getDoc(roomRef);
@@ -172,7 +181,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           setIsMultiplayer(true);
           
           await updateDoc(roomRef, {
-            p2: { id: currentUser?.uid || 'guest', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
+            p2: { id: currentUser.uid, name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 },
             status: 'PLAYING',
             updatedAt: serverTimestamp()
           });
@@ -203,7 +212,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const confirmSelection = async () => {
     if (player.cards.length === 5) {
       if (isMultiplayer && roomCode) {
-        const roomRef = doc(db, 'rooms', roomCode);
+        const roomRef = doc(db, 'clashboo_rooms', roomCode);
         const updateData: any = {};
         updateData[playerRole === 'p1' ? 'p1' : 'p2'] = {
           ...player,
@@ -240,7 +249,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setPlayer(prev => ({ ...prev, selectedCard: card }));
     
     if (isMultiplayer && roomCode) {
-      const roomRef = doc(db, 'rooms', roomCode);
+      const roomRef = doc(db, 'clashboo_rooms', roomCode);
       const updateData: any = {};
       updateData[`${playerRole}.selectedCard`] = card;
       
@@ -252,12 +261,21 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     } else {
       // CPU plays a random card from its remaining cards
       const availableCpuCards = opponent.cards.filter(c => !opponent.selectedCard || c.id !== opponent.selectedCard.id);
-      const randomCard = availableCpuCards[Math.floor(Math.random() * availableCpuCards.length)];
-      setTimeout(() => {
-        setOpponent(prev => ({ ...prev, selectedCard: randomCard }));
-      }, 500);
+      if (availableCpuCards.length > 0) {
+        const randomCard = availableCpuCards[Math.floor(Math.random() * availableCpuCards.length)];
+        setTimeout(() => {
+          setOpponent(prev => ({ ...prev, selectedCard: randomCard }));
+        }, 800);
+      }
     }
   };
+
+  useEffect(() => {
+    if (isMultiplayer && roomCode && gameState === 'PLAYING') {
+      // Reset next round ready state when entering playing state
+      setIsNextRoundReady(false);
+    }
+  }, [gameState, isMultiplayer, roomCode]);
 
   useEffect(() => {
     if (player.selectedCard && opponent.selectedCard) {
@@ -266,13 +284,13 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   }, [player.selectedCard, opponent.selectedCard]);
 
   useEffect(() => {
-    if (gameState === 'ROUND_RESULT') {
+    if (gameState === 'ROUND_RESULT' && !isMultiplayer) {
       const timer = setTimeout(() => {
         nextRound();
-      }, 5000);
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [gameState]);
+  }, [gameState, isMultiplayer]);
 
   const resolveRound = () => {
     const pVal = player.selectedCard?.value || 0;
@@ -286,6 +304,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       winnerId = 'DRAW';
     } else if (diff >= 5) {
       colpoFurbo = true;
+      // Low card beats high card if diff >= 5
       winnerId = pVal < oVal ? 'player' : 'opponent';
     } else {
       winnerId = pVal > oVal ? 'player' : 'opponent';
@@ -294,14 +313,24 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setIsColpoFurbo(colpoFurbo);
     setRoundWinner(winnerId);
     
+    // Update scores immediately for CPU mode to ensure they are marked
+    if (!isMultiplayer) {
+      if (winnerId === 'player') {
+        setPlayer(prev => ({ ...prev, roundsWon: prev.roundsWon + 1 }));
+      } else if (winnerId === 'opponent') {
+        setOpponent(prev => ({ ...prev, roundsWon: prev.roundsWon + 1 }));
+      }
+    }
+    
     setTimeout(() => {
       setGameState('ROUND_RESULT');
     }, 1000);
   };
 
   const nextRound = async () => {
-    const pWon = roundWinner === 'player';
-    const oWon = roundWinner === 'opponent';
+    // In CPU mode, roundsWon is already updated in resolveRound
+    const pWon = !isMultiplayer ? false : (roundWinner === 'player');
+    const oWon = !isMultiplayer ? false : (roundWinner === 'opponent');
     
     const newPlayer = { 
       ...player, 
@@ -311,16 +340,42 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
       round: player.round + 1
     };
 
+    if (!isMultiplayer) {
+      const newOpponent = {
+        ...opponent,
+        // roundsWon already updated in resolveRound
+        cards: opponent.cards.filter(c => c.id !== opponent.selectedCard?.id),
+        selectedCard: null,
+        round: opponent.round + 1
+      };
+      
+      const pCardsLeft = newPlayer.cards.length;
+      if (newPlayer.roundsWon >= 3 || newOpponent.roundsWon >= 3 || pCardsLeft === 0) {
+        setPlayer(newPlayer);
+        setOpponent(newOpponent);
+        setGameState('GAME_OVER');
+        if (newPlayer.roundsWon > newOpponent.roundsWon) {
+          addTokens(50, 'Vittoria Clash Boo');
+        }
+      } else {
+        setPlayer(newPlayer);
+        setOpponent(newOpponent);
+        setRound(prev => prev + 1);
+        setRoundWinner(null);
+        setIsColpoFurbo(false);
+        setGameState('PLAYING');
+      }
+      return;
+    }
+
     setPlayer(newPlayer);
-    // Don't update opponent locally here, let onSnapshot handle it
-    
     setRound(prev => prev + 1);
     setRoundWinner(null);
     setIsColpoFurbo(false);
 
     // Sync to Firebase if multiplayer
     if (isMultiplayer && roomCode) {
-      const roomRef = doc(db, 'rooms', roomCode);
+      const roomRef = doc(db, 'clashboo_rooms', roomCode);
       const updateData: any = {};
       updateData[playerRole === 'p1' ? 'p1' : 'p2'] = newPlayer;
       updateData.updatedAt = serverTimestamp();
@@ -328,14 +383,12 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }
 
     const pCardsLeft = player.cards.filter(c => c.id !== player.selectedCard?.id).length;
+    const oWonRounds = opponent.roundsWon + (oWon ? 1 : 0);
+    const pWonRounds = player.roundsWon + (pWon ? 1 : 0);
 
-    if (player.roundsWon + (pWon ? 1 : 0) >= 3 || opponent.roundsWon + (oWon ? 1 : 0) >= 3 || pCardsLeft === 0) {
+    if (pWonRounds >= 3 || oWonRounds >= 3 || pCardsLeft === 0) {
       setGameState('GAME_OVER');
-      
-      // Award tokens if player is the winner
-      const finalPlayerRounds = player.roundsWon + (pWon ? 1 : 0);
-      const finalOpponentRounds = opponent.roundsWon + (oWon ? 1 : 0);
-      if (finalPlayerRounds > finalOpponentRounds) {
+      if (pWonRounds > oWonRounds) {
         addTokens(50, 'Vittoria Clash Boo');
       }
     } else {
@@ -347,7 +400,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     restartCurrentModeLocally();
     
     if (isMultiplayer && roomCode) {
-      const roomRef = doc(db, 'rooms', roomCode);
+      const roomRef = doc(db, 'clashboo_rooms', roomCode);
       try {
         await updateDoc(roomRef, {
           status: 'RESTART',
@@ -368,7 +421,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   const resetGame = async () => {
     if (isMultiplayer && roomCode && playerRole === 'p1') {
       try {
-        await deleteDoc(doc(db, 'rooms', roomCode));
+        await deleteDoc(doc(db, 'clashboo_rooms', roomCode));
       } catch (error) {
         console.error("Error deleting room:", error);
       }
@@ -586,6 +639,21 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                     alt={roundWinner || 'Pareggio'} 
                     className={`${roundWinner === 'DRAW' ? 'h-20 md:h-32' : 'h-28 md:h-48'} w-auto drop-shadow-2xl transition-all`}
                   />
+                  
+                  {isMultiplayer && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => {
+                        setIsNextRoundReady(true);
+                        nextRound();
+                      }}
+                      disabled={isNextRoundReady}
+                      className="mt-4 px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-black rounded-full shadow-xl border-2 border-white/50 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale pointer-events-auto"
+                    >
+                      {isNextRoundReady ? 'ATTESA...' : 'PROSSIMO ROUND'}
+                    </motion.button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

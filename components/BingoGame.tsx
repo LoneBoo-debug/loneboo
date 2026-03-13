@@ -60,7 +60,7 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
   const [isPaused, setIsPaused] = useState(false);
   const [winningOpponentId, setWinningOpponentId] = useState<string | null>(null);
   const [sfxEnabled, setSfxEnabled] = useState(true);
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   const [stars, setStars] = useState<StarEffect[]>([]);
   const [lastPlayerPrize, setLastPlayerPrize] = useState<string | null>(null);
   
@@ -429,7 +429,11 @@ const BingoGame: React.FC<{ onBack: () => void, onEarnTokens: (n: number) => voi
           
           <div className="flex items-center gap-1.5 md:gap-2">
             <button 
-              onClick={() => setMusicEnabled(!musicEnabled)} 
+              onClick={() => {
+                  const nextState = !musicEnabled;
+                  setMusicEnabled(nextState);
+                  localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+              }} 
               className={`p-1.5 md:p-2 rounded-full border-2 transition-all ${musicEnabled ? 'bg-purple-500 border-white text-white' : 'bg-gray-600 border-gray-400 text-gray-300'}`}
               title="Musica"
             >

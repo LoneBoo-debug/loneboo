@@ -1,11 +1,24 @@
 
-import { getProgress, unlockHardMode, isAnyAlbumComplete } from '../services/tokens';
+import { getProgress, unlockHardMode, isAnyAlbumComplete, addTokens } from '../services/tokens';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UnlockModal from './UnlockModal';
 import SaveReminder from './SaveReminder';
 import { isNightTime } from '../services/weatherService';
 import { TOKEN_ICON_URL } from '../constants';
 import TokenIcon from './TokenIcon';
+import { db, auth } from '../firebase';
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  onSnapshot, 
+  getDoc, 
+  serverTimestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { motion, AnimatePresence } from 'motion/react';
+import { Users, User, Monitor, ChevronDown, Send, Check, AlertCircle } from 'lucide-react';
 
 const NEW_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/connect4.webp';
 const BTN_EASY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/facilelogodsnaq.webp';
@@ -47,10 +60,19 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
   const [winningCells, setWinningCells] = useState<[number, number][]>([]);
   const [rewardGiven, setRewardGiven] = useState(false);
   
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
+  const [inputCode, setInputCode] = useState('');
+  const [showInviteMenu, setShowInviteMenu] = useState(false);
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [playerRole, setPlayerRole] = useState<'RED' | 'YELLOW' | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   const [isMounting, setIsMounting] = useState(true);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -65,6 +87,16 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       const albumComplete = isAnyAlbumComplete(); 
       setIsHardUnlocked(albumComplete || !!progress.hardModeUnlocked);
 
+      // Auth setup
+      const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setCurrentUser(user);
+          setIsConnected(true);
+        } else {
+          signInAnonymously(auth).catch(console.error);
+        }
+      });
+
       // Inizializza Audio
       bgMusicRef.current = new Audio(BG_MUSIC_URL);
       bgMusicRef.current.loop = true;
@@ -76,6 +108,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       return () => {
           clearInterval(timeTimer);
           clearTimeout(mountTimer);
+          unsubscribeAuth();
           if (bgMusicRef.current) {
               bgMusicRef.current.pause();
               bgMusicRef.current = null;
@@ -83,16 +116,113 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       };
   }, []);
 
+  // Multiplayer sync
+  useEffect(() => {
+    if (isMultiplayer && roomCode && currentUser) {
+      const roomRef = doc(db, 'connect4_rooms', roomCode);
+      
+      const unsubscribe = onSnapshot(roomRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          
+          if (data.board) setBoard(data.board);
+          if (data.turn) setTurn(data.turn);
+          if (data.winner) setWinner(data.winner);
+          if (data.winningCells) setWinningCells(data.winningCells);
+          
+          if (data.status === 'RESTART' && winner) {
+            initGameLocally();
+          }
+        } else if (playerRole === 'YELLOW') {
+          // Room deleted by host
+          backToMenu();
+        }
+      });
+
+      return () => unsubscribe();
+    }
+  }, [isMultiplayer, roomCode, currentUser, playerRole, winner]);
+
+  const initGameLocally = () => {
+    setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
+    setTurn('RED');
+    setWinner(null);
+    setWinningCells([]);
+    setIsThinking(false);
+    setRewardGiven(false);
+    const p = getProgress();
+    setUserTokens(p.tokens);
+  };
+
+  const generateRoomCode = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    setRoomCode(code);
+    setPlayerRole('RED');
+    setIsMultiplayer(true);
+    setDifficulty('MEDIUM'); // Default difficulty for multiplayer logic
+    
+    try {
+      await setDoc(doc(db, 'connect4_rooms', code), {
+        board: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
+        turn: 'RED',
+        winner: null,
+        winningCells: [],
+        status: 'WAITING',
+        p1: { id: currentUser.uid, name: 'Tu' },
+        updatedAt: serverTimestamp()
+      });
+      initGameLocally();
+    } catch (error) {
+      console.error("Error creating room:", error);
+      alert("Errore nella creazione della stanza. Verifica i permessi Firebase.");
+    }
+  };
+
+  const joinRoom = async () => {
+    if (!currentUser) {
+      alert("Attendi la connessione al server...");
+      return;
+    }
+    if (inputCode.length === 4) {
+      const roomRef = doc(db, 'connect4_rooms', inputCode);
+      try {
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          setRoomCode(inputCode);
+          setPlayerRole('YELLOW');
+          setIsMultiplayer(true);
+          setDifficulty('MEDIUM');
+          
+          await updateDoc(roomRef, {
+            p2: { id: currentUser.uid, name: 'Tu' },
+            status: 'PLAYING',
+            updatedAt: serverTimestamp()
+          });
+          initGameLocally();
+        } else {
+          alert("Stanza non trovata!");
+        }
+      } catch (error) {
+        console.error("Error joining room:", error);
+        alert("Errore nell'accesso alla stanza.");
+      }
+    }
+  };
+
   // Gestione musica basata sullo stato del gioco e del toggle
   useEffect(() => {
       if (bgMusicRef.current) {
-          if (musicEnabled && difficulty && !winner) {
+          if (musicEnabled && !winner) {
               bgMusicRef.current.play().catch(() => console.log("Musica bloccata dal browser"));
           } else {
               bgMusicRef.current.pause();
           }
       }
-  }, [musicEnabled, difficulty, winner]);
+  }, [musicEnabled, winner]);
 
   const handleUnlockHard = () => {
       if (unlockHardMode()) {
@@ -128,13 +258,21 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
   }, [difficulty]);
 
   useEffect(() => {
-      if (winner === 'RED' && !rewardGiven && onEarnTokens) {
+      if (winner === 'RED' && !rewardGiven && onEarnTokens && !isMultiplayer) {
           let reward = difficulty === 'HARD' ? 15 : (difficulty === 'MEDIUM' ? 10 : 5);
           onEarnTokens(reward);
           setRewardGiven(true);
           setUserTokens(prev => prev + reward);
+      } else if (winner && winner !== 'DRAW' && !rewardGiven && isMultiplayer) {
+          // In multiplayer, the winner gets 50 tokens
+          const isWinner = (playerRole === 'RED' && winner === 'RED') || (playerRole === 'YELLOW' && winner === 'YELLOW');
+          if (isWinner) {
+              addTokens(50, 'Vittoria Forza 4 Multiplayer');
+              setUserTokens(prev => prev + 50);
+          }
+          setRewardGiven(true);
       }
-  }, [winner, rewardGiven, onEarnTokens, difficulty]);
+  }, [winner, rewardGiven, onEarnTokens, difficulty, isMultiplayer, playerRole]);
 
   const checkWin = (currentBoard: CellValue[][]): { winner: 'RED' | 'YELLOW' | null, cells: [number, number][] } => {
       const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
@@ -168,16 +306,38 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       return { success: false, row: -1 };
   };
 
-  const handleColumnClick = (col: number) => {
-      if (winner || isThinking || turn !== 'RED') return;
+  const handleColumnClick = async (col: number) => {
+      if (winner || isThinking || turn !== (isMultiplayer ? playerRole : 'RED')) return;
+      
       const newBoard = board.map(row => [...row]);
-      const { success } = dropPiece(col, 'RED', newBoard);
+      const { success } = dropPiece(col, turn, newBoard);
+      
       if (success) {
-          setBoard(newBoard);
           const winResult = checkWin(newBoard);
-          if (winResult.winner) { setWinner(winResult.winner); setWinningCells(winResult.cells); }
-          else if (checkDraw(newBoard)) setWinner('DRAW');
-          else setTurn('YELLOW');
+          let newWinner: 'RED' | 'YELLOW' | 'DRAW' | null = winResult.winner;
+          let newWinningCells = winResult.cells;
+          let newTurn: 'RED' | 'YELLOW' = turn === 'RED' ? 'YELLOW' : 'RED';
+          
+          if (!newWinner && checkDraw(newBoard)) newWinner = 'DRAW';
+
+          if (isMultiplayer && roomCode) {
+              const roomRef = doc(db, 'connect4_rooms', roomCode);
+              await updateDoc(roomRef, {
+                  board: newBoard,
+                  turn: newWinner ? turn : newTurn,
+                  winner: newWinner,
+                  winningCells: newWinningCells,
+                  updatedAt: serverTimestamp()
+              });
+          } else {
+              setBoard(newBoard);
+              if (newWinner) { 
+                  setWinner(newWinner); 
+                  setWinningCells(newWinningCells); 
+              } else {
+                  setTurn(newTurn);
+              }
+          }
       }
   };
 
@@ -191,7 +351,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
   };
 
   useEffect(() => {
-      if (turn === 'YELLOW' && !winner && difficulty) {
+      if (turn === 'YELLOW' && !winner && difficulty && !isMultiplayer) {
           setIsThinking(true);
           const timer = setTimeout(() => {
               const newBoard = board.map(row => [...row]);
@@ -227,11 +387,35 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       }
   }, [turn, winner, difficulty, board]);
 
-  const resetGame = () => initGame();
-  const backToMenu = () => {
+  const resetGame = async () => {
+    if (isMultiplayer && roomCode) {
+        const roomRef = doc(db, 'connect4_rooms', roomCode);
+        await updateDoc(roomRef, {
+            status: 'RESTART',
+            board: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
+            turn: 'RED',
+            winner: null,
+            winningCells: [],
+            updatedAt: serverTimestamp()
+        });
+        setTimeout(() => {
+            updateDoc(roomRef, { status: 'PLAYING' });
+        }, 500);
+    } else {
+        initGameLocally();
+    }
+  };
+
+  const backToMenu = async () => {
+      if (isMultiplayer && roomCode && playerRole === 'RED') {
+          await deleteDoc(doc(db, 'connect4_rooms', roomCode));
+      }
       setDifficulty(null);
       setWinner(null);
       setWinningCells([]);
+      setIsMultiplayer(false);
+      setRoomCode('');
+      setPlayerRole(null);
   };
 
   const fullScreenWrapper = "fixed inset-0 w-full h-[100dvh] z-[60] overflow-hidden touch-none overscroll-none select-none";
@@ -262,39 +446,133 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
 
         <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" />
 
-        {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA E SALDO GETTONI IN ALTO A DESTRA */}
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-start justify-between z-50 pointer-events-none">
-            <div className="flex flex-col items-start gap-2 pointer-events-auto">
-                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
-                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
-                </button>
+        {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA */}
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
+            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
+                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+            </button>
+            
+            <div className="flex gap-2 pointer-events-auto">
                 {difficulty && (
-                    <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                        <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-16 md:h-22 w-auto drop-shadow-md" />
+                    <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-10 md:h-12 w-auto" />
                     </button>
                 )}
-            </div>
-
-            <div className="pointer-events-auto flex flex-col items-end gap-3">
-                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
-                    <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
                 
-                {/* Tasto Audio sotto i gettoni */}
-                <button 
-                    onClick={() => setMusicEnabled(!musicEnabled)}
-                    className={`hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-                >
-                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
-                </button>
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowInviteMenu(!showInviteMenu)}
+                        className="hover:scale-105 active:scale-95 transition-transform outline-none"
+                    >
+                        <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/sfidaunamicoclashboo.webp" alt="Sfida Amico" className="h-10 md:h-12 w-auto" />
+                    </button>
+                    
+                    <AnimatePresence>
+                        {showInviteMenu && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute right-0 mt-2 w-60 bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl overflow-hidden z-[1100] p-4 flex flex-col gap-3"
+                            >
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => { generateRoomCode(); setShowInviteMenu(false); }} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/creagiocomultiplayer+(1).webp" 
+                                            alt="Crea Gioco" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => setShowJoinInput(!showJoinInput)} 
+                                        className="flex-1 hover:scale-105 active:scale-95 transition-transform outline-none"
+                                    >
+                                        <img 
+                                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/partecipamultipoi+(1).webp" 
+                                            alt="Partecipa" 
+                                            className="w-full h-auto drop-shadow-md"
+                                        />
+                                    </button>
+                                </div>
+                                
+                                <AnimatePresence>
+                                    {showJoinInput && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="flex flex-col gap-2 pt-2 border-t border-white/20 overflow-hidden"
+                                        >
+                                            <input 
+                                                type="text" 
+                                                placeholder="CODICE..." 
+                                                maxLength={4}
+                                                value={inputCode}
+                                                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                                                className="w-full bg-white/40 text-slate-900 placeholder:text-slate-600 p-2 rounded-xl border border-white/50 text-center uppercase font-black tracking-widest outline-none focus:bg-white/60 transition-colors text-sm"
+                                            />
+                                            <button 
+                                                onClick={() => { joinRoom(); setShowInviteMenu(false); }} 
+                                                className="w-full bg-green-500/80 hover:bg-green-500 text-white py-2 rounded-xl font-black text-xs tracking-widest shadow-lg transition-colors uppercase"
+                                            >
+                                                ENTRA ORA
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
+
+        {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
+        <div className="absolute top-[80px] md:top-[100px] right-4 z-[1200] pointer-events-none flex flex-col items-end gap-3">
+            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
+                <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
+            </div>
+            
+            {/* Tasto Audio sotto i gettoni */}
+            <button 
+                onClick={() => {
+                    const nextState = !musicEnabled;
+                    setMusicEnabled(nextState);
+                    localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                }}
+                className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+            >
+                <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
+            </button>
+        </div>
+
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
 
         {!difficulty ? (
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-start p-4 pt-36 md:pt-48">
+                {/* Multiplayer Status */}
+                {isMultiplayer && roomCode && (
+                    <div className="mb-6 flex flex-col items-center gap-2">
+                        <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                            <span className="text-white font-black uppercase tracking-widest text-sm">
+                                {isConnected ? `CODICE: ${roomCode}` : 'CONNESSIONE...'}
+                            </span>
+                        </div>
+                        {playerRole === 'RED' && (
+                            <p className="text-white/80 text-xs font-bold uppercase tracking-tighter bg-black/20 px-3 py-1 rounded-full">
+                                In attesa di un amico...
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 {/* ISTRUZIONE SU DUE RIGHE IN UN BOX TRASLUCIDO - INGRANDITA */}
                 <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-[40px] border-4 border-white/40 shadow-2xl mb-10 animate-in slide-in-from-top-4 duration-500 max-w-[95%] md:max-w-xl">
                     <h2 
@@ -361,7 +639,14 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                     <div className={`mb-4 flex items-center justify-center ${winner === 'DRAW' ? 'animate-bounce text-6xl md:text-7xl' : ''}`}>
                         {winner === 'RED' ? <img src={PLAYER_WIN_IMG} alt="Hai Vinto" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : (winner === 'YELLOW' ? <img src={ZUCCOTTO_WIN_IMG} alt="Zuccotto Vince" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : '🤝')}
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-purple-600 drop-shadow-sm uppercase">{winner === 'RED' ? 'HAI VINTO!' : (winner === 'YELLOW' ? 'HA VINTO ZUCCOTTO!' : 'PAREGGIO!')}</h2>
+                    <h2 className="text-2xl md:text-3xl font-black text-purple-600 drop-shadow-sm uppercase">
+                        {winner === 'DRAW' ? 'PAREGGIO!' : 
+                         isMultiplayer ? (
+                             (playerRole === 'RED' && winner === 'RED') || (playerRole === 'YELLOW' && winner === 'YELLOW') ? 'HAI VINTO!' : 'HAI PERSO!'
+                         ) : (
+                             winner === 'RED' ? 'HAI VINTO!' : 'HA VINTO ZUCCOTTO!'
+                         )}
+                    </h2>
                     <div className="flex flex-row gap-4 justify-center items-center w-full mt-2">
                         <button onClick={resetGame} className="hover:scale-105 active:scale-95 transition-transform w-44"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
                         <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform w-44"><img src={BTN_BACK_MENU_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>

@@ -316,26 +316,69 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
 
   const handleZoneClick = (key: string) => {
     switch (key) {
-        case 'QUIZ': setActiveGame(GameType.QUIZ); break;
-        case 'MEMORY': setActiveGame(GameType.MEMORY); break;
-        case 'TRIS': setActiveGame(GameType.TICTACTOE); break;
-        case 'ACCHIAPPA_BOO': setActiveGame(GameType.WHACK); break;
-        case 'MORRA': setActiveGame(GameType.RPS); break;
-        case 'SIMON_BOO': setActiveGame(GameType.SIMON); break;
-        case 'MATEMATICA_MAGICA': setActiveGame(GameType.MATH); break;
-        case 'TROVA_INTRUSO': setActiveGame(GameType.ODD); break;
-        case 'INDOVINA_IL_NUMERO': setActiveGame(GameType.GUESS); break;
-        case 'FORZA_4': setActiveGame(GameType.CONNECT4); break;
-        case 'INDOVINA_LA_PAROLA': setActiveGame(GameType.WORDGUESS); break;
-        case 'SALA_GIOCHI': setActiveGame(GameType.ARCADE); break;
-        case 'DAMA': setActiveGame(GameType.CHECKERS); break;
-        case 'SCACCHI': setActiveGame(GameType.CHESS); break;
+        case 'QUIZ': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.QUIZ); 
+            break;
+        case 'MEMORY': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.MEMORY); 
+            break;
+        case 'TRIS': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.TICTACTOE); 
+            break;
+        case 'ACCHIAPPA_BOO': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.WHACK); 
+            break;
+        case 'MORRA': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.RPS); 
+            break;
+        case 'SIMON_BOO': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.SIMON); 
+            break;
+        case 'MATEMATICA_MAGICA': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.MATH); 
+            break;
+        case 'TROVA_INTRUSO': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.ODD); 
+            break;
+        case 'INDOVINA_IL_NUMERO': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.GUESS); 
+            break;
+        case 'FORZA_4': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.CONNECT4); 
+            break;
+        case 'INDOVINA_LA_PAROLA': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.WORDGUESS); 
+            break;
+        case 'SALA_GIOCHI': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.ARCADE); 
+            break;
+        case 'DAMA': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.CHECKERS); 
+            break;
+        case 'SCACCHI': 
+            onGameActiveChange?.(true);
+            setActiveGame(GameType.CHESS); 
+            break;
         case 'EDICOLA': setView(AppView.NEWSSTAND); break;
         case 'TORNA_IN_CITTA': handleExit(); break;
     }
   };
 
   const handleExit = () => {
+    onGameActiveChange?.(false);
     const origin = sessionStorage.getItem('play_origin') as AppView;
     if (origin && Object.values(AppView).includes(origin)) {
         setView(origin);

@@ -53,7 +53,7 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
   const [isHardUnlocked, setIsHardUnlocked] = useState(false);
   const [userTokens, setUserTokens] = useState(0);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(() => localStorage.getItem('loneboo_game_music_enabled') !== 'false');
   const [isMounting, setIsMounting] = useState(true);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -252,7 +252,11 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
             {/* Tasto Audio sotto i gettoni - Ingrandito leggermente */}
             {(gameState === 'PLAYING' || gameState === 'MENU') && (
                 <button 
-                    onClick={() => setMusicEnabled(!musicEnabled)}
+                    onClick={() => {
+                        const nextState = !musicEnabled;
+                        setMusicEnabled(nextState);
+                        localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                    }}
                     className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
                     title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
                 >
