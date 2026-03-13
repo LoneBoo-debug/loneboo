@@ -149,6 +149,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         if (data.status === 'PLAYING') {
           setIsConnected(true);
           setDifficulty('MEDIUM');
+          setShowInviteMenu(false);
         }
         if (data.status === 'RESTART') {
           initBoard();

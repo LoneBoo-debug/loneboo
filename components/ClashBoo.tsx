@@ -95,7 +95,10 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
           if (playerRole === 'p1') {
             if (data.p2) {
               setIsConnected(true);
-              if (gameState === 'MENU' || gameState === 'WAITING_OPPONENT') setGameState('SELECT_CARDS');
+              if (gameState === 'MENU' || (gameState === 'WAITING_OPPONENT' && opponent.id === 'opponent')) {
+                setGameState('SELECT_CARDS');
+                setShowInviteMenu(false);
+              }
               setOpponent(prev => {
                 // Don't clear opponent card if we are still showing results of the current round
                 const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p2.selectedCard && data.p2.round > prev.round;
@@ -137,7 +140,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
 
       return () => unsubscribe();
     }
-  }, [isMultiplayer, roomCode, currentUser, playerRole]);
+  }, [isMultiplayer, roomCode, currentUser, playerRole, gameState]);
 
   const restartCurrentModeLocally = () => {
     setPlayer(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 }));
@@ -194,6 +197,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
             updatedAt: serverTimestamp()
           });
           setGameState('SELECT_CARDS');
+          setShowInviteMenu(false);
         } else {
           alert("Stanza non trovata! Verifica il codice.");
         }

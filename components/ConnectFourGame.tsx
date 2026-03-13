@@ -144,6 +144,7 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
           if (data.status === 'PLAYING') {
             setIsConnected(true);
             setDifficulty('MEDIUM');
+            setShowInviteMenu(false);
           }
           
           if (data.status === 'RESTART' && winner) {

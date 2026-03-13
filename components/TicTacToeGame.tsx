@@ -137,6 +137,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
         if (data.status === 'PLAYING') {
           setIsConnected(true);
           setDifficulty('MEDIUM');
+          setShowInviteMenu(false);
         }
         if (data.status === 'RESTART') {
           resetGame();

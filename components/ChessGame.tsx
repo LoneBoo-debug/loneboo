@@ -243,6 +243,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         if (data.status === 'PLAYING') {
           setIsConnected(true);
           setDifficulty('MEDIUM');
+          setShowInviteMenu(false);
         }
         if (data.status === 'RESTART') {
           initBoard();
