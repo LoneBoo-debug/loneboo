@@ -27,8 +27,7 @@ const WordGuessGame = lazy(() => import('./WordGuessGame'));
 const ArcadeConsole = lazy(() => import('./ArcadeConsole'));
 const BingoGame = lazy(() => import('./BingoGame'));
 
-const PARK_BG_SUN_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
-const PARK_BG_SUN_DESKTOP = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newparcogiochimape3rfcxxs.webp';
+const PARK_BG_SUN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp';
 
 const PARK_BG_SNOW = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochibneveeso.webp';
 const PARK_BG_RAIN = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giochipiaggieso.webp';
@@ -207,7 +206,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
   const currentTimeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   const currentDateStr = `${currentDayName} ${currentDay} ${currentMonthShort}`;
 
-  const currentBgMobile = useMemo(() => {
+  const currentBg = useMemo(() => {
     const isNight = isNightTime(now);
     if (isNight) {
       switch (todayWeather) {
@@ -221,26 +220,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
         case 'SNOW': return PARK_BG_SNOW;
         case 'RAIN': return PARK_BG_RAIN;
         case 'WIND': return PARK_BG_WIND;
-        default: return PARK_BG_SUN_MOBILE;
-      }
-    }
-  }, [todayWeather, now]);
-
-  const currentBgDesktop = useMemo(() => {
-    const isNight = isNightTime(now);
-    if (isNight) {
-      switch (todayWeather) {
-        case 'SNOW': return PLAY_NIGHT_SNOW;
-        case 'RAIN': return PLAY_NIGHT_RAIN;
-        case 'WIND': return PLAY_NIGHT_WIND;
-        default: return PLAY_NIGHT_SUN;
-      }
-    } else {
-      switch (todayWeather) {
-        case 'SNOW': return PARK_BG_SNOW;
-        case 'RAIN': return PARK_BG_RAIN;
-        case 'WIND': return PARK_BG_WIND;
-        default: return PARK_BG_SUN_DESKTOP;
+        default: return PARK_BG_SUN;
       }
     }
   }, [todayWeather, now]);
@@ -253,7 +233,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
     };
     window.addEventListener('progressUpdated', handleProgressUpdate);
     
-    const bgUrl = window.innerWidth < 768 ? currentBgMobile : currentBgDesktop;
+    const bgUrl = currentBg;
     const img = new Image(); 
     img.src = bgUrl;
     img.onload = () => setIsLoaded(true);
@@ -293,7 +273,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
         ambientAudioRef.current.currentTime = 0;
       }
     };
-  }, [activeGame, isAudioOn, currentBgMobile, currentBgDesktop]);
+  }, [activeGame, isAudioOn, currentBg]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -481,10 +461,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({ setView, onGameActiveChange }) => {
       <div 
         className="absolute inset-0 z-0"
       >
-        <picture>
-          <source media="(max-width: 768px)" srcSet={currentBgMobile} />
-          <img src={currentBgDesktop} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
-        </picture>
+        <img src={currentBg} alt="Parco Giochi" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
         
         {isLoaded && (
           <div className="absolute top-[74%] right-[4%] z-[60] animate-in slide-in-from-bottom-2 duration-700 pointer-events-auto">

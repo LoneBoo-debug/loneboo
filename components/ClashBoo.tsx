@@ -18,6 +18,12 @@ import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const CLASH_BOO_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfondoclashboogifure.webp';
 
+// Multiplayer Modal Assets
+const MULTIPLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victoruymultiplayer.webp';
+const MULTIPLAYER_LOST_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lostmultiplyaers33.webp';
+const BTN_PLAY_AGAIN_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocaancoramultiplyars.webp';
+const BTN_EXIT_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_con+le+stesse+dimensioni+del+t_488799909208367111.webp';
+
 interface ClashBooProps {
   setView: (view: AppView) => void;
 }
@@ -419,7 +425,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   };
 
   const resetGame = async () => {
-    if (isMultiplayer && roomCode && playerRole === 'p1') {
+    if (isMultiplayer && roomCode) {
       try {
         await deleteDoc(doc(db, 'clashboo_rooms', roomCode));
       } catch (error) {
@@ -765,18 +771,36 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
             animate={{ opacity: 1, scale: 1 }} 
             className="text-center z-10 bg-slate-800/95 backdrop-blur-xl p-8 md:p-12 rounded-3xl border-4 border-white shadow-2xl max-w-[90vw] md:max-w-lg w-full mx-auto"
           >
-            {player.roundsWon > opponent.roundsWon ? (
-              <Trophy size={80} className="mx-auto mb-6 text-yellow-400" />
-            ) : player.roundsWon < opponent.roundsWon ? (
-              <AlertCircle size={80} className="mx-auto mb-6 text-red-400" />
+            {isMultiplayer ? (
+              <div className="mb-6 w-full flex flex-col items-center">
+                {player.roundsWon > opponent.roundsWon ? (
+                  <img src={MULTIPLAYER_WIN_IMG} alt="Hai Vinto" className="w-full h-auto object-contain drop-shadow-xl" />
+                ) : player.roundsWon < opponent.roundsWon ? (
+                  <img src={MULTIPLAYER_LOST_IMG} alt="Hai Perso" className="w-full h-auto object-contain drop-shadow-xl" />
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Users size={80} className="mx-auto mb-6 text-blue-400" />
+                    <h2 className="text-5xl font-black text-white mb-2 uppercase italic">PAREGGIO!</h2>
+                  </div>
+                )}
+              </div>
             ) : (
-              <Users size={80} className="mx-auto mb-6 text-blue-400" />
+              <>
+                {player.roundsWon > opponent.roundsWon ? (
+                  <Trophy size={80} className="mx-auto mb-6 text-yellow-400" />
+                ) : player.roundsWon < opponent.roundsWon ? (
+                  <AlertCircle size={80} className="mx-auto mb-6 text-red-400" />
+                ) : (
+                  <Users size={80} className="mx-auto mb-6 text-blue-400" />
+                )}
+                
+                <h2 className="text-5xl font-black text-white mb-2 uppercase italic">
+                  {player.roundsWon > opponent.roundsWon ? 'CAMPIONE!' : 
+                   player.roundsWon < opponent.roundsWon ? 'RITENTA!' : 'PAREGGIO!'}
+                </h2>
+              </>
             )}
             
-            <h2 className="text-5xl font-black text-white mb-2 uppercase italic">
-              {player.roundsWon > opponent.roundsWon ? 'CAMPIONE!' : 
-               player.roundsWon < opponent.roundsWon ? 'RITENTA!' : 'PAREGGIO!'}
-            </h2>
             {player.roundsWon > opponent.roundsWon && (
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
@@ -784,17 +808,17 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                 transition={{ delay: 0.5 }}
                 className="flex items-center justify-center gap-2 mb-4 bg-yellow-400/20 py-2 px-4 rounded-full border border-yellow-400/50 w-fit mx-auto"
               >
-                <span className="text-yellow-400 font-black text-2xl">+50</span>
+                <span className="text-yellow-400 font-black text-2xl">+{isMultiplayer ? 50 : 20}</span>
                 <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/gettoneloneboonew.webp" alt="Gettoni" className="w-8 h-8" />
               </motion.div>
             )}
             <p className="text-slate-400 mb-8 text-xl">Punteggio finale: {player.roundsWon} - {opponent.roundsWon}</p>
             <div className="flex gap-4 justify-center">
               <button onClick={restartCurrentMode} className="hover:scale-105 transition-transform outline-none">
-                <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/riogiocaclahsnfknedfn3.webp" alt="Rigioca" className="h-14 md:h-20 w-auto" />
+                <img src={isMultiplayer ? BTN_PLAY_AGAIN_MULTI_IMG : "https://loneboo-images.s3.eu-south-1.amazonaws.com/riogiocaclahsnfknedfn3.webp"} alt="Rigioca" className="h-14 md:h-20 w-auto" />
               </button>
               <button onClick={resetGame} className="hover:scale-105 transition-transform outline-none">
-                <img src="https://loneboo-images.s3.eu-south-1.amazonaws.com/escivlchasdbvjjrh43e.webp" alt="Esci" className="h-14 md:h-20 w-auto" />
+                <img src={isMultiplayer ? BTN_EXIT_MULTI_IMG : "https://loneboo-images.s3.eu-south-1.amazonaws.com/escivlchasdbvjjrh43e.webp"} alt="Esci" className="h-14 md:h-20 w-auto" />
               </button>
             </div>
           </motion.div>

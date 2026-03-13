@@ -34,6 +34,12 @@ const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/damanghtsa.
 
 const GRANDFATHER_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grandpa-thinking.webp';
 const VICTORY_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-checkers.webp';
+
+// Multiplayer Modal Assets
+const MULTIPLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victoruymultiplayer.webp';
+const MULTIPLAYER_LOST_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lostmultiplyaers33.webp';
+const BTN_PLAY_AGAIN_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocaancoramultiplyars.webp';
+const BTN_EXIT_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_con+le+stesse+dimensioni+del+t_488799909208367111.webp';
 const BTN_PLAY_AGAIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-play-again.webp';
 const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
 
@@ -136,6 +142,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         if (data.board) setBoard(data.board);
         if (data.turn) setTurn(data.turn);
         if (data.winner) setWinner(data.winner);
+        if (data.jumpingPieceIdx !== undefined) setJumpingPieceIdx(data.jumpingPieceIdx);
         if (data.status === 'PLAYING') setIsConnected(true);
         if (data.status === 'RESTART') {
           initBoard();
@@ -202,6 +209,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
           board: newBoard,
           turn: 'RED',
           winner: null,
+          jumpingPieceIdx: null,
           updatedAt: serverTimestamp()
         }).catch(err => console.error("Error resetting room:", err));
       }
@@ -336,10 +344,25 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
 
       if (isMultiplayer && roomCode) {
         const roomRef = doc(db, 'checkers_rooms', roomCode);
+        
+        // Optimistic local update
+        setBoard(newBoard);
+        setWinner(newWinner);
+        setTurn(nextTurn);
+        setJumpingPieceIdx(nextJumpingIdx);
+        if (nextJumpingIdx) {
+          setSelectedIdx(nextJumpingIdx);
+          setValidMoves(getJumps(nextJumpingIdx, newBoard));
+        } else {
+          setSelectedIdx(null);
+          setValidMoves([]);
+        }
+
         await updateDoc(roomRef, {
           board: newBoard,
           turn: nextTurn,
           winner: newWinner,
+          jumpingPieceIdx: nextJumpingIdx,
           updatedAt: serverTimestamp()
         });
       } else {
@@ -431,6 +454,7 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         p1: { id: currentUser.uid, name: 'Tu' },
         board: initialBoard,
         turn: 'RED',
+        jumpingPieceIdx: null,
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
@@ -480,7 +504,15 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
     initBoard();
   };
 
-  const backToMenu = () => { 
+  const backToMenu = async () => { 
+    if (isMultiplayer && roomCode) {
+      try {
+        const roomRef = doc(db, 'checkers_rooms', roomCode);
+        await deleteDoc(roomRef);
+      } catch (err) {
+        console.error("Error deleting room:", err);
+      }
+    }
     setDifficulty(null); 
     setIsMultiplayer(false);
     setRoomCode('');
@@ -727,17 +759,18 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                     {winner && (
                         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
                             <div className="bg-white p-8 rounded-[40px] border-8 border-yellow-400 text-center shadow-2xl flex flex-col items-center max-sm w-full mx-auto relative overflow-hidden transform translate-y-10">
-                                {winner === 'RED' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                                {winner === 'RED' && onOpenNewsstand && !isMultiplayer && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                                 
-                                <div className="mb-2">
+                                <div className="mb-2 w-full">
                                     {isMultiplayer ? (
                                         ((playerRole === 'p1' && winner === 'RED') || (playerRole === 'p2' && winner === 'BLACK')) ? (
-                                            <div className="flex flex-col items-center">
-                                                <img src={VICTORY_TITLE_IMG} alt="Hai Vinto" className="h-40 md:h-56 w-auto object-contain" />
-                                                <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI VINTO LA SFIDA!</p>
+                                            <div className="flex flex-col items-center w-full">
+                                                <img src={MULTIPLAYER_WIN_IMG} alt="Hai Vinto" className="w-full h-auto object-contain drop-shadow-xl" />
                                             </div>
                                         ) : (
-                                            <h2 className="text-3xl font-black text-red-600 leading-tight uppercase">HAI PERSO LA SFIDA 🤖</h2>
+                                            <div className="flex flex-col items-center w-full">
+                                                <img src={MULTIPLAYER_LOST_IMG} alt="Hai Perso" className="w-full h-auto object-contain drop-shadow-xl" />
+                                            </div>
                                         )
                                     ) : (
                                         winner === 'RED' ? (
@@ -758,11 +791,25 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
                                 )}
 
                                 <div className="flex flex-row gap-4 w-full justify-center">
-                                    <button onClick={isMultiplayer ? restartMultiplayer : initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]">
-                                        <img src={BTN_PLAY_AGAIN_IMG} alt="Rigioca" className="w-full h-auto drop-shadow-xl" />
+                                    <button 
+                                        onClick={isMultiplayer ? restartMultiplayer : initBoard} 
+                                        className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                                    >
+                                        <img 
+                                          src={isMultiplayer ? BTN_PLAY_AGAIN_MULTI_IMG : BTN_PLAY_AGAIN_IMG} 
+                                          alt="Rigioca" 
+                                          className="w-full h-auto drop-shadow-xl" 
+                                        />
                                     </button>
-                                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]">
-                                        <img src={EXIT_BTN_IMG} alt="Esci" className="w-full h-auto drop-shadow-xl" />
+                                    <button 
+                                        onClick={backToMenu} 
+                                        className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                                    >
+                                        <img 
+                                          src={isMultiplayer ? BTN_EXIT_MULTI_IMG : EXIT_BTN_IMG} 
+                                          alt="Esci" 
+                                          className="w-full h-auto drop-shadow-xl" 
+                                        />
                                     </button>
                                 </div>
                             </div>

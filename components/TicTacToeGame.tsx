@@ -15,7 +15,8 @@ import {
   updateDoc, 
   onSnapshot, 
   getDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  deleteDoc
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
@@ -36,6 +37,12 @@ const BTN_BACK_MENU_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bt
 const WITCH_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/witch-thinking.webp';
 const PLAYER_AVATAR_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/girlthinkticerd.webp';
 const VICTORY_HEADER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/triswingirl.webp';
+
+// Multiplayer Modal Assets
+const MULTIPLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victoruymultiplayer.webp';
+const MULTIPLAYER_LOST_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lostmultiplyaers33.webp';
+const BTN_PLAY_AGAIN_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocaancoramultiplyars.webp';
+const BTN_EXIT_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_con+le+stesse+dimensioni+del+t_488799909208367111.webp';
 
 // Musica di sottofondo
 const BG_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/hitslab-comedy-cartoon-funny-background-music-365347.mp3';
@@ -211,6 +218,16 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
 
     if (isMultiplayer && roomCode) {
       const roomRef = doc(db, 'tictactoe_rooms', roomCode);
+      
+      // Optimistic local update
+      setBoard(newBoard);
+      if (finalWinner) {
+        setWinner(finalWinner);
+        updateScore(finalWinner);
+      } else {
+        setIsPlayerTurn(nextTurn);
+      }
+
       await updateDoc(roomRef, {
         board: newBoard,
         isPlayerTurn: nextTurn,
@@ -380,7 +397,15 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
     resetGame();
   };
 
-  const backToMenu = () => {
+  const backToMenu = async () => {
+      if (isMultiplayer && roomCode) {
+        try {
+          const roomRef = doc(db, 'tictactoe_rooms', roomCode);
+          await deleteDoc(roomRef);
+        } catch (err) {
+          console.error("Error deleting room:", err);
+        }
+      }
       setDifficulty(null);
       setIsMultiplayer(false);
       setRoomCode('');
@@ -632,7 +657,7 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
       {winner && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-blue-600/90 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
             <div className="bg-white p-8 rounded-[40px] border-8 border-yellow-400 text-center shadow-2xl flex flex-col items-center max-sm w-full mx-auto relative overflow-hidden">
-                {winner === 'O' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                {winner === 'O' && onOpenNewsstand && !isMultiplayer && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                 
                 {winner === 'draw' ? (
                     <>
@@ -642,33 +667,55 @@ const TicTacToeGame: React.FC<TicTacToeProps> = ({ onBack, onEarnTokens, onOpenN
                     </>
                 ) : (isMultiplayer ? ((playerRole === 'p1' && winner === 'O') || (playerRole === 'p2' && winner === 'X')) : winner === 'O') ? (
                     <>
-                        <img src={VICTORY_HEADER_IMG} alt="Vittoria" className="w-48 h-auto mb-4 drop-shadow-xl" />
-                        <div className="bg-yellow-400 text-black px-8 py-3 rounded-full font-black text-2xl border-2 border-black mb-8 shadow-lg flex items-center gap-2">
-                            +{isMultiplayer ? 50 : 5} <TokenIcon className="w-6 h-6" />
-                        </div>
+                        <img 
+                          src={isMultiplayer ? MULTIPLAYER_WIN_IMG : VICTORY_HEADER_IMG} 
+                          alt="Vittoria" 
+                          className={`${isMultiplayer ? 'w-full' : 'w-48'} h-auto mb-4 drop-shadow-xl`} 
+                        />
+                        {((isMultiplayer && ((playerRole === 'p1' && winner === 'O') || (playerRole === 'p2' && winner === 'X'))) || (!isMultiplayer && winner === 'O')) && (
+                          <div className="bg-yellow-400 text-black px-8 py-3 rounded-full font-black text-2xl border-2 border-black mb-8 shadow-lg flex items-center gap-2">
+                              +{isMultiplayer ? 50 : 5} <TokenIcon className="w-6 h-6" />
+                          </div>
+                        )}
                     </>
                 ) : (
                     <>
-                        <img src={WITCH_THINKING_IMG} alt="La Strega Vince" className="w-48 h-auto mb-4 drop-shadow-xl" />
-                        <h2 className="text-3xl font-black text-red-600 mb-2 uppercase text-center leading-none">
-                            {isMultiplayer ? 'HAI PERSO LA SFIDA!' : 'HA VINTO LA STREGA!'}
-                        </h2>
-                        <p className="text-gray-600 font-bold mb-8 text-center">Riprova, non farti battere!</p>
+                        <img 
+                          src={isMultiplayer ? MULTIPLAYER_LOST_IMG : WITCH_THINKING_IMG} 
+                          alt={isMultiplayer ? "Sconfitta" : "La Strega Vince"} 
+                          className={`${isMultiplayer ? 'w-full' : 'w-48'} h-auto mb-4 drop-shadow-xl`} 
+                        />
+                        {!isMultiplayer && (
+                          <>
+                            <h2 className="text-3xl font-black text-red-600 mb-2 uppercase text-center leading-none">
+                                HA VINTO LA STREGA!
+                            </h2>
+                            <p className="text-gray-600 font-bold mb-8 text-center">Riprova, non farti battere!</p>
+                          </>
+                        )}
                     </>
                 )}
                 
-                <div className="flex flex-row gap-4 w-full justify-center">
+                <div className="flex flex-row gap-4 w-full justify-center mt-4">
                     <button 
                         onClick={isMultiplayer ? restartMultiplayer : resetGame} 
                         className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[160px]"
                     >
-                        <img src={BTN_PLAY_AGAIN_IMG} alt="Rigioca" className="w-full h-auto drop-shadow-lg" />
+                        <img 
+                          src={isMultiplayer ? BTN_PLAY_AGAIN_MULTI_IMG : BTN_PLAY_AGAIN_IMG} 
+                          alt="Rigioca" 
+                          className="w-full h-auto drop-shadow-lg" 
+                        />
                     </button>
                     <button 
                         onClick={backToMenu} 
                         className="hover:scale-105 active:scale-95 transition-all outline-none flex-1 max-w-[160px]"
                     >
-                        <img src={BTN_BACK_MENU_IMG} alt="Livelli" className="w-full h-auto drop-shadow-lg" />
+                        <img 
+                          src={isMultiplayer ? BTN_EXIT_MULTI_IMG : BTN_BACK_MENU_IMG} 
+                          alt={isMultiplayer ? "Esci" : "Livelli"} 
+                          className="w-full h-auto drop-shadow-lg" 
+                        />
                     </button>
                 </div>
             </div>

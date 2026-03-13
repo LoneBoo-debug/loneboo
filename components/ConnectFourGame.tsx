@@ -33,6 +33,12 @@ const ZUCCOTTO_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.co
 const ZUCCOTTO_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/zuccotto-wins.webp';
 const PLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-hug.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
+
+// Multiplayer Modal Assets
+const MULTIPLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victoruymultiplayer.webp';
+const MULTIPLAYER_LOST_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lostmultiplyaers33.webp';
+const BTN_PLAY_AGAIN_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocaancoramultiplyars.webp';
+const BTN_EXIT_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_con+le+stesse+dimensioni+del+t_488799909208367111.webp';
 const AUDIO_ICON_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
 
 // Musica di sottofondo
@@ -91,7 +97,6 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
       const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
         if (user) {
           setCurrentUser(user);
-          setIsConnected(true);
         } else {
           signInAnonymously(auth).catch(console.error);
         }
@@ -125,10 +130,21 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
         if (snapshot.exists()) {
           const data = snapshot.data();
           
-          if (data.board) setBoard(data.board);
+          if (data.board) {
+            const parsedBoard = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
+            setBoard(parsedBoard);
+          }
           if (data.turn) setTurn(data.turn);
           if (data.winner) setWinner(data.winner);
-          if (data.winningCells) setWinningCells(data.winningCells);
+          if (data.winningCells) {
+            const parsedCells = typeof data.winningCells === 'string' ? JSON.parse(data.winningCells) : data.winningCells;
+            setWinningCells(parsedCells);
+          }
+          
+          if (data.status === 'PLAYING') {
+            setIsConnected(true);
+            setDifficulty('MEDIUM');
+          }
           
           if (data.status === 'RESTART' && winner) {
             initGameLocally();
@@ -163,14 +179,14 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
     setRoomCode(code);
     setPlayerRole('RED');
     setIsMultiplayer(true);
-    setDifficulty('MEDIUM'); // Default difficulty for multiplayer logic
+    setIsConnected(false);
     
     try {
       await setDoc(doc(db, 'connect4_rooms', code), {
-        board: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
+        board: JSON.stringify(Array.from({ length: ROWS }, () => Array(COLS).fill(null))),
         turn: 'RED',
         winner: null,
-        winningCells: [],
+        winningCells: JSON.stringify([]),
         status: 'WAITING',
         p1: { id: currentUser.uid, name: 'Tu' },
         updatedAt: serverTimestamp()
@@ -195,7 +211,6 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
           setRoomCode(inputCode);
           setPlayerRole('YELLOW');
           setIsMultiplayer(true);
-          setDifficulty('MEDIUM');
           
           await updateDoc(roomRef, {
             p2: { id: currentUser.uid, name: 'Tu' },
@@ -322,11 +337,21 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
 
           if (isMultiplayer && roomCode) {
               const roomRef = doc(db, 'connect4_rooms', roomCode);
+              
+              // Optimistic local update
+              setBoard(newBoard);
+              if (newWinner) {
+                  setWinner(newWinner);
+                  setWinningCells(newWinningCells);
+              } else {
+                  setTurn(newTurn);
+              }
+
               await updateDoc(roomRef, {
-                  board: newBoard,
+                  board: JSON.stringify(newBoard),
                   turn: newWinner ? turn : newTurn,
                   winner: newWinner,
-                  winningCells: newWinningCells,
+                  winningCells: JSON.stringify(newWinningCells),
                   updatedAt: serverTimestamp()
               });
           } else {
@@ -392,10 +417,10 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
         const roomRef = doc(db, 'connect4_rooms', roomCode);
         await updateDoc(roomRef, {
             status: 'RESTART',
-            board: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
+            board: JSON.stringify(Array.from({ length: ROWS }, () => Array(COLS).fill(null))),
             turn: 'RED',
             winner: null,
-            winningCells: [],
+            winningCells: JSON.stringify([]),
             updatedAt: serverTimestamp()
         });
         setTimeout(() => {
@@ -407,8 +432,12 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
   };
 
   const backToMenu = async () => {
-      if (isMultiplayer && roomCode && playerRole === 'RED') {
-          await deleteDoc(doc(db, 'connect4_rooms', roomCode));
+      if (isMultiplayer && roomCode) {
+          try {
+              await deleteDoc(doc(db, 'connect4_rooms', roomCode));
+          } catch (err) {
+              console.error("Error deleting room:", err);
+          }
       }
       setDifficulty(null);
       setWinner(null);
@@ -562,8 +591,19 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
                         <div className="bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border-2 border-white/50 flex items-center gap-3">
                             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
                             <span className="text-white font-black uppercase tracking-widest text-sm">
-                                {isConnected ? `CODICE: ${roomCode}` : 'CONNESSIONE...'}
+                                {roomCode ? `CODICE: ${roomCode}` : 'CONNESSIONE...'}
                             </span>
+                            {roomCode && !isConnected && (
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(roomCode);
+                                        alert("Codice copiato!");
+                                    }}
+                                    className="bg-white/20 hover:bg-white/40 p-1 rounded-md transition-colors"
+                                >
+                                    <Check size={14} className="text-white" />
+                                </button>
+                            )}
                         </div>
                         {playerRole === 'RED' && (
                             <p className="text-white/80 text-xs font-bold uppercase tracking-tighter bg-black/20 px-3 py-1 rounded-full">
@@ -635,21 +675,51 @@ const ConnectFourGame: React.FC<ConnectFourProps> = ({ onBack, onEarnTokens, onO
         {winner && (
             <div className="fixed inset-0 z-[110] flex items-start justify-center bg-black/80 backdrop-blur-sm p-4 pt-48 animate-in zoom-in duration-300">
                 <div className="bg-white p-6 md:p-8 rounded-[40px] text-center border-4 border-black max-sm w-full shadow-2xl relative flex flex-col items-center transform translate-y-4">
-                    {winner === 'RED' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
-                    <div className={`mb-4 flex items-center justify-center ${winner === 'DRAW' ? 'animate-bounce text-6xl md:text-7xl' : ''}`}>
-                        {winner === 'RED' ? <img src={PLAYER_WIN_IMG} alt="Hai Vinto" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : (winner === 'YELLOW' ? <img src={ZUCCOTTO_WIN_IMG} alt="Zuccotto Vince" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : '🤝')}
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-purple-600 drop-shadow-sm uppercase">
-                        {winner === 'DRAW' ? 'PAREGGIO!' : 
-                         isMultiplayer ? (
-                             (playerRole === 'RED' && winner === 'RED') || (playerRole === 'YELLOW' && winner === 'YELLOW') ? 'HAI VINTO!' : 'HAI PERSO!'
-                         ) : (
-                             winner === 'RED' ? 'HAI VINTO!' : 'HA VINTO ZUCCOTTO!'
-                         )}
-                    </h2>
+                    {winner === 'RED' && onOpenNewsstand && !isMultiplayer && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                    
+                    {isMultiplayer ? (
+                        <div className="mb-4 w-full flex flex-col items-center">
+                            {((playerRole === 'RED' && winner === 'RED') || (playerRole === 'YELLOW' && winner === 'YELLOW')) ? (
+                                <img src={MULTIPLAYER_WIN_IMG} alt="Hai Vinto" className="w-full h-auto object-contain drop-shadow-xl" />
+                            ) : winner === 'DRAW' ? (
+                                <div className="animate-bounce text-6xl md:text-7xl mb-4">🤝</div>
+                            ) : (
+                                <img src={MULTIPLAYER_LOST_IMG} alt="Hai Perso" className="w-full h-auto object-contain drop-shadow-xl" />
+                            )}
+                            {winner === 'DRAW' && <h2 className="text-2xl md:text-3xl font-black text-purple-600 drop-shadow-sm uppercase">PAREGGIO!</h2>}
+                        </div>
+                    ) : (
+                        <>
+                            <div className={`mb-4 flex items-center justify-center ${winner === 'DRAW' ? 'animate-bounce text-6xl md:text-7xl' : ''}`}>
+                                {winner === 'RED' ? <img src={PLAYER_WIN_IMG} alt="Hai Vinto" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : (winner === 'YELLOW' ? <img src={ZUCCOTTO_WIN_IMG} alt="Zuccotto Vince" className="w-44 h-44 md:w-64 md:h-64 object-contain" /> : '🤝')}
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-black text-purple-600 drop-shadow-sm uppercase">
+                                {winner === 'DRAW' ? 'PAREGGIO!' : (winner === 'RED' ? 'HAI VINTO!' : 'HA VINTO ZUCCOTTO!')}
+                            </h2>
+                        </>
+                    )}
+
                     <div className="flex flex-row gap-4 justify-center items-center w-full mt-2">
-                        <button onClick={resetGame} className="hover:scale-105 active:scale-95 transition-transform w-44"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
-                        <button onClick={backToMenu} className="hover:scale-105 active:scale-95 transition-transform w-44"><img src={BTN_BACK_MENU_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>
+                        <button 
+                            onClick={resetGame} 
+                            className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                        >
+                            <img 
+                                src={isMultiplayer ? BTN_PLAY_AGAIN_MULTI_IMG : BTN_PLAY_AGAIN_IMG} 
+                                alt="Gioca Ancora" 
+                                className="w-full h-auto drop-shadow-xl" 
+                            />
+                        </button>
+                        <button 
+                            onClick={backToMenu} 
+                            className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                        >
+                            <img 
+                                src={isMultiplayer ? BTN_EXIT_MULTI_IMG : EXIT_BTN_IMG} 
+                                alt="Menu" 
+                                className="w-full h-auto drop-shadow-xl" 
+                            />
+                        </button>
                     </div>
                 </div>
             </div>

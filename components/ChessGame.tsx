@@ -39,6 +39,12 @@ const BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scacchinigh
 const GRANDFATHER_THINKING_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/grandpa-thinking.webp';
 const VICTORY_TITLE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victory-checkers.webp';
 
+// Multiplayer Modal Assets
+const MULTIPLAYER_WIN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/victoruymultiplayer.webp';
+const MULTIPLAYER_LOST_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/lostmultiplyaers33.webp';
+const BTN_PLAY_AGAIN_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giocaancoramultiplyars.webp';
+const BTN_EXIT_MULTI_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_con+le+stesse+dimensioni+del+t_488799909208367111.webp';
+
 type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 type PieceColor = 'w' | 'b';
 type Piece = { type: PieceType; color: PieceColor } | null;
@@ -228,6 +234,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         if (data.board) setBoard(data.board);
         if (data.turn) setTurn(data.turn);
         if (data.winner) setWinner(data.winner);
+        if (data.inCheck !== undefined) setInCheck(data.inCheck);
         if (data.capturedByWhite) setCapturedByWhite(data.capturedByWhite);
         if (data.capturedByBlack) setCapturedByBlack(data.capturedByBlack);
         if (data.status === 'PLAYING') setIsConnected(true);
@@ -298,6 +305,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         board: newBoard,
         turn: 'w',
         winner: null,
+        inCheck: null,
         capturedByWhite: [],
         capturedByBlack: [],
         updatedAt: serverTimestamp()
@@ -464,15 +472,29 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
       let newWinner: PieceColor | null = null;
       if (isCheckmate(newBoard, nextTurn)) newWinner = turn;
 
+      const opponentKing = findKing(newBoard, nextTurn);
+      const nextInCheck = isSquareAttacked(opponentKing, newBoard, turn) ? nextTurn : null;
+
       if (isMultiplayer && roomCode) {
         const roomRef = doc(db, 'chess_rooms', roomCode);
         const updatedCapturedByWhite = turn === 'w' && targetPiece ? [...capturedByWhite, targetPiece.type] : capturedByWhite;
         const updatedCapturedByBlack = turn === 'b' && targetPiece ? [...capturedByBlack, targetPiece.type] : capturedByBlack;
         
+        // Optimistic local update
+        setBoard(newBoard);
+        setSelectedIdx(null);
+        setLegalMoves([]);
+        setTurn(nextTurn);
+        setInCheck(nextInCheck);
+        if (newWinner) setWinner(newWinner);
+        if (turn === 'w' && targetPiece) setCapturedByWhite(updatedCapturedByWhite);
+        if (turn === 'b' && targetPiece) setCapturedByBlack(updatedCapturedByBlack);
+
         await updateDoc(roomRef, {
           board: newBoard,
           turn: nextTurn,
           winner: newWinner,
+          inCheck: nextInCheck,
           capturedByWhite: updatedCapturedByWhite,
           capturedByBlack: updatedCapturedByBlack,
           updatedAt: serverTimestamp()
@@ -482,8 +504,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         setSelectedIdx(null);
         setLegalMoves([]);
         if (newWinner) { setWinner(newWinner); return; }
-        const opponentKing = findKing(newBoard, nextTurn);
-        if (isSquareAttacked(opponentKing, newBoard, turn)) setInCheck(nextTurn); else setInCheck(null);
+        setInCheck(nextInCheck);
         setTurn(nextTurn);
       }
   };
@@ -605,6 +626,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         p1: { id: currentUser.uid, name: 'Tu' },
         board: newBoard,
         turn: 'w',
+        inCheck: null,
         status: 'WAITING',
         updatedAt: serverTimestamp()
       });
@@ -644,7 +666,15 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
     }
   };
 
-  const backToMenu = () => { 
+  const backToMenu = async () => { 
+    if (isMultiplayer && roomCode) {
+      try {
+        const roomRef = doc(db, 'chess_rooms', roomCode);
+        await deleteDoc(roomRef);
+      } catch (err) {
+        console.error("Error deleting room:", err);
+      }
+    }
     setDifficulty(null); 
     setIsMultiplayer(false);
     setRoomCode('');
@@ -917,16 +947,17 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                     {winner && (
                         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in duration-300">
                             <div className="bg-white p-8 rounded-[40px] text-center border-4 border-black max-sm w-full shadow-2xl relative flex flex-col items-center transform translate-y-10">
-                                {winner === 'w' && onOpenNewsstand && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
+                                {winner === 'w' && onOpenNewsstand && !isMultiplayer && <SaveReminder onOpenNewsstand={onOpenNewsstand} />}
                                 
                                 {isMultiplayer ? (
                                     ((playerRole === 'p1' && winner === 'w') || (playerRole === 'p2' && winner === 'b')) ? (
-                                        <div className="mb-4 flex flex-col items-center">
-                                            <img src={VICTORY_TITLE_IMG} alt="Vittoria" className="h-40 md:h-56 w-auto object-contain" />
-                                            <p className="font-luckiest text-lg md:text-2xl text-boo-purple uppercase mt-2 whitespace-nowrap">HAI VINTO LA SFIDA!</p>
+                                        <div className="mb-4 flex flex-col items-center w-full">
+                                            <img src={MULTIPLAYER_WIN_IMG} alt="Vittoria" className="w-full h-auto object-contain drop-shadow-xl" />
                                         </div>
                                     ) : (
-                                        <h2 className="text-3xl font-black mb-4 text-red-600 leading-tight uppercase">HAI PERSO LA SFIDA! 🤖</h2>
+                                        <div className="mb-4 flex flex-col items-center w-full">
+                                            <img src={MULTIPLAYER_LOST_IMG} alt="Sconfitta" className="w-full h-auto object-contain drop-shadow-xl" />
+                                        </div>
                                     )
                                 ) : (
                                     winner === 'w' ? (
@@ -945,8 +976,26 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                                     </div>
                                 )}
                                 <div className="flex flex-row gap-4 w-full justify-center mt-2">
-                                    <button onClick={isMultiplayer ? restartMultiplayer : initBoard} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={BTN_PLAY_AGAIN_IMG} alt="Gioca Ancora" className="w-full h-auto drop-shadow-xl" /></button>
-                                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"><img src={EXIT_BTN_IMG} alt="Menu" className="w-full h-auto drop-shadow-xl" /></button>
+                                    <button 
+                                        onClick={isMultiplayer ? restartMultiplayer : initBoard} 
+                                        className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                                    >
+                                        <img 
+                                          src={isMultiplayer ? BTN_PLAY_AGAIN_MULTI_IMG : BTN_PLAY_AGAIN_IMG} 
+                                          alt="Gioca Ancora" 
+                                          className="w-full h-auto drop-shadow-xl" 
+                                        />
+                                    </button>
+                                    <button 
+                                        onClick={backToMenu} 
+                                        className="hover:scale-105 active:scale-95 transition-transform flex-1 max-w-[140px]"
+                                    >
+                                        <img 
+                                          src={isMultiplayer ? BTN_EXIT_MULTI_IMG : EXIT_BTN_IMG} 
+                                          alt={isMultiplayer ? "Esci" : "Menu"} 
+                                          className="w-full h-auto drop-shadow-xl" 
+                                        />
+                                    </button>
                                 </div>
                             </div>
                         </div>
