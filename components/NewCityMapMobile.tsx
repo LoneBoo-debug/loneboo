@@ -102,6 +102,10 @@ const NewCityMapMobile: React.FC<NewCityMapMobileProps> = ({ setView }) => {
         const img = new Image();
         img.src = bgUrl;
         img.onload = () => setIsLoaded(true);
+        img.onerror = () => {
+            console.error("Failed to load map image:", bgUrl);
+            setIsLoaded(true); // Fallback: show the map anyway
+        };
         
         if (!audioRef.current) {
             audioRef.current = new Audio(CITY_VOICE_URL);

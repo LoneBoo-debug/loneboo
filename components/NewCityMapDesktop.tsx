@@ -105,6 +105,10 @@ const NewCityMapDesktop: React.FC<NewCityMapDesktopProps> = ({ setView }) => {
         const img = new Image();
         img.src = getBackgroundUrl();
         img.onload = () => setIsLoaded(true);
+        img.onerror = () => {
+            console.error("Failed to load map image:", getBackgroundUrl());
+            setIsLoaded(true); // Fallback: show the map anyway
+        };
         
         if (!audioRef.current) {
             audioRef.current = new Audio(CITY_VOICE_URL);
