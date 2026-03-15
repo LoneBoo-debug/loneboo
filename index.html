@@ -14,6 +14,13 @@
     <meta name="description" content="Lone Boo è un ecosistema multimediale completo per l'apprendimento e l'intrattenimento. Include la Scuola Arcobaleno (Scuola Primaria e Media), una piattaforma di studio interattiva, libri educativi su Amazon e musica originale. Accompagniamo i ragazzi nella crescita con contenuti sicuri e certificati." />
     <meta name="keywords" content="Lone Boo, ecosistema educativo, scuola online bambini, scuola media online, scuola elementare online, piattaforma studio interattiva, libri educativi bambini, musica bambini, apprendimento digitale sicuro, scuola arcobaleno" />
     <link rel="canonical" href="https://www.loneboo.online/" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Lone Boo">
+    <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -232,5 +239,14 @@
     <div id="orientation-guard" onclick="toggleFullScreen()"></div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered!', reg))
+            .catch(err => console.log('Service Worker registration failed: ', err));
+        });
+      }
+    </script>
   </body>
 </html>
