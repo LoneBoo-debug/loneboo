@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.loneboo.app",
+      "sha256_cert_fingerprints": [
+        "AE:36:D9:37:75:09:CD:13:25:8C:DE:A7:BD:4E:88:77:5F:8F:D7:B2:3F:83:EB:3A:E2:D9:D3:85:72:0C:55:FF"
+      ]
+    }
+  }
+]
