@@ -283,6 +283,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     const holidayInfo = useMemo(() => getHolidayInfo(), []);
     
     const [isTraveling, setIsTraveling] = useState(false);
+    const [activeTravelVideoUrl, setActiveTravelVideoUrl] = useState<string | null>(null);
     const [travelKm, setTravelKm] = useState(0);
     const [travelTimeDisplay, setTravelTimeDisplay] = useState("0h 00m");
     
@@ -354,6 +355,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         trainAudioRef.current = new Audio(TRAIN_SOUND_URL);
         trainAudioRef.current.loop = true;
         trainAudioRef.current.volume = 0.5;
+        trainAudioRef.current.preload = 'auto';
 
         marloVoiceRef.current = new Audio(MARLO_STATION_AUDIO);
         marloVoiceRef.current.loop = false;
@@ -472,6 +474,8 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
     };
 
     const startTravelAnimation = (zone: ZoneInfo) => {
+        // Lock the current video URL for the duration of the journey
+        setActiveTravelVideoUrl(travelVideoUrl);
         setIsTraveling(true);
         const startTime = performance.now();
         const duration = zone.travelTimeMs;
@@ -537,6 +541,17 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center overflow-hidden bg-sky-900">
             <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
             
+            {/* Pre-render video hiddenly to buffer */}
+            {!isTraveling && (
+                <video 
+                    src={travelVideoUrl}
+                    preload="auto"
+                    muted
+                    className="hidden"
+                    aria-hidden="true"
+                />
+            )}
+
             {!isLoaded && !isTraveling && (
                 <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-sky-900 backdrop-blur-md">
                     <img 
@@ -667,13 +682,18 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden bg-black">
                     <video 
                         ref={videoRef}
-                        src={travelVideoUrl}
+                        src={activeTravelVideoUrl || travelVideoUrl}
                         autoPlay
                         loop
                         muted
                         playsInline
                         preload="auto"
                         className="absolute inset-0 w-full h-full object-cover z-0"
+                        onCanPlay={() => {
+                            if (videoRef.current) {
+                                videoRef.current.play().catch(e => console.error("Video play failed", e));
+                            }
+                        }}
                         style={{ 
                             transform: 'translateZ(0)', 
                             willChange: 'transform, opacity',

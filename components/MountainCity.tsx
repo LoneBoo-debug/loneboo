@@ -1,11 +1,19 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AppView } from '../types';
 import CityExplorationModal from './CityExplorationModal';
 import { isNightTime } from '../services/weatherService';
+import { Copy, Trash2, Move, Crosshair } from 'lucide-react';
 
 const CITY_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mountaincufjr5tbgroudn66.webp';
 const CITY_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/citymontagnenight.webp';
+
+const AREAS = [
+    "Osservatorio Astronomico",
+    "Centro Meteo",
+    "Laboratorio delle Acque",
+    "Scavi Archeologici"
+];
 
 const EXPLORATION_ITEMS = [
     { image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mountain_city_explore_1.webp', text: 'Respira l\'aria fresca delle cime più alte!' },
@@ -19,7 +27,7 @@ interface MountainCityProps {
 const MountainCity: React.FC<MountainCityProps> = ({ setView }) => {
     const [isExplorationOpen, setIsExplorationOpen] = useState(false);
     const [now, setNow] = useState(new Date());
-
+    
     const currentBg = useMemo(() => {
         return isNightTime(now) ? CITY_BG_NIGHT : CITY_BG;
     }, [now]);
@@ -39,6 +47,33 @@ const MountainCity: React.FC<MountainCityProps> = ({ setView }) => {
         };
     }, []);
 
+    const CLICKABLE_AREAS = [
+        {
+            id: 'osservatorio',
+            name: 'Osservatorio Astronomico',
+            points: '21.07,11.39 8.8,29.69 50.93,30.28 35.73,10.94',
+            view: AppView.MOUNTAIN_CITY_OSSERVATORIO
+        },
+        {
+            id: 'meteo',
+            name: 'Centro Meteo',
+            points: '78.93,24.89 61.87,36.13 79.47,44.38 95.73,36.28',
+            view: AppView.MOUNTAIN_CITY_CENTRO_METEO
+        },
+        {
+            id: 'acque',
+            name: 'Laboratorio delle Acque',
+            points: '21.87,38.68 6.67,52.47 49.33,54.12 39.47,39.28',
+            view: AppView.MOUNTAIN_CITY_LABORATORIO_ACQUE
+        },
+        {
+            id: 'scavi',
+            name: 'Scavi Archeologici',
+            points: '78.13,71.96 54.13,81.86 77.33,94.45 98.4,83.36',
+            view: AppView.MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI
+        }
+    ];
+
     return (
         <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-emerald-500">
             {/* Background Layer */}
@@ -48,18 +83,23 @@ const MountainCity: React.FC<MountainCityProps> = ({ setView }) => {
                 className="absolute inset-0 w-full h-full object-fill select-none animate-in fade-in duration-1000"
             />
 
-            {/* SCRITTA CENTRALE IN PREPARAZIONE */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                <h3 
-                    className="font-luckiest text-white text-5xl md:text-9xl uppercase tracking-tighter text-center leading-none"
-                    style={{ 
-                        WebkitTextStroke: '2px black',
-                        textShadow: '6px 6px 0px rgba(0,0,0,0.3)'
-                    }}
-                >
-                    Città in <br className="md:hidden" /> preparazione
-                </h3>
-            </div>
+            {/* Clickable Areas Overlay */}
+            <svg 
+                viewBox="0 0 100 100" 
+                preserveAspectRatio="none" 
+                className="absolute inset-0 w-full h-full z-10"
+            >
+                {CLICKABLE_AREAS.map(area => (
+                    <polygon
+                        key={area.id}
+                        points={area.points}
+                        className="fill-transparent hover:fill-white/20 cursor-pointer transition-colors duration-300"
+                        onClick={() => setView(area.view)}
+                    >
+                        <title>{area.name}</title>
+                    </polygon>
+                ))}
+            </svg>
 
             {/* TITOLO CITTÀ IN BASSO A SINISTRA */}
             <div className="absolute bottom-8 left-8 z-10 pointer-events-none animate-in fade-in slide-in-from-left duration-1000">

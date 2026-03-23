@@ -86,6 +86,10 @@ const PromotionInfoPage = lazy(() => import('./components/PromotionInfoPage'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
 const MountainCity = lazy(() => import('./components/MountainCity'));
 const LakeCity = lazy(() => import('./components/LakeCity'));
+const LakeCityAcquario = lazy(() => import('./components/LakeCityAcquario'));
+const LakeCityMuseo = lazy(() => import('./components/LakeCityMuseo'));
+const BattagliaNavale = lazy(() => import('./components/BattagliaNavale'));
+const MountainCityLocation = lazy(() => import('./components/MountainCityLocation'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -173,7 +177,21 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
         <Suspense fallback={null}>
-            <Header currentView={currentView} setView={handleSetView} isGameActive={isGameActive} />
+            {![
+                AppView.LAKE_CITY_MOLO,
+                AppView.MAGIC_TOWER_SUB_GAMES,
+                AppView.LAKE_CITY_ACQUARIO,
+                AppView.LAKE_CITY_MUSEO,
+                AppView.LAKE_CITY_LAGO,
+                AppView.SUB_ARTI_MAGICHE,
+                AppView.SUB_OSCURITA_POTERE,
+                AppView.RAINBOW_CITY_ZOO,
+                AppView.RAINBOW_CITY_ARTE,
+                AppView.RAINBOW_CITY_ALIMENTARI,
+                AppView.RAINBOW_CITY_BURGER
+            ].includes(currentView) && (
+                <Header currentView={currentView} setView={handleSetView} isGameActive={isGameActive} />
+            )}
         </Suspense>
         
         <Suspense fallback={null}>
@@ -271,7 +289,15 @@ const App: React.FC = () => {
 
                 {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
                 {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
+                {currentView === AppView.MOUNTAIN_CITY_OSSERVATORIO && <MountainCityLocation title="Osservatorio Astronomico" setView={handleSetView} bgImage="https://picsum.photos/seed/observatory/1920/1080" />}
+                {currentView === AppView.MOUNTAIN_CITY_CENTRO_METEO && <MountainCityLocation title="Centro Meteo" setView={handleSetView} bgImage="https://picsum.photos/seed/weather/1920/1080" />}
+                {currentView === AppView.MOUNTAIN_CITY_LABORATORIO_ACQUE && <MountainCityLocation title="Laboratorio delle Acque" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/trattamentoacquandue3.webp" minimal={true} />}
+                {currentView === AppView.MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI && <MountainCityLocation title="Scavi Archeologici" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/scaviarcheidkshjaua.webp" minimal={true} />}
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
+                {currentView === AppView.LAKE_CITY_ACQUARIO && <LakeCityAcquario setView={handleSetView} />}
+                {currentView === AppView.LAKE_CITY_MUSEO && <LakeCityMuseo setView={handleSetView} />}
+                {currentView === AppView.LAKE_CITY_LAGO && <CityDetailView title="Lago di Pesca" setView={() => handleSetView(AppView.LAKE_CITY)} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/lgopescscita7uhd5ts.webp" />}
+                {currentView === AppView.LAKE_CITY_MOLO && <BattagliaNavale setView={handleSetView} />}
                 {currentView === AppView.CALENDAR && <CalendarView setView={handleSetView} />}
                 {currentView === AppView.ATELIER && <AtelierView setView={handleSetView} />}
                 {currentView === AppView.SUB_ATELIER_OSCURO && <SubAtelierOscuro setView={handleSetView} />}

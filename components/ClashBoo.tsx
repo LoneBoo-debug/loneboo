@@ -55,6 +55,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
   
   const [player, setPlayer] = useState<GamePlayer>({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
   const [opponent, setOpponent] = useState<GamePlayer>({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
+  const [remoteOpponentData, setRemoteOpponentData] = useState<any>(null);
   
   const [round, setRound] = useState(1);
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
@@ -99,32 +100,11 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
                 setGameState('SELECT_CARDS');
                 setShowInviteMenu(false);
               }
-              setOpponent(prev => {
-                // Don't clear opponent card if we are still showing results of the current round
-                const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p2.selectedCard && data.p2.round > prev.round;
-                return {
-                  ...prev,
-                  id: data.p2.id || 'opponent',
-                  cards: data.p2.cards || [],
-                  selectedCard: shouldKeepCard ? prev.selectedCard : (data.p2.selectedCard || null),
-                  roundsWon: data.p2.roundsWon || 0,
-                  round: data.p2.round || 1
-                };
-              });
+              setRemoteOpponentData(data.p2);
             }
           } else if (playerRole === 'p2') {
             if (data.p1) {
-              setOpponent(prev => {
-                const shouldKeepCard = gameState === 'ROUND_RESULT' && prev.selectedCard && !data.p1.selectedCard && data.p1.round > prev.round;
-                return {
-                  ...prev,
-                  id: data.p1.id || 'host',
-                  cards: data.p1.cards || [],
-                  selectedCard: shouldKeepCard ? prev.selectedCard : (data.p1.selectedCard || null),
-                  roundsWon: data.p1.roundsWon || 0,
-                  round: data.p1.round || 1
-                };
-              });
+              setRemoteOpponentData(data.p1);
             }
           }
 
@@ -142,9 +122,32 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     }
   }, [isMultiplayer, roomCode, currentUser, playerRole, gameState]);
 
+  useEffect(() => {
+    if (isMultiplayer && remoteOpponentData) {
+      // Don't clear opponent card if we are still showing results of the current round
+      // and the opponent has already moved to the next round (clearing their card)
+      const shouldKeepCard = gameState === 'ROUND_RESULT' && 
+                            opponent.selectedCard && 
+                            !remoteOpponentData.selectedCard && 
+                            remoteOpponentData.round > round;
+      
+      if (!shouldKeepCard) {
+        setOpponent(prev => ({
+          ...prev,
+          id: remoteOpponentData.id || prev.id,
+          cards: remoteOpponentData.cards || [],
+          selectedCard: remoteOpponentData.selectedCard || null,
+          roundsWon: remoteOpponentData.roundsWon || 0,
+          round: remoteOpponentData.round || 1
+        }));
+      }
+    }
+  }, [remoteOpponentData, gameState, isMultiplayer, round]);
+
   const restartCurrentModeLocally = () => {
     setPlayer(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 }));
     setOpponent(prev => ({ ...prev, cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 }));
+    setRemoteOpponentData(null);
     setRound(1);
     setRoundWinner(null);
     setIsColpoFurbo(false);
@@ -441,6 +444,7 @@ const ClashBoo: React.FC<ClashBooProps> = ({ setView }) => {
     setGameState('MENU');
     setPlayer({ id: 'player', name: 'Tu', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
     setOpponent({ id: 'opponent', name: 'Avversario', cards: [], selectedCard: null, score: 0, roundsWon: 0, round: 1 });
+    setRemoteOpponentData(null);
     setRound(1);
     setRoundWinner(null);
     setIsColpoFurbo(false);
