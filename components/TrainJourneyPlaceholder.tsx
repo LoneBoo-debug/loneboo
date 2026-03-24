@@ -437,6 +437,15 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         }
     }, [isAudioOn, isLoaded, isTraveling]);
 
+    useEffect(() => {
+        if (isTraveling && videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(e => console.error("Video play failed", e));
+        } else if (!isTraveling && videoRef.current) {
+            videoRef.current.pause();
+        }
+    }, [isTraveling]);
+
     const handlePurchase = () => {
         if (!selectedZone) return;
         const baseCost = selectedZone.cost;
@@ -541,16 +550,22 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center overflow-hidden bg-sky-900">
             <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
             
-            {/* Pre-render video hiddenly to buffer */}
-            {!isTraveling && (
-                <video 
-                    src={travelVideoUrl}
-                    preload="auto"
-                    muted
-                    className="hidden"
-                    aria-hidden="true"
-                />
-            )}
+            {/* Main Travel Video - Always rendered but hidden when not traveling */}
+            <video 
+                ref={videoRef}
+                src={activeTravelVideoUrl || travelVideoUrl}
+                loop
+                muted
+                playsInline
+                preload="auto"
+                poster={TRAVEL_CENTER_IMG}
+                className={`fixed inset-0 w-full h-full object-cover transition-opacity duration-500 ${isTraveling ? 'z-[500] opacity-100' : 'z-[-1] opacity-0'}`}
+                style={{ 
+                    transform: 'translateZ(0)', 
+                    willChange: 'transform, opacity',
+                    backfaceVisibility: 'hidden'
+                }}
+            />
 
             {!isLoaded && !isTraveling && (
                 <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-sky-900 backdrop-blur-md">
@@ -589,7 +604,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     className="fixed z-50 flex flex-col items-center"
                     style={{ 
                         top: `${CLOCK_STYLE.top}px`, 
-                        left: `${CLOCK_STYLE.right + 10}px`,
+                        left: `${CLOCK_STYLE.right + 4}px`,
                         width: `${CLOCK_STYLE.iconSize}px`
                     }}
                 >
@@ -600,7 +615,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                     </div>
 
                     {/* MINIATURA ABBONAMENTO */}
-                    <div className="flex flex-row gap-2 -mt-2 translate-x-12 md:translate-x-16">
+                    <div className="flex flex-row gap-2 -mt-2 translate-x-8 md:translate-x-12">
                         <button 
                             onClick={() => hasTrainPass ? setShowPassPopup({ type: 'train' }) : setShowObtainModal({ type: 'train' })}
                             className="w-16 md:w-20 hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-lg relative"
@@ -679,30 +694,9 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
             )}
 
             {isTraveling && selectedZone && (
-                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden bg-black">
-                    <video 
-                        ref={videoRef}
-                        src={activeTravelVideoUrl || travelVideoUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="auto"
-                        className="absolute inset-0 w-full h-full object-cover z-0"
-                        onCanPlay={() => {
-                            if (videoRef.current) {
-                                videoRef.current.play().catch(e => console.error("Video play failed", e));
-                            }
-                        }}
-                        style={{ 
-                            transform: 'translateZ(0)', 
-                            willChange: 'transform, opacity',
-                            backfaceVisibility: 'hidden'
-                        }}
-                    />
-
+                <div className="fixed inset-0 z-[500] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden bg-transparent pointer-events-none">
                     {/* HUD PROGRESSI SUPERIORE TRASLUCIDO */}
-                    <div className="absolute top-[80px] md:top-[120px] left-4 right-4 z-40 flex flex-col items-center animate-in slide-in-from-top-4 duration-700">
+                    <div className="absolute top-[80px] md:top-[120px] left-4 right-4 z-40 flex flex-col items-center animate-in slide-in-from-top-4 duration-700 pointer-events-auto">
                         <div className="bg-white/5 backdrop-blur-md border-2 border-white/10 rounded-[2.5rem] p-4 md:p-6 shadow-2xl flex flex-col gap-3 w-full md:w-auto md:min-w-[550px]">
                             <div className="text-center border-b border-white/5 pb-2">
                                 <h2 className="font-luckiest text-white text-lg md:text-2xl uppercase tracking-widest drop-shadow-[2px_2px_0px_black] opacity-70" style={{ WebkitTextStroke: '1px black' }}>
@@ -781,7 +775,7 @@ const TrainJourneyPlaceholder: React.FC<TrainJourneyPlaceholderProps> = ({ setVi
                 <img src={currentBg} alt="" className={`w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} />
 
                 {isLoaded && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 items-center">
+                    <div className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 items-center">
                         <button onClick={handleBackToCity} className="hover:scale-110 active:scale-95 transition-all outline-none">
                             <img src={BTN_RETURN_TO_CITY_GRAF} alt="Torna in Città" className="w-24 md:w-44 h-auto drop-shadow-2xl" />
                         </button>

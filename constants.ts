@@ -36,6 +36,9 @@ export const DICTIONARY_DATA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e
 
 export const ATELIER_COMBO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdi6lcUt_ErSYhmM8mKFk28Ri6LxmuEqfqiPWeZjM6Ani0LugKVlMsAXb4d54Hv34easdng4XRW9z_/pub?gid=0&single=true&output=csv';
 
+// Database Ossa Animali (Scavi Archeologici)
+export const MOUNTAIN_CITY_OSSA_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Hy_wB31m_p8SiRRUkR5z0B5oI7WKV8ffk27QxUAxwAmqVqfUZFrEffmPnXJr6BYj7dJaZ_lvyMVg/pub?gid=0&single=true&output=csv'; // TODO: Update with actual GID
+
 export const YOUTUBE_CONFIG = {
   CHANNEL_ID: 'UC54EfsufATyB7s2XcRkt1Eg'
 };

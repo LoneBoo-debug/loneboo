@@ -25,6 +25,20 @@ interface LakeCityAcquarioProps {
     setView: (view: AppView) => void;
 }
 
+// Calibrated points
+const IMAGE_POINTS: AreaPoints = {
+    tl: { x: 9.6, y: 18.89055472263868 },
+    tr: { x: 88.8, y: 18.140929535232384 },
+    bl: { x: 9.333333333333334, y: 44.97751124437781 },
+    br: { x: 86.93333333333332, y: 45.27736131934033 }
+};
+const TEXT_POINTS: AreaPoints = {
+    tl: { x: 13.066666666666665, y: 59.37031484257871 },
+    tr: { x: 87.2, y: 59.52023988005997 },
+    bl: { x: 12.533333333333333, y: 88.30584707646177 },
+    br: { x: 87.2, y: 87.55622188905548 }
+};
+
 const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
     const [allFish, setAllFish] = useState<FishData[]>([]);
     const [filteredFish, setFilteredFish] = useState<FishData[]>([]);
@@ -40,29 +54,6 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
         { id: 'MAMMIFERI', label: 'Mammiferi', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mammifeributtonedede.webp' },
         { id: 'ALGHE', label: 'Alghe e Microorganismi', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/alghebuttonededed.webp' }
     ];
-
-    // Default points (calibrated)
-    const defaultImagePoints: AreaPoints = {
-        tl: { x: 9.6, y: 18.89055472263868 },
-        tr: { x: 88.8, y: 18.140929535232384 },
-        bl: { x: 9.333333333333334, y: 44.97751124437781 },
-        br: { x: 86.93333333333332, y: 45.27736131934033 }
-    };
-    const defaultTextPoints: AreaPoints = {
-        tl: { x: 13.066666666666665, y: 59.37031484257871 },
-        tr: { x: 87.2, y: 59.52023988005997 },
-        bl: { x: 12.533333333333333, y: 88.30584707646177 },
-        br: { x: 87.2, y: 87.55622188905548 }
-    };
-
-    const [imagePoints] = useState<AreaPoints>(() => {
-        const saved = localStorage.getItem('acquario_image_points');
-        return saved ? JSON.parse(saved) : defaultImagePoints;
-    });
-    const [textPoints] = useState<AreaPoints>(() => {
-        const saved = localStorage.getItem('acquario_text_points');
-        return saved ? JSON.parse(saved) : defaultTextPoints;
-    });
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -136,7 +127,9 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-blue-900">
+        <div 
+            className="fixed inset-0 z-0 flex flex-col items-center justify-center overflow-hidden bg-blue-900"
+        >
             {/* BACKGROUND LAYER */}
             <img 
                 src="https://loneboo-images.s3.eu-south-1.amazonaws.com/acquyariumsofodneo.webp" 
@@ -149,7 +142,7 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
             {!loading && currentFish && (
                 <div 
                     className="absolute flex items-center justify-center transition-all duration-500 z-20"
-                    style={getAreaStyle(imagePoints)}
+                    style={getAreaStyle(IMAGE_POINTS)}
                 >
                     <div className="relative w-full h-full flex items-center justify-center">
                         <img 
@@ -195,7 +188,7 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
             {!loading && currentFish && (
                 <div 
                     className="absolute flex flex-col transition-all duration-500 overflow-hidden z-20"
-                    style={getAreaStyle(textPoints)}
+                    style={getAreaStyle(TEXT_POINTS)}
                 >
                     <h2 
                         className="text-2xl md:text-4xl font-luckiest text-sky-300 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-2 flex-shrink-0"
@@ -216,7 +209,7 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
             )}
 
             {/* OVERLAY UI */}
-            <div className="absolute inset-0 z-[150] flex flex-col justify-between pt-4 px-4 md:px-10 pointer-events-none">
+            <div className="absolute inset-0 z-[150] flex flex-col justify-between pt-1 px-1 md:px-2 pointer-events-none">
                 <div className="flex justify-between items-start w-full pointer-events-auto">
                     {/* BACK BUTTON */}
                     <button 
@@ -224,15 +217,15 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
                         className="hover:scale-110 active:scale-95 transition-transform duration-300 drop-shadow-lg p-0"
                     >
                         <img 
-                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/uytornacitygfrd66.webp" 
+                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp" 
                             alt="Ritorna in Città" 
-                            className="w-12 md:w-16 h-auto block rounded-2xl"
+                            className="w-24 md:w-44 h-auto block rounded-2xl"
                             referrerPolicy="no-referrer"
                         />
                     </button>
                     
                     <div ref={menuRef} className="flex gap-1 md:gap-4 items-start">
-                        {categories.map((cat, idx) => (
+                        {categories.map((cat) => (
                             <div key={cat.id} className="relative">
                                 <button 
                                     onClick={() => {
@@ -255,7 +248,7 @@ const LakeCityAcquario: React.FC<LakeCityAcquarioProps> = ({ setView }) => {
 
                                 {/* DROPDOWN FOR CATEGORY - Dynamic alignment to prevent cut-off */}
                                 {activeMenu === cat.id && (
-                                    <div className={`absolute top-full mt-2 w-48 md:w-64 max-h-[60vh] bg-sky-400/20 backdrop-blur-2xl border-2 border-white/30 rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-top-4 duration-300 z-[160] ${idx < 2 ? 'left-0' : 'right-0'}`}>
+                                    <div className={`absolute top-full mt-2 w-48 md:w-64 max-h-[60vh] bg-sky-400/20 backdrop-blur-2xl border-2 border-white/30 rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-top-4 duration-300 z-[160] ${categories.indexOf(cat) < 2 ? 'left-0' : 'right-0'}`}>
                                         <div className="p-3 md:p-4 border-b border-white/20 flex justify-between items-center bg-white/10">
                                             <h3 className="text-white font-luckiest text-sm md:text-lg uppercase tracking-widest drop-shadow-md">{cat.label}</h3>
                                             <button onClick={() => setActiveMenu(null)} className="text-white/80 hover:text-white">

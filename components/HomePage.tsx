@@ -50,22 +50,24 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isAnimating && videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(() => {});
+        } else if (!isAnimating && videoRef.current) {
+            videoRef.current.pause();
+        }
+    }, [isAnimating]);
+
     const toggleInteraction = () => {
         const nextState = !isAnimating;
         
         if (nextState) {
-            // Reset e Play del video per sincronia perfetta
-            if (videoRef.current) {
-                videoRef.current.currentTime = 0;
-                videoRef.current.play().catch(() => {});
-            }
             audioRef.current?.play().catch(() => {});
             localStorage.setItem('loneboo_music_enabled', 'true');
         } else {
             audioRef.current?.pause();
             if (audioRef.current) audioRef.current.currentTime = 0;
-            // Opzionale: mettiamo in pausa il video per risparmiare risorse quando non visibile
-            if (videoRef.current) videoRef.current.pause();
             localStorage.setItem('loneboo_music_enabled', 'false');
         }
         
@@ -105,11 +107,16 @@ const HomePage: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) => {
                     <video
                         ref={videoRef}
                         src={ANIMATION_VIDEO}
-                        autoPlay
                         loop
                         muted
                         playsInline
+                        preload="auto"
                         className="w-full h-full object-cover"
+                        onCanPlay={() => {
+                            if (isAnimating && videoRef.current) {
+                                videoRef.current.play().catch(() => {});
+                            }
+                        }}
                     />
                 </motion.div>
             </div>

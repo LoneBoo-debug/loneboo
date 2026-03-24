@@ -90,6 +90,8 @@ const LakeCityAcquario = lazy(() => import('./components/LakeCityAcquario'));
 const LakeCityMuseo = lazy(() => import('./components/LakeCityMuseo'));
 const BattagliaNavale = lazy(() => import('./components/BattagliaNavale'));
 const MountainCityLocation = lazy(() => import('./components/MountainCityLocation'));
+const MountainCityOssa = lazy(() => import('./components/MountainCityOssa'));
+const MountainCityFossili = lazy(() => import('./components/MountainCityFossili'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -188,7 +190,9 @@ const App: React.FC = () => {
                 AppView.RAINBOW_CITY_ZOO,
                 AppView.RAINBOW_CITY_ARTE,
                 AppView.RAINBOW_CITY_ALIMENTARI,
-                AppView.RAINBOW_CITY_BURGER
+                AppView.RAINBOW_CITY_BURGER,
+                AppView.MOUNTAIN_CITY_OSSA_ANIMALI,
+                AppView.MOUNTAIN_CITY_REPERTI_FOSSILI
             ].includes(currentView) && (
                 <Header currentView={currentView} setView={handleSetView} isGameActive={isGameActive} />
             )}
@@ -293,6 +297,8 @@ const App: React.FC = () => {
                 {currentView === AppView.MOUNTAIN_CITY_CENTRO_METEO && <MountainCityLocation title="Centro Meteo" setView={handleSetView} bgImage="https://picsum.photos/seed/weather/1920/1080" />}
                 {currentView === AppView.MOUNTAIN_CITY_LABORATORIO_ACQUE && <MountainCityLocation title="Laboratorio delle Acque" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/trattamentoacquandue3.webp" minimal={true} />}
                 {currentView === AppView.MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI && <MountainCityLocation title="Scavi Archeologici" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/scaviarcheidkshjaua.webp" minimal={true} />}
+                {currentView === AppView.MOUNTAIN_CITY_OSSA_ANIMALI && <MountainCityOssa setView={handleSetView} />}
+                {currentView === AppView.MOUNTAIN_CITY_REPERTI_FOSSILI && <MountainCityFossili setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY_ACQUARIO && <LakeCityAcquario setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY_MUSEO && <LakeCityMuseo setView={handleSetView} />}
