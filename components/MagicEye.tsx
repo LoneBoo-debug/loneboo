@@ -137,17 +137,16 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       // Pre-caricamento del chunk JS del componente
       import('./MagicTowerSub').catch(() => {});
 
-      // La transizione dura ora 11 secondi totali
-      // Iniziamo il fade out a 10s per completarlo esattamente all'11° secondo (duration-1000)
-      const t1 = setTimeout(() => {
-          setIsFadingOut(true);
-      }, 10000);
-
-      const t2 = setTimeout(() => {
-          setView(AppView.MAGIC_TOWER_SUB);
-      }, 11000);
+      // Safety timeout: se il video non finisce o onEnded non scatta, forziamo la transizione dopo 15s
+      const tSafety = setTimeout(() => {
+          if (!isFadingOut) {
+              setIsFadingOut(true);
+              const tNav = setTimeout(() => setView(AppView.MAGIC_TOWER_SUB), 1000);
+              transitionTimeoutsRef.current.push(tNav);
+          }
+      }, 15000);
       
-      transitionTimeoutsRef.current.push(t1, t2);
+      transitionTimeoutsRef.current.push(tSafety);
   };
 
   const getClipPath = (points: Point[]) => {
@@ -162,7 +161,17 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
                   src={TRANSITION_VIDEO} 
                   autoPlay 
                   playsInline 
-                  loop
+                  onEnded={() => {
+                      if (!isFadingOut) {
+                          setIsFadingOut(true);
+                          // Clear safety timeout
+                          transitionTimeoutsRef.current.forEach(clearTimeout);
+                          transitionTimeoutsRef.current = [];
+                          
+                          const t3 = setTimeout(() => setView(AppView.MAGIC_TOWER_SUB), 1000);
+                          transitionTimeoutsRef.current.push(t3);
+                      }
+                  }}
                   className="w-full h-full object-cover"
               />
               <button 

@@ -1,5 +1,5 @@
 
-import { Video, SocialLink, AppView, SchoolSubject } from './types';
+import { Video, SocialLink, AppView, SchoolSubject, Tire } from './types';
 
 export const APP_VERSION = '1.8.8';
 // ... (rest of imports)
@@ -133,4 +133,12 @@ export const ANIMAL_SOUNDS = [
     { id: 'owl', label: 'Gufo', emoji: '🦉', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/owl-hooting-223549+(1).mp3' },
     { id: 'monkey', label: 'Scimmia', emoji: '🐒', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/monkey-128368.mp3' },
     { id: 'frog', label: 'Rana', emoji: '🐸', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frog-1-352709.mp3' }
+];
+
+export const TIRES: Tire[] = [
+  { id: 'pneu1', name: 'Pneumatico 1', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/penu1.webp', cost: 75, grip: 1, safety: 1 },
+  { id: 'pneu2', name: 'Pneumatico 2', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/penu2.webp', cost: 100, grip: 2, safety: 2 },
+  { id: 'pneu3', name: 'Pneumatico 3', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pneu3.webp', cost: 125, grip: 3, safety: 3 },
+  { id: 'pneu4', name: 'Pneumatico 4', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pneu4.webp', cost: 150, grip: 4, safety: 4 },
+  { id: 'pneu5', name: 'Pneumatico 5', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pneu5.webp', cost: 175, grip: 5, safety: 5 },
 ];

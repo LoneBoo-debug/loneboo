@@ -1,6 +1,8 @@
 
 import { PlayerProgress, Sticker, Rarity, AvatarConfig, TokenTransaction } from '../types';
 import { STICKERS_COLLECTION, STICKERS_COLLECTION_VOL2 } from './stickersDatabase';
+import { CAR_DATA } from './carData';
+import { SHOP_DATA } from './shopData';
 
 const STORAGE_KEY = 'loneboo_player_progress';
 
@@ -22,7 +24,8 @@ const INITIAL_PROGRESS: PlayerProgress = {
     purchasedClothing: [],
     transactions: [],
     hasTrainPass: false,
-    hasStudentPass: false
+    hasStudentPass: false,
+    ownedCars: []
 };
 
 export const getProgress = (): PlayerProgress => {
@@ -31,7 +34,7 @@ export const getProgress = (): PlayerProgress => {
         if (localData) {
             const parsed = JSON.parse(localData);
             if (parsed && typeof parsed === 'object') {
-                return { 
+                const progress: PlayerProgress = { 
                     ...INITIAL_PROGRESS, 
                     ...parsed,
                     completedQuizzes: parsed.completedQuizzes || {},
@@ -42,8 +45,36 @@ export const getProgress = (): PlayerProgress => {
                     duplicatesVol2: parsed.duplicatesVol2 || 0,
                     duplicateStickersVol2: parsed.duplicateStickersVol2 || [],
                     hasTrainPass: !!parsed.hasTrainPass,
-                    hasStudentPass: !!parsed.hasStudentPass
+                    hasStudentPass: !!parsed.hasStudentPass,
+                    ownedCars: (parsed.ownedCars || []).filter((name: string) => name !== "Lumachina Sprint"),
+                    carStats: parsed.carStats || {},
+                    carLaps: parsed.carLaps || {},
+                    installedComponents: parsed.installedComponents || {}
                 };
+
+                // One-time cleanup requested by user to reset car stats and components
+                if (!parsed.hasCleanedUp) {
+                    const cleanedProgress = { ...progress, hasCleanedUp: true };
+                    if (cleanedProgress.ownedCars) {
+                        cleanedProgress.ownedCars.forEach((carName: string) => {
+                            const baseCar = CAR_DATA.find(c => c.name === carName);
+                            if (baseCar) {
+                                if (!cleanedProgress.carStats) cleanedProgress.carStats = {};
+                                cleanedProgress.carStats[carName] = { ...baseCar.stats };
+                                
+                                if (!cleanedProgress.installedComponents) cleanedProgress.installedComponents = {};
+                                cleanedProgress.installedComponents[carName] = {};
+                                
+                                if (!cleanedProgress.carLaps) cleanedProgress.carLaps = {};
+                                cleanedProgress.carLaps[carName] = 0;
+                            }
+                        });
+                    }
+                    saveProgress(cleanedProgress);
+                    return cleanedProgress;
+                }
+
+                return progress;
             }
         }
     } catch (e) { console.error("Error reading progress:", e); }
@@ -179,6 +210,151 @@ export const unlockStudentPass = () => {
     progress.hasStudentPass = true;
     recordTransaction(progress, 0, 'Sblocco Abbonamento Studente');
     saveProgress(progress);
+};
+
+export const getOwnedCars = (): string[] => {
+    const progress = getProgress();
+    return progress.ownedCars || [];
+};
+
+export const purchaseCar = (carName: string, cost: number, initialStats?: Record<string, number>): boolean => {
+    const progress = getProgress();
+    if (!progress.ownedCars) progress.ownedCars = [];
+    if (progress.ownedCars.includes(carName)) return true;
+    
+    if (progress.tokens >= cost) {
+        progress.tokens -= cost;
+        progress.ownedCars.push(carName);
+        if (!progress.carStats) progress.carStats = {};
+        if (initialStats) {
+            progress.carStats[carName] = initialStats;
+        }
+        // Se è la prima auto, selezionala automaticamente
+        if (progress.ownedCars.length === 1) {
+            progress.selectedCar = carName;
+        }
+        recordTransaction(progress, -cost, `Acquisto Auto: ${carName}`);
+        saveProgress(progress);
+        return true;
+    }
+    return false;
+};
+
+export const getCarStats = (carName: string): Record<string, number> | undefined => {
+    const progress = getProgress();
+    return progress.carStats?.[carName];
+};
+
+export const getInstalledComponents = (carName: string): Record<string, string> => {
+    const progress = getProgress();
+    return progress.installedComponents?.[carName] || {};
+};
+
+export const installComponent = (carName: string, category: string, itemId: string) => {
+    const progress = getProgress();
+    if (!progress.installedComponents) progress.installedComponents = {};
+    if (!progress.installedComponents[carName]) progress.installedComponents[carName] = {};
+    
+    progress.installedComponents[carName][category] = itemId;
+    saveProgress(progress);
+};
+
+export const getCarLaps = (carName: string): number => {
+    const progress = getProgress();
+    return progress.carLaps?.[carName] || 0;
+};
+
+export const addCarLaps = (carName: string, laps: number) => {
+    const progress = getProgress();
+    if (!progress.carLaps) progress.carLaps = {};
+    const currentLaps = progress.carLaps[carName] || 0;
+    const newLaps = currentLaps + laps;
+    progress.carLaps[carName] = newLaps;
+
+    // Logica di usura: ogni 4 giri perde qualcosa in maniera random
+    // Se passiamo una soglia di 4 giri (es: da 3 a 4, da 7 a 8, ecc.)
+    const oldCycles = Math.floor(currentLaps / 4);
+    const newCycles = Math.floor(newLaps / 4);
+
+    if (newCycles > oldCycles) {
+        if (!progress.carStats) progress.carStats = {};
+        const stats = progress.carStats[carName];
+        if (stats) {
+            const statKeys = Object.keys(stats);
+            // Riduciamo 1-2 punti da 1-2 statistiche a caso
+            const numStatsToReduce = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < numStatsToReduce; i++) {
+                const randomKey = statKeys[Math.floor(Math.random() * statKeys.length)];
+                const reduction = Math.floor(Math.random() * 2) + 1;
+                stats[randomKey] = Math.max(1, stats[randomKey] - reduction);
+            }
+        }
+    }
+
+    saveProgress(progress);
+};
+
+export const repairCar = (carName: string, cost: number, baseStats: Record<string, number>): boolean => {
+    const progress = getProgress();
+    if (progress.tokens >= cost) {
+        progress.tokens -= cost;
+        if (!progress.carStats) progress.carStats = {};
+        
+        // Calcoliamo le stats massime (base + componenti)
+        const maxStats = { ...baseStats };
+        const installed = progress.installedComponents?.[carName] || {};
+        
+        Object.entries(installed).forEach(([category, itemId]) => {
+            const item = SHOP_DATA[category]?.find(i => i.id === itemId);
+            if (item) {
+                const boosts = item.statBoost.split(',').map(s => {
+                    const parts = s.trim().split(' ');
+                    const label = parts[0];
+                    const val = parseInt(parts[1].replace('+', ''));
+                    const statKey = {
+                        "Velocità": "speed", "Accel": "accel", "Tenuta": "grip",
+                        "Sicurezza": "safety", "Affidabilità": "reliability", "Frenata": "braking"
+                    }[label];
+                    return { statKey, val };
+                });
+                boosts.forEach(b => {
+                    if (b.statKey) {
+                        maxStats[b.statKey] = (maxStats[b.statKey] || 0) + b.val;
+                    }
+                });
+            }
+        });
+
+        progress.carStats[carName] = maxStats;
+        
+        if (!progress.carLaps) progress.carLaps = {};
+        progress.carLaps[carName] = 0; 
+        
+        recordTransaction(progress, -cost, `Riparazione Auto: ${carName}`);
+        saveProgress(progress);
+        return true;
+    }
+    return false;
+};
+
+export const updateCarStats = (carName: string, stats: Record<string, number>) => {
+    const progress = getProgress();
+    if (!progress.carStats) progress.carStats = {};
+    progress.carStats[carName] = stats;
+    saveProgress(progress);
+};
+
+export const getSelectedCar = (): string | undefined => {
+    const progress = getProgress();
+    return progress.selectedCar;
+};
+
+export const setSelectedCar = (carName: string) => {
+    const progress = getProgress();
+    if (progress.ownedCars?.includes(carName)) {
+        progress.selectedCar = carName;
+        saveProgress(progress);
+    }
 };
 
 // --- STICKERS LOGIC ---

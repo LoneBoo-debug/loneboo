@@ -84,6 +84,10 @@ const RainbowCityClassroom = lazy(() => import('./components/RainbowCityClassroo
 const MedieSubjectPage = lazy(() => import('./components/MedieSubjectPage'));
 const PromotionInfoPage = lazy(() => import('./components/PromotionInfoPage'));
 const GrayCity = lazy(() => import('./components/GrayCity'));
+const GrayCityScuolaProgettazione = lazy(() => import('./components/GrayCityScuolaProgettazione'));
+const GrayCityPistaGokart = lazy(() => import('./components/GrayCityPistaGokart'));
+const GrayCityNegozioRicambi = lazy(() => import('./components/GrayCityNegozioRicambi'));
+const GrayCityOfficina = lazy(() => import('./components/GrayCityOfficina'));
 const MountainCity = lazy(() => import('./components/MountainCity'));
 const LakeCity = lazy(() => import('./components/LakeCity'));
 const LakeCityAcquario = lazy(() => import('./components/LakeCityAcquario'));
@@ -192,7 +196,11 @@ const App: React.FC = () => {
                 AppView.RAINBOW_CITY_ALIMENTARI,
                 AppView.RAINBOW_CITY_BURGER,
                 AppView.MOUNTAIN_CITY_OSSA_ANIMALI,
-                AppView.MOUNTAIN_CITY_REPERTI_FOSSILI
+                AppView.MOUNTAIN_CITY_REPERTI_FOSSILI,
+                AppView.GRAY_CITY_SCUOLA_PROGETTAZIONE,
+                AppView.GRAY_CITY_PISTA_GOKART,
+                AppView.GRAY_CITY_NEGOZIO_RICAMBI,
+                AppView.GRAY_CITY_OFFICINA
             ].includes(currentView) && (
                 <Header currentView={currentView} setView={handleSetView} isGameActive={isGameActive} />
             )}
@@ -293,8 +301,8 @@ const App: React.FC = () => {
 
                 {currentView === AppView.GRAY_CITY && <GrayCity setView={handleSetView} />}
                 {currentView === AppView.MOUNTAIN_CITY && <MountainCity setView={handleSetView} />}
-                {currentView === AppView.MOUNTAIN_CITY_OSSERVATORIO && <MountainCityLocation title="Osservatorio Astronomico" setView={handleSetView} bgImage="https://picsum.photos/seed/observatory/1920/1080" />}
-                {currentView === AppView.MOUNTAIN_CITY_CENTRO_METEO && <MountainCityLocation title="Centro Meteo" setView={handleSetView} bgImage="https://picsum.photos/seed/weather/1920/1080" />}
+                {currentView === AppView.MOUNTAIN_CITY_OSSERVATORIO && <MountainCityLocation title="Osservatorio Astronomico" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/ossrbatoriocittanontagne.webp" minimal={true} />}
+                {currentView === AppView.MOUNTAIN_CITY_CENTRO_METEO && <MountainCityLocation title="Centro Meteo" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/centrometo5543e.webp" minimal={true} />}
                 {currentView === AppView.MOUNTAIN_CITY_LABORATORIO_ACQUE && <MountainCityLocation title="Laboratorio delle Acque" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/trattamentoacquandue3.webp" minimal={true} />}
                 {currentView === AppView.MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI && <MountainCityLocation title="Scavi Archeologici" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/scaviarcheidkshjaua.webp" minimal={true} />}
                 {currentView === AppView.MOUNTAIN_CITY_OSSA_ANIMALI && <MountainCityOssa setView={handleSetView} />}
@@ -302,7 +310,7 @@ const App: React.FC = () => {
                 {currentView === AppView.LAKE_CITY && <LakeCity setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY_ACQUARIO && <LakeCityAcquario setView={handleSetView} />}
                 {currentView === AppView.LAKE_CITY_MUSEO && <LakeCityMuseo setView={handleSetView} />}
-                {currentView === AppView.LAKE_CITY_LAGO && <CityDetailView title="Lago di Pesca" setView={() => handleSetView(AppView.LAKE_CITY)} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/lgopescscita7uhd5ts.webp" />}
+                {currentView === AppView.LAKE_CITY_LAGO && <MountainCityLocation title="Lago di Pesca" setView={handleSetView} bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/lagopescdatte.webp" minimal={true} />}
                 {currentView === AppView.LAKE_CITY_MOLO && <BattagliaNavale setView={handleSetView} />}
                 {currentView === AppView.CALENDAR && <CalendarView setView={handleSetView} />}
                 {currentView === AppView.ATELIER && <AtelierView setView={handleSetView} />}
@@ -319,6 +327,10 @@ const App: React.FC = () => {
                 {currentView === AppView.RAINBOW_CITY_ARTE && <SubExploreDetail title="Arte e Disegno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
                 {currentView === AppView.RAINBOW_CITY_ALIMENTARI && <SubExploreDetail title="Alimentari Arcobaleno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
                 {currentView === AppView.RAINBOW_CITY_BURGER && <SubExploreDetail title="Burger" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
+                {currentView === AppView.GRAY_CITY_SCUOLA_PROGETTAZIONE && <GrayCityScuolaProgettazione setView={handleSetView} />}
+                {currentView === AppView.GRAY_CITY_PISTA_GOKART && <GrayCityPistaGokart setView={handleSetView} />}
+                {currentView === AppView.GRAY_CITY_NEGOZIO_RICAMBI && <GrayCityNegozioRicambi setView={handleSetView} />}
+                {currentView === AppView.GRAY_CITY_OFFICINA && <GrayCityOfficina setView={handleSetView} />}
             </Suspense>
         </main>
     </div>

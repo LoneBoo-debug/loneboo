@@ -41,6 +41,10 @@ const SCAVI_POINTS = {
 
 const MountainCityLocation: React.FC<MountainCityLocationProps> = ({ title, setView, bgImage, minimal }) => {
     const isScavi = title === "Scavi Archeologici";
+    const isOsservatorio = title === "Osservatorio Astronomico";
+    const isCentroMeteo = title === "Centro Meteo";
+    const isLaboratorioAcque = title === "Laboratorio delle Acque";
+    const isLagoPesca = title === "Lago di Pesca";
     
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -91,7 +95,7 @@ const MountainCityLocation: React.FC<MountainCityLocationProps> = ({ title, setV
             
             {minimal ? (
                 <>
-                    {title !== "Scavi Archeologici" && title !== "Ossa Animali" && title !== "Reperti Fossili" && (
+                    {title !== "Scavi Archeologici" && title !== "Ossa Animali" && title !== "Reperti Fossili" && !isOsservatorio && !isCentroMeteo && !isLaboratorioAcque && !isLagoPesca && (
                         <div className="relative z-10 animate-in fade-in zoom-in duration-1000 pointer-events-none">
                             <h1 
                                 className="font-luckiest text-white text-5xl md:text-8xl uppercase tracking-widest drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]"
@@ -101,19 +105,103 @@ const MountainCityLocation: React.FC<MountainCityLocationProps> = ({ title, setV
                             </h1>
                         </div>
                     )}
+
+                    {isLaboratorioAcque && (
+                        <div className="relative z-10 animate-in fade-in zoom-in duration-1000 pointer-events-none">
+                            <h1 
+                                className="font-luckiest text-white text-5xl md:text-8xl uppercase tracking-widest drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]"
+                                style={{ WebkitTextStroke: '2px rgba(0,0,0,0.3)' }}
+                            >
+                                LABORATORIO ACQUE IN ALLESTIMENTO
+                            </h1>
+                        </div>
+                    )}
+
+                    {isLagoPesca && (
+                        <div className="relative z-10 animate-in fade-in zoom-in duration-1000 pointer-events-none">
+                            <h1 
+                                className="font-luckiest text-white text-5xl md:text-8xl uppercase tracking-widest drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]"
+                                style={{ WebkitTextStroke: '2px rgba(0,0,0,0.3)' }}
+                            >
+                                LAGO DI PESCA IN ALLESTIMENTO
+                            </h1>
+                        </div>
+                    )}
+
+                    {isCentroMeteo && (
+                        <div className="relative z-10 animate-in fade-in zoom-in duration-1000 pointer-events-none">
+                            <h1 
+                                className="font-luckiest text-white text-5xl md:text-8xl uppercase tracking-widest drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]"
+                                style={{ WebkitTextStroke: '2px rgba(0,0,0,0.3)' }}
+                            >
+                                CENTRO METEO IN ALLESTIMENTO
+                            </h1>
+                        </div>
+                    )}
+
+                    {isOsservatorio && (
+                        <div className="relative z-10 animate-in fade-in zoom-in duration-1000 pointer-events-none">
+                            <h1 
+                                className="font-luckiest text-white text-5xl md:text-8xl uppercase tracking-widest drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]"
+                                style={{ WebkitTextStroke: '2px rgba(0,0,0,0.3)' }}
+                            >
+                                OSSERVATORIO IN ALLESTIMENTO
+                            </h1>
+                        </div>
+                    )}
+
+                    {isOsservatorio && (
+                        <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center items-center gap-4 px-4 overflow-x-auto no-scrollbar">
+                            {[
+                                { name: 'Asteroidi', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ateriodinbuttone4.webp' },
+                                { name: 'Pianeti', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pianetibuttone4e3.webp' },
+                                { name: 'Stelle', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stellebuttone4e3.webp' },
+                                { name: 'Galassie', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/galassiebuttone3e.webp' }
+                            ].map((btn, idx) => (
+                                <button 
+                                    key={idx}
+                                    className="flex-shrink-0 hover:scale-110 active:scale-95 transition-all drop-shadow-xl group"
+                                    onClick={() => console.log(`Clicked ${btn.name}`)}
+                                >
+                                    <img 
+                                        src={btn.img} 
+                                        alt={btn.name} 
+                                        className="w-16 md:w-32 h-auto"
+                                        referrerPolicy="no-referrer"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     
                     {/* Floating Back Button for minimal view */}
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setView(AppView.MOUNTAIN_CITY); }}
-                        className="fixed top-2 left-2 z-50 hover:scale-110 active:scale-95 transition-all drop-shadow-2xl"
-                    >
-                        <img 
-                            src="https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp" 
-                            alt="Indietro" 
-                            className="w-24 md:w-44 h-auto rounded-2xl"
-                            referrerPolicy="no-referrer"
-                        />
-                    </button>
+                    <div className="fixed top-2 left-2 z-50 flex items-center gap-2 md:gap-4">
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                if (isLagoPesca) {
+                                    setView(AppView.LAKE_CITY);
+                                } else {
+                                    setView(AppView.MOUNTAIN_CITY); 
+                                }
+                            }}
+                            className="hover:scale-110 active:scale-95 transition-all drop-shadow-2xl"
+                        >
+                            <img 
+                                src="https://loneboo-images.s3.eu-south-1.amazonaws.com/bacdsthecity67676.webp" 
+                                alt="Indietro" 
+                                className="w-24 md:w-44 h-auto rounded-2xl"
+                                referrerPolicy="no-referrer"
+                            />
+                        </button>
+                        {isScavi && (
+                            <div className="bg-black/40 backdrop-blur-md px-4 py-2 md:px-6 md:py-3 rounded-2xl md:rounded-full border-2 border-white/30 animate-in fade-in slide-in-from-left duration-1000">
+                                <p className="font-luckiest text-white text-xs md:text-xl uppercase tracking-wider drop-shadow-md">
+                                    tocca gli scavi per scoprire i tesori...
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </>
             ) : (
                 <div className="relative z-10 max-w-md w-full bg-white/90 backdrop-blur-xl border-4 border-emerald-600 rounded-[3rem] p-8 flex flex-col items-center gap-6 shadow-2xl animate-in zoom-in duration-500">

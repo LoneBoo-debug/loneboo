@@ -197,7 +197,11 @@ export enum AppView {
   MOUNTAIN_CITY_LABORATORIO_ACQUE = 'MOUNTAIN_CITY_LABORATORIO_ACQUE',
   MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI = 'MOUNTAIN_CITY_SCAVI_ARCHEOLOGICI',
   MOUNTAIN_CITY_OSSA_ANIMALI = 'MOUNTAIN_CITY_OSSA_ANIMALI',
-  MOUNTAIN_CITY_REPERTI_FOSSILI = 'MOUNTAIN_CITY_REPERTI_FOSSILI'
+  MOUNTAIN_CITY_REPERTI_FOSSILI = 'MOUNTAIN_CITY_REPERTI_FOSSILI',
+  GRAY_CITY_SCUOLA_PROGETTAZIONE = 'GRAY_CITY_SCUOLA_PROGETTAZIONE',
+  GRAY_CITY_PISTA_GOKART = 'GRAY_CITY_PISTA_GOKART',
+  GRAY_CITY_NEGOZIO_RICAMBI = 'GRAY_CITY_NEGOZIO_RICAMBI',
+  GRAY_CITY_OFFICINA = 'GRAY_CITY_OFFICINA'
 }
 
 export interface ChatMessage {
@@ -341,6 +345,21 @@ export interface PlayerProgress {
     magicHatStickers?: string[];
     hasTrainPass?: boolean;
     hasStudentPass?: boolean;
+    ownedCars?: string[];
+    selectedCar?: string;
+    carStats?: Record<string, Record<string, number>>;
+    carLaps?: Record<string, number>;
+    installedComponents?: Record<string, Record<string, string>>; // CarName -> Category -> ComponentId
+    hasCleanedUp?: boolean;
+}
+
+export interface Tire {
+  id: string;
+  name: string;
+  image: string;
+  cost: number;
+  grip: number;
+  safety: number;
 }
 
 export interface SocialStats {

@@ -1,6 +1,6 @@
 {
   "name": "Lone Boo",
-  "description": "Lone Boo è un ecosistema educativo e multimediale integrato che accompagna i ragazzi nella crescita. Comprende la Scuola Arcobaleno (Primaria e Media) con lezioni ministeriali e quiz, una piattaforma di studio interattiva, una collana editoriale su Amazon, musica originale su Spotify/YouTube e un ambiente di gioco sicuro e creativo.",
+  "description": "Sezione Pneumatici del Negozio di Ricambi di Città Grigia. Catalogo interattivo di pneumatici con specifiche tecniche e costi.",
   "requestFramePermissions": [
     "camera",
     "microphone"

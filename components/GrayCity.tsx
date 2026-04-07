@@ -26,7 +26,29 @@ const EXPLORATION_ITEMS = [
     }
 ];
 
-const INTRO_TEXT = "Queste le sezioni principali di Città Grigia, dove costruiamo motori e Gokart per competere al campionato nazionale.";
+const INTRO_TEXT = "Queste le sezioni principali di Città Grigia, induciamo motori e Gokart per competere al campionato nazionale.";
+
+// MODIFICA TEMPORANEA: Imposta a true per attivare lo stato "In Costruzione"
+const IS_UNDER_CONSTRUCTION = true;
+
+const CLICKABLE_AREAS = {
+  "Negozio di ricambi": {
+    points: "78.93,30.88 65.33,42.73 90.67,48.88 98.13,36.13",
+    itemIndex: 2
+  },
+  "Officina auto": {
+    points: "17.6,38.83 15.47,47.83 39.2,53.37 61.6,44.98 31.2,33.73",
+    itemIndex: 1
+  },
+  "Scuola di progettazione": {
+    points: "72.53,54.57 59.2,59.22 55.73,67.02 86.67,75.41 99.2,70.61 97.33,61.92",
+    itemIndex: 0
+  },
+  "Pista macchine": {
+    points: "67.47,76.16 36.8,87.86 71.2,99.1 97.07,84.26",
+    itemIndex: 3
+  }
+};
 
 interface GrayCityProps {
     setView: (view: AppView) => void;
@@ -34,11 +56,33 @@ interface GrayCityProps {
 
 const GrayCity: React.FC<GrayCityProps> = ({ setView }) => {
     const [isExplorationOpen, setIsExplorationOpen] = useState(false);
+    const [modalItems, setModalItems] = useState(EXPLORATION_ITEMS);
     const [now, setNow] = useState(new Date());
 
     const currentBg = useMemo(() => {
         return isNightTime(now) ? CITY_BG_NIGHT : CITY_BG;
     }, [now]);
+
+    const handleAreaClick = (itemIndex: number) => {
+        if (itemIndex === 0) {
+            setView(AppView.GRAY_CITY_SCUOLA_PROGETTAZIONE);
+            return;
+        }
+        if (itemIndex === 1) {
+            setView(AppView.GRAY_CITY_OFFICINA);
+            return;
+        }
+        if (itemIndex === 2) {
+            setView(AppView.GRAY_CITY_NEGOZIO_RICAMBI);
+            return;
+        }
+        if (itemIndex === 3) {
+            setView(AppView.GRAY_CITY_PISTA_GOKART);
+            return;
+        }
+        setModalItems([EXPLORATION_ITEMS[itemIndex]]);
+        setIsExplorationOpen(true);
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -46,6 +90,7 @@ const GrayCity: React.FC<GrayCityProps> = ({ setView }) => {
         const timer = setInterval(() => setNow(new Date()), 60000);
         
         const handleToggleExploration = () => {
+            setModalItems(EXPLORATION_ITEMS);
             setIsExplorationOpen(prev => !prev);
         };
         window.addEventListener('toggleCityExploration', handleToggleExploration);
@@ -64,18 +109,39 @@ const GrayCity: React.FC<GrayCityProps> = ({ setView }) => {
                 className="absolute inset-0 w-full h-full object-fill select-none animate-in fade-in duration-1000"
             />
 
-            {/* SCRITTA CENTRALE IN PREPARAZIONE */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                <h3 
-                    className="font-luckiest text-white text-5xl md:text-9xl uppercase tracking-tighter text-center leading-none"
-                    style={{ 
-                        WebkitTextStroke: '2px black',
-                        textShadow: '6px 6px 0px rgba(0,0,0,0.3)'
-                    }}
+            {/* CLICKABLE AREAS OVERLAY */}
+            {!IS_UNDER_CONSTRUCTION && (
+                <svg 
+                    viewBox="0 0 100 100" 
+                    preserveAspectRatio="none" 
+                    className="absolute inset-0 w-full h-full z-10 pointer-events-none"
                 >
-                    Città in <br className="md:hidden" /> preparazione
-                </h3>
-            </div>
+                    {Object.entries(CLICKABLE_AREAS).map(([name, area]) => (
+                        <polygon
+                            key={name}
+                            points={area.points}
+                            className="pointer-events-auto fill-transparent hover:fill-yellow-400/20 cursor-pointer transition-colors duration-300"
+                            onClick={() => handleAreaClick(area.itemIndex)}
+                        >
+                            <title>{name}</title>
+                        </polygon>
+                    ))}
+                </svg>
+            )}
+
+            {/* MESSAGGIO CITTÀ IN COSTRUZIONE */}
+            {IS_UNDER_CONSTRUCTION && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/60 backdrop-blur-md border-4 border-yellow-400 px-8 py-6 rounded-[2rem] shadow-2xl animate-in zoom-in duration-500">
+                        <h3 
+                            className="font-luckiest text-white text-3xl md:text-5xl uppercase tracking-widest text-center"
+                            style={{ textShadow: '2px 2px 0px black' }}
+                        >
+                            Città in <br className="md:hidden" /> costruzione
+                        </h3>
+                    </div>
+                </div>
+            )}
 
             {/* TITOLO CITTÀ IN BASSO A SINISTRA */}
             <div className="absolute bottom-8 left-8 z-10 pointer-events-none animate-in fade-in slide-in-from-left duration-1000">
@@ -94,8 +160,8 @@ const GrayCity: React.FC<GrayCityProps> = ({ setView }) => {
                 isOpen={isExplorationOpen} 
                 onClose={() => setIsExplorationOpen(false)} 
                 title="CITTÀ GRIGIA"
-                headerDescription={INTRO_TEXT}
-                items={EXPLORATION_ITEMS}
+                headerDescription={modalItems.length > 1 ? INTRO_TEXT : undefined}
+                items={modalItems}
             />
         </div>
     );
