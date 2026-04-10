@@ -96,6 +96,8 @@ const BattagliaNavale = lazy(() => import('./components/BattagliaNavale'));
 const MountainCityLocation = lazy(() => import('./components/MountainCityLocation'));
 const MountainCityOssa = lazy(() => import('./components/MountainCityOssa'));
 const MountainCityFossili = lazy(() => import('./components/MountainCityFossili'));
+const CinemaPreview = lazy(() => import('./components/CinemaPreview'));
+const UpcomingMovies = lazy(() => import('./components/UpcomingMovies'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -119,6 +121,7 @@ const App: React.FC = () => {
   const [currentView, setView] = useState<AppView>(AppView.HOME);
   const [isGameActive, setIsGameActive] = useState(false);
   const [premiumReturnView, setPremiumReturnView] = useState<AppView>(AppView.SCHOOL);
+  const [cinemaReturnView, setCinemaReturnView] = useState<AppView>(AppView.BOO_LIVING_ROOM);
   const [lastClassroomView, setLastClassroomView] = useState<AppView>(AppView.RAINBOW_CITY_SCUOLA_MEDIA_1);
   const [subOscuritaInitialPhase, setSubOscuritaInitialPhase] = useState<'BLACK' | 'STATIC'>('BLACK');
 
@@ -160,6 +163,9 @@ const App: React.FC = () => {
     }
     if (view === AppView.PREMIUM_INFO) {
         setPremiumReturnView(currentView);
+    }
+    if (view === AppView.CINEMA_PREVIEW && currentView !== AppView.UPCOMING_MOVIES) {
+        setCinemaReturnView(currentView);
     }
     setView(view);
   };
@@ -273,6 +279,8 @@ const App: React.FC = () => {
                 {currentView === AppView.BOO_BEDROOM && <BedroomRoom setView={handleSetView} />}
                 {currentView === AppView.BOO_BATHROOM && <BathroomRoom setView={handleSetView} />}
                 {currentView === AppView.BOO_GARDEN && <GardenRoom setView={handleSetView} />}
+                {currentView === AppView.CINEMA_PREVIEW && <CinemaPreview setView={handleSetView} returnView={cinemaReturnView} />}
+                {currentView === AppView.UPCOMING_MOVIES && <UpcomingMovies setView={handleSetView} />}
                 {currentView === AppView.SOCIALS && <SocialHub setView={handleSetView} />}
                 {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={handleSetView} />}
                 {currentView === AppView.PREMIUM_INFO && <PremiumInfoPage setView={handleSetView} returnView={premiumReturnView} />}
@@ -323,10 +331,50 @@ const App: React.FC = () => {
                 {currentView === AppView.SUB_OSCURITA_SUPERFICIE && <SubOscuritaSuperficie setView={handleSetView} />}
                 
                 {/* Rainbow City Locations */}
-                {currentView === AppView.RAINBOW_CITY_ZOO && <SubExploreDetail title="Zoo Fantastico" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
-                {currentView === AppView.RAINBOW_CITY_ARTE && <SubExploreDetail title="Arte e Disegno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
-                {currentView === AppView.RAINBOW_CITY_ALIMENTARI && <SubExploreDetail title="Alimentari Arcobaleno" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
-                {currentView === AppView.RAINBOW_CITY_BURGER && <SubExploreDetail title="Burger" setView={handleSetView} backView={AppView.RAINBOW_CITY} />}
+                {currentView === AppView.RAINBOW_CITY_ZOO && (
+                    <SubExploreDetail 
+                        title="Zoo Fantastico" 
+                        setView={handleSetView} 
+                        backView={AppView.RAINBOW_CITY} 
+                        bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/oofantasticosfond.webp"
+                        hideBanner={true}
+                        centeredText="Zoo in allestimento"
+                        backButtonUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacityrainbowse.webp"
+                    />
+                )}
+                {currentView === AppView.RAINBOW_CITY_ARTE && (
+                    <SubExploreDetail 
+                        title="Arte e Disegno" 
+                        setView={handleSetView} 
+                        backView={AppView.RAINBOW_CITY} 
+                        bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/artesfonduende3.webp"
+                        hideBanner={true}
+                        centeredText="Arte e disegno in allestimento"
+                        backButtonUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacityrainbowse.webp"
+                    />
+                )}
+                {currentView === AppView.RAINBOW_CITY_ALIMENTARI && (
+                    <SubExploreDetail 
+                        title="Alimentari Arcobaleno" 
+                        setView={handleSetView} 
+                        backView={AppView.RAINBOW_CITY} 
+                        bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/alimentsfondirje32.webp"
+                        hideBanner={true}
+                        centeredText="Alimentari in allestimento"
+                        backButtonUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacityrainbowse.webp"
+                    />
+                )}
+                {currentView === AppView.RAINBOW_CITY_BURGER && (
+                    <SubExploreDetail 
+                        title="Burger" 
+                        setView={handleSetView} 
+                        backView={AppView.RAINBOW_CITY} 
+                        bgImage="https://loneboo-images.s3.eu-south-1.amazonaws.com/burgerfantssfonde.webp"
+                        hideBanner={true}
+                        centeredText="Fast food in allestimento"
+                        backButtonUrl="https://loneboo-images.s3.eu-south-1.amazonaws.com/tornacityrainbowse.webp"
+                    />
+                )}
                 {currentView === AppView.GRAY_CITY_SCUOLA_PROGETTAZIONE && <GrayCityScuolaProgettazione setView={handleSetView} />}
                 {currentView === AppView.GRAY_CITY_PISTA_GOKART && <GrayCityPistaGokart setView={handleSetView} />}
                 {currentView === AppView.GRAY_CITY_NEGOZIO_RICAMBI && <GrayCityNegozioRicambi setView={handleSetView} />}

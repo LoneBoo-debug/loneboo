@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Sparkles, MessageCircle, Gamepad2, Clock, Star, Info } from 'lucide-react';
+import { X, Sparkles, MessageCircle, Gamepad2, Clock, Star, Info, Check } from 'lucide-react';
 import { AppView, PlayerProgress } from '../types';
 import { addTokens, getProgress } from '../services/tokens';
 import { CALENDAR_INFO, monthNames } from '../services/calendarDatabase';
@@ -21,6 +21,9 @@ const BTN_ATELIER_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pers
 const IMG_GO_SCHOOL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/andiamoascuolamodaleewerfgr4rf.webp';
 const IMG_GO_MARAGNO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/chiedibuttonmara66gno9.webp';
 const IMG_HEADER_TITLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/tonjournee5r4e3.webp';
+const IMG_CINEMA_BANNER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/iconbannerusicte5533.webp';
+const IMG_BANNER_ELEMENTARY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/elemtarybannerschool44.webp';
+const IMG_BANNER_MIDDLE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mediabannerschool445.webp';
 
 const IMG_SUCCESS_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/riscuotigettonirewards44f55tfre.webp';
 const BTN_OTTIMO_CLOSE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/OTTIMOgettonirccolt654rf4.webp';
@@ -61,8 +64,9 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
     const [hasClaimed, setHasClaimed] = useState(false);
     const [showClaimSuccess, setShowClaimSuccess] = useState(false);
     const [comboMap, setComboMap] = useState<Record<string, string>>({});
-    const [displayMode, setDisplayMode] = useState<'BOO' | 'EVENT'>('BOO');
     const [viewMode, setViewMode] = useState<'STANDARD' | 'STATEMENT'>('STANDARD');
+    const [showSchoolChoice, setShowSchoolChoice] = useState(false);
+    const [showTravelConfirm, setShowTravelConfirm] = useState(false);
 
     const dateKey = useMemo(() => `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`, [now]);
     const holidayInfo = useMemo(() => CALENDAR_INFO[dateKey], [dateKey]);
@@ -124,12 +128,6 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        if (!holidayInfo) return;
-        const interval = setInterval(() => setDisplayMode(prev => prev === 'BOO' ? 'EVENT' : 'BOO'), 10000);
-        return () => clearInterval(interval);
-    }, [holidayInfo]);
-
     const currentBooImage = useMemo(() => {
         const look = progress.equippedClothing;
         const isHeadOverlayWorn = look.special2 === 'S2' || look.special3 === 'S3' || look.special4 === 'S4' || (look.special5 && HIDES_BASE_CLOTHING.includes(look.special5)) || (look.hat && SPECIAL_OVERLAYS[look.hat]);
@@ -187,6 +185,29 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
 
     const handleClaim = () => { if (!hasClaimed) { addTokens(5, 'Premio Giornaliero'); localStorage.setItem('loneboo_daily_tokens_last_claim', new Date().toISOString().split('T')[0]); setHasClaimed(true); setShowClaimSuccess(true); setProgress(getProgress()); } };
     const handleNavigate = (target: AppView, originKey?: string) => { if (currentView) { if (originKey) sessionStorage.setItem(originKey, currentView); if (target === AppView.SCHOOL) sessionStorage.setItem('school_origin', currentView); if (target === AppView.PLAY) sessionStorage.setItem('play_origin', currentView); } onClose(); setView(target); };
+
+    const handleSchoolClick = () => {
+        setShowSchoolChoice(true);
+    };
+
+    const handleSelectSchool = (type: 'ELEMENTARY' | 'MIDDLE') => {
+        if (type === 'ELEMENTARY') {
+            handleNavigate(AppView.SCHOOL, 'school_origin');
+        } else {
+            // Check for train pass or student pass
+            if (progress.hasTrainPass || progress.hasStudentPass) {
+                handleNavigate(AppView.RAINBOW_CITY_SCUOLA_MEDIA);
+            } else {
+                setShowSchoolChoice(false);
+                setShowTravelConfirm(true);
+            }
+        }
+    };
+
+    const handleConfirmTravel = () => {
+        sessionStorage.setItem('train_target_city', AppView.RAINBOW_CITY);
+        handleNavigate(AppView.TRAIN_JOURNEY);
+    };
 
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
     const dateStr = `${now.getDate()} ${monthNames[now.getMonth()].slice(0, 3)} ${now.getFullYear()}`;
@@ -269,24 +290,16 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                                 </div>
                             </div>
 
-                            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex flex-col justify-center relative overflow-hidden transition-all duration-500 shadow-lg min-h-[120px]">
-                                {displayMode === 'BOO' ? (
-                                    <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
-                                        <img src={timeData.img} className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-xl shrink-0" alt="" />
-                                        <div className="flex flex-col gap-3 flex-1">
-                                            <p className="text-yellow-300 font-bold text-base md:text-xl leading-snug">{timeData.text}</p>
-                                            {timeData.action && <button onClick={() => handleNavigate(timeData.action!.view)} className="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-xl border border-white/30 text-[10px] md:text-xs font-black uppercase flex items-center gap-2 w-fit transition-all"><timeData.action.icon size={14} /> {timeData.action.label}</button>}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="animate-in fade-in slide-in-from-right duration-500 flex items-center gap-4">
-                                        <div className="bg-orange-500 p-3 rounded-2xl text-white shadow-lg shrink-0 flex items-center justify-center w-20 h-20 md:w-28 md:h-28"><Star size={32} fill="currentColor" className="animate-pulse" /></div>
-                                        <div className="flex flex-col flex-1">
-                                            <h4 className="text-yellow-300 font-black text-base md:text-2xl uppercase tracking-tight drop-shadow-md">{holidayInfo.event}</h4>
-                                            <p className="text-yellow-300 font-bold text-sm md:text-lg italic opacity-90 leading-tight">"{holidayInfo.description}"</p>
-                                        </div>
-                                    </div>
-                                )}
+                            <div 
+                                onClick={() => handleNavigate(AppView.CINEMA_PREVIEW)}
+                                className="bg-black/40 backdrop-blur-md rounded-3xl p-3 border border-white/20 flex items-center gap-4 shadow-xl cursor-pointer hover:bg-black/50 transition-all min-h-[100px]"
+                            >
+                                <img src={IMG_CINEMA_BANNER} className="w-20 md:w-28 h-auto rounded-xl shadow-lg shrink-0" alt="Anteprima Cinema" />
+                                <div className="flex-1">
+                                    <p className="font-luckiest text-yellow-400 text-xl md:text-3xl uppercase leading-tight text-stroke-lucky-small">
+                                        Prossime uscite<br />al cinema
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="flex flex-row justify-center items-end gap-3 pb-6 shrink-0 px-2 mt-auto">
@@ -302,7 +315,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                                 <button onClick={() => handleNavigate(AppView.ATELIER, 'atelier_origin')} className="w-[22%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent">
                                     <img src={BTN_ATELIER_IMG} alt="Personalizza Boo" className="w-full h-auto drop-shadow-xl" />
                                 </button>
-                                <button onClick={() => handleNavigate(AppView.SCHOOL, 'school_origin')} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
+                                <button onClick={handleSchoolClick} className="w-[26%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-2">
                                     <img src={IMG_GO_SCHOOL} alt="Vai a Scuola" className="w-full h-auto drop-shadow-xl" />
                                 </button>
                                 <button onClick={() => handleNavigate(AppView.CHAT)} className="w-[24%] hover:scale-105 active:scale-95 transition-all outline-none border-none bg-transparent translate-y-0.5">
@@ -363,6 +376,95 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ onClose, setView,
                             <button onClick={() => setShowClaimSuccess(false)} className="hover:scale-110 active:scale-95 transition-all outline-none border-4 border-white rounded-[2rem] shadow-[0_0_20px_rgba(255,255,255,0.6)] bg-white/20 backdrop-blur-sm">
                                 <img src={BTN_OTTIMO_CLOSE} alt="Ottimo!" className="w-32 md:w-52 h-auto block" />
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {showSchoolChoice && (
+                    <div className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="bg-white/10 border-4 border-white/20 rounded-[3rem] p-4 md:p-5 max-w-lg w-full relative shadow-2xl animate-in zoom-in duration-300">
+                            <button onClick={() => setShowSchoolChoice(false)} className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full border-2 border-white shadow-lg hover:scale-110 transition-all z-10">
+                                <X size={18} strokeWidth={3} />
+                            </button>
+                            <h3 className="text-white font-black text-lg md:text-2xl uppercase tracking-tighter text-center mb-4 drop-shadow-md px-10 whitespace-nowrap overflow-hidden text-ellipsis">Dove vuoi andare?</h3>
+                            
+                            <div className="flex flex-col gap-3">
+                                {/* SCUOLA ELEMENTARE */}
+                                <button 
+                                    onClick={() => handleSelectSchool('ELEMENTARY')}
+                                    className="flex items-center gap-4 bg-white/5 hover:bg-white/10 rounded-3xl p-2 md:p-3 transition-all hover:scale-[1.01] active:scale-95 text-left group"
+                                >
+                                    <img src={IMG_BANNER_ELEMENTARY} alt="Scuola Elementare" className="w-20 md:w-28 h-auto rounded-xl shadow-lg" />
+                                    <div className="flex-1">
+                                        <h4 className="text-white font-black text-base md:text-lg uppercase group-hover:text-yellow-400 transition-colors leading-tight">Scuola Elementare</h4>
+                                        <p className="text-white/60 text-[10px] md:text-xs font-bold uppercase">Città Colorata</p>
+                                    </div>
+                                </button>
+
+                                {/* SCUOLA MEDIA */}
+                                <div className="flex flex-col gap-2 bg-white/5 rounded-3xl p-2 md:p-3">
+                                    <button 
+                                        onClick={() => handleSelectSchool('MIDDLE')}
+                                        className="flex items-center gap-4 hover:bg-white/5 rounded-2xl p-1 transition-all hover:scale-[1.01] active:scale-95 text-left group w-full"
+                                    >
+                                        <img src={IMG_BANNER_MIDDLE} alt="Scuola Media" className="w-20 md:w-28 h-auto rounded-xl shadow-lg" />
+                                        <div className="flex-1">
+                                            <h4 className="text-white font-black text-base md:text-lg uppercase group-hover:text-blue-400 transition-colors leading-tight">Scuola Media</h4>
+                                            <p className="text-white/60 text-[10px] md:text-xs font-bold uppercase">Città degli Arcobaleni</p>
+                                        </div>
+                                    </button>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1 border-t border-white/10 pt-2">
+                                        <div className="flex items-center justify-between bg-black/20 p-1.5 px-3 rounded-xl border border-white/5">
+                                            <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase">Abbonamento Treno</span>
+                                            {progress.hasTrainPass ? <Check size={14} className="text-green-400" /> : <X size={14} className="text-red-400" />}
+                                        </div>
+                                        <div className="flex items-center justify-between bg-black/20 p-1.5 px-3 rounded-xl border border-white/5">
+                                            <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase">Abbonamento Studenti</span>
+                                            {progress.hasStudentPass ? <Check size={14} className="text-green-400" /> : <X size={14} className="text-red-400" />}
+                                        </div>
+                                        <div className="flex items-center justify-between bg-black/20 p-1.5 px-3 rounded-xl border border-white/5 md:col-span-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase">Costo Biglietto (255</span>
+                                                <TokenIcon className="w-2.5 h-2.5" />
+                                                <span className="text-white/70 text-[9px] md:text-[10px] font-bold uppercase">)</span>
+                                            </div>
+                                            {progress.tokens >= 255 ? <Check size={14} className="text-green-400" /> : <X size={14} className="text-red-400" />}
+                                        </div>
+                                    </div>
+                                    <p className="text-[8px] text-white/40 uppercase text-center mt-0.5 font-bold italic">
+                                        Per accedere devi possedere un abbonamento o i gettoni necessari
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showTravelConfirm && (
+                    <div className="absolute inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="bg-white/10 border-4 border-white/20 rounded-[3rem] p-8 max-w-md w-full relative shadow-2xl animate-in zoom-in duration-300 text-center">
+                            <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg">
+                                <Info size={40} className="text-white" />
+                            </div>
+                            <h3 className="text-white font-black text-2xl uppercase mb-4">Viaggio in treno</h3>
+                            <p className="text-yellow-300 font-bold text-lg leading-snug mb-8">
+                                La scuola media si trova in Città degli Arcobaleni. Per andarci devi affrontare un viaggio in treno del costo di 255 gettoni.<br /><br />Vuoi partire?
+                            </p>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => setShowTravelConfirm(false)}
+                                    className="flex-1 bg-white/20 hover:bg-white/30 text-white font-black py-4 rounded-2xl border-2 border-white/30 transition-all uppercase tracking-widest"
+                                >
+                                    No
+                                </button>
+                                <button 
+                                    onClick={handleConfirmTravel}
+                                    className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-black py-4 rounded-2xl border-2 border-white transition-all uppercase tracking-widest shadow-lg"
+                                >
+                                    Sì, partiamo!
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

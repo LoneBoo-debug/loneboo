@@ -83,7 +83,7 @@ const LivingRoom: React.FC<{ setView: (v: AppView) => void }> = ({ setView }) =>
     function handleZoneClick(id: string) {
         if (id === 'tv') setView(AppView.VIDEOS);
         else if (id === 'radio') window.open('https://open.spotify.com/intl-it/artist/3RVol8TV5OleEGTcP5tdau', '_blank');
-        else if (id === 'chi_sono') setView(AppView.INTRO);
+        else if (id === 'chi_sono') setView(AppView.CINEMA_PREVIEW);
         else if (id === 'amici') setView(AppView.CHARACTERS);
         else if (id === 'libri') setView(AppView.BOOKS_LIST);
     }

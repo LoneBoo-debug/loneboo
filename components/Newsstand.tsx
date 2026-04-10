@@ -64,6 +64,7 @@ const IMG_PACK_STANDARD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pa
 const IMG_PACK_GOLD = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/pack-gold.webp';
 const IMG_CALENDAR_BANNER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/calendarnewstand33eqa.webp';
 const IMG_TRAIN_PASS = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/abbonamentotreno.webp';
+const IMG_PROGRAMMA_CINEMA = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/prossimeiscitecinemacalned44.webp';
 
 // Nuovi Asset Frecce
 const BTN_ARROW_LEFT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/freccia%20sibnistraedicoly87yt5.png';
@@ -430,6 +431,11 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                                                 Compra 850 <TokenIcon className="w-6 h-6" />
                                             </button>
                                         )}
+                                    </div>
+                                    <div className="flex-shrink-0 w-full h-full snap-center flex flex-col items-center justify-center p-4">
+                                        <div className="h-64 md:h-80 mb-6 flex items-center justify-center"><img src={IMG_PROGRAMMA_CINEMA} className="h-full w-auto object-contain drop-shadow-2xl" alt="Programma Cinema" /></div>
+                                        <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-[2px_2px_0_black] uppercase mb-4">Programma Cinema</h3>
+                                        <button onClick={() => setView(AppView.CINEMA_PREVIEW)} className="bg-green-500 text-white font-black py-4 px-10 rounded-2xl border-b-8 border-green-800 shadow-xl active:translate-y-1 active:border-b-0 transition-all text-xl flex items-center gap-2 uppercase">GRATUITO</button>
                                     </div>
                                 </div>
                             </div>

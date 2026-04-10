@@ -9,10 +9,21 @@ interface SubExploreDetailProps {
     backView?: AppView;
     bgImage?: string;
     hideBanner?: boolean;
+    centeredText?: string;
+    backButtonUrl?: string;
 }
 
-const SubExploreDetail: React.FC<SubExploreDetailProps> = ({ title, setView, backView = AppView.MAGIC_TOWER_SUB_EXPLORE, bgImage, hideBanner }) => {
-    const BTN_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esicenigmi.webp';
+const SubExploreDetail: React.FC<SubExploreDetailProps> = ({ 
+    title, 
+    setView, 
+    backView = AppView.MAGIC_TOWER_SUB_EXPLORE, 
+    bgImage, 
+    hideBanner, 
+    centeredText,
+    backButtonUrl
+}) => {
+    const DEFAULT_BACK_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esicenigmi.webp';
+    const finalBackUrl = backButtonUrl || DEFAULT_BACK_URL;
 
     return (
         <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-6 text-center overflow-hidden">
@@ -39,14 +50,23 @@ const SubExploreDetail: React.FC<SubExploreDetailProps> = ({ title, setView, bac
                     </button>
                 </div>
             ) : (
-                <div className="absolute top-6 left-6 z-50">
-                    <button 
-                        onClick={() => setView(backView)}
-                        className="hover:scale-110 active:scale-95 transition-all outline-none"
-                    >
-                        <img src={BTN_BACK_URL} alt="Indietro" className="w-20 h-20 md:w-32 h-auto drop-shadow-2xl" />
-                    </button>
-                </div>
+                <>
+                    <div className="absolute top-6 left-6 z-50">
+                        <button 
+                            onClick={() => setView(backView)}
+                            className="hover:scale-110 active:scale-95 transition-all outline-none"
+                        >
+                            <img src={finalBackUrl} alt="Indietro" className="w-20 h-20 md:w-32 h-auto drop-shadow-2xl" />
+                        </button>
+                    </div>
+                    {centeredText && (
+                        <div className="relative z-10">
+                            <h2 className="text-white font-black text-4xl md:text-6xl uppercase tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] px-4">
+                                {centeredText}
+                            </h2>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
