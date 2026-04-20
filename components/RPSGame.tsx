@@ -81,9 +81,11 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
   }, [musicEnabled, firstMoveMade, gameState]);
 
   const handleChoice = (choiceName: string) => {
-    if (!firstMoveMade) setFirstMoveMade(true);
-    
+    if (isShaking || playerChoice || gameState !== 'PLAYING') return;
+
     const randomChoice = choices[Math.floor(Math.random() * choices.length)];
+    
+    if (!firstMoveMade) setFirstMoveMade(true);
     setIsShaking(true);
 
     setTimeout(() => {
@@ -91,25 +93,27 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
         setPlayerChoice(choiceName);
         setComputerChoice(randomChoice.name);
 
-        let winner = 'draw';
         let resultMsg = "PAREGGIO!"; 
+        
+        let nextPlayerScore = roundScore.player;
+        let nextComputerScore = roundScore.computer;
 
         if (choiceName !== randomChoice.name) {
             const selected = choices.find(c => c.name === choiceName);
             if (selected?.beats === randomChoice.name) {
-                winner = 'player';
                 resultMsg = "PUNTO PER TE!";
+                nextPlayerScore++;
                 setRoundScore(s => ({ ...s, player: s.player + 1 }));
             } else {
-                winner = 'computer';
                 resultMsg = "PUNTO AL MOSTRO!";
+                nextComputerScore++;
                 setRoundScore(s => ({ ...s, computer: s.computer + 1 }));
             }
         }
         setTurnResult(resultMsg);
 
         if (currentTurn >= TURNS_PER_ROUND) {
-            setTimeout(() => finishRound(winner), 1500);
+            setTimeout(() => finalizeRound(nextPlayerScore, nextComputerScore), 1500);
         } else {
             setTimeout(nextTurn, 1500);
         }
@@ -123,20 +127,13 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
       setCurrentTurn(t => t + 1);
   };
 
-  const finishRound = (lastWinner: string) => {
-      setRoundScore(prev => {
-          const finalP = lastWinner === 'player' ? prev.player + 1 : prev.player;
-          const finalC = lastWinner === 'computer' ? prev.computer + 1 : prev.computer;
-          
-          if (finalP > finalC) {
-              setTotalWins(w => ({ ...w, player: w.player + 1 }));
-          } else if (finalC > finalP) {
-              setTotalWins(w => ({ ...w, computer: w.computer + 1 }));
-          }
-
-          setGameState(currentRound >= TOTAL_ROUNDS ? 'GAME_OVER' : 'ROUND_OVER');
-          return prev; 
-      });
+  const finalizeRound = (finalP: number, finalC: number) => {
+      if (finalP > finalC) {
+          setTotalWins(w => ({ ...w, player: w.player + 1 }));
+      } else if (finalC > finalP) {
+          setTotalWins(w => ({ ...w, computer: w.computer + 1 }));
+      }
+      setGameState(currentRound >= TOTAL_ROUNDS ? 'GAME_OVER' : 'ROUND_OVER');
   };
 
   const nextRound = () => {
@@ -288,12 +285,10 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
       />
       
       {/* HUD SUPERIORE: TASTO ESCI E SALDO GETTONI */}
-      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-          <div className="pointer-events-auto">
-              <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                  <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto drop-shadow-md" />
-              </button>
-          </div>
+      <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
+          <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
+              <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+          </button>
 
           <div className="pointer-events-auto">
               <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
@@ -304,7 +299,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
 
       <div className="w-full h-full flex flex-col items-center p-4 relative z-10">
           
-          <div className="w-full flex flex-col items-center shrink-0 z-10 pt-36 md:pt-48 lg:pt-52">
+          <div className="w-full flex flex-col items-center shrink-0 z-10 pt-28 md:pt-36 lg:pt-40">
             <div className="flex justify-between items-end w-full max-w-lg mb-4 px-2">
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black text-orange-500 uppercase drop-shadow-[0_1px_1px_black] bg-black/40 px-2 rounded-full mb-1">MOSTRO</span>
@@ -366,7 +361,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
             </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col justify-center items-center min-h-0 relative">
+          <div className="flex-1 w-full flex flex-col justify-center items-center min-h-0 relative z-20">
             <div className="w-full flex justify-center items-center h-[280px] md:h-[350px]">
                 {isShaking ? (
                     <div className="flex flex-col items-center justify-center animate-in fade-in duration-200">
@@ -392,7 +387,7 @@ const RPSGame: React.FC<RPSGameProps> = ({ onBack, onEarnTokens }) => {
                             <h2 
                                 className="text-4xl md:text-5xl font-black uppercase tracking-wider text-center animate-bounce"
                                 style={{ 
-                                    color: 'white',
+                                    color: '#facc15',
                                     textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
                                     fontFamily: '"Titan One", cursive',
                                     WebkitTextStroke: '2px black'

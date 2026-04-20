@@ -135,6 +135,12 @@ export const ANIMAL_SOUNDS = [
     { id: 'frog', label: 'Rana', emoji: '🐸', src: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/frog-1-352709.mp3' }
 ];
 
+export const TRANSITION_VIDEOS = {
+    TOWER_TO_SUB: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sotteratransictionea.mp4',
+    SUB_TO_OSCURITA: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scivolapozzorurne.mp4',
+    SUB_TO_RIVER: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scendialsottetttr66.mp4'
+};
+
 export const TIRES: Tire[] = [
   { id: 'pneu1', name: 'Pneumatico 1', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/penu1.webp', cost: 75, grip: 1, safety: 1 },
   { id: 'pneu2', name: 'Pneumatico 2', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/penu2.webp', cost: 100, grip: 2, safety: 2 },

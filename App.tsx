@@ -1,10 +1,15 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { AppView, SchoolSubject } from './types';
-import { OFFICIAL_LOGO } from './constants';
+import { OFFICIAL_LOGO, TRANSITION_VIDEOS } from './constants';
 import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
 import { addTokens } from './services/tokens';
-import { preloadImages, preloadComponent } from './services/imagePreloader';
+import { preloadImages, preloadComponent, preloadVideo } from './services/imagePreloader';
+
+import MagicEye from './components/MagicEye';
+import MagicTowerSub from './components/MagicTowerSub';
+import ExploreSubPage from './components/ExploreSubPage';
+import SubOscurita from './components/SubOscurita';
 
 const Header = lazy(() => import('./components/Header'));
 const HomePage = lazy(() => import('./components/HomePage'));
@@ -18,10 +23,7 @@ const VideoGallery = lazy(() => import('./components/VideoGallery'));
 const BookShelf = lazy(() => import('./components/BookShelf'));
 const BooksListView = lazy(() => import('./components/BooksListView'));
 const SocialHub = lazy(() => import('./components/SocialHub'));
-const MagicEye = lazy(() => import('./components/MagicEye'));
-const MagicTowerSub = lazy(() => import('./components/MagicTowerSub'));
 const SubEnigmasPage = lazy(() => import('./components/SubEnigmasPage'));
-const ExploreSubPage = lazy(() => import('./components/ExploreSubPage'));
 const PlayZone = lazy(() => import('./components/PlayZone'));
 const FanArtGallery = lazy(() => import('./components/FanArtGallery'));
 const DisclaimerPage = lazy(() => import('./components/DisclaimerPage'));
@@ -74,7 +76,6 @@ const AtelierView = lazy(() => import('./components/AtelierView'));
 const SubAtelierOscuro = lazy(() => import('./components/SubAtelierOscuro'));
 const SubFiumeSotterraneo = lazy(() => import('./components/SubFiumeSotterraneo'));
 const SubExploreDetail = lazy(() => import('./components/SubExploreDetail'));
-const SubOscurita = lazy(() => import('./components/SubOscurita'));
 const SubOscuritaSuperficie = lazy(() => import('./components/SubOscuritaSuperficie'));
 const SubMonsterBattle = lazy(() => import('./components/SubMonsterBattle'));
 
@@ -146,6 +147,11 @@ const App: React.FC = () => {
         () => import('./components/RoomView')
     ];
     mainComponents.forEach(preloadComponent);
+
+    // 3. Precaricamento Video di Transizione
+    preloadVideo(TRANSITION_VIDEOS.TOWER_TO_SUB);
+    preloadVideo(TRANSITION_VIDEOS.SUB_TO_OSCURITA);
+    preloadVideo(TRANSITION_VIDEOS.SUB_TO_RIVER);
 
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');

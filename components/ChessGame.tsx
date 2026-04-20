@@ -725,12 +725,27 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
         />
 
         {/* HUD NAVIGAZIONE SUPERIORE (STILE TRIS/DAMA) */}
-        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
-            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
-                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
-            </button>
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-start pointer-events-none">
+            <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+                </button>
+                
+                {/* Tasto Audio sotto il tasto esci - Come richiesto */}
+                <button 
+                    onClick={() => {
+                        const nextState = !musicEnabled;
+                        setMusicEnabled(nextState);
+                        localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                    }}
+                    className={`hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                >
+                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-12 h-12 md:w-16 h-auto drop-shadow-xl" />
+                </button>
+            </div>
             
-            <div className="flex gap-2 pointer-events-auto">
+            <div className="flex gap-2 pointer-events-auto items-start">
                 {difficulty && (
                     <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
                         <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-10 md:h-12 w-auto" />
@@ -836,24 +851,11 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
             </div>
         </div>
 
-        {/* SALDO GETTONI E AUDIO (ALTO A DESTRA) */}
-        <div className="absolute top-[80px] md:top-[100px] right-4 z-[1200] pointer-events-none flex flex-col items-end gap-3">
+        {/* SALDO GETTONI (ALTO A DESTRA) */}
+        <div className="absolute top-[20px] right-4 z-[1200] pointer-events-none">
             <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                 <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
-            
-            {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
-            <button 
-                onClick={() => {
-                    const nextState = !musicEnabled;
-                    setMusicEnabled(nextState);
-                    localStorage.setItem('loneboo_game_music_enabled', String(nextState));
-                }}
-                className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-                title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-            >
-                <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
-            </button>
         </div>
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
@@ -890,7 +892,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ onBack, onEarnTokens, onOpenNewss
                     {/* BOX TESTO STILE AEREO SOTTO I LIVELLI rimosso perchè spostato sopra */}
                 </div>
             ) : (
-                <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-10 md:pt-16 px-2">
+                <div className="w-full h-full flex flex-col items-center justify-start min-h-0 pt-6 md:pt-10 px-2">
                     <div className="w-full max-w-[min(90vw,55vh)] md:max-w-[min(60vh,60vw)] flex flex-col items-center mb-2 gap-2">
                         <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-1.5 rounded-full border-2 border-black relative shadow-lg shrink-0 scale-90 md:scale-100">
                             <div className={`w-4 h-4 rounded-full ${turn === 'w' ? 'bg-indigo-600 animate-pulse' : 'bg-slate-700'}`}></div>

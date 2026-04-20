@@ -135,12 +135,11 @@ const WordGuessGame: React.FC<WordGuessProps> = ({ onBack, onEarnTokens, onOpenN
         <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" draggable={false} />
 
         {/* HUD FISSA: TASTO ESCI E SALDO GETTONI */}
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-            <div className="pointer-events-auto">
-                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                    <img src={EXIT_BTN_IMG} alt="Indietro" className="h-12 w-auto" />
-                </button>
-            </div>
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
+            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
+                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+            </button>
+
             <div className="pointer-events-auto">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
                     <span>{currentTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />

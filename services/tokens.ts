@@ -444,12 +444,92 @@ export const tradeDuplicates = (albumVersion: number = 1): boolean => {
 // --- PASSPORT ENCODING & RECOVERY ---
 
 /**
- * Codifica i progressi in Base64 supportando caratteri UTF-8 (accenti, emoji, ecc.)
+ * Mappa degli alias per comprimere il JSON del passaporto
+ */
+const PASSPORT_KEYS_MAP: Record<string, string> = {
+    playerName: 'n',
+    avatar: 'v',
+    avatarConfig: 'vc',
+    tokens: 't',
+    unlockedStickers: 's',
+    hardModeUnlocked: 'h',
+    duplicates: 'd',
+    duplicateStickers: 'ds',
+    duplicatesVol2: 'd2',
+    duplicateStickersVol2: 'v2',
+    currentAlbum: 'ca',
+    completedQuizzes: 'q',
+    completedActivities: 'a',
+    equippedClothing: 'e',
+    purchasedClothing: 'pc',
+    hasTrainPass: 'tp',
+    hasStudentPass: 'sp',
+    ownedCars: 'oc',
+    carStats: 'cs',
+    carLaps: 'cl',
+    installedComponents: 'ic',
+    magicHatStickers: 'ms',
+    hasCleanedUp: 'hc'
+};
+
+const REVERSE_PASSPORT_KEYS_MAP: Record<string, string> = Object.fromEntries(
+    Object.entries(PASSPORT_KEYS_MAP).map(([k, v]) => [v, k])
+);
+
+/**
+ * Converte gli ID delle figurine in numeri per risparmiare spazio
+ */
+const stickerIdToNum = (id: string): number => {
+    if (id.startsWith('stk2-')) return parseInt(id.replace('stk2-', '')) + 100;
+    if (id.startsWith('stk-')) return parseInt(id.replace('stk-', ''));
+    return 0;
+};
+
+const numToStickerId = (num: number): string => {
+    if (num > 100) return `stk2-${(num - 100).toString().padStart(3, '0')}`;
+    return `stk-${num.toString().padStart(3, '0')}`;
+};
+
+/**
+ * Codifica i progressi in Base64 comprimendo le chiavi e i valori per minimizzare il QR
  */
 export const encodePassport = (progress: PlayerProgress): string => {
     try {
-        const jsonString = JSON.stringify(progress);
-        // encodeURIComponent + unescape è necessario per permettere a btoa di gestire caratteri non-latin1
+        const essentialProgress: any = { ...progress };
+        delete essentialProgress.transactions; // Cronologia non necessaria per recupero
+        
+        // 1. Ottimizzazione delle figurine: convertiamo l'array di stringhe in array di numeri
+        if (essentialProgress.unlockedStickers) {
+            essentialProgress.unlockedStickers = essentialProgress.unlockedStickers.map(stickerIdToNum);
+        }
+        if (essentialProgress.magicHatStickers) {
+            essentialProgress.magicHatStickers = essentialProgress.magicHatStickers.map(stickerIdToNum);
+        }
+        
+        // 2. Ottimizzazione Quizzes e Activities: convertiamo [true, false] in [1, 0]
+        const optimizeMap = (map: Record<string, boolean[]>) => {
+            const optimized: Record<string, number[]> = {};
+            Object.entries(map).forEach(([k, v]) => {
+                optimized[k] = v.map(b => b ? 1 : 0);
+            });
+            return optimized;
+        };
+        
+        if (essentialProgress.completedQuizzes) {
+            essentialProgress.completedQuizzes = optimizeMap(essentialProgress.completedQuizzes);
+        }
+        if (essentialProgress.completedActivities) {
+            essentialProgress.completedActivities = optimizeMap(essentialProgress.completedActivities);
+        }
+
+        // 3. Compressione delle chiavi
+        const compressed: any = {};
+        Object.entries(essentialProgress).forEach(([k, v]) => {
+            const alias = PASSPORT_KEYS_MAP[k] || k;
+            compressed[alias] = v;
+        });
+
+        const jsonString = JSON.stringify(compressed);
         return btoa(unescape(encodeURIComponent(jsonString)));
     } catch (e) {
         console.error("Error encoding passport:", e);
@@ -458,12 +538,43 @@ export const encodePassport = (progress: PlayerProgress): string => {
 };
 
 /**
- * Decodifica i progressi da una stringa Base64 gestendo correttamente UTF-8
+ * Decodifica i progressi da una stringa Base64 ripristinando chiavi e valori originali
  */
 export const decodePassport = (code: string): PlayerProgress | null => {
     try {
         const decodedString = decodeURIComponent(escape(atob(code)));
-        return JSON.parse(decodedString);
+        const compressed = JSON.parse(decodedString);
+        
+        // 1. Decomprimiamo le chiavi
+        const decompressed: any = {};
+        Object.entries(compressed).forEach(([k, v]) => {
+            const originalKey = REVERSE_PASSPORT_KEYS_MAP[k] || k;
+            decompressed[originalKey] = v;
+        });
+
+        // 2. Ripristino dei valori (Figurine e Quizzes)
+        if (decompressed.unlockedStickers && Array.isArray(decompressed.unlockedStickers)) {
+            decompressed.unlockedStickers = decompressed.unlockedStickers.map((n: any) => typeof n === 'number' ? numToStickerId(n) : n);
+        }
+        if (decompressed.magicHatStickers && Array.isArray(decompressed.magicHatStickers)) {
+            decompressed.magicHatStickers = decompressed.magicHatStickers.map((n: any) => typeof n === 'number' ? numToStickerId(n) : n);
+        }
+        
+        const restoreMap = (map: any) => {
+            if (!map) return {};
+            const restored: Record<string, boolean[]> = {};
+            Object.entries(map).forEach(([k, v]) => {
+                if (Array.isArray(v)) {
+                    restored[k] = v.map(n => n === 1);
+                }
+            });
+            return restored;
+        };
+        
+        decompressed.completedQuizzes = restoreMap(decompressed.completedQuizzes);
+        decompressed.completedActivities = restoreMap(decompressed.completedActivities);
+
+        return decompressed as PlayerProgress;
     } catch (e) {
         console.error("Error decoding passport:", e);
         return null;
@@ -477,7 +588,14 @@ export const getPassportCode = (): string => {
 export const restorePassport = (code: string): boolean => {
     const p = decodePassport(code);
     if (p) {
-        saveProgress(p);
+        // Quando ripristiniamo, assicuriamoci di mantenere le transazioni correnti se presenti
+        // o inizializzarle a vuoto, dato che non sono nel QR
+        const currentProgress = getProgress();
+        const mergedProgress = {
+            ...p,
+            transactions: currentProgress.transactions || []
+        };
+        saveProgress(mergedProgress);
         return true;
     }
     return false;

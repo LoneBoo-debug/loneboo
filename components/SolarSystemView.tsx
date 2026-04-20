@@ -7,18 +7,58 @@ const BTN_CLOSE_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-cl
 
 type Point = { x: number; y: number };
 
-// Mappa delle immagini per le schede informative
-const PLANET_INFO: Record<string, { image: string, label: string }> = {
-    'sole': { label: 'Sole', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/solechsedainfo55reds.webp' },
-    'giove': { label: 'Giove', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/ioveschedainfo554re.webp' },
-    'mercurio': { label: 'Mercurio', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mercurioschedainfodn44wa.webp' },
-    'venere': { label: 'Venere', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/venereschedainforre3wwq.webp' },
-    'terra': { label: 'Terra', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/terraschedainfo44rdew.webp' },
-    'marte': { label: 'Marte', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/marteschedainfo55rdswq.webp' },
-    'saturno': { label: 'Saturno', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/saturnoschedainforrnden33.webp' },
-    'urano': { label: 'Urano', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/urnoschedsinfeubs.webp' },
-    'nettuno': { label: 'Nettuno', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nettunoschedainfonde4wqq.webp' },
-    'plutone': { label: 'Plutone', image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/plutonschedainfogrr44ew.webp' }
+// Mappa delle immagini e descrizioni per le schede informative
+const PLANET_INFO: Record<string, { image: string, label: string, description: string }> = {
+    'sole': { 
+        label: 'Sole', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/spazio_notizia-3-2+(1).webp',
+        description: 'Il Sole è la stella al centro del nostro Sistema Solare. È una gigantesca palla di fuoco che ci dona luce e calore, rendendo possibile la vita sulla Terra.'
+    },
+    'giove': { 
+        label: 'Giove', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/giovehdeess.webp',
+        description: 'Giove è il re dei pianeti, il più grande di tutti! È un gigante gassoso con una Grande Macchia Rossa, che è in realtà una tempesta gigante che dura da secoli.'
+    },
+    'mercurio': { 
+        label: 'Mercurio', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/mercuriohdeew%C3%B9.webp',
+        description: 'Mercurio è il pianeta più vicino al Sole e anche il più piccolo. Non ha atmosfera, quindi di giorno fa caldissimo e di notte freddissimo!'
+    },
+    'venere': { 
+        label: 'Venere', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/venerehdss.webp',
+        description: 'Venere è il pianeta più luminoso nel cielo notturno. È avvolto da dense nubi che lo rendono il pianeta più caldo di tutti, persino più di Mercurio!'
+    },
+    'terra': { 
+        label: 'Terra', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/terrhdss.webp',
+        description: 'La Terra è la nostra casa! È l\'unico pianeta conosciuto dove c\'è vita, grazie alla presenza di acqua liquida e di un\'atmosfera ricca di ossigeno.'
+    },
+    'marte': { 
+        label: 'Marte', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/martehddee.webp',
+        description: 'Marte è conosciuto come il "Pianeta Rosso" a causa della ruggine che ricopre la sua superficie. Ha vulcani giganti e canyon profondissimi.'
+    },
+    'saturno': { 
+        label: 'Saturno', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/saturnohd33ww+(1).webp',
+        description: 'Saturno è famoso per i suoi spettacolari anelli fatti di ghiaccio e polvere. È un gigante gassoso molto leggero, tanto che potrebbe galleggiare nell\'acqua!'
+    },
+    'urano': { 
+        label: 'Urano', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/uranohd33ee.webp',
+        description: 'Urano è un gigante di ghiaccio dal colore azzurro. La sua caratteristica più strana è che ruota su un fianco, come se rotolasse lungo la sua orbita.'
+    },
+    'nettuno': { 
+        label: 'Nettuno', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nettunohd33.webp',
+        description: 'Nettuno è il pianeta più lontano dal Sole. È un mondo freddo e ventoso, con venti che soffiano più veloci di un aereo da caccia!'
+    },
+    'plutone': { 
+        label: 'Plutone', 
+        image: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/istockphoto-1128400040-612x612.webp',
+        description: 'Plutone è un pianeta nano situato ai confini del Sistema Solare. È piccolissimo e molto freddo, composto principalmente da roccia e ghiaccio.'
+    }
 };
 
 // Coordinate definitive
@@ -164,11 +204,11 @@ const SolarSystemView: React.FC<SolarSystemViewProps> = ({ onClose }) => {
                             <X size={24} strokeWidth={4} />
                         </button>
 
-                        <div className="relative bg-black flex items-center justify-center overflow-hidden">
+                        <div className="relative bg-black flex items-center justify-center overflow-hidden shrink-0">
                             <img 
                                 src={PLANET_INFO[selectedPlanet]?.image} 
                                 alt={selectedPlanet} 
-                                className="w-full h-auto object-contain max-h-[85vh]"
+                                className="w-full h-auto object-contain max-h-[40vh] md:max-h-[50vh]"
                             />
                             
                             {/* Nome del pianeta in alto a sinistra stile Lucky */}
@@ -177,6 +217,13 @@ const SolarSystemView: React.FC<SolarSystemViewProps> = ({ onClose }) => {
                                     {PLANET_INFO[selectedPlanet]?.label}
                                 </h3>
                             </div>
+                        </div>
+
+                        {/* Descrizione del pianeta */}
+                        <div className="p-6 md:p-8 overflow-y-auto no-scrollbar flex-1 bg-white">
+                            <p className="text-gray-700 text-lg md:text-2xl leading-relaxed font-medium">
+                                {PLANET_INFO[selectedPlanet]?.description}
+                            </p>
                         </div>
                     </div>
                 </div>

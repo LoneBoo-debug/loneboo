@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../types';
+import { TRANSITION_VIDEOS } from '../constants';
 import { pauseSubMusic, playSubMusic } from '../services/bgMusic';
 
 const HORROR_MUSIC_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/nastelbom-horror-thriller-376319.mp3';
-const ANIMATION_VIDEO_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scivolapozzorurne.mp4';
 const STATIC_BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/newosbscury5t43.webp';
 const ILLUMINATED_BG_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/oscutillumina4e3.webp';
 const AUDIO_ICON_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/audiologoingames.webp';
@@ -43,10 +43,12 @@ const DEFAULT_POLYGONS: Record<AreaId, Point[]> = {
 };
 
 const SubOscurita: React.FC<SubOscuritaProps> = ({ setView, initialPhase = 'BLACK' }) => {
-    const [phase, setPhase] = useState<Phase>(initialPhase);
+    // Start with ANIMATION if BLACK is requested to preserve user gesture
+    const [phase, setPhase] = useState<Phase>(initialPhase === 'BLACK' ? 'ANIMATION' : initialPhase);
     const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_sub_bg_music_enabled') !== 'false');
     const [isIlluminated, setIsIlluminated] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
 
     const [polygons] = useState<Record<AreaId, Point[]>>(() => {
         const saved = localStorage.getItem('sub_oscurita_polygons');
@@ -66,16 +68,23 @@ const SubOscurita: React.FC<SubOscuritaProps> = ({ setView, initialPhase = 'BLAC
             audioRef.current.play().catch(e => console.log("Horror music blocked", e));
         }
 
-        // Transition to animation after 3 seconds of black screen
-        let timer: any;
-        if (phase === 'BLACK') {
-            timer = setTimeout(() => {
-                setPhase('ANIMATION');
-            }, 3000);
+        // Try to play the video if we are in ANIMATION phase
+        if (phase === 'ANIMATION' && videoRef.current) {
+            const playVideo = () => {
+                if (!videoRef.current) return;
+                videoRef.current.play().catch(err => {
+                    console.log("Video play failed, trying muted fallback", err);
+                    if (videoRef.current) {
+                        videoRef.current.muted = true;
+                        videoRef.current.play();
+                    }
+                });
+            };
+            // Small delay to ensure browser readiness
+            setTimeout(playVideo, 50);
         }
 
         return () => {
-            if (timer) clearTimeout(timer);
             if (audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current = null;
@@ -141,9 +150,15 @@ const SubOscurita: React.FC<SubOscuritaProps> = ({ setView, initialPhase = 'BLAC
 
             {phase === 'ANIMATION' && (
                 <video 
-                    src={ANIMATION_VIDEO_URL}
-                    autoPlay
-                    playsInline
+                    key={TRANSITION_VIDEOS.SUB_TO_OSCURITA}
+                    ref={videoRef}
+                    src={TRANSITION_VIDEOS.SUB_TO_OSCURITA} 
+                    autoPlay 
+                    playsInline 
+                    preload="auto"
+                    onLoadedMetadata={(e) => {
+                        (e.target as HTMLVideoElement).play().catch(() => {});
+                    }}
                     onEnded={() => setPhase('STATIC')}
                     className="absolute inset-0 w-full h-full object-cover z-[160]"
                 />

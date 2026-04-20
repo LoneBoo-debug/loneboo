@@ -561,12 +561,27 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
         />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA */}
-        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
-            <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation pointer-events-auto">
-                <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
-            </button>
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-start pointer-events-none">
+            <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+                </button>
+                
+                {/* Tasto Audio sotto il tasto esci - Come richiesto */}
+                <button 
+                    onClick={() => {
+                        const nextState = !musicEnabled;
+                        setMusicEnabled(nextState);
+                        localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                    }}
+                    className={`hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                >
+                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-12 h-12 md:w-16 h-auto drop-shadow-xl" />
+                </button>
+            </div>
             
-            <div className="flex gap-2 pointer-events-auto">
+            <div className="flex gap-2 pointer-events-auto items-start">
                 {difficulty && (
                     <button onClick={backToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
                         <img src={BTN_BACK_MENU_IMG} alt="Torna ai Livelli" className="h-10 md:h-12 w-auto" />
@@ -672,30 +687,17 @@ const CheckersGame: React.FC<CheckersGameProps> = ({ onBack, onEarnTokens, onOpe
             </div>
         </div>
 
-        {/* SALDO GETTONI E AUDIO (SOTTO L'HEADER) */}
-        <div className="absolute top-[80px] md:top-[100px] right-4 z-[1200] pointer-events-none flex flex-col items-end gap-3">
-            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
+        {/* SALDO GETTONI (SOTTO L'HEADER) */}
+        <div className="absolute top-[20px] right-4 z-[1200] pointer-events-none shadow-xl">
+            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg pointer-events-auto">
                 <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
             </div>
-            
-            {/* Tasto Audio sotto i gettoni - Stessa logica di OddOneOut */}
-            <button 
-                onClick={() => {
-                    const nextState = !musicEnabled;
-                    setMusicEnabled(nextState);
-                    localStorage.setItem('loneboo_game_music_enabled', String(nextState));
-                }}
-                className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-                title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-            >
-                <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
-            </button>
         </div>
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
         
         {/* AREA CONTENUTO */}
-        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-48 md:pt-60">
+        <div className="relative z-[110] w-full h-full flex flex-col items-center justify-start p-4 pt-32 md:pt-40">
             {!difficulty ? (
                 <div className="flex flex-col items-center w-full animate-fade-in px-4">
                     <div className="flex flex-col gap-4 items-center w-full max-w-[220px] md:max-w-[280px] relative">

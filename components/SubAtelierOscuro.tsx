@@ -439,7 +439,7 @@ const SubAtelierOscuro: React.FC<{ setView: (view: AppView) => void }> = ({ setV
         const isRightAligned = cat === 'COMPLETI' || cat === 'OGGETTI';
         
         return (
-            <div className={`absolute top-[110%] ${isRightAligned ? 'right-0' : 'left-1/2 -translate-x-1/2'} bg-slate-900/40 backdrop-blur-2xl border-4 border-purple-500 rounded-[2.5rem] shadow-2xl p-3 flex flex-col gap-2 w-[200px] md:w-[240px] animate-in slide-in-from-top-4 duration-300 z-[100]`}>
+            <div className={`absolute top-[110%] ${isRightAligned ? 'right-0' : 'left-1/2 -translate-x-1/2'} bg-slate-900/60 backdrop-blur-2xl border-4 border-purple-500 rounded-[2.5rem] shadow-2xl p-3 flex flex-col gap-2 w-[200px] md:w-[240px] animate-in slide-in-from-top-4 duration-300 z-[100]`}>
                 {items.length === 0 ? (
                     <div className="text-purple-300 text-xs font-black uppercase text-center py-4 opacity-50 italic">In arrivo...</div>
                 ) : (
@@ -452,10 +452,16 @@ const SubAtelierOscuro: React.FC<{ setView: (view: AppView) => void }> = ({ setV
                                 <div 
                                     key={item.id} 
                                     onClick={() => handleSelectItem(item)}
-                                    className={`flex items-center gap-2 p-2 rounded-2xl border-2 cursor-pointer transition-all ${isPreviewed ? 'border-purple-400 bg-purple-500/20 shadow-lg' : 'border-transparent bg-white/5 hover:bg-white/10'}`}
+                                    className={`flex items-center gap-1 p-1 rounded-2xl border-2 cursor-pointer transition-all ${isPreviewed ? 'border-purple-400 bg-purple-500/20 shadow-lg' : 'border-transparent bg-white/5 hover:bg-white/10'}`}
                                 >
-                                    <img src={item.icon} alt="" className="w-16 h-16 md:w-20 md:h-20 object-contain" />
-                                    <div className="flex-1 flex flex-col items-end">
+                                    <div className="relative shrink-0 w-16 h-16 md:w-24 md:h-24 flex items-center justify-center bg-white/5 rounded-xl">
+                                        <img 
+                                            src={item.icon} 
+                                            alt="" 
+                                            className="w-14 h-14 md:w-22 md:h-22 object-contain drop-shadow-md" 
+                                        />
+                                    </div>
+                                    <div className="flex-1 flex items-center justify-end pr-1">
                                         {isOwned ? (
                                             <div className="flex gap-1">
                                                 {!isEquipped ? (

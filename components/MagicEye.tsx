@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { OFFICIAL_LOGO } from '../constants';
+import { OFFICIAL_LOGO, TRANSITION_VIDEOS } from '../constants';
 import { AppView } from '../types';
 import StoryDice from './StoryDice';
 import MagicHunt from './MagicHunt';
 import GhostPassport from './GhostPassport';
 import MagicHat from './MagicHat';
 import { isNightTime } from '../services/weatherService';
+import { preloadVideo } from '../services/imagePreloader';
 
 const TOWER_BG_DAY = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremoagicagiornides.webp';
 const TOWER_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicanottemnb.webp';
@@ -21,7 +22,6 @@ const BG_MAGIC_HAT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfomagi
 
 // Portale Sotterranei
 const BTN_SUB_TOWER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaineisotteindic.webp';
-const TRANSITION_VIDEO = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sotteratransictionea.mp4';
 
 // Asset Audio e Video Ambientali
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicaspeechboo4e4e4.mp3';
@@ -54,6 +54,7 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   
   const transitionTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
@@ -68,7 +69,10 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       const timeInterval = setInterval(() => setNow(new Date()), 60000);
       const img = new Image(); 
       img.src = currentBg;
-      img.onload = () => setIsLoaded(true);
+      img.onload = () => {
+          setIsLoaded(true);
+          preloadVideo(TRANSITION_VIDEOS.TOWER_TO_SUB);
+      };
 
       if (!ambientAudioRef.current) {
           ambientAudioRef.current = new Audio(AMBIENT_VOICE_URL);
@@ -120,6 +124,21 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
     } else if (isAudioOn) {
         ambientAudioRef.current?.play().catch(() => {});
     }
+
+    if (isTransitioning && videoRef.current) {
+        const playVideo = () => {
+            if (!videoRef.current) return;
+            videoRef.current.play().catch(err => {
+                console.log("Tower Transition blocked, trying muted", err);
+                if (videoRef.current) {
+                    videoRef.current.muted = true;
+                    videoRef.current.play();
+                }
+            });
+        };
+        // Small delay to ensure the video element is mounted and ready
+        setTimeout(playVideo, 50);
+    }
   }, [activeGame, isAudioOn, isTransitioning]);
 
   const handleZoneClick = (gameId: string) => {
@@ -158,9 +177,15 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
       return (
           <div className={`fixed inset-0 z-[1000] bg-black flex items-center justify-center transition-opacity duration-1000 ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
               <video 
-                  src={TRANSITION_VIDEO} 
+                  key={TRANSITION_VIDEOS.TOWER_TO_SUB}
+                  ref={videoRef}
+                  src={TRANSITION_VIDEOS.TOWER_TO_SUB} 
                   autoPlay 
                   playsInline 
+                  preload="auto"
+                  onLoadedMetadata={(e) => {
+                      (e.target as HTMLVideoElement).play().catch(() => {});
+                  }}
                   onEnded={() => {
                       if (!isFadingOut) {
                           setIsFadingOut(true);

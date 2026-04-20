@@ -209,15 +209,14 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
         />
 
         {/* TESTATA SUPERIORE FISSA */}
-        <div className="absolute top-[80px] md:top-[115px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-            <div className="pointer-events-auto">
-                {difficulty ? (
-                    <button onClick={resetToMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                        <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 w-auto drop-shadow-md" />
-                    </button>
-                ) : (
-                    <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                        <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex items-center justify-between pointer-events-none">
+            <div className="flex gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+                </button>
+                {difficulty && (
+                    <button onClick={resetToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-10 md:h-12 w-auto" />
                     </button>
                 )}
             </div>
@@ -227,7 +226,7 @@ const QuizGame: React.FC<QuizGameProps> = ({ onBack, onEarnTokens, onOpenNewssta
             </div>
 
             <div className="pointer-events-auto">
-                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
                     <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>

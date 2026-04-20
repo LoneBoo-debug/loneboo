@@ -229,40 +229,38 @@ const OddOneOutGame: React.FC<OddOneOutProps> = ({ onBack, onEarnTokens, onOpenN
         <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0" draggable={false} />
 
         {/* TASTI NAVIGAZIONE IN ALTO A SINISTRA (ALZATI) */}
-        <div className="fixed top-[70px] md:top-[105px] left-4 z-50 flex flex-col items-start pointer-events-none">
-            <div className="pointer-events-auto">
-                {gameState === 'MENU' ? (
-                    <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-2 cursor-pointer touch-manipulation">
-                        <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto" />
-                    </button>
-                ) : (
-                    <button onClick={returnToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-2 cursor-pointer touch-manipulation">
-                        <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-16 md:h-22 w-auto" />
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-start pointer-events-none">
+            <div className="flex gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+                </button>
+                {gameState !== 'MENU' && (
+                    <button onClick={returnToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Torna al Menu" className="h-10 md:h-12 w-auto" />
                     </button>
                 )}
             </div>
-        </div>
 
-        {/* SALDO GETTONI E TASTO AUDIO (ALTO A DESTRA) */}
-        <div className="absolute top-[80px] md:top-[120px] right-4 z-50 pointer-events-none flex flex-col items-end gap-3">
-            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
-                <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="flex flex-col items-end gap-3 pointer-events-none">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
+                    <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                
+                {/* Tasto Audio sotto i gettoni - Ingrandito leggermente */}
+                {(gameState === 'PLAYING' || gameState === 'MENU') && (
+                    <button 
+                        onClick={() => {
+                            const nextState = !musicEnabled;
+                            setMusicEnabled(nextState);
+                            localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                        }}
+                        className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                        title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+                    >
+                        <img src={AUDIO_ICON_IMG} alt="Audio" className="h-16 w-auto md:h-24 w-auto drop-shadow-xl" />
+                    </button>
+                )}
             </div>
-            
-            {/* Tasto Audio sotto i gettoni - Ingrandito leggermente */}
-            {(gameState === 'PLAYING' || gameState === 'MENU') && (
-                <button 
-                    onClick={() => {
-                        const nextState = !musicEnabled;
-                        setMusicEnabled(nextState);
-                        localStorage.setItem('loneboo_game_music_enabled', String(nextState));
-                    }}
-                    className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-                    title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-                >
-                    <img src={AUDIO_ICON_IMG} alt="Audio" className="w-16 h-16 md:w-24 h-auto drop-shadow-xl" />
-                </button>
-            )}
         </div>
 
         {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}

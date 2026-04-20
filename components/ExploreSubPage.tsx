@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Settings, X, Crosshair, Map as MapIcon, Sparkles, Droplets, Wand2, Moon, Copy, Trash2, CheckCircle2 } from 'lucide-react';
 import { AppView } from '../types';
-import { OFFICIAL_LOGO } from '../constants';
+import { OFFICIAL_LOGO, TRANSITION_VIDEOS } from '../constants';
 import { getSubMusic, playSubMusic, pauseSubMusic } from '../services/bgMusic';
+import { preloadVideo } from '../services/imagePreloader';
 
 const EXPLORE_SUB_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esplrastoteraneird443.webp';
 const BTN_BACK_SUB = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/esicenigmi.webp';
@@ -83,7 +84,10 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
     useEffect(() => {
         const img = new Image();
         img.src = EXPLORE_SUB_BG;
-        img.onload = () => setIsLoaded(true);
+        img.onload = () => {
+            setIsLoaded(true);
+            preloadVideo(TRANSITION_VIDEOS.SUB_TO_OSCURITA);
+        };
         window.scrollTo(0, 0);
 
         const handleAudioChange = () => {
@@ -146,11 +150,11 @@ const ExploreSubPage: React.FC<ExploreSubPageProps> = ({ setView }) => {
 
             setZoomingTo({ x: targetX, y: targetY });
 
-            // Attendi la fine dell'animazione (più lenta) prima di cambiare vista
+            // Attendi la fine dell'animazione prima di cambiare vista (ridotto per mantenere il gesto utente)
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             timeoutRef.current = setTimeout(() => {
                 setView(area.id);
-            }, 2500);
+            }, 300);
         } else {
             setView(area.id);
         }

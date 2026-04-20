@@ -270,11 +270,11 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                 variant="YELLOW" 
             />
 
-            {/* MAIN GAME AREA - Ridotto pt per alzare il layout */}
-            <div className="relative z-10 w-full max-w-2xl flex flex-col items-center px-4 pt-40 md:pt-48">
+            {/* MAIN GAME AREA - Alzato per evitare sovrapposizioni con UI inferiore */}
+            <div className="relative z-10 w-full max-w-2xl flex flex-col items-center px-4 pt-28 md:pt-32">
                 
-                {/* TARGET BOX - Ridotto mb */}
-                <div className="w-[90%] max-w-md bg-yellow-400 rounded-[2.5rem] border-[6px] border-black p-4 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-1 mb-4 animate-in slide-in-from-top duration-700">
+                {/* TARGET BOX */}
+                <div className="w-[90%] max-w-md bg-yellow-400 rounded-[2.5rem] border-[6px] border-black p-4 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-1 mb-3 animate-in slide-in-from-top duration-700">
                     <span className="text-black font-black uppercase tracking-widest text-[10px] md:text-xs">OBIETTIVO</span>
                     <div className="lcd-container">
                         <div className="lcd-font text-4xl md:text-6xl lcd-ghost" dangerouslySetInnerHTML={{ __html: getFixedTimeHTML("88:88:88") }}></div>
@@ -282,21 +282,8 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                     </div>
                 </div>
 
-                {/* RUNNING TIMER BOX - Ridotto mb */}
-                <div className="w-[90%] max-w-md bg-yellow-400 rounded-[2.5rem] border-[6px] border-black p-4 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-1 mb-4 animate-in slide-in-from-bottom duration-700">
-                    <span className="text-black font-black uppercase tracking-widest text-[10px] md:text-xs">IL TUO TEMPO</span>
-                    <div className="lcd-container">
-                        <div className="lcd-font text-4xl md:text-6xl lcd-ghost" dangerouslySetInnerHTML={{ __html: getFixedTimeHTML("88:88:88") }}></div>
-                        <div 
-                            ref={timerDisplayRef}
-                            className={`lcd-font text-4xl md:text-6xl glow-green lcd-actual ${hasWon ? 'animate-flash' : ''}`}
-                            dangerouslySetInnerHTML={{ __html: getFixedTimeHTML(formatTime(lastElapsedRef.current)) }}
-                        ></div>
-                    </div>
-                </div>
-
-                {/* MESSAGGI DI STATO - Abbassati aggiungendo margine superiore */}
-                <div className="mt-8 md:mt-12 h-20 flex items-center justify-center w-full">
+                {/* MESSAGGI DI STATO - Spostati tra i due box per massima visibilità */}
+                <div className="h-16 md:h-24 flex items-center justify-center w-full my-2">
                     {gameState === 'FINISHED' && (
                         <div className="animate-in zoom-in duration-300 flex flex-col items-center">
                             {hasWon ? (
@@ -304,8 +291,8 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                                     <p className="text-cartoon-yellow text-2xl md:text-5xl uppercase tracking-tighter text-center leading-tight whitespace-nowrap">
                                         CHE RIFLESSI! SEI UN FENOMENO!
                                     </p>
-                                    <div className="bg-yellow-400 text-black font-black px-6 py-2 rounded-2xl border-4 border-black shadow-[4px_4px_0_black] animate-bounce flex items-center gap-2 text-lg md:text-xl mt-10">
-                                        <Trophy size={24} /> +30 <TokenIcon className="w-6 h-6" />
+                                    <div className="bg-yellow-400 text-black font-black px-6 py-2 rounded-2xl border-4 border-black shadow-[4px_4px_0_black] animate-bounce flex items-center gap-2 text-lg md:text-xl mt-4">
+                                        <Trophy size={20} /> +30 <TokenIcon className="w-5 h-5" />
                                     </div>
                                 </div>
                             ) : (
@@ -315,6 +302,19 @@ const StopwatchGame: React.FC<{ setView: (v: AppView) => void }> = ({ setView })
                             )}
                         </div>
                     )}
+                </div>
+
+                {/* RUNNING TIMER BOX */}
+                <div className="w-[90%] max-w-md bg-yellow-400 rounded-[2.5rem] border-[6px] border-black p-4 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-1 animate-in slide-in-from-bottom duration-700">
+                    <span className="text-black font-black uppercase tracking-widest text-[10px] md:text-xs">IL TUO TEMPO</span>
+                    <div className="lcd-container">
+                        <div className="lcd-font text-4xl md:text-6xl lcd-ghost" dangerouslySetInnerHTML={{ __html: getFixedTimeHTML("88:88:88") }}></div>
+                        <div 
+                            ref={timerDisplayRef}
+                            className={`lcd-font text-4xl md:text-6xl glow-green lcd-actual ${hasWon ? 'animate-flash' : ''}`}
+                            dangerouslySetInnerHTML={{ __html: getFixedTimeHTML(formatTime(lastElapsedRef.current)) }}
+                        ></div>
+                    </div>
                 </div>
             </div>
 

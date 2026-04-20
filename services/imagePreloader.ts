@@ -58,6 +58,31 @@ export const preloadComponent = (factory: () => Promise<any>) => {
     }
 };
 
+export const preloadVideo = (url: string) => {
+    if (PRELOADED_CACHE.has(url)) return;
+    
+    // Create a hidden video element to force caching
+    const video = document.createElement('video');
+    video.src = url;
+    video.preload = 'auto';
+    video.style.display = 'none';
+    video.muted = true;
+    document.body.appendChild(video);
+    
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'video';
+    link.href = url;
+    document.head.appendChild(link);
+    
+    PRELOADED_CACHE.add(url);
+    
+    // Cleanup after some time to not bloat the DOM
+    setTimeout(() => {
+        if (video.parentNode) video.parentNode.removeChild(video);
+    }, 10000);
+};
+
 export const clearPreloadCache = () => {
     PRELOADED_CACHE.clear();
 };

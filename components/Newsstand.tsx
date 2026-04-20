@@ -54,7 +54,8 @@ const playFanfare = () => {
     });
 };
 
-const CARD_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/card-passport.webp'; 
+const CARD_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_in+stile+cartoon+creami+l_imma_502556590207954946.webp'; 
+const PREVIEW_CARD_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/Hailuo_Image_nella+prima+immagine+fai+appar_502614009554735113.webp';
 const NEWSSTAND_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/edicolenwesw3300ijfnd3.webp';
 const NEWSSTAND_NIGHT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/edicolanottesdaa.webp';
 const EXIT_BTN_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/btn-back-park.webp';
@@ -124,10 +125,14 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
     const [isDuplicate, setIsDuplicate] = useState(false);
     const [viewingAlbum, setViewingAlbum] = useState(progress.currentAlbum || 1);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
+    const [restoreSuccess, setRestoreSuccess] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const scanRowRequestRef = useRef<number | null>(null);
 
     const currentBg = useMemo(() => {
         return isNightTime(now) ? NEWSSTAND_NIGHT_BG : NEWSSTAND_BG;
@@ -241,52 +246,103 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
         try {
             const canvas = canvasRef.current;
             if (!canvas) throw new Error("Canvas non trovato");
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
             if (!ctx) throw new Error("Contesto 2D non disponibile");
 
-            const bgImg = await loadSafeImage(CARD_BG);
-            canvas.width = bgImg.width;
-            canvas.height = bgImg.height;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(bgImg, 0, 0);
+            let bgImg: HTMLImageElement | null = null;
+            try {
+                bgImg = await loadSafeImage(CARD_BG);
+            } catch (e) {
+                console.warn("Sfondo tessera non caricato, uso fallback colorato:", e);
+            }
 
+            // Formato originale della tessera 2:3 (Portrait)
+            // Usiamo una risoluzione alta per la stampa/salvataggio
+            const width = 1000;
+            const height = 1500;
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (bgImg) {
+                ctx.drawImage(bgImg, 0, 0, width, height);
+            } else {
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#1e293b');
+                gradient.addColorStop(1, '#334155');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = '#6366f1';
+                ctx.lineWidth = 40;
+                ctx.strokeRect(20, 20, width - 40, height - 40);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 60px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("TESSERA MAGICA", width / 2, 150);
+                ctx.fillText("LONEBOO", width / 2, 230);
+            }
+
+            // Generazione QR migliorata: meno denso e più nitido
             const qrDataUrl = await QRCode.toDataURL(passportData, {
-                margin: 2,
-                width: 600,
-                errorCorrectionLevel: 'M',
+                margin: 4,
+                width: 1000, 
+                errorCorrectionLevel: 'M', // M è un buon compromesso tra robustezza e densità
                 color: { dark: '#000000', light: '#ffffff' }
             });
 
             const qrImg = await loadSafeImage(qrDataUrl);
-            const qrSize = Math.floor(canvas.width * 0.2);
-            const qrX = Math.floor(canvas.width * 0.62);
-            const qrY = Math.floor(canvas.height * 0.62);
+            const qrSize = Math.floor(width * 0.60); 
+            // Posizioniamo il QR code leggermente sopra il centro per un bilanciamento perfetto
+            const qrX = Math.floor((width - qrSize) / 2);
+            const qrY = Math.floor(height * 0.45); 
+            
+            // Sfondo bianco generoso con bordo scuro sottile per aiutare lo scanner a trovare i bordi
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(qrX - 25, qrY - 25, qrSize + 50, qrSize + 50);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(qrX - 25, qrY - 25, qrSize + 50, qrSize + 50);
+            
+            // Aggiunta data salvataggio sopra il QR Code
+            const months = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+            const saveDate = new Date();
+            const formattedDate = `${saveDate.getDate()} ${months[saveDate.getMonth()]} ${saveDate.getFullYear()}`;
+            const saveText = `Salvataggio del ${formattedDate}`;
+            
+            ctx.fillStyle = '#ffffff'; 
+            ctx.font = '700 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(saveText, width / 2, qrY - 50);
+            
+            // Reset shadow for other drawings
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            
             ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
             
-            const dataUrl = canvas.toDataURL('image/png');
+            const dataUrl = canvas.toDataURL('image/png', 1.0); // Massima qualità
             const link = document.createElement('a');
             link.download = `tessera-magica-loneboo-${Date.now()}.png`;
             link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Errore salvataggio:", err);
-            alert("Ops! C'è stato un problema nel creare la tua tessera. Riprova!");
+            alert(`Ops! C'è stato un problema: ${err.message || "Errore sconosciuto"}. Riprova!`);
         } finally {
             setIsGenerating(false);
         }
     };
 
-    /**
-     * Gestisce l'upload dell'immagine del passaporto
-     * Ottimizzato per evitare crash di memoria su dispositivi mobili
-     */
     const handleUploadPassport = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setIsGenerating(true); // Usiamo il loader anche per l'upload
+        setIsGenerating(true);
 
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -297,48 +353,46 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                     const ctx = canvas.getContext('2d', { willReadFrequently: true });
                     if (!ctx) throw new Error("Errore inizializzazione canvas lettura");
 
-                    // Rimpiccioliamo l'immagine se è troppo grande (> 1024px) 
-                    // per evitare crash di memoria (schermata bianca)
-                    const MAX_SIZE = 1024;
-                    let width = img.width;
-                    let height = img.height;
+                    // Strategia: proviamo a leggere l'immagine a diverse scale se fallisce
+                    const tryScan = (scale: number) => {
+                        const w = img.width * scale;
+                        const h = img.height * scale;
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        
+                        const imageData = ctx.getImageData(0, 0, w, h);
+                        return jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+                    };
 
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height *= MAX_SIZE / width;
-                            width = MAX_SIZE;
-                        }
-                    } else {
-                        if (height > MAX_SIZE) {
-                            width *= MAX_SIZE / height;
-                            height = MAX_SIZE;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const imageData = ctx.getImageData(0, 0, width, height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    // Prova 1: Risoluzione nativa (fino a 2048)
+                    let code = tryScan(img.width > 2048 ? 2048 / img.width : 1);
+                    
+                    // Prova 2: Se fallisce, prova a rimpicciolire (comodo per foto enormi degli smartphone)
+                    if (!code) code = tryScan(0.5);
+                    
+                    // Prova 3: Se fallisce ancora, prova a ingrandire (comodo per scaricati a bassa risoluzione)
+                    if (!code) code = tryScan(1.5);
 
                     if (code && code.data) {
                         if (restorePassport(code.data)) {
-                            alert("Bravissimo! Tutti i tuoi progressi sono stati recuperati! ✨");
-                            // Invece di reload() che può fallire, forziamo l'aggiornamento dello stato
+                            setRestoreSuccess(true);
                             const newProgress = getProgress();
                             setProgress(newProgress);
                             setViewingAlbum(newProgress.currentAlbum || 1);
-                            setActiveTab('ALBUM');
+                            // Rimuoviamo il cambio tab immediato per far vedere il messaggio
+                            setTimeout(() => setRestoreSuccess(false), 5000);
                         } else {
                             alert("Oh no! Questa immagine non sembra contenere una tessera magica valida.");
                         }
                     } else {
-                        alert("Non ho trovato nessun codice magico in questa foto. Assicurati che il quadratino nero sia ben visibile!");
+                        alert("Non ho trovato nessun codice magico in questa foto. Assicurati che l'immagine sia nitida. Se hai fatto uno screenshot, assicurati di aver preso tutto il QR code!");
                     }
                 } catch (err) {
                     console.error("Errore lettura tessera:", err);
-                    alert("C'è stato un errore nel leggere la foto. Forse l'immagine è troppo pesante.");
+                    alert("C'è stato un errore nel leggere la foto. Riprova con un'altra immagine.");
                 } finally {
                     setIsGenerating(false);
                     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -347,10 +401,73 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
             img.src = event.target?.result as string;
         };
         reader.onerror = () => {
-            setIsGenerating(false);
-            alert("Impossibile leggere il file selezionato.");
+             setIsGenerating(false);
+             alert("Impossibile leggere il file selezionato.");
         };
         reader.readAsDataURL(file);
+    };
+
+    /**
+     * Logica per la scansione via Fotocamera
+     */
+    const startCameraScanner = async () => {
+        setIsScanning(true);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.setAttribute("playsinline", "true");
+                videoRef.current.play();
+                requestAnimationFrame(tickScanner);
+            }
+        } catch (err) {
+            console.error("Errore camera:", err);
+            alert("Impossibile accedere alla fotocamera. Controlla i permessi del browser.");
+            setIsScanning(false);
+        }
+    };
+
+    const stopCameraScanner = () => {
+        if (scanRowRequestRef.current) cancelAnimationFrame(scanRowRequestRef.current);
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+        setIsScanning(false);
+    };
+
+    const tickScanner = () => {
+        if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && isScanning) {
+            const canvas = canvasRef.current;
+            if (canvas) {
+                const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                if (ctx) {
+                    canvas.height = videoRef.current.videoHeight;
+                    canvas.width = videoRef.current.videoWidth;
+                    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+
+                    if (code && code.data) {
+                        if (restorePassport(code.data)) {
+                            stopCameraScanner();
+                            setRestoreSuccess(true);
+                            const newProgress = getProgress();
+                            setProgress(newProgress);
+                            setViewingAlbum(newProgress.currentAlbum || 1);
+                            setTimeout(() => setRestoreSuccess(false), 5000);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        if (isScanning) {
+            scanRowRequestRef.current = requestAnimationFrame(tickScanner);
+        }
     };
 
     return (
@@ -494,12 +611,33 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                 )}
 
                 {activeTab === 'PASSPORT' && (
-                    <div className="w-full h-full flex flex-col items-center justify-start p-4 gap-2 overflow-hidden relative">
+                    <div className="w-full h-full flex flex-col items-center justify-between p-4 gap-2 overflow-hidden relative">
                         <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
                         
+                        {/* MESSAGGIO DI SUCCESSO CARTOON POTENZIATO */}
+                        {restoreSuccess && (
+                            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+                                <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[40px] border-4 border-white/40 shadow-[0_0_50px_rgba(255,255,255,0.3)] flex flex-col items-center animate-in zoom-in fade-in duration-500 max-w-sm w-full">
+                                    <div className="relative mb-4">
+                                        {/* Outline/Shadow effetto cartoon */}
+                                        <h2 className="text-6xl md:text-8xl font-black text-black absolute inset-0 translate-x-2 translate-y-2 opacity-40">Ottimo!</h2>
+                                        <h2 className="text-6xl md:text-8xl font-black text-yellow-400 relative z-10 drop-shadow-[0_4px_0_rgba(0,0,0,1)] tracking-tighter transform -rotate-3">Ottimo!</h2>
+                                    </div>
+                                    <div className="bg-black border-4 border-white px-6 py-2 rounded-2xl shadow-xl transform rotate-1 scale-110">
+                                        <p className="text-white font-black text-sm md:text-lg uppercase italic tracking-tight">Progressi Ripristinati! ✨</p>
+                                    </div>
+                                    <p className="text-white font-bold text-xs mt-6 opacity-80 text-center">Bentornato nel mondo di LoneBoo!</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex-1 w-full flex items-center justify-center min-h-0">
-                            <div className="relative group">
-                                <img src={CARD_BG} className="block w-auto h-auto max-w-full max-h-[45vh] md:max-h-[55vh] object-contain border-4 border-white rounded-2xl shadow-2xl" alt="Tessera" />
+                            <div className="relative group max-h-full aspect-[2/3]">
+                                <img 
+                                    src={PREVIEW_CARD_BG} 
+                                    className="block w-auto h-full max-w-full object-contain border-4 border-white rounded-2xl shadow-2xl" 
+                                    alt="Tessera" 
+                                />
                                 {isGenerating && (
                                     <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
                                         <Loader2 className="animate-spin text-blue-600" size={48} />
@@ -508,19 +646,57 @@ const Newsstand: React.FC<{ setView: (view: AppView) => void }> = ({ setView }) 
                             </div>
                         </div>
 
-                        <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/20 max-w-[500px] text-center mb-2 animate-in fade-in duration-500">
-                            <p className="text-white font-bold text-xs md:text-sm leading-tight">Scarica la tua <span className="text-yellow-400">Tessera Magica</span> per mettere al sicuro gettoni e figurine! Se cambi telefono potrai recuperare tutto caricando l'immagine. 👻</p>
+                        <div className="shrink-0 flex flex-col items-center w-full gap-2 mt-auto pb-4">
+                            <div className="bg-black/40 backdrop-blur-md px-6 py-2 rounded-2xl border-2 border-white/20 max-w-[500px] text-center animate-in fade-in duration-500">
+                                <p className="text-white font-bold text-[10px] md:text-sm leading-tight">Scarica la <span className="text-yellow-400">Tessera Magica</span> per mettere al sicuro gettoni e figurine! 👻</p>
+                            </div>
+
+                            <div className="w-full max-w-[500px] flex gap-2 px-2">
+                                <label className="flex-1 bg-yellow-400 text-black font-black text-[9px] md:text-xs py-3 rounded-xl border-b-4 border-yellow-600 shadow-md flex items-center justify-center gap-1 uppercase cursor-pointer active:translate-y-1 active:border-b-0 transition-all">
+                                    <Upload size={14} /> Carica
+                                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleUploadPassport} />
+                                </label>
+                                <button onClick={startCameraScanner} className="flex-1 bg-purple-500 text-white font-black text-[9px] md:text-xs py-3 rounded-xl border-b-4 border-purple-700 shadow-xl flex items-center justify-center gap-1 uppercase active:translate-y-1 active:border-b-0 transition-all">
+                                    <Camera size={14} /> Scanner
+                                </button>
+                                <button onClick={generateAndDownloadPassport} disabled={isGenerating} className="flex-1 bg-cyan-500 text-white font-black text-[9px] md:text-xs py-3 rounded-xl border-b-4 border-cyan-700 shadow-xl flex items-center justify-center gap-1 uppercase active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50">
+                                    <Download size={14} /> {isGenerating ? '...' : 'Salva'}
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="w-full max-w-[500px] flex gap-2 pb-24 px-4">
-                            <label className="flex-1 bg-yellow-400 text-black font-black text-xs py-4 rounded-xl border-b-4 border-yellow-600 shadow-md flex items-center justify-center gap-2 uppercase cursor-pointer active:translate-y-1 active:border-b-0 transition-all">
-                                <Upload size={18} /> Carica
-                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleUploadPassport} />
-                            </label>
-                            <button onClick={generateAndDownloadPassport} disabled={isGenerating} className="flex-1 bg-cyan-500 text-white font-black text-xs py-4 rounded-xl border-b-4 border-cyan-700 shadow-xl flex items-center justify-center gap-2 uppercase active:translate-y-1 active:border-b-0 transition-all disabled:opacity-50">
-                                <Download size={18} /> {isGenerating ? 'SALVO...' : 'Salva'}
-                            </button>
-                        </div>
+                        {/* Scanner Modal Overlay */}
+                        {isScanning && (
+                            <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4">
+                                <div className="relative w-full max-w-md aspect-square bg-slate-900 border-4 border-purple-500 rounded-3xl overflow-hidden shadow-2xl">
+                                    <video ref={videoRef} className="w-full h-full object-cover" />
+                                    {/* Scan Area Overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div className="w-[70%] h-[70%] border-2 border-white/50 rounded-2xl relative">
+                                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-purple-500 rounded-tl-lg"></div>
+                                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-purple-500 rounded-tr-lg"></div>
+                                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-purple-500 rounded-bl-lg"></div>
+                                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-purple-500 rounded-br-lg"></div>
+                                            
+                                            {/* Scanning Line Animation */}
+                                            <div className="absolute left-0 right-0 h-1 bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-scan-line top-1/2"></div>
+                                        </div>
+                                    </div>
+                                    <div className="absolute top-4 left-4 right-4 text-center">
+                                        <p className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white font-bold text-xs uppercase inline-block">Inquadra il QR Code della tessera</p>
+                                    </div>
+                                </div>
+                                <button onClick={stopCameraScanner} className="mt-8 bg-red-500 text-white font-black px-10 py-4 rounded-2xl border-b-6 border-red-800 shadow-xl active:translate-y-1 active:border-b-0 transition-all uppercase">Annulla</button>
+                            </div>
+                        )}
+                        
+                        <style>{`
+                            @keyframes scan-line {
+                                0%, 100% { top: 15%; opacity: 0.2; }
+                                50% { top: 85%; opacity: 1; }
+                            }
+                            .animate-scan-line { animation: scan-line 2s ease-in-out infinite; position: absolute; }
+                        `}</style>
                     </div>
                 )}
             </div>

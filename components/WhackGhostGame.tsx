@@ -224,41 +224,38 @@ const WhackGhostGame: React.FC<WhackGhostProps> = ({ onBack, onEarnTokens, onOpe
           draggable={false}
       />
 
-      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-none">
-          <div className="pointer-events-auto">
-              {difficulty ? (
-                <button onClick={resetMenu} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
-                  <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 w-auto drop-shadow-md" />
-                </button>
-              ) : (
-                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
-                  <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 w-auto drop-shadow-md" />
+      <div className="absolute top-[20px] left-4 right-4 z-[1300] flex items-start justify-between pointer-events-none">
+          <div className="flex gap-2 pointer-events-auto">
+              <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                  <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+              </button>
+              {difficulty && (
+                <button onClick={resetMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                  <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-10 md:h-12 w-auto" />
                 </button>
               )}
           </div>
 
-          <div className="pointer-events-auto">
-              <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl">
+          <div className="flex flex-col items-end gap-3 pointer-events-none">
+              <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border-2 border-white/50 flex items-center gap-2 text-white font-black text-sm md:text-lg shadow-xl pointer-events-auto">
                   <span>{userTokens}</span> <TokenIcon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
+
+              <button 
+                  onClick={() => {
+                      const nextState = !musicEnabled;
+                      setMusicEnabled(nextState);
+                      localStorage.setItem('loneboo_game_music_enabled', String(nextState));
+                  }}
+                  className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
+                  title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
+              >
+                  <img src={AUDIO_ICON_IMG} alt="Audio" className="h-14 md:h-20 w-auto drop-shadow-xl" />
+              </button>
           </div>
       </div>
 
       {showUnlockModal && <UnlockModal onClose={() => setShowUnlockModal(false)} onUnlock={handleUnlockHard} onOpenNewsstand={handleOpenNewsstand} currentTokens={userTokens} />}
-
-      <div className="absolute top-[130px] md:top-[170px] right-4 z-[300] flex flex-col items-end gap-3 pointer-events-none">
-          <button 
-              onClick={() => {
-                  const nextState = !musicEnabled;
-                  setMusicEnabled(nextState);
-                  localStorage.setItem('loneboo_game_music_enabled', String(nextState));
-              }}
-              className={`pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none ${!musicEnabled ? 'grayscale opacity-60' : ''}`}
-              title={musicEnabled ? "Spegni Musica" : "Accendi Musica"}
-          >
-              <img src={AUDIO_ICON_IMG} alt="Audio" className="w-14 h-14 md:w-20 h-auto drop-shadow-xl" />
-          </button>
-      </div>
 
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-start pt-52 md:pt-64 p-4">
           {!isPlaying && !gameResult && (

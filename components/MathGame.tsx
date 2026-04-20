@@ -196,14 +196,14 @@ export const MathGame: React.FC<MathGameProps> = ({ onBack, onEarnTokens }) => {
         <img src={currentBg} alt="" className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0 animate-in fade-in duration-1000" />
         
         {/* HUD SUPERIORE */}
-        <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-start justify-between z-50 pointer-events-none">
-            <div className="flex flex-col items-start gap-2 pointer-events-auto">
-                <button onClick={onBack} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer outline-none">
-                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-12 w-auto drop-shadow-md" />
+        <div className="absolute top-[20px] left-4 right-4 z-[1300] flex justify-between items-center pointer-events-none">
+            <div className="flex gap-2 pointer-events-auto">
+                <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                    <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
                 </button>
                 {selectedOp && (
-                    <button onClick={() => setSelectedOp(null)} className="hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                        <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-12 md:h-16 w-auto drop-shadow-md" />
+                    <button onClick={() => setSelectedOp(null)} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                        <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-10 md:h-12 w-auto" />
                     </button>
                 )}
             </div>

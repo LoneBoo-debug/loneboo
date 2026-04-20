@@ -238,15 +238,14 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onEarnTokens, onOpenNew
       />
 
       {/* TOP HUD: BACK BUTTON AND TOKENS */}
-      <div className="absolute top-[80px] md:top-[120px] left-0 right-0 px-4 flex items-center justify-between z-50 pointer-events-auto">
-          <div className="pointer-events-auto">
-              {gameState === 'PLAYING' || gameState === 'WON' || gameState === 'GAME_OVER' ? (
+      <div className="absolute top-[20px] left-4 right-4 z-[1300] flex items-center justify-between pointer-events-none">
+          <div className="flex gap-2 pointer-events-auto">
+              <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
+                  <img src={EXIT_BTN_IMG} alt="Ritorna al Parco" className="h-10 md:h-12 w-auto" />
+              </button>
+              {(gameState === 'PLAYING' || gameState === 'WON' || gameState === 'GAME_OVER') && (
                   <button onClick={returnToMenu} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                      <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-16 md:h-22 w-auto" />
-                  </button>
-              ) : (
-                  <button onClick={onBack} className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-xl p-0 cursor-pointer touch-manipulation">
-                      <img src={EXIT_BTN_IMG} alt="Esci" className="h-12 md:h-18 w-auto" />
+                      <img src={BTN_BACK_MENU_IMG} alt="Menu" className="h-10 md:h-12 w-auto" />
                   </button>
               )}
           </div>

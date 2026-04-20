@@ -1,6 +1,6 @@
 {
   "name": "Lone Boo",
-  "description": "Sezione Pneumatici del Negozio di Ricambi di Città Grigia. Catalogo interattivo di pneumatici con specifiche tecniche e costi.",
+  "description": "Porta sempre con te il tuo amico fantasma Lone Boo! Colleziona figurine, esplora città magiche e salva i tuoi progressi con la Tessera Magica.",
   "requestFramePermissions": [
     "camera",
     "microphone"
