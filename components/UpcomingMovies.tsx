@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { AppView } from '../types';
 import { fetchUpcomingMovies, UpcomingMovie } from '../services/movieService';
 import { X } from 'lucide-react';
@@ -8,44 +8,19 @@ interface UpcomingMoviesProps {
     setView: (view: AppView) => void;
 }
 
-interface ItemConfig {
-    x: number;
-    y: number;
-    scale: number;
-    rotate: number;
-    skewX: number;
-    skewY: number;
-}
-
-interface MovieConfig {
-    poster: ItemConfig;
-    content: ItemConfig;
-}
-
 const BACKGROUND_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/anteprimelocandinefilm44.webp';
 
 const UpcomingMovies: React.FC<UpcomingMoviesProps> = ({ setView }) => {
     const [movies, setMovies] = useState<UpcomingMovie[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Final coordinates for 4 movies
-    const configs: MovieConfig[] = [
-        {
-            poster: { x: -72, y: -153, scale: 0.4, rotate: 1, skewX: 0, skewY: 0 },
-            content: { x: 49, y: -393, scale: 0.45, rotate: 1, skewX: 0, skewY: 0 }
-        },
-        {
-            poster: { x: -70, y: -558, scale: 0.4, rotate: 1, skewX: 0, skewY: 0 },
-            content: { x: 46.5, y: -807.5, scale: 0.45, rotate: 1, skewX: 0, skewY: 0 }
-        },
-        {
-            poster: { x: -68.5, y: -962.5, scale: 0.4, rotate: 1, skewX: 0, skewY: 0 },
-            content: { x: 50.5, y: -1222.5, scale: 0.45, rotate: 1, skewX: 0, skewY: 0 }
-        },
-        {
-            poster: { x: -69.5, y: -1411.5, scale: 0.4, rotate: 1, skewX: 0, skewY: 0 },
-            content: { x: 49.5, y: -1642.5, scale: 0.45, rotate: 1, skewX: 0, skewY: 0 }
-        }
+    // Percentage based positions to ensure responsiveness on all devices.
+    // These coordinates map precisely to the 4 visual slots in the background image.
+    const positions = [
+        { top: '13.5%', left: '16%', height: '17%' },
+        { top: '34.5%', left: '16%', height: '17%' },
+        { top: '55.5%', left: '16%', height: '17%' },
+        { top: '76.8%', left: '16%', height: '17%' },
     ];
 
     useEffect(() => {
@@ -65,93 +40,81 @@ const UpcomingMovies: React.FC<UpcomingMoviesProps> = ({ setView }) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-0 overflow-hidden bg-black"
         >
-            {/* Background */}
+            {/* Background - object-fill guarantees that percentages will always land on the same spot of the image */}
             <img 
                 src={BACKGROUND_IMG} 
                 alt="Upcoming Movies Background" 
-                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+                className="absolute inset-0 w-full h-full object-fill select-none pointer-events-none"
                 referrerPolicy="no-referrer"
             />
 
-            {/* Content */}
-            <div className="relative z-10 w-full h-full flex flex-col p-4 md:p-8 overflow-hidden">
+            {/* Content Container */}
+            <div className="absolute inset-0 w-full h-full z-10 p-4 md:p-8">
                 
                 {/* Header with Close Button */}
-                <div className="flex items-center justify-end mb-8 pt-16 md:pt-4">
+                <div className="flex items-center justify-end pt-12 md:pt-4 pr-2">
                     <button 
                         onClick={() => setView(AppView.CINEMA_PREVIEW)}
                         className="p-2 bg-red-600 text-white rounded-full border-4 border-white shadow-2xl hover:scale-110 active:scale-95 transition-all"
                     >
-                        <X size={32} strokeWidth={3} />
+                        <X size={28} className="md:w-8 md:h-8" strokeWidth={3} />
                     </button>
                 </div>
 
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
                     </div>
                 ) : (
-                    <div className="max-w-6xl mx-auto w-full space-y-24 pb-40">
-                        {movies.map((movie, index) => (
-                            <div 
-                                key={index}
-                                className="relative flex flex-col md:flex-row gap-8 items-center md:items-start min-h-[300px]"
-                            >
-                                {/* Thumbnail */}
-                                <motion.div 
-                                    animate={{ 
-                                        x: configs[index].poster.x,
-                                        y: configs[index].poster.y,
-                                        scale: configs[index].poster.scale,
-                                        rotate: configs[index].poster.rotate,
-                                        skewX: configs[index].poster.skewX,
-                                        skewY: configs[index].poster.skewY
-                                    }}
-                                    transition={{ duration: 0 }}
-                                    className="relative shrink-0 overflow-hidden rounded-2xl border-2 border-white/10 shadow-lg w-40 md:w-56 aspect-[2/3]"
-                                >
-                                    <img 
-                                        src={movie.thumbnail} 
-                                        alt={movie.title} 
-                                        className="w-full h-full object-cover pointer-events-none"
-                                        referrerPolicy="no-referrer"
-                                    />
-                                </motion.div>
+                    <div className="absolute inset-0 w-full h-full pointer-events-none">
+                        {movies.map((movie, index) => {
+                            const pos = positions[index];
+                            if (!pos) return null;
 
-                                {/* Info */}
-                                <motion.div 
-                                    animate={{ 
-                                        x: configs[index].content.x,
-                                        y: configs[index].content.y,
-                                        scale: configs[index].content.scale,
-                                        rotate: configs[index].content.rotate,
-                                        skewX: configs[index].content.skewX,
-                                        skewY: configs[index].content.skewY
+                            return (
+                                <div 
+                                    key={index}
+                                    className="absolute flex items-center gap-[4%] w-[70%] max-w-4xl"
+                                    style={{ 
+                                        top: pos.top, 
+                                        left: pos.left, 
+                                        height: pos.height 
                                     }}
-                                    transition={{ duration: 0 }}
-                                    className="flex-1 flex flex-col h-full text-center md:text-left"
                                 >
-                                    <h2 className="font-luckiest text-red-600 text-4xl md:text-7xl uppercase tracking-wide mb-3 drop-shadow-lg">
-                                        {movie.title}
-                                    </h2>
-                                    <p className="text-blue-600 font-bold text-xl md:text-4xl leading-tight mb-6 drop-shadow-md line-clamp-2">
-                                        {movie.description}
-                                    </p>
-                                    {movie.releaseDate && (
-                                        <div className="flex justify-center md:justify-start">
-                                            <div className="bg-yellow-400 text-black font-black px-6 py-2 rounded-xl text-xl md:text-3xl uppercase shadow-[4px_4px_0px_rgba(0,0,0,0.2)] transform -rotate-2 inline-block border-2 border-black/10">
-                                                {movie.releaseDate}
+                                    {/* Thumbnail sticker-style */}
+                                    <div className="h-full aspect-[2/3] shrink-0 overflow-hidden rounded-lg border-2 border-white/30 shadow-2xl transform rotate-1">
+                                        <img 
+                                            src={movie.thumbnail} 
+                                            alt={movie.title} 
+                                            className="w-full h-full object-cover"
+                                            referrerPolicy="no-referrer"
+                                        />
+                                    </div>
+
+                                    {/* Movie Info */}
+                                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                                        <h2 className="font-luckiest text-red-600 text-[1.2rem] sm:text-[1.8rem] md:text-[3rem] uppercase leading-none mb-1 drop-shadow-md truncate">
+                                            {movie.title}
+                                        </h2>
+                                        <p className="text-blue-700 font-bold text-[0.7rem] sm:text-[0.9rem] md:text-[1.8rem] leading-tight mb-2 line-clamp-2 drop-shadow-sm">
+                                            {movie.description}
+                                        </p>
+                                        {movie.releaseDate && (
+                                            <div className="flex justify-start">
+                                                <div className="bg-yellow-400 text-black font-black px-2 py-0.5 md:px-4 md:py-1 rounded-lg text-[0.6rem] sm:text-[0.8rem] md:text-[1.4rem] uppercase shadow-md transform -rotate-1 inline-block border border-black/10">
+                                                    {movie.releaseDate}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            </div>
-                        ))}
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
 
                         {movies.length === 0 && (
-                            <div className="text-center py-20">
+                            <div className="absolute inset-0 flex items-center justify-center">
                                 <p className="text-white font-luckiest text-2xl uppercase opacity-60">
-                                    Nessuna anteprima disponibile al momento
+                                    Prossimamente...
                                 </p>
                             </div>
                         )}
