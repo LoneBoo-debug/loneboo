@@ -191,7 +191,7 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
         <div className="flex-1 flex flex-col justify-end min-h-0 relative z-30 pb-12 md:pb-20">
           
           {/* ZUCCOTTO - ALZATO LEGGERMENTE */}
-          <div className="absolute right-[-20px] bottom-[14%] md:bottom-[18%] w-48 md:w-[32rem] z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
+          <div className="absolute right-[-20px] bottom-[14%] w-48 md:w-64 z-20 pointer-events-none animate-in slide-in-from-right duration-1000">
              <div className="relative">
                 <img src={ZUCCOTTO_POPCORN} alt="" className="w-full h-auto drop-shadow-2xl brightness-110" />
              </div>
@@ -205,16 +205,16 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
             </div>
 
             <div className="film-strip">
-                <div className="flex overflow-x-auto gap-4 md:gap-8 px-8 py-2 custom-scroll snap-x scroll-smooth no-scrollbar">
+                <div className="flex overflow-x-auto gap-4 md:gap-6 px-8 py-2 custom-scroll snap-x scroll-smooth no-scrollbar">
                     {videos.map((video) => (
-                        <div key={video.id} onClick={() => setSelectedVideo(video)} className="flex-shrink-0 w-[180px] md:w-[280px] snap-center group cursor-pointer">
+                        <div key={video.id} onClick={() => setSelectedVideo(video)} className="flex-shrink-0 w-[180px] md:w-[220px] snap-center group cursor-pointer">
                             <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:border-yellow-400">
                                 <img src={video.thumbnail} alt="" className="w-full h-full object-cover opacity-90 group-hover:opacity-100" loading="lazy" />
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors flex items-center justify-center">
                                     <CirclePlay className="text-white w-10 h-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
                                 <div className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-md px-2 py-1.5">
-                                    <h3 className="font-black text-white text-[9px] md:text-xs line-clamp-1 uppercase text-center">{video.title}</h3>
+                                    <h3 className="font-black text-white text-[9px] md:text-[10px] line-clamp-1 uppercase text-center">{video.title}</h3>
                                 </div>
                             </div>
                         </div>
@@ -224,12 +224,12 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ setView }) => {
           </div>
 
           {/* AREA TASTI NAVIGAZIONE */}
-          <div className="w-full max-w-7xl mx-auto flex flex-col items-start gap-4 md:gap-6 relative z-30 px-6">
-              <div className="flex justify-start gap-4 md:gap-8 w-full">
-                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
+          <div className="w-full max-w-7xl mx-auto flex flex-col items-start gap-4 relative z-30 px-6">
+              <div className="flex justify-start gap-4 w-full">
+                  <button onClick={() => setView(AppView.CITY_MAP)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px]">
                       <img src={RETURN_CITY_BTN_IMG} alt="Torna in Città" className="w-full h-auto drop-shadow-xl" />
                   </button>
-                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px] md:max-w-[110px]">
+                  <button onClick={(e) => handleExternalClick(e, YT_CHANNEL_URL)} className="hover:scale-105 active:scale-95 transition-all outline-none group flex-1 max-w-[85px]">
                       <img src={OFFICIAL_CHANNEL_BTN_IMG} alt="YouTube" className="w-full h-auto drop-shadow-xl" />
                   </button>
               </div>

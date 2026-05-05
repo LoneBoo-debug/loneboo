@@ -5,6 +5,19 @@ import { requestWakeLock, releaseWakeLock } from './services/wakeLockService';
 import ServicePage from './components/ServicePage';
 import { addTokens } from './services/tokens';
 import { preloadImages, preloadComponent, preloadVideo } from './services/imagePreloader';
+import { motion, AnimatePresence } from 'motion/react';
+
+const VIEW_BACKGROUNDS: Partial<Record<AppView, string>> = {
+  [AppView.CITY_MAP]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcitta99ejdj3.webp',
+  [AppView.BOO_HOUSE]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+  [AppView.BOO_GARDEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+  [AppView.BOO_BEDROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+  [AppView.BOO_LIVING_ROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+  [AppView.BOO_BATHROOM]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+  [AppView.BOO_KITCHEN]: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp',
+};
+
+const DEFAULT_BG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfondo+desktopuurre44.webp';
 
 import MagicEye from './components/MagicEye';
 import MagicTowerSub from './components/MagicTowerSub';
@@ -99,6 +112,7 @@ const MountainCityOssa = lazy(() => import('./components/MountainCityOssa'));
 const MountainCityFossili = lazy(() => import('./components/MountainCityFossili'));
 const CinemaPreview = lazy(() => import('./components/CinemaPreview'));
 const UpcomingMovies = lazy(() => import('./components/UpcomingMovies'));
+const VistaTorre = lazy(() => import('./components/VistaTorre'));
 
 const KitchenRoom = lazy(() => import('./components/rooms/KitchenRoom'));
 const LivingRoom = lazy(() => import('./components/rooms/LivingRoom'));
@@ -134,7 +148,10 @@ const App: React.FC = () => {
         'https://loneboo-images.s3.eu-south-1.amazonaws.com/nuvoprcogiochi44r4e3w.webp', // Parco
         'https://loneboo-images.s3.eu-south-1.amazonaws.com/scoolentrancearaindows33wa.webp', // Scuola
         'https://loneboo-images.s3.eu-south-1.amazonaws.com/bgdfre554de32.webp', // Casa Map
-        'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp' // Piazza
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/newplaceplazavoboo8us.webp', // Piazza
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcasadeshkyt.webp', // Sfondo Casa Desktop
+        'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfcitta99ejdj3.webp', // Sfondo Citta Desktop
+        DEFAULT_BG
     ];
     preloadImages(criticalAssets, 'HIGH');
 
@@ -194,6 +211,26 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans flex flex-col relative w-full h-full">
+        {/* Dynamic Desktop Background */}
+        <div className="fixed inset-0 -z-10 hidden lg:block overflow-hidden bg-[#4c1d95]">
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={VIEW_BACKGROUNDS[currentView] || DEFAULT_BG}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1, ease: "easeInOut" }}
+                    className="absolute inset-0 w-full h-full"
+                >
+                    <img 
+                        src={VIEW_BACKGROUNDS[currentView] || DEFAULT_BG} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                    />
+                </motion.div>
+            </AnimatePresence>
+        </div>
+
         <Suspense fallback={null}>
             {![
                 AppView.LAKE_CITY_MOLO,
@@ -287,6 +324,7 @@ const App: React.FC = () => {
                 {currentView === AppView.BOO_GARDEN && <GardenRoom setView={handleSetView} />}
                 {currentView === AppView.CINEMA_PREVIEW && <CinemaPreview setView={handleSetView} returnView={cinemaReturnView} />}
                 {currentView === AppView.UPCOMING_MOVIES && <UpcomingMovies setView={handleSetView} />}
+                {currentView === AppView.VISTA_TORRE && <VistaTorre setView={handleSetView} />}
                 {currentView === AppView.SOCIALS && <SocialHub setView={handleSetView} />}
                 {currentView === AppView.TRAIN_JOURNEY && <TrainJourneyPlaceholder setView={handleSetView} />}
                 {currentView === AppView.PREMIUM_INFO && <PremiumInfoPage setView={handleSetView} returnView={premiumReturnView} />}

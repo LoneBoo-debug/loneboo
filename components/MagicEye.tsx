@@ -21,7 +21,8 @@ const BG_STORY_DICE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sflanc
 const BG_MAGIC_HAT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/sfomagihaatdfeb432ws.webp';
 
 // Portale Sotterranei
-const BTN_SUB_TOWER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaineisotteindic.webp';
+const BTN_SUB_TOWER = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/scedrfgthyjuk.webp';
+const BTN_SALI_TORRE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/saliopkijuhyg.webp';
 
 // Asset Audio e Video Ambientali
 const AMBIENT_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/torremagicaspeechboo4e4e4.mp3';
@@ -258,8 +259,8 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
         )}
 
         {isLoaded && isAudioOn && isAmbientPlaying && !activeGame && (
-            <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
-                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+            <div className="absolute top-20 left-4 z-[110] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28">
                     <video 
                         src={BOO_TALK_VIDEO}
                         autoPlay 
@@ -275,32 +276,45 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
         )}
 
         {isLoaded && !activeGame && (
-            <div className="absolute top-1 md:top-2 left-0 md:left-1 z-50 animate-in slide-in-from-left duration-500">
+            <div className="absolute top-1 left-0 z-50 animate-in slide-in-from-left duration-500">
                 <button 
                     onClick={() => setView(AppView.CITY_MAP)}
                     className="hover:scale-110 active:scale-95 transition-all outline-none drop-shadow-2xl"
                 >
-                    <img src={BTN_BACK_CITY} alt="Torna in Città" className="h-64 md:h-[600px] w-auto drop-shadow-xl" />
+                    <img src={BTN_BACK_CITY} alt="Torna in Città" className="h-64 w-auto drop-shadow-xl" />
                 </button>
             </div>
         )}
 
-        {/* PORTALE SOTTERRANEI (SOSTITUISCE ROBOTHINT) */}
+        {/* BOTTONI NAVIGAZIONE TORRE (SOTTERRANEI E VISTA TORRE) */}
         {isLoaded && !activeGame && (
-            <button 
-                onClick={startSubterraneanTransition}
-                className="absolute bottom-6 right-6 z-[120] hover:scale-110 active:scale-95 transition-all outline-none animate-in slide-in-from-bottom duration-700"
-            >
-                <img 
-                    src={BTN_SUB_TOWER} 
-                    alt="Sotterranei" 
-                    className="w-40 md:w-72 h-auto drop-shadow-2xl" 
-                />
-            </button>
+            <div className="absolute bottom-6 left-6 right-6 z-[120] flex justify-between items-end pointer-events-none">
+                <button 
+                    onClick={startSubterraneanTransition}
+                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none animate-in slide-in-from-left duration-700"
+                >
+                    <img 
+                        src={BTN_SUB_TOWER} 
+                        alt="Sotterranei" 
+                        className="w-40 h-auto drop-shadow-2xl" 
+                    />
+                </button>
+
+                <button 
+                    onClick={() => setView(AppView.VISTA_TORRE)}
+                    className="pointer-events-auto hover:scale-110 active:scale-95 transition-all outline-none animate-in slide-in-from-right duration-700"
+                >
+                    <img 
+                        src={BTN_SALI_TORRE} 
+                        alt="Sali sulla Torre" 
+                        className="w-40 h-auto drop-shadow-2xl" 
+                    />
+                </button>
+            </div>
         )}
         
         <div className="relative w-full h-full overflow-hidden select-none">
-            <div className="block md:hidden w-full h-full relative">
+            <div className="w-full h-full relative">
                 <img 
                     src={currentBg} 
                     alt="Torre Magica" 
@@ -308,18 +322,6 @@ const MagicEye: React.FC<MagicEyeProps> = ({ setView }) => {
                     draggable={false} 
                 />
                 {isLoaded && ZONES_DATA.map((zone, i) => (
-                    <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
-                ))}
-            </div>
-
-            <div className="hidden md:block w-full h-full relative overflow-hidden">
-                <img 
-                    src={currentBg} 
-                    alt="Torre Magica Desktop" 
-                    className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
-                    draggable={false} 
-                />
-                {isLoaded && ZONES_DESKTOP.map((zone, i) => (
                     <div key={i} onClick={() => handleZoneClick(zone.id)} className="absolute inset-0 cursor-pointer z-20" style={{ clipPath: getClipPath(zone.points) }}></div>
                 ))}
             </div>

@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { COLORING_DATABASE } from '../services/coloringDatabase';
 import { ColoringCategory, AppView } from '../types';
-import { Download, ZoomIn, X, Construction } from 'lucide-react';
+import { Download, ZoomIn, X, Construction, Play } from 'lucide-react';
 import { OFFICIAL_LOGO } from '../constants';
 import { isNightTime } from '../services/weatherService';
+import { motion, AnimatePresence } from 'motion/react';
 
 const SCHOOL_BG_MOBILE = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/academy-mobile.webp';
 const SCHOOL_BG_NIGHT = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/accademianottesa.webp';
@@ -14,6 +15,14 @@ const BTN_BACK_ACCADEMIA_IMG = 'https://i.postimg.cc/sDLjTmQX/TORNACCADEMIA-(1)-
 const CONSTRUCTION_IMG = 'https://i.postimg.cc/13NBmSgd/vidu-image-3059119613071461-(1).png';
 const BTN_GOTO_SCHOOL_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vaia+scuola.png';
 const BTN_BACK_CITY_IMG = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/trneds.png';
+
+// Video Raffa
+const VIDEO_MINIATURES = [
+    { title: 'Colora con Raffa', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/coloriraffa4432.webp', videoId: 'ITXXdl8HxEM' },
+    { title: 'Le Forme', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/formeraffa4322.webp', videoId: '9SZg6y_kRvM' },
+    { title: 'Le Stagioni', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/stagioniraffa44.webp', videoId: '0XPBT-MBnPA' },
+    { title: 'Le Vocali', img: 'https://loneboo-images.s3.eu-south-1.amazonaws.com/vocaliraffa4421.webp', videoId: 'W12CrAsUK-w' }
+];
 
 // Asset Audio e Video
 const ACADEMY_VOICE_URL = 'https://loneboo-images.s3.eu-south-1.amazonaws.com/bf1cde66-0232-492f-a201-1fff9144d3e2.mp3';
@@ -59,6 +68,7 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
   const [now, setNow] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState<ColoringCategory | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAudioOn, setIsAudioOn] = useState(() => localStorage.getItem('loneboo_music_enabled') === 'true');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -300,6 +310,65 @@ const ColoringSection: React.FC<{ setView: (v: AppView) => void }> = ({ setView 
                 </button>
             </div>
         )}
+
+        {/* --- MINIATURE VIDEO RAFFA (IN COLONNA A DESTRA) --- */}
+        {isLoaded && (
+            <div className="absolute top-[15%] right-[2%] z-40 flex flex-col gap-2 md:gap-4 items-center">
+                {VIDEO_MINIATURES.map((video, idx) => (
+                    <motion.button
+                        key={idx}
+                        whileHover={{ scale: 1.1, x: -10 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setActiveVideo(video.videoId)}
+                        className="relative w-[72px] h-[72px] md:w-[120px] md:h-[120px] rounded-2xl md:rounded-[2rem] shadow-2xl overflow-hidden group outline-none"
+                    >
+                        <img src={video.img} alt={video.title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors flex items-center justify-center">
+                            <div className="bg-white/30 backdrop-blur-sm p-1 md:p-2 rounded-full border border-white/50">
+                                <Play size={16} className="text-white fill-white md:w-6 md:h-6" />
+                            </div>
+                        </div>
+                    </motion.button>
+                ))}
+            </div>
+        )}
+
+        {/* --- POPUP VIDEO YOUTUBE --- */}
+        <AnimatePresence>
+            {activeVideo && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+                    onClick={() => setActiveVideo(null)}
+                >
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="relative w-full max-w-5xl aspect-video rounded-3xl overflow-hidden border-4 md:border-8 border-white shadow-2xl bg-black"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => setActiveVideo(null)}
+                            className="absolute top-4 right-4 z-10 bg-red-500 text-white p-2 rounded-full border-4 border-white shadow-xl hover:scale-110 active:scale-95 transition-all outline-none"
+                        >
+                            <X size={20} strokeWidth={4} />
+                        </button>
+                        
+                        <iframe
+                            src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="w-full h-full"
+                        ></iframe>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     </div>
   );
 };

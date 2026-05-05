@@ -144,17 +144,17 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
         {/* TASTO INVIA DISEGNO */}
         {renderPolygonalArea(activeSignInvia, (
             <div className="w-full h-full flex flex-col items-center justify-center relative">
-                <img src={BTN_INVIA_DISEGNO} alt="Invia Disegno" className="w-32 md:w-56 h-auto drop-shadow-lg" />
+                <img src={BTN_INVIA_DISEGNO} alt="Invia Disegno" className="w-32 h-auto drop-shadow-lg" />
             </div>
         ), () => setIsSendModalOpen(true), 30, false)}
 
         {renderPolygonalArea(activeSignGallery, (
             <div className="w-full h-full relative pointer-events-none">
-                <div onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(true); }} className="absolute bottom-20 md:bottom-28 left-0 pointer-events-auto cursor-pointer">
-                    <img src={BTN_VAI_GALLERIA} alt="Galleria" className="w-24 md:w-32 h-auto drop-shadow-lg" />
+                <div onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(true); }} className="absolute bottom-20 left-0 pointer-events-auto cursor-pointer">
+                    <img src={BTN_VAI_GALLERIA} alt="Galleria" className="w-24 h-auto drop-shadow-lg" />
                 </div>
                 <div onClick={(e) => { e.stopPropagation(); if (setView) setView(AppView.CITY_MAP); }} className="absolute bottom-2 right-0 pointer-events-auto cursor-pointer">
-                    <img src={BTN_TORNA_CITTA} alt="Vai in Città" className="w-32 md:w-44 h-auto drop-shadow-xl" />
+                    <img src={BTN_TORNA_CITTA} alt="Vai in Città" className="w-32 h-auto drop-shadow-xl" />
                 </div>
             </div>
         ), () => {}, 30, false)}
@@ -173,8 +173,8 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
 
         {/* Mini TV di Boo - Posizionato a SINISTRA */}
         {bgLoaded && isAudioOn && isPlaying && (
-            <div className="absolute top-20 md:top-28 left-4 z-[110] animate-in zoom-in duration-500">
-                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 md:border-8 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28 md:w-52 md:h-52">
+            <div className="absolute top-20 left-4 z-[110] animate-in zoom-in duration-500">
+                <div className="relative bg-black/40 backdrop-blur-sm p-0 rounded-[2.5rem] border-4 border-yellow-400 shadow-2xl overflow-hidden flex items-center justify-center w-28 h-28">
                     <video 
                         src={BOO_TALK_VIDEO}
                         autoPlay
@@ -193,14 +193,9 @@ const FanArtGallery: React.FC<FanArtGalleryProps> = ({ setView }) => {
         )}
 
         <div className="relative w-full h-full overflow-hidden">
-            <div className="block md:hidden absolute inset-0 w-full h-full overflow-hidden">
-                <img src={MUSEUM_BG_MOBILE} alt="Museo Mobile" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+                <img src={MUSEUM_BG_MOBILE} alt="Museo" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
                 {bgLoaded && renderInteractives(false)}
-            </div>
-
-            <div className="hidden md:block absolute inset-0 w-full h-full overflow-hidden">
-                <img src={MUSEUM_BG_DESKTOP} alt="Museo Desktop" className={`absolute inset-0 w-full h-full object-fill object-center transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} />
-                {bgLoaded && renderInteractives(true)}
             </div>
         </div>
 
